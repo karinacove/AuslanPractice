@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auslan Wordle</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="script.js"></script>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Auslan Wordle</h1>
+        <div id="word-grid"></div>
+        <div id="fingerspelling-display"></div>
+        <div id="keyboard" class="qwerty-layout">
+            <div class="row">
+                <button data-key="Q" onclick="showSign('Q')">Q</button>
+                <button data-key="W" onclick="showSign('W')">W</button>
+                <button data-key="E" onclick="showSign('E')">E</button>
+                <button data-key="R" onclick="showSign('R')">R</button>
+                <button data-key="T" onclick="showSign('T')">T</button>
+                <button data-key="Y" onclick="showSign('Y')">Y</button>
+                <button data-key="U" onclick="showSign('U')">U</button>
+                <button data-key="I" onclick="showSign('I')">I</button>
+                <button data-key="O" onclick="showSign('O')">O</button>
+                <button data-key="P" onclick="showSign('P')">P</button>
+            </div>
+            <div class="row">
+                <button data-key="A" onclick="showSign('A')">A</button>
+                <button data-key="S" onclick="showSign('S')">S</button>
+                <button data-key="D" onclick="showSign('D')">D</button>
+                <button data-key="F" onclick="showSign('F')">F</button>
+                <button data-key="G" onclick="showSign('G')">G</button>
+                <button data-key="H" onclick="showSign('H')">H</button>
+                <button data-key="J" onclick="showSign('J')">J</button>
+                <button data-key="K" onclick="showSign('K')">K</button>
+                <button data-key="L" onclick="showSign('L')">L</button>
+            </div>
+            <div class="row">
+                <button data-key="Z" onclick="showSign('Z')">Z</button>
+                <button data-key="X" onclick="showSign('X')">X</button>
+                <button data-key="C" onclick="showSign('C')">C</button>
+                <button data-key="V" onclick="showSign('V')">V</button>
+                <button data-key="B" onclick="showSign('B')">B</button>
+                <button data-key="N" onclick="showSign('N')">N</button>
+                <button data-key="M" onclick="showSign('M')">M</button>
+                <button data-key="ENTER" onclick="submitWord()">Enter</button>
+                <button data-key="BACKSPACE" onclick="deleteLetter()">⌫</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+@font-face {
+    font-family: 'AuslanFingerSpelling';
+    src: url('Auslan Finger Spelling.otf') format('opentype');
+}
+
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f5f5f5;
+}
+
+.game-container {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    background: white;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+#fingerspelling-display {
+    font-family: 'AuslanFingerSpelling', sans-serif;
+    font-size: 40px;
+    margin-bottom: 20px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#keyboard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 5px;
+}
+
+button {
+    font-family: 'AuslanFingerSpelling', sans-serif;
+    font-size: 24px;
+    width: 50px;
+    height: 50px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #ddd;
+}
+
+button:hover {
+    background-color: #bbb;
+}
