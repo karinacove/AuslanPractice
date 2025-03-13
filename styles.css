@@ -11,8 +11,8 @@ title {
 }
 
 .game-container {
-    max-width: 400px;
-    margin: 20px auto;
+    max-width: 1920px;
+    margin: 140px auto;
     padding: 20px;
     background: transparent
     border-radius: 10px;
@@ -40,21 +40,21 @@ title {
 }
 
 #keyboard {
-    margin-top: 20px;
+    margin-top: 254px;
 }
 
 .row {
     display: flex;
     justify-content: center;
-    margin-bottom: 5px;
+    margin-bottom: 108px;
 }
 
 button {
-    width: 40px;
-    height: 40px;
-    margin: 2px;
-    font-size: 18px;
-    font-weight: bold;
+    width: 82px;
+    height: 82px;
+    margin: 15px;
+    font-size: 48px;
+    font-weight: regular;
     cursor: pointer;
     border: none;
     border-radius: 5px;
