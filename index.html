@@ -5,49 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Auslan Wordle</title>
     <link rel="stylesheet" href="styles.css">
-    <script defer src="script.js"></script>
 </head>
 <body>
-    <div class="game-container">
-        <h1>Auslan Wordle</h1>
-        <div id="word-grid"></div>
-        <div id="fingerspelling-display"></div>
-        <div id="keyboard" class="qwerty-layout">
-            <div class="row">
-                <button data-key="Q" onclick="showSign('Q')">Q</button>
-                <button data-key="W" onclick="showSign('W')">W</button>
-                <button data-key="E" onclick="showSign('E')">E</button>
-                <button data-key="R" onclick="showSign('R')">R</button>
-                <button data-key="T" onclick="showSign('T')">T</button>
-                <button data-key="Y" onclick="showSign('Y')">Y</button>
-                <button data-key="U" onclick="showSign('U')">U</button>
-                <button data-key="I" onclick="showSign('I')">I</button>
-                <button data-key="O" onclick="showSign('O')">O</button>
-                <button data-key="P" onclick="showSign('P')">P</button>
-            </div>
-            <div class="row">
-                <button data-key="A" onclick="showSign('A')">A</button>
-                <button data-key="S" onclick="showSign('S')">S</button>
-                <button data-key="D" onclick="showSign('D')">D</button>
-                <button data-key="F" onclick="showSign('F')">F</button>
-                <button data-key="G" onclick="showSign('G')">G</button>
-                <button data-key="H" onclick="showSign('H')">H</button>
-                <button data-key="J" onclick="showSign('J')">J</button>
-                <button data-key="K" onclick="showSign('K')">K</button>
-                <button data-key="L" onclick="showSign('L')">L</button>
-            </div>
-            <div class="row">
-                <button data-key="Z" onclick="showSign('Z')">Z</button>
-                <button data-key="X" onclick="showSign('X')">X</button>
-                <button data-key="C" onclick="showSign('C')">C</button>
-                <button data-key="V" onclick="showSign('V')">V</button>
-                <button data-key="B" onclick="showSign('B')">B</button>
-                <button data-key="N" onclick="showSign('N')">N</button>
-                <button data-key="M" onclick="showSign('M')">M</button>
-                <button data-key="ENTER" onclick="submitWord()">Enter</button>
-                <button data-key="BACKSPACE" onclick="deleteLetter()">⌫</button>
-            </div>
+    <h1>Auslan Wordle</h1>
+    
+    <div id="game-board">
+        <!-- Grid for guessed words -->
+        <div class="grid-container">
+            <!-- 6 rows for attempts -->
+            <div class="row"></div>
+            <div class="row"></div>
+            <div class="row"></div>
+            <div class="row"></div>
+            <div class="row"></div>
+            <div class="row"></div>
         </div>
     </div>
+    
+    <div id="keyboard">
+        <!-- Clickable Auslan fingerspelling keyboard -->
+        <div class="keyboard-row">
+            <button class="key" data-key="Q">Q</button>
+            <button class="key" data-key="W">W</button>
+            <button class="key" data-key="E">E</button>
+            <button class="key" data-key="R">R</button>
+            <button class="key" data-key="T">T</button>
+            <button class="key" data-key="Y">Y</button>
+            <button class="key" data-key="U">U</button>
+            <button class="key" data-key="I">I</button>
+            <button class="key" data-key="O">O</button>
+            <button class="key" data-key="P">P</button>
+        </div>
+        <div class="keyboard-row">
+            <button class="key" data-key="A">A</button>
+            <button class="key" data-key="S">S</button>
+            <button class="key" data-key="D">D</button>
+            <button class="key" data-key="F">F</button>
+            <button class="key" data-key="G">G</button>
+            <button class="key" data-key="H">H</button>
+            <button class="key" data-key="J">J</button>
+            <button class="key" data-key="K">K</button>
+            <button class="key" data-key="L">L</button>
+        </div>
+        <div class="keyboard-row">
+            <button class="key" id="backspace">⌫</button>
+            <button class="key" data-key="Z">Z</button>
+            <button class="key" data-key="X">X</button>
+            <button class="key" data-key="C">C</button>
+            <button class="key" data-key="V">V</button>
+            <button class="key" data-key="B">B</button>
+            <button class="key" data-key="N">N</button>
+            <button class="key" data-key="M">M</button>
+            <button class="key" id="enter">ENTER</button>
+        </div>
+    </div>
+    
+    <img id="auslan-clap" src="clap.gif" style="display: none;" alt="Auslan Clap">
+    
+    <script src="script.js"></script>
 </body>
 </html>
