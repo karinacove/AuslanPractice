@@ -4,7 +4,7 @@
 }
 
 body {
-    font-family: 'AuslanFingerSpelling', sans-serif;
+    font-family: 'AuslanFingerSpelling';
     text-align: center;
     background-image: url('assets/Wordle Template.png');
     background-size: cover;
@@ -83,6 +83,6 @@ button:hover {
 }
 
 .absent {
-    background-color: grey;
+    background-color: red;
     color: white;
 }
