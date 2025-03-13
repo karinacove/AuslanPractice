@@ -1,7 +1,8 @@
 body {
-    font-family: assets/Auslan Finger Spelling.otf
+    font-family: url('assets/Auslan Finger Spelling.otf');
     text-align: center;
-    background-color: assets/Wordle Template.png
+    background-image: url('assets/Wordle Template.png');
+    background-size: cover;
 }
 
 title {
