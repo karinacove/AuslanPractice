@@ -2,7 +2,7 @@ body {
     font-family: url('assets/Auslan Finger Spelling.otf');
     text-align: center;
     background-image: url('assets/Wordle Template.png');
-    background-size: cover;
+    background-size: 1920px x 1080px;
 }
 
 title {
