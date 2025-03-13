@@ -1,8 +1,15 @@
+@font-face {
+    font-family: 'AuslanFingerSpelling';
+    src: url('assets/Auslan Finger Spelling.otf') format('opentype');
+}
+
 body {
-    font-family: url('assets/Auslan Finger Spelling.otf');
+    font-family: 'AuslanFingerSpelling';
     text-align: center;
     background-image: url('assets/Wordle Template.png');
-    background-size: 1920px x 1080px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 title {
