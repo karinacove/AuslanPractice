@@ -53,3 +53,55 @@ function deleteLetter() {
     currentGuess = currentGuess.slice(0, -1);
     updateGrid();
 }
+const wordList = [
+    "hands", "thumb", "smile", "quiet", "teach", "learn", "watch", "point", "touch", "space",
+    "group", "flash", "glove", "shape", "hello", "right", "mimic", "blink", "mouth", "words",
+    "greet", "world", "flick", "plane", "round", "holme", "story", "sight", "happy", "tiger",
+    "koala", "green", "black", "seven", "three", "angry", "shock", "proud", "aunty", "uncle",
+    "sheep", "horse"
+];
+
+let chosenWord = wordList[Math.floor(Math.random() * wordList.length)];
+let attempts = 0;
+const maxAttempts = 6;
+const guesses = [];
+
+function checkGuess(guess) {
+    if (attempts >= maxAttempts) {
+        alert(`Game Over! The word was: ${chosenWord}`);
+        return;
+    }
+    
+    guess = guess.toLowerCase();
+    guesses.push(guess);
+    attempts++;
+    
+    displayGuesses();
+    
+    if (guess === chosenWord) {
+        showClapGif();
+        alert("Congratulations! You got it right!");
+    } else if (attempts === maxAttempts) {
+        alert(`Out of attempts! The correct word was: ${chosenWord}`);
+    }
+}
+
+function displayGuesses() {
+    let guessList = document.getElementById("guess-list");
+    guessList.innerHTML = "";
+    guesses.forEach(g => {
+        let listItem = document.createElement("li");
+        listItem.textContent = g;
+        guessList.appendChild(listItem);
+    });
+}
+
+function showClapGif() {
+    let gif = document.getElementById("clap-gif");
+    gif.style.display = "block";
+}
+
+document.getElementById("submit-btn").addEventListener("click", function() {
+    let guessInput = document.getElementById("guess-input").value;
+    checkGuess(guessInput);
+});
