@@ -4,7 +4,7 @@
 }
 
 body {
-    font-family: 'AuslanFingerSpelling';
+    font-family: 'AuslanFingerSpelling', sans-serif;
     text-align: center;
     background-image: url('assets/Wordle Template.png');
     background-size: cover;
@@ -21,14 +21,14 @@ title {
     max-width: 1920px;
     margin: 140px auto;
     padding: 20px;
-    background: transparent
+    background: white;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 #word-grid {
     display: grid;
-    grid-template-columns: repeat(5, 6fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 15px;
     margin-bottom: 15px;
 }
