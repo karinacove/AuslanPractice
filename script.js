@@ -1,4 +1,4 @@
-const words = ["APPLE", "BREAD", "CHAIR", "DREAM", "EARTH", "FLAME"];
+const words = "wordle_words.json";
 let correctWord = words[Math.floor(Math.random() * words.length)];
 let currentGuess = "";
 let attempts = 0;
