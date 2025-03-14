@@ -1,55 +1,65 @@
-const wordList = ["apple", "grape", "peach", "melon", "berry"];
-let targetWord = wordList[Math.floor(Math.random() * wordList.length)].toUpperCase();
+const words = ["APPLE", "BREAD", "CHAIR", "DREAM", "EARTH", "FLAME"];
+let correctWord = words[Math.floor(Math.random() * words.length)];
 let currentGuess = "";
-let row = 0;
+let attempts = 0;
+const maxAttempts = 6;
 
-function showSign(letter) {
-    if (currentGuess.length < 5) {
-        currentGuess += letter;
+document.addEventListener("keydown", (event) => {
+    if (event.key.length === 1 && event.key.match(/[a-zA-Z]/i) && currentGuess.length < 5) {
+        currentGuess += event.key.toUpperCase();
         updateGrid();
+    } else if (event.key === "Backspace" && currentGuess.length > 0) {
+        currentGuess = currentGuess.slice(0, -1);
+        updateGrid();
+    } else if (event.key === "Enter" && currentGuess.length === 5) {
+        checkGuess();
     }
-}
+});
 
 function updateGrid() {
-    const grid = document.getElementById("word-grid");
-    grid.innerHTML = "";
-    for (let i = 0; i < 5; i++) {
-        let box = document.createElement("div");
-        box.className = "letter-box";
-        box.textContent = currentGuess[i] || "";
-        grid.appendChild(box);
-    }
+    const cells = document.querySelectorAll(".letter-box");
+    cells.forEach((cell, index) => {
+        cell.textContent = currentGuess[index] || "";
+    });
 }
 
-function submitWord() {
-    if (currentGuess.length < 5) return;
-    let result = checkWord(currentGuess);
-    colorBoxes(result);
+function checkGuess() {
+    const guessArray = currentGuess.split("");
+    const correctArray = correctWord.split("");
+    const cells = document.querySelectorAll(".letter-box");
+    
+    guessArray.forEach((letter, index) => {
+        if (letter === correctArray[index]) {
+            cells[index].classList.add("correct");
+        } else if (correctWord.includes(letter)) {
+            cells[index].classList.add("present");
+        } else {
+            cells[index].classList.add("absent");
+        }
+    });
+    
+    attempts++;
+    if (currentGuess === correctWord) {
+        showAuslanClap();
+    } else if (attempts >= maxAttempts) {
+        alert(`The correct word was: ${correctWord}`);
+    }
+    
     currentGuess = "";
 }
 
-function checkWord(guess) {
-    let result = [];
-    for (let i = 0; i < 5; i++) {
-        if (guess[i] === targetWord[i]) {
-            result.push("correct");
-        } else if (targetWord.includes(guess[i])) {
-            result.push("present");
-        } else {
-            result.push("absent");
-        }
-    }
-    return result;
-}
-
-function colorBoxes(result) {
-    const boxes = document.getElementsByClassName("letter-box");
-    for (let i = 0; i < 5; i++) {
-        boxes[i].classList.add(result[i]);
-    }
-}
-
-function deleteLetter() {
-    currentGuess = currentGuess.slice(0, -1);
-    updateGrid();
+function showAuslanClap() {
+    const clapGif = document.createElement("img");
+    clapGif.src = "auslan-clap.gif";
+    clapGif.alt = "Auslan Clap";
+    clapGif.style.width = "200px";
+    clapGif.style.position = "absolute";
+    clapGif.style.top = "50%";
+    clapGif.style.left = "50%";
+    clapGif.style.transform = "translate(-50%, -50%)";
+    document.body.appendChild(clapGif);
+    
+    setTimeout(() => {
+        clapGif.remove();
+    }, 3000);
 }
