@@ -50,7 +50,7 @@ function checkGuess() {
 
 function showAuslanClap() {
     const clapGif = document.createElement("img");
-    clapGif.src = "auslan-clap.gif";
+    clapGif.src = "Auslan Clap.gif";
     clapGif.alt = "Auslan Clap";
     clapGif.style.width = "200px";
     clapGif.style.position = "absolute";
