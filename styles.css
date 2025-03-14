@@ -28,23 +28,23 @@ title {
 #word-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 15px;
-    margin-bottom: 15px;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
 .letter-box {
-    width: 98px;
-    height: 98px;
-    font-size: 72px;
-    font-weight: bold;
-    border: 2px solid #000;
-    display: flex;
+    width: 280px;
+    height: 280px;
+    font-size: 60px;
+    font-weight: regular;
+    border: 12px solid #000;
+    display: inline-flex;
     justify-content: center;
     align-items: center;
     background: white;
     text-transform: lowercase;
 }
-
+    
 #keyboard {
     margin-top: 254px;
 }
