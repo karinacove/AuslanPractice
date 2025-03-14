@@ -1,100 +1,64 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const wordList = ["hands", "thumb", "smile", "quiet", "teach", "learn", "watch", "point", "touch", "space", "group", "flash", "glove", "shape", "hello", "right", "mimic", "blink", "mouth", "words", "greet", "world", "flick", "plane", "round", "holme", "story", "sight", "happy", "tiger", "koala", "green", "black", "seven", "three", "angry", "shock", "proud", "aunty", "uncle", "sheep", "horse"];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auslan Wordle</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Auslan Wordle</h1>
     
-    let secretWord = wordList[Math.floor(Math.random() * wordList.length)];
-    let currentGuess = "";
-    let attempt = 0;
-    const maxAttempts = 6;
+    <div id="game-board" class="grid-container">
+        <!-- 6 rows for attempts -->
+        <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+        <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+        <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+        <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+        <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+        <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+    </div>
     
-    const grid = document.getElementById("word-grid");
-    const keyboard = document.getElementById("keyboard");
-    const messageBox = document.getElementById("message");
-    const clapGif = document.getElementById("clap-gif");
+    <div id="keyboard">
+        <!-- Clickable Auslan fingerspelling keyboard -->
+        <div class="keyboard-row">
+            <button class="key" data-key="Q">Q</button>
+            <button class="key" data-key="W">W</button>
+            <button class="key" data-key="E">E</button>
+            <button class="key" data-key="R">R</button>
+            <button class="key" data-key="T">T</button>
+            <button class="key" data-key="Y">Y</button>
+            <button class="key" data-key="U">U</button>
+            <button class="key" data-key="I">I</button>
+            <button class="key" data-key="O">O</button>
+            <button class="key" data-key="P">P</button>
+        </div>
+        <div class="keyboard-row">
+            <button class="key" data-key="A">A</button>
+            <button class="key" data-key="S">S</button>
+            <button class="key" data-key="D">D</button>
+            <button class="key" data-key="F">F</button>
+            <button class="key" data-key="G">G</button>
+            <button class="key" data-key="H">H</button>
+            <button class="key" data-key="J">J</button>
+            <button class="key" data-key="K">K</button>
+            <button class="key" data-key="L">L</button>
+        </div>
+        <div class="keyboard-row">
+            <button class="key" id="backspace">⌫</button>
+            <button class="key" data-key="Z">Z</button>
+            <button class="key" data-key="X">X</button>
+            <button class="key" data-key="C">C</button>
+            <button class="key" data-key="V">V</button>
+            <button class="key" data-key="B">B</button>
+            <button class="key" data-key="N">N</button>
+            <button class="key" data-key="M">M</button>
+            <button class="key" id="enter">ENTER</button>
+        </div>
+    </div>
     
-    function updateGrid() {
-        let cells = document.querySelectorAll(".word-row[data-attempt='" + attempt + "'] .cell");
-        for (let i = 0; i < cells.length; i++) {
-            cells[i].textContent = currentGuess[i] || "";
-        }
-    }
+    <img id="auslan-clap" src="clap.gif" style="display: none;" alt="Auslan Clap">
     
-    function checkGuess() {
-        if (currentGuess.length < 5) return;
-        
-        let result = [];
-        let secretArray = secretWord.split("");
-        
-        for (let i = 0; i < 5; i++) {
-            if (currentGuess[i] === secretWord[i]) {
-                result.push("correct");
-                secretArray[i] = null; 
-            }
-        }
-        for (let i = 0; i < 5; i++) {
-            if (result[i] !== "correct" && secretArray.includes(currentGuess[i])) {
-                result[i] = "present";
-                secretArray[secretArray.indexOf(currentGuess[i])] = null;
-            } else if (result[i] !== "correct") {
-                result[i] = "absent";
-            }
-        }
-        
-        let cells = document.querySelectorAll(".word-row[data-attempt='" + attempt + "'] .cell");
-        for (let i = 0; i < 5; i++) {
-            cells[i].classList.add(result[i]);
-        }
-        
-        if (currentGuess === secretWord) {
-            messageBox.textContent = "Well done!";
-            clapGif.style.display = "block";
-        } else {
-            attempt++;
-            if (attempt === maxAttempts) {
-                messageBox.textContent = "Game Over! The word was: " + secretWord;
-            }
-            currentGuess = "";
-        }
-    }
-    
-    function handleInput(letter) {
-        if (currentGuess.length < 5) {
-            currentGuess += letter;
-            updateGrid();
-        }
-    }
-    
-    function handleBackspace() {
-        currentGuess = currentGuess.slice(0, -1);
-        updateGrid();
-    }
-    
-    function handleEnter() {
-        if (currentGuess.length === 5) {
-            checkGuess();
-        }
-    }
-    
-    keyboard.addEventListener("click", (event) => {
-        if (event.target.classList.contains("key")) {
-            let letter = event.target.textContent.toLowerCase();
-            handleInput(letter);
-        }
-        if (event.target.id === "backspace") {
-            handleBackspace();
-        }
-        if (event.target.id === "enter") {
-            handleEnter();
-        }
-    });
-    
-    document.addEventListener("keydown", (event) => {
-        let key = event.key.toLowerCase();
-        if (/^[a-z]$/.test(key)) {
-            handleInput(key);
-        } else if (key === "backspace") {
-            handleBackspace();
-        } else if (key === "enter") {
-            handleEnter();
-        }
-    });
-});
+    <script src="script.js"></script>
+</body>
+</html>
