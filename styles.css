@@ -56,7 +56,7 @@ title {
     margin-bottom: 18px;
 }
 
-button {
+.cell {
     width: 60px;
     height: 60px;
     margin: 15px;
@@ -68,7 +68,7 @@ button {
     background-color: #ddd;
 }
 
-button:hover {
+cell:hover {
     background-color: #bbb;
 }
 
