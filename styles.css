@@ -12,12 +12,12 @@ body {
     background-color: #fff;
 
 title {
-    font-size: 600pt;
-    margin-top: 2000px;
+    font-size: 600px;
+    margin-top: 20px;
 }
 
 .game-container {
-    max-width: 1920px;
+    max-width: 1820px;
     margin: 140px auto;
     padding: 20px;
     background: white;
@@ -33,13 +33,13 @@ title {
 }
 
 .letter-box {
-    width: 108px;
-    height: 108px;
+    width: 98px;
+    height: 98px;
     font-size: 72px;
     font-weight: bold;
     border: 2px solid #000;
     display: flex;
-    justify-content: left;
+    justify-content: center;
     align-items: center;
     background: white;
     text-transform: lowercase;
