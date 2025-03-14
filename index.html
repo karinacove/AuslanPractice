@@ -18,12 +18,12 @@
         }
         .cell {
             font-family: 'Auslan Finger Spelling', sans-serif;
-            width: 300px;
-            height: 300px;
+            width: 280px;
+            height: 280px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            border: 8px solid black;
+            border: 12px solid black;
             font-size: 60pt;
             margin: 4px;
         }
@@ -38,6 +38,8 @@
 <body>
     <h1>Auslan Wordle</h1>
     
+    <body class="offset" onLoad="window.scroll(0, 150)">
+        
     <div id="game-board" class="grid-container">
         <!-- 6 rows for attempts -->
         <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
