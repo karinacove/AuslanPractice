@@ -71,10 +71,6 @@ button:hover {
     background-color: #bbb;
 }
 
-.offset {
-     margin-top:-500px;
-    }
-
 .correct {
     background-color: green;
     color: white;
