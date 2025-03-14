@@ -52,7 +52,7 @@ title {
 .row {
     display: flex;
     justify-content: center;
-    margin-bottom: 108px;
+    margin-bottom: 18px;
 }
 
 button {
