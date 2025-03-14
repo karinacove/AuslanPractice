@@ -7,7 +7,7 @@ body {
     font-family: 'AuslanFingerSpelling';
     text-align: center;
     background: url('assets/Wordle Template 2.png') no-repeat center center;
-    background-size: width: fit;
+    background-size: contain;
     background-attachment: fixed;
     background-color: #fff;
 
