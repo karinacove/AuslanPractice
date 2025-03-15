@@ -1,57 +1,61 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auslan Wordle</title>
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        @font-face {
-            font-family: 'Auslan Finger Spelling';
-            src: url('assets/Auslan Finger Spelling.otf') format('opentype');
-        }
-        body {
-            text-align: center;
-            background-image: url('assets/Wordle Template 2.png');
-            background-size: fit width;
-            background-position: center;
-        }
-        .cell {
-            font-family: 'Auslan Finger Spelling', sans-serif;
-            width: 250px;
-            height: 250px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: 15px solid black;
-            border-radius: 30px;
-            padding: 10px;
-            font-size: 60pt;
-            margin: 8px;
-        }
-        .row {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            offset: -450px;
-                   }
-    </style>
-</head>
-<body>
-    <h1>Auslan Wordle</h1>
-        
-    <div id="game-board" class="grid-container">
-        <!-- 6 rows for attempts -->
-        <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
-        <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
-        <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
-        <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
-        <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
-        <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
-    </div>
+const words = ["APPLE", "BREAD", "CHAIR", "DREAM", "EARTH", "FLAME"];
+let correctWord = words[Math.floor(Math.random() * words.length)];
+let currentGuess = "";
+let attempts = 0;
+const maxAttempts = 6;
+
+const rows = document.querySelectorAll(".row");
+let currentRow = 0;
+
+document.addEventListener("keydown", (event) => {
+    if (event.key.length === 1 && event.key.match(/[a-zA-Z]/i) && currentGuess.length < 5) {
+        currentGuess += event.key.toUpperCase();
+        updateGrid();
+    } else if (event.key === "Backspace" && currentGuess.length > 0) {
+        currentGuess = currentGuess.slice(0, -1);
+        updateGrid();
+    } else if (event.key === "Enter" && currentGuess.length === 5) {
+        checkGuess();
+    }
+});
+
+function updateGrid() {
+    const cells = rows[currentRow].querySelectorAll(".cell");
+    cells.forEach((cell, index) => {
+        cell.textContent = currentGuess[index] || "";
+    });
+}
+
+function checkGuess() {
+    const guessArray = currentGuess.split("");
+    const correctArray = correctWord.split("");
+    const cells = rows[currentRow].querySelectorAll(".cell");
     
-    <img id="Auslan Clap" src="assets/Auslan Clap.gif" style="display: none;" alt="Auslan Clap">
+    guessArray.forEach((letter, index) => {
+        if (letter === correctArray[index]) {
+            cells[index].style.backgroundColor = "green";
+        } else if (correctWord.includes(letter)) {
+            cells[index].style.backgroundColor = "yellow";
+        } else {
+            cells[index].style.backgroundColor = "red";
+        }
+    });
     
-    <script src="script.js"></script>
-</body>
-</html>
+    attempts++;
+    if (currentGuess === correctWord) {
+        showAuslanClap();
+    } else if (attempts >= maxAttempts) {
+        alert(`The correct word was: ${correctWord}`);
+    } else {
+        currentGuess = "";
+        currentRow++;
+    }
+}
+
+function showAuslanClap() {
+    const clapGif = document.getElementById("Auslan Clap");
+    clapGif.style.display = "block";
+    setTimeout(() => {
+        clapGif.style.display = "none";
+    }, 3000);
+}
