@@ -1,12 +1,12 @@
 let words = [];
-let correctWord = ""; // Ensure correctWord is declared before fetching
+let correctWord = "";
 
 fetch('wordle_words.json')
     .then(response => response.json())
     .then(data => {
         words = data;
         correctWord = words[Math.floor(Math.random() * words.length)].toUpperCase();
-        console.log("Correct Word:", correctWord); // Debugging
+        console.log("Correct Word:", correctWord);
     });
 
 let currentGuess = "";
@@ -37,33 +37,29 @@ function updateGrid() {
 }
 
 function checkGuess() {
-    if (!correctWord) return; // Ensure the word is loaded
+    if (!correctWord) return;
     const guessArray = currentGuess.split("");
     const correctArray = correctWord.split("");
     const cells = rows[currentRow].querySelectorAll(".cell");
     
-    let remainingLetters = [...correctArray]; // Copy of correct word
+    let remainingLetters = [...correctArray];
 
-    // First pass: Mark correct letters in the correct spot
     guessArray.forEach((letter, index) => {
         if (letter === correctArray[index]) {
             cells[index].style.backgroundColor = "green";
             cells[index].style.color = "white";
-            remainingLetters[index] = null; // Remove correct letters from consideration
+            remainingLetters[index] = null;
         }
-    });
-
-    // Second pass: Mark misplaced letters
     guessArray.forEach((letter, index) => {
         if (remainingLetters.includes(letter) && cells[index].style.backgroundColor !== "green") {
             cells[index].style.backgroundColor = "orange";
             cells[index].style.color = "white";
-            remainingLetters.splice(remainingLetters.indexOf(letter), 1); // Remove from list
-        } else if (cells[index].style.backgroundColor !== "green") {
+        }
+    remainingLetters.splice(remainingLetters.indexOf(letter) => {
+        else if (cells[index].style.backgroundColor !== "green") && cells[index].style.backgroundColor !== "orange"){
             cells[index].style.backgroundColor = "red";
             cells[index].style.color = "white";
         }
-    });
 
     attempts++;
     if (currentGuess === correctWord) {
