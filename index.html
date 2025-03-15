@@ -23,6 +23,7 @@ function updateGrid() {
     const cells = rows[currentRow].querySelectorAll(".cell");
     cells.forEach((cell, index) => {
         cell.textContent = currentGuess[index] || "";
+        cell.style.fontFamily = 'Auslan Finger Spelling';
     });
 }
 
@@ -31,12 +32,22 @@ function checkGuess() {
     const correctArray = correctWord.split("");
     const cells = rows[currentRow].querySelectorAll(".cell");
     
+    let remainingLetters = correctArray.slice();
+    
+    // First pass: Mark correct letters in the correct spot
     guessArray.forEach((letter, index) => {
         if (letter === correctArray[index]) {
             cells[index].style.backgroundColor = "green";
-        } else if (correctWord.includes(letter)) {
+            remainingLetters[index] = null; // Remove from list so it isn't checked again
+        }
+    });
+    
+    // Second pass: Mark letters that are in the word but wrong position
+    guessArray.forEach((letter, index) => {
+        if (remainingLetters.includes(letter) && cells[index].style.backgroundColor !== "green") {
             cells[index].style.backgroundColor = "yellow";
-        } else {
+            remainingLetters[remainingLetters.indexOf(letter)] = null; // Remove letter from list
+        } else if (cells[index].style.backgroundColor !== "green") {
             cells[index].style.backgroundColor = "red";
         }
     });
