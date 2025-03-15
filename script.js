@@ -1,12 +1,22 @@
-const words = URL('wordle_words.json');
-let correctWord = words[Math.floor(Math.random() * words.length)];
+let words = [];
+fetch('wordle_words.json')
+    .then(response => response.json())
+    .then(data => {
+        words = data;
+        correctWord = words[Math.floor(Math.random() * words.length)];
+    });
+
+let correctWord = "";
 let currentGuess = "";
 let attempts = 0;
 const maxAttempts = 6;
 
+const rows = document.querySelectorAll(".row");
+let currentRow = 0;
+
 document.addEventListener("keydown", (event) => {
     if (event.key.length === 1 && event.key.match(/[a-zA-Z]/i) && currentGuess.length < 5) {
-        currentGuess += event.key.toLowerCase();
+        currentGuess += event.key.toUpperCase();
         updateGrid();
     } else if (event.key === "Backspace" && currentGuess.length > 0) {
         currentGuess = currentGuess.slice(0, -1);
@@ -17,24 +27,36 @@ document.addEventListener("keydown", (event) => {
 });
 
 function updateGrid() {
-    const cells = document.querySelectorAll(".letter-box");
+    const cells = rows[currentRow].querySelectorAll(".cell");
     cells.forEach((cell, index) => {
         cell.textContent = currentGuess[index] || "";
+        cell.style.fontFamily = 'Auslan Finger Spelling';
     });
 }
 
 function checkGuess() {
+    if (!correctWord) return; // Ensure the word is loaded
     const guessArray = currentGuess.split("");
     const correctArray = correctWord.split("");
-    const cells = document.querySelectorAll(".letter-box");
+    const cells = rows[currentRow].querySelectorAll(".cell");
     
+    let remainingLetters = correctArray.slice();
+    
+    // First pass: Mark correct letters in the correct spot
     guessArray.forEach((letter, index) => {
         if (letter === correctArray[index]) {
-            cells[index].classList.add("correct");
-        } else if (correctWord.includes(letter)) {
-            cells[index].classList.add("present");
-        } else {
-            cells[index].classList.add("absent");
+            cells[index].style.backgroundColor = "green";
+            remainingLetters[index] = null; // Remove from list so it isn't checked again
+        }
+    });
+    
+    // Second pass: Mark letters that are in the word but wrong position
+    guessArray.forEach((letter, index) => {
+        if (remainingLetters.includes(letter) && cells[index].style.backgroundColor !== "green") {
+            cells[index].style.backgroundColor = "yellow";
+            remainingLetters[remainingLetters.indexOf(letter)] = null; // Remove letter from list
+        } else if (cells[index].style.backgroundColor !== "green") {
+            cells[index].style.backgroundColor = "red";
         }
     });
     
@@ -43,23 +65,16 @@ function checkGuess() {
         showAuslanClap();
     } else if (attempts >= maxAttempts) {
         alert(`The correct word was: ${correctWord}`);
+    } else {
+        currentGuess = "";
+        currentRow++;
     }
-    
-    currentGuess = "";
 }
 
 function showAuslanClap() {
-    const clapGif = document.createElement("img");
-    clapGif.src = "Auslan Clap.gif";
-    clapGif.alt = "Auslan Clap";
-    clapGif.style.width = "200px";
-    clapGif.style.position = "absolute";
-    clapGif.style.top = "50%";
-    clapGif.style.left = "50%";
-    clapGif.style.transform = "translate(-50%, -50%)";
-    document.body.appendChild(clapGif);
-    
+    const clapGif = document.getElementById("Auslan Clap");
+    clapGif.style.display = "block";
     setTimeout(() => {
-        clapGif.remove();
+        clapGif.style.display = "none";
     }, 3000);
 }
