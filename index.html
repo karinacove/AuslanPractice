@@ -1,5 +1,12 @@
-const words = ["APPLE", "BREAD", "CHAIR", "DREAM", "EARTH", "FLAME"];
-let correctWord = words[Math.floor(Math.random() * words.length)];
+let words = [];
+fetch('wordle_words.json')
+    .then(response => response.json())
+    .then(data => {
+        words = data;
+        correctWord = words[Math.floor(Math.random() * words.length)];
+    });
+
+let correctWord = "";
 let currentGuess = "";
 let attempts = 0;
 const maxAttempts = 6;
@@ -28,6 +35,7 @@ function updateGrid() {
 }
 
 function checkGuess() {
+    if (!correctWord) return; // Ensure the word is loaded
     const guessArray = currentGuess.split("");
     const correctArray = correctWord.split("");
     const cells = rows[currentRow].querySelectorAll(".cell");
