@@ -91,7 +91,7 @@ function checkGuess() {
             cells[index].style.backgroundColor = "orange";
             cells[index].style.color = "white";
         }
-    remainingLetters.splice(remainingLetters.indexOf(letter) => {
+    remainingLetters.splice((remainingLetters.indexOf(letter) => {
         else if (cells[index].style.backgroundColor !== "green") && cells[index].style.backgroundColor !== "orange"){
             cells[index].style.backgroundColor = "red";
             cells[index].style.color = "white";
