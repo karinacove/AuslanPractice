@@ -1,3 +1,12 @@
+function updateGrid() {
+    console.log("Current guess:", currentGuess); // ✅ Check if typing works
+    const cells = rows[currentRow].querySelectorAll(".cell");
+    cells.forEach((cell, index) => {
+        cell.textContent = currentGuess[index] || "";
+        cell.style.fontFamily = 'Auslan Finger Spelling';
+    });
+}
+
 let words = [];
 let correctWord = "";
 
