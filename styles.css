@@ -13,10 +13,9 @@ body {
 }
 
 .game-container {
-    max-width: 1820px;
+    max-width: 850px;
     margin: 140px auto;
-    position: relative;
-    top: 400px;
+    position: center;
     padding: 20px;
     background: white;
     border-radius: 10px;
