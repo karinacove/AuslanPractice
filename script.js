@@ -1,4 +1,15 @@
 function updateGrid() {
+    console.log("Updating grid... Current Guess:", currentGuess);
+
+    const cells = rows[currentRow].querySelectorAll(".cell");
+    cells.forEach((cell, index) => {
+        cell.textContent = currentGuess[index] || "";
+        console.log(`Cell ${index}:`, cell.textContent);
+        cell.style.fontFamily = 'Auslan Finger Spelling';
+    });
+}
+
+function updateGrid() {
     console.log("Current guess:", currentGuess);
     const cells = rows[currentRow].querySelectorAll(".cell");
     cells.forEach((cell, index) => {
