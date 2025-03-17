@@ -1,5 +1,5 @@
 function updateGrid() {
-    console.log("Current guess:", currentGuess); // ✅ Check if typing works
+    console.log("Current guess:", currentGuess);
     const cells = rows[currentRow].querySelectorAll(".cell");
     cells.forEach((cell, index) => {
         cell.textContent = currentGuess[index] || "";
