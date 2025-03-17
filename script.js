@@ -91,8 +91,8 @@ function checkGuess() {
             cells[index].style.backgroundColor = "orange";
             cells[index].style.color = "white";
         }
-    remainingLetters.splice((remainingLetters.indexOf(letter)
-        if  (remainingLetters.includes(letter) && (cells[index].style.backgroundColor !== "green") && cells[index].style.backgroundColor !== "orange"){
+    remainingLetters.splice((remainingLetters.indexOf(letter) {
+        if (remainingLetters.includes(letter) && (cells[index].style.backgroundColor !== "green") && cells[index].style.backgroundColor !== "orange")
             cells[index].style.backgroundColor = "red";
         }
 
