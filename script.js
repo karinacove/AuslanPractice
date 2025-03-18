@@ -13,10 +13,14 @@ let currentRow = 0;
 fetch('wordle_words.json')
     .then(response => response.json())
     .then(data => {
+        if (!Array.isArray(data) || data.length === 0) {
+            throw new Error("Word list is empty or invalid.");
+        }
         words = data;
         correctWord = words[Math.floor(Math.random() * words.length)].toUpperCase();
         console.log("Correct Word:", correctWord);
-    });
+    })
+    .catch(error => console.error("Error loading words:", error));
 
 // Handle Key Press
 document.addEventListener("keydown", (event) => {
