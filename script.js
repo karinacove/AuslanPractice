@@ -69,7 +69,7 @@ function checkGuess() {
     guessArray.forEach((letter, index) => {
         if (letter === correctArray[index]) {
             cells[index].style.backgroundColor = "green";
-            cells[index].style.color = "white";
+            cells[index].style.color = "black";
             remainingLetters[index] = null;
         }
     });
@@ -78,7 +78,7 @@ function checkGuess() {
     guessArray.forEach((letter, index) => {
         if (remainingLetters.includes(letter) && cells[index].style.backgroundColor !== "green") {
             cells[index].style.backgroundColor = "orange";
-            cells[index].style.color = "white";
+            cells[index].style.color = "black";
             remainingLetters[remainingLetters.indexOf(letter)] = null;
         }
     });
