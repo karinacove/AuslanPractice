@@ -106,13 +106,13 @@ function checkGuess() {
 }
 
 function showAuslanClap() {
-    const clapGif = document.getElementById("auslan-clap.gif");
-    if (clapGif) {
-        clapGif.src = "auslan-clap.gif";  // Use %20 for space
-        clapGif.style.display = "block";
-        setTimeout(() => {
-            clapGif.style.display = "none";
-        }, 3000);
+    const clapGif = document.getElementById("AuslanClap");  // Make sure the ID is correct
+    clapGif.src = "assets/auslan-clap.gif";  // Ensure correct path
+    clapGif.style.display = "block";
+    setTimeout(() => {
+        clapGif.style.display = "none";
+    }, 3000);
+}
     } else {
         console.error("❌ Auslan Clap GIF not found! Check file name.");
     }
