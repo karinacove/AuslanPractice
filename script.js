@@ -65,10 +65,10 @@ function checkGuess() {
 
     let remainingLetters = [...correctArray];
 
-    // First, mark correct letters in the correct position (green)
+    // First, mark correct letters in the correct position (light green)
     guessArray.forEach((letter, index) => {
         if (letter === correctArray[index]) {
-            cells[index].style.backgroundColor = "green";
+            cells[index].style.backgroundColor = "light green";
             cells[index].style.color = "black";
             remainingLetters[index] = null;
         }
@@ -76,7 +76,7 @@ function checkGuess() {
 
     // Then, mark misplaced but correct letters (orange)
     guessArray.forEach((letter, index) => {
-        if (remainingLetters.includes(letter) && cells[index].style.backgroundColor !== "green") {
+        if (remainingLetters.includes(letter) && cells[index].style.backgroundColor !== "light green") {
             cells[index].style.backgroundColor = "orange";
             cells[index].style.color = "black";
             remainingLetters[remainingLetters.indexOf(letter)] = null;
@@ -85,7 +85,7 @@ function checkGuess() {
 
     // Finally, mark incorrect letters (red)
     guessArray.forEach((letter, index) => {
-        if (cells[index].style.backgroundColor !== "green" && cells[index].style.backgroundColor !== "orange") {
+        if (cells[index].style.backgroundColor !== "light green" && cells[index].style.backgroundColor !== "orange") {
             cells[index].style.backgroundColor = "red";
         }
     });
@@ -106,9 +106,9 @@ function checkGuess() {
 }
 
 function showAuslanClap() {
-    const clapGif = document.getElementById("auslan-clap");
+    const clapGif = document.getElementById("auslan-clap.gif");
     if (clapGif) {
-        clapGif.src = "Auslan%20Clap.gif";  // Use %20 for space
+        clapGif.src = "auslan-clap.gif";  // Use %20 for space
         clapGif.style.display = "block";
         setTimeout(() => {
             clapGif.style.display = "none";
