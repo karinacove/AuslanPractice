@@ -49,16 +49,16 @@ function updateGrid() {
     });
 }
 
-// Check Guess Logic
 function checkGuess() {
     if (!correctWord) return;
-    
+
     const guessArray = currentGuess.split("");
     const correctArray = correctWord.split("");
     const cells = rows[currentRow].querySelectorAll(".cell");
+
     let remainingLetters = [...correctArray];
 
-    // ✅ Green: Correct letter in the correct position
+    // First, mark correct letters in the correct position (green)
     guessArray.forEach((letter, index) => {
         if (letter === correctArray[index]) {
             cells[index].style.backgroundColor = "green";
@@ -67,7 +67,7 @@ function checkGuess() {
         }
     });
 
-    // ✅ Orange: Correct letter in the wrong position
+    // Then, mark misplaced but correct letters (orange)
     guessArray.forEach((letter, index) => {
         if (remainingLetters.includes(letter) && cells[index].style.backgroundColor !== "green") {
             cells[index].style.backgroundColor = "orange";
@@ -76,16 +76,15 @@ function checkGuess() {
         }
     });
 
-    // ✅ Red: Incorrect letter
+    // Finally, mark incorrect letters (red)
     guessArray.forEach((letter, index) => {
-        if (!correctArray.includes(letter)) {
+        if (cells[index].style.backgroundColor !== "green" && cells[index].style.backgroundColor !== "orange") {
             cells[index].style.backgroundColor = "red";
-            cells[index].style.color = "white";
         }
     });
 
+    // Check for win or next attempt
     attempts++;
-
     if (currentGuess === correctWord) {
         showAuslanClap();
     } else if (attempts >= maxAttempts) {
