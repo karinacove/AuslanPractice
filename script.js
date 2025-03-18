@@ -105,13 +105,14 @@ function checkGuess() {
 }
 
 function showAuslanClap() {
-    const clapGif = document.getElementById("auslan-clap");  // ✅ Make sure ID matches HTML
+    const clapGif = document.getElementById("auslan-clap");
     if (clapGif) {
+        clapGif.src = "Auslan%20Clap.gif";  // Use %20 for space
         clapGif.style.display = "block";
         setTimeout(() => {
             clapGif.style.display = "none";
         }, 3000);
     } else {
-        console.error("❌ Auslan Clap GIF not found! Check your HTML ID.");
+        console.error("❌ Auslan Clap GIF not found! Check file name.");
     }
 }
