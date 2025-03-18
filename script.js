@@ -113,7 +113,7 @@ function showAuslanClap() {
         clapGif.style.display = "none";
     }, 3000);
 }
-    } else {
+    else {
         console.error("❌ Auslan Clap GIF not found! Check file name.");
     }
 }
