@@ -89,15 +89,18 @@ function checkGuess() {
         }
     });
 
-    // Check for win or next attempt
-    attempts++;
+   // Check if the guess is correct
     if (currentGuess === correctWord) {
+        console.log("🎉 Correct word guessed! Showing Auslan Clap...");
         showAuslanClap();
-    } else if (attempts >= maxAttempts) {
-        alert(`The correct word was: ${correctWord}`);
     } else {
-        currentGuess = "";
-        currentRow++;
+        attempts++;
+        if (attempts >= maxAttempts) {
+            alert(`The correct word was: ${correctWord}`);
+        } else {
+            currentGuess = "";
+            currentRow++;
+        }
     }
 }
 
