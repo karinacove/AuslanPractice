@@ -39,23 +39,6 @@ document.addEventListener("keydown", (event) => {
     }
 });
 
-document.addEventListener("keydown", (event) => {
-    console.log("Key pressed:", event.key); // ✅ Logs every key press
-
-    if (event.key.length === 1 && event.key.match(/[a-zA-Z]/i) && currentGuess.length < 5) {
-        currentGuess += event.key.toUpperCase();
-        console.log("Updated Guess:", currentGuess);
-        updateGrid();
-    } else if (event.key === "Backspace" && currentGuess.length > 0) {
-        currentGuess = currentGuess.slice(0, -1);
-        console.log("Updated Guess after backspace:", currentGuess);
-        updateGrid();
-    } else if (event.key === "Enter" && currentGuess.length === 5) {
-        console.log("Enter key pressed! Running checkGuess()..."); // ✅ Debugging
-        checkGuess();
-    }
-});
-
 // Update Grid Display
 function updateGrid() {
     console.log("Updating grid... Current Guess:", currentGuess);
