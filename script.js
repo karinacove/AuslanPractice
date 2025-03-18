@@ -52,6 +52,7 @@ function updateGrid() {
     cells.forEach((cell, index) => {
         cell.textContent = currentGuess[index] || "";
         cell.style.fontFamily = "'AuslanFingerSpelling', sans-serif";
+        cell.style.fontSize = "48px";
     });
 }
 
