@@ -11,16 +11,22 @@ let currentRow = 0;
 
 // Load Words
 fetch('wordle_words.json')
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        return response.json();
+    })
     .then(data => {
-        if (!Array.isArray(data) || data.length === 0) {
+        if (!data.words || !Array.isArray(data.words) || data.words.length === 0) {
             throw new Error("Word list is empty or invalid.");
         }
-        words = data;
+        words = data.words;  // ✅ Extracts the "words" array correctly
         correctWord = words[Math.floor(Math.random() * words.length)].toUpperCase();
         console.log("Correct Word:", correctWord);
     })
-    .catch(error => console.error("Error loading words:", error));
+    .catch(error => {
+        console.error("Error loading words:", error);
+    });
+
 
 // Handle Key Press
 document.addEventListener("keydown", (event) => {
