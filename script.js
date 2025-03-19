@@ -90,22 +90,25 @@ function checkGuess() {
         }
     });
 
+    // ✅ Close function properly here
     if (currentGuess === correctWord) {
-    console.log("🎉 Correct word guessed! Showing Auslan Clap...");
-    showAuslanClap();
-} else {
-    showIncorrectWordMessage(currentGuess); // Show the incorrect word message
-    attempts++;
-    if (attempts >= maxAttempts) {
-        alert(`The correct word was: ${correctWord}`);
+        console.log("🎉 Correct word guessed! Showing Auslan Clap...");
+        showAuslanClap();
     } else {
-        setTimeout(() => { // Delay clearing the guess to let the message display
-            currentGuess = "";
-            currentRow++;
-        }, 2000); // 2-second delay before resetting
+        showIncorrectWordMessage(currentGuess); // Show the incorrect word message
+        attempts++;
+        if (attempts >= maxAttempts) {
+            alert(`The correct word was: ${correctWord}`);
+        } else {
+            setTimeout(() => { // Delay clearing the guess to let the message display
+                currentGuess = "";
+                currentRow++;
+            }, 2000); // 2-second delay before resetting
+        }
     }
-}
+}  // ✅ Function `checkGuess` now properly ends here
 
+// ✅ Move `showAuslanClap` OUTSIDE `checkGuess`
 function showAuslanClap() {
     const clapGif = document.getElementById("AuslanClap");  
 
