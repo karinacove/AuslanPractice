@@ -108,6 +108,28 @@ function checkGuess() {
         }, 2000); // 2-second delay
     }
 }
+function showIncorrectWordMessage(word) {
+    const message = document.createElement("div");
+    message.textContent = word;
+    message.style.position = "fixed";
+    message.style.top = "50%";
+    message.style.left = "50%";
+    message.style.transform = "translate(-50%, -50%)";
+    message.style.fontSize = "80px";
+    message.style.fontWeight = "bold";
+    message.style.color = "red";
+    message.style.backgroundColor = "black";
+    message.style.padding = "20px";
+    message.style.borderRadius = "10px";
+    message.style.zIndex = "1000";
+    message.style.textAlign = "center";
+
+    document.body.appendChild(message);
+
+    setTimeout(() => {
+        message.remove();
+    }, 2000); // Display for 2 seconds
+}
 
 }  // ✅ Function `checkGuess` now properly ends here
 
