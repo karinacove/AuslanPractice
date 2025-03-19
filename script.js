@@ -91,21 +91,24 @@ function checkGuess() {
     });
 
     // ✅ Close function properly here
-    if (currentGuess === correctWord) {
-        console.log("🎉 Correct word guessed! Showing Auslan Clap...");
-        showAuslanClap();
+   if (currentGuess === correctWord) {
+    console.log("🎉 Correct word guessed! Showing Auslan Clap...");
+    showAuslanClap();
+} else {
+    showIncorrectWordMessage(currentGuess); // Show the incorrect word message
+    attempts++;
+    
+    if (attempts >= maxAttempts) {
+        alert(`The correct word was: ${correctWord}`);
     } else {
-        showIncorrectWordMessage(currentGuess); // Show the incorrect word message
-        attempts++;
-        if (attempts >= maxAttempts) {
-            alert(`The correct word was: ${correctWord}`);
-        } else {
-            setTimeout(() => { // Delay clearing the guess to let the message display
-                currentGuess = "";
-                currentRow++;
-            }, 2000); // 2-second delay before resetting
-        }
+        setTimeout(() => { // Delay before moving to the next row
+            currentGuess = "";
+            currentRow++;  // ✅ Ensure row progression
+            updateGrid();  // ✅ Refresh grid to clear old input
+        }, 2000); // 2-second delay
     }
+}
+
 }  // ✅ Function `checkGuess` now properly ends here
 
 // ✅ Move `showAuslanClap` OUTSIDE `checkGuess`
