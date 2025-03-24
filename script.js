@@ -24,7 +24,7 @@ fetch('wordle_words.json')
         console.log("Correct Word:", correctWord);
     })
     .catch(error => {
-        console.error("Error loading words", error);
+        console.error("Error loading words:", error);
     });
 
 
