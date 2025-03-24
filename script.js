@@ -45,7 +45,6 @@ document.addEventListener("keydown", (event) => {
     }
 });
 
-// Update Grid Display
 function updateGrid() {
     console.log("Updating grid... Current Guess:", currentGuess);
     const cells = rows[currentRow].querySelectorAll(".cell");
@@ -65,7 +64,6 @@ function checkGuess() {
 
     let remainingLetters = [...correctArray];
 
-    // First, mark correct letters in the correct position (green)
     guessArray.forEach((letter, index) => {
         if (letter === correctArray[index]) {
             cells[index].style.backgroundColor = "green";
@@ -74,7 +72,6 @@ function checkGuess() {
         }
     });
 
-    // Then, mark misplaced but correct letters (orange)
     guessArray.forEach((letter, index) => {
         if (remainingLetters.includes(letter) && cells[index].style.backgroundColor !== "green") {
             cells[index].style.backgroundColor = "orange";
@@ -83,28 +80,26 @@ function checkGuess() {
         }
     });
 
-    // Finally, mark incorrect letters (red)
     guessArray.forEach((letter, index) => {
         if (cells[index].style.backgroundColor !== "green" && cells[index].style.backgroundColor !== "orange") {
             cells[index].style.backgroundColor = "red";
         }
     });
 
-    // ✅ Close function properly here
    if (currentGuess === correctWord) {
     console.log("🎉 Correct word guessed! Showing Auslan Clap...");
     showAuslanClap();
 } else {
-    showIncorrectWordMessage(currentGuess); // Show the incorrect word message
+    showIncorrectWordMessage(currentGuess);
     attempts++;
     
     if (attempts >= maxAttempts) {
         alert(`The correct word was: ${correctWord}`);
     } else {
-        setTimeout(() => { // Delay before moving to the next row
+        setTimeout(() => {
             currentGuess = "";
-            currentRow++;  // ✅ Ensure row progression
-            updateGrid();  // ✅ Refresh grid to clear old input
+            currentRow++;
+            updateGrid();
         }, 2000); // 2-second delay
     }
 }
