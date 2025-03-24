@@ -8,18 +8,28 @@ body {
     text-align: center;
     background: url('assets/Wordle Template 2.png') no-repeat center center;
     background-size: contain;
+    background-position: center;
     background-attachment: fixed;
     background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Viewport height - keeps everything on one page */
+    margin: 0;
+    overflow: hidden; /* Prevent scrolling */
 }
 
 .game-container {
-    max-width: 850px;
     margin: 140px auto;
     position: center;
     padding: 20px;
     background: white;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    gap: 10px;
+    width: 80vw; /* Set width relative to the screen */
+    max-width: 600px; /* Prevent it from stretching too much */
+    aspect-ratio: 1/1; /* Keep it square-like */
 }
 
 #word-grid {
@@ -62,6 +72,13 @@ body {
     border: 4px solid #000;
     border-radius: 10px;
     background-color: #ddd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: clamp(30px, 5vw, 80px); /* Auto-adjust font size */
+    width: 100%;
+    height: 100%;
+    border: 2px solid black;
 }
 
 .cell:hover {
