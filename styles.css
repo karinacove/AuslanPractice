@@ -28,6 +28,7 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     gap: 10px;
     width: 80vw; /* Set width relative to the screen */
+    margin-top: 10vh;
     max-width: 600px; /* Prevent it from stretching too much */
     aspect-ratio: 1/1; /* Keep it square-like */
 }
