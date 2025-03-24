@@ -6,9 +6,12 @@
 body {
     font-family: 'AuslanFingerSpelling', sans-serif;
     text-align: center;
-    background: url('assets/Wordle Template 2.png') no-repeat center center;
-    background-size: contain;
-    background-position: center;
+    background: url('assets/Wordle Template 2.png') 
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    height: 100vh;
+    overflow: hidden;
     background-attachment: fixed;
     background-color: #fff;
     display: flex;
