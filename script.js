@@ -6,18 +6,8 @@ function adjustZoom() {
     document.body.style.transformOrigin = "top left";
 }
 
-const firebaseConfig = {
-  apiKey: "AIzaSyB9DFao0xm65qLuar3wabtT1v-ICWTMq1g",
-  authDomain: "auslan-wordle.firebaseapp.com",
-  projectId: "auslan-wordle",
-  storageBucket: "auslan-wordle.firebasestorage.app",
-  messagingSenderId: "411403752103",
-  appId: "1:411403752103:web:7a79f12df326b21ed54182",
-  measurementId: "G-MSWEKMDB4T"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+window.addEventListener("resize", adjustZoom);
+adjustZoom();
 
 // Global Variables
 let words = [];
@@ -180,30 +170,13 @@ import { getFirestore, collection, doc, setDoc } from "firebase/firestore";
 
 const db = getFirestore();  
 
-function addScore(playerName, score) {
-  db.collection("leaderboard").add({
-    name: playerName,
-    score: score
-  })
-  .then((docRef) => {
-    console.log("Score added with ID: ", docRef.id);
-  })
-  .catch((error) => {
-    console.error("Error adding score: ", error);
-  });
-}
-
-// Example: Add a new score
-addScore("Adam B 56A", 150);
-
-
 async function updateScore(playerName, newScore) {  
   const playerRef = doc(collection(db, "leaderboard"), playerName);  
   await setDoc(playerRef, { name: playerName, score: newScore }, { merge: true });  
   console.log("Score updated!");  
 }  
 
-updateScore("Adam B 56A", 150);
+updateScore("Karina", 150);
 
 async function displayLeaderboard() {  
   const leaderboard = await fetchLeaderboard();  
