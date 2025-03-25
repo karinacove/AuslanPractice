@@ -6,9 +6,6 @@ function adjustZoom() {
     document.body.style.transformOrigin = "top left";
 }
 
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-
 const firebaseConfig = {
   apiKey: "AIzaSyB9DFao0xm65qLuar3wabtT1v-ICWTMq1g",
   authDomain: "auslan-wordle.firebaseapp.com",
