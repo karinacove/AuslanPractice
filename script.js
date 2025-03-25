@@ -152,3 +152,16 @@ function showAuslanClap() {
         console.error("❌ Auslan Clap GIF not found! Check file name and path.");
     }
 }
+
+import { getFirestore, collection, getDocs } from "firebase/firestore";  
+
+const db = getFirestore();  
+
+async function fetchLeaderboard() {  
+  const leaderboardRef = collection(db, "leaderboard");  
+  const snapshot = await getDocs(leaderboardRef);  
+  const leaderboard = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));  
+  console.log(leaderboard);  
+}  
+
+fetchLeaderboard();
