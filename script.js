@@ -177,3 +177,14 @@ async function updateScore(playerName, newScore) {
 }  
 
 updateScore("Karina", 150);
+
+async function displayLeaderboard() {  
+  const leaderboard = await fetchLeaderboard();  
+  const leaderboardElement = document.getElementById("leaderboard");  
+
+  leaderboardElement.innerHTML = leaderboard  
+    .sort((a, b) => b.score - a.score)  
+    .map(player => `<p>${player.name}: ${player.score}</p>`)  
+    .join("");  
+}  
+displayLeaderboard();
