@@ -6,8 +6,21 @@ function adjustZoom() {
     document.body.style.transformOrigin = "top left";
 }
 
-window.addEventListener("resize", adjustZoom);
-adjustZoom();
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB9DFao0xm65qLuar3wabtT1v-ICWTMq1g",
+  authDomain: "auslan-wordle.firebaseapp.com",
+  projectId: "auslan-wordle",
+  storageBucket: "auslan-wordle.firebasestorage.app",
+  messagingSenderId: "411403752103",
+  appId: "1:411403752103:web:7a79f12df326b21ed54182",
+  measurementId: "G-MSWEKMDB4T"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 // Global Variables
 let words = [];
