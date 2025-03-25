@@ -6,8 +6,6 @@ function adjustZoom() {
     document.body.style.transformOrigin = "top left";
 }
 
-$ npm install firebase
-
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 
