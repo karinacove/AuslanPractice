@@ -185,13 +185,30 @@ import { getFirestore, collection, doc, setDoc } from "firebase/firestore";
 
 const db = getFirestore();  
 
+function addScore(playerName, score) {
+  db.collection("leaderboard").add({
+    name: playerName,
+    score: score
+  })
+  .then((docRef) => {
+    console.log("Score added with ID: ", docRef.id);
+  })
+  .catch((error) => {
+    console.error("Error adding score: ", error);
+  });
+}
+
+// Example: Add a new score
+addScore("Adam B 56A", 150);
+
+
 async function updateScore(playerName, newScore) {  
   const playerRef = doc(collection(db, "leaderboard"), playerName);  
   await setDoc(playerRef, { name: playerName, score: newScore }, { merge: true });  
   console.log("Score updated!");  
 }  
 
-updateScore("Karina", 150);
+updateScore("Adam B 56A", 150);
 
 async function displayLeaderboard() {  
   const leaderboard = await fetchLeaderboard();  
