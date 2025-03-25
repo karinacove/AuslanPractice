@@ -1,5 +1,14 @@
 console.log("🚀 JavaScript is running!");
 
+function adjustZoom() {
+    let scale = window.innerWidth / document.documentElement.clientWidth;
+    document.body.style.transform = `scale(${1 / scale})`;
+    document.body.style.transformOrigin = "top left";
+}
+
+window.addEventListener("resize", adjustZoom);
+adjustZoom();
+
 // Global Variables
 let words = [];
 let correctWord = "";
