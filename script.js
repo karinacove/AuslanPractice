@@ -165,3 +165,15 @@ async function fetchLeaderboard() {
 }  
 
 fetchLeaderboard();
+
+import { getFirestore, collection, doc, setDoc } from "firebase/firestore";  
+
+const db = getFirestore();  
+
+async function updateScore(playerName, newScore) {  
+  const playerRef = doc(collection(db, "leaderboard"), playerName);  
+  await setDoc(playerRef, { name: playerName, score: newScore }, { merge: true });  
+  console.log("Score updated!");  
+}  
+
+updateScore("Karina", 150);
