@@ -152,39 +152,3 @@ function showAuslanClap() {
         console.error("❌ Auslan Clap GIF not found! Check file name and path.");
     }
 }
-
-import { getFirestore, collection, getDocs } from "firebase/firestore";  
-
-const db = getFirestore();  
-
-async function fetchLeaderboard() {  
-  const leaderboardRef = collection(db, "leaderboard");  
-  const snapshot = await getDocs(leaderboardRef);  
-  const leaderboard = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));  
-  console.log(leaderboard);  
-}  
-
-fetchLeaderboard();
-
-import { getFirestore, collection, doc, setDoc } from "firebase/firestore";  
-
-const db = getFirestore();  
-
-async function updateScore(playerName, newScore) {  
-  const playerRef = doc(collection(db, "leaderboard"), playerName);  
-  await setDoc(playerRef, { name: playerName, score: newScore }, { merge: true });  
-  console.log("Score updated!");  
-}  
-
-updateScore("Karina", 150);
-
-async function displayLeaderboard() {  
-  const leaderboard = await fetchLeaderboard();  
-  const leaderboardElement = document.getElementById("leaderboard");  
-
-  leaderboardElement.innerHTML = leaderboard  
-    .sort((a, b) => b.score - a.score)  
-    .map(player => `<p>${player.name}: ${player.score}</p>`)  
-    .join("");  
-}  
-displayLeaderboard();
