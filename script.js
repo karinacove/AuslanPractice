@@ -2,8 +2,9 @@ console.log("🚀 JavaScript is running!");
 
 function adjustZoom() {
     let scale = window.innerWidth / document.documentElement.clientWidth;
-    document.body.style.transform = `scale(${1 / scale})`;
+    document.body.style.transform = "scale(0.25)"; 
     document.body.style.transformOrigin = "top left";
+    document.documentElement.style.overflow = "hidden";
 }
 
 window.addEventListener("resize", adjustZoom);
