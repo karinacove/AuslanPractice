@@ -6,9 +6,6 @@ function adjustZoom() {
     document.documentElement.style.overflow = "hidden";
 }
 
-window.addEventListener("resize", adjustZoom);
-adjustZoom(25);
-
 // Global Variables
 let words = [];
 let correctWord = "";
