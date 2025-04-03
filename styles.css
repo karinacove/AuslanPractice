@@ -25,7 +25,7 @@ body {
     position: absolute;
     bottom: 0;
     left: 50%;
-    transform: translateX(-50%) scale(0.25);
+    transform: scale(0.25);
     transform-origin: bottom center;
 
     padding: 20px;
