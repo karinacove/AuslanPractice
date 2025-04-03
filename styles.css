@@ -15,7 +15,7 @@ body {
     margin: 0;
     overflow: hidden;
     transform: scale(0.25);
-    transform-origin: top center;
+    transform-origin: bottom center;
     
     display: flex;
     flex-direction: column;
