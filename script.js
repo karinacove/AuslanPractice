@@ -2,7 +2,6 @@ console.log("🚀 JavaScript is running!");
 
 function adjustZoom() {
     let scale = window.innerWidth / document.documentElement.clientWidth;
-    document.body.style.transformOrigin = "bottom center";
     document.documentElement.style.overflow = "hidden";
 }
 
