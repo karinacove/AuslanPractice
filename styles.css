@@ -24,17 +24,20 @@ body {
 }
 
 .game-container {
-    margin: 140px auto;
-    position: center;
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) scale(0.25);
+    transform-origin: bottom center;
+
     padding: 20px;
     background: white;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     gap: 10px;
-    width: 80vw; /* Set width relative to the screen */
-    margin-bottom: 5vh;
-    max-width: 600px; /* Prevent it from stretching too much */
-    aspect-ratio: 1/1; /* Keep it square-like */
+    width: 80vw;
+    max-width: 600px;
+    aspect-ratio: 1/1;
 }
 
 #word-grid {
