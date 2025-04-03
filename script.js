@@ -1,10 +1,5 @@
 console.log("🚀 JavaScript is running!");
 
-function adjustZoom() {
-    let scale = window.innerWidth / document.documentElement.clientWidth;
-    document.documentElement.style.overflow = "hidden";
-}
-
 // Global Variables
 let words = [];
 let correctWord = "";
