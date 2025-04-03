@@ -4,7 +4,6 @@ function adjustZoom() {
     let scale = window.innerWidth / document.documentElement.clientWidth;
     document.body.style.transformOrigin = "top center";
     document.documentElement.style.overflow = "hidden";
-    document.body.style.transform = "scale(0.25)";
 }
 
 // Global Variables
