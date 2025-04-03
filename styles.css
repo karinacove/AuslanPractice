@@ -14,7 +14,7 @@ body {
     height: 100vh;
     margin: 0;
     overflow: hidden;
-    transform: scale(1);
+    transform: scale(0.25);
     transform-origin: top left;
     
     display: flex;
