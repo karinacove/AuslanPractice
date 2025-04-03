@@ -10,13 +10,11 @@ body {
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-color: #fff;
-    
+
     height: 100vh;
     margin: 0;
     overflow: hidden;
-    transform: scale(0.25);
-    transform-origin: bottom center;
-    
+
     display: flex;
     flex-direction: column;
     justify-content: center;
