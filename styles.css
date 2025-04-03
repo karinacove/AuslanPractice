@@ -23,7 +23,7 @@ body {
 
 .game-container {
     position: absolute;
-    bottom: 5vh;
+    bottom: 0;
     left: 50%;
     transform: translateX(-50%) scale(0.25);
     transform-origin: bottom center;
@@ -32,23 +32,27 @@ body {
     background: white;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    gap: 10px;
-    width: 80vw;
-    max-width: 600px;
-    aspect-ratio: 1/1;
+    
+    width: 240vw;
+    max-width: 1800px;
+    aspect-ratio: auto;
 }
 
 #word-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 5px;
+    grid-auto-rows: 1fr; /* Keep row height consistent */
+    gap: 10px;
     
-    width: 100%;
-    height: auto;
-    max-height: 100%;
+    width: 100%; /* Stretch to fill .game-container */
+    max-width: 600px; /* Prevent excessive stretching */
     
     justify-content: center;
     align-items: center;
+}
+  
+#word-grid div {  
+    aspect-ratio: 1/1;
 }
 
 .letter-box {
