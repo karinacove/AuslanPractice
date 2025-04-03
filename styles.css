@@ -23,7 +23,7 @@ body {
 
 .game-container {
     position: absolute;
-    bottom: 0;
+    bottom: 5vh;
     left: 50%;
     transform: translateX(-50%) scale(0.25);
     transform-origin: bottom center;
