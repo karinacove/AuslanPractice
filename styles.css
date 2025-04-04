@@ -22,36 +22,24 @@ body {
 }
 
 .game-container {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: scale(0.25);
-    transform-origin: bottom center;
-
+    margin: 140px auto;
+    position: center;
     padding: 20px;
     background: white;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    
-    width: 480px;
-    aspect-ratio: auto;
+    gap: 10px;
+    width: 80vw; /* Set width relative to the screen */
+    margin-bottom: 5vh;
+    max-width: 600px; /* Prevent it from stretching too much */
+    aspect-ratio: 1/1; /* Keep it square-like */
 }
 
 #word-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    grid-auto-rows: 1fr; /* Keep row height consistent */
     gap: 10px;
-    
-    width: 100%; /* Stretch to fill .game-container */
-    max-width: 1800px; /* Prevent excessive stretching */
-    
-    justify-content: center;
-    align-items: center;
-}
-  
-#word-grid div {  
-    aspect-ratio: 1/1;
+    margin-bottom: 20px;
 }
 
 .letter-box {
