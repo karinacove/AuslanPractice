@@ -10,6 +10,7 @@ body {
     background-size: contain;
     background-attachment: fixed;
     background-color: #fff;
+    transform: scale(0.25);
 }
 
 h1 {
@@ -23,7 +24,6 @@ h1 {
     background: white;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    transform: scale(0.25);
 }
 
 #word-grid {
