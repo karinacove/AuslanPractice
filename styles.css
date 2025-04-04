@@ -33,9 +33,9 @@ body {
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     
-    width: 240vw;
+    width: 20vw;
     max-width: 1800px;
-    aspect-ratio: 1:1;
+    aspect-ratio: auto;
 }
 
 #word-grid {
