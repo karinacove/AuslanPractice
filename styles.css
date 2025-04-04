@@ -45,7 +45,7 @@ body {
     gap: 10px;
     
     width: 100%; /* Stretch to fill .game-container */
-    max-width: 600px; /* Prevent excessive stretching */
+    max-width: 1800px; /* Prevent excessive stretching */
     
     justify-content: center;
     align-items: center;
