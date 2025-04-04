@@ -25,7 +25,7 @@ body {
     margin: 140px auto;
     position: bottom center;
     padding: 20px;
-    background: white;
+    background: transparent;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     gap: 10px;
