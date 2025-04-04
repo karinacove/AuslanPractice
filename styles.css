@@ -19,26 +19,18 @@ body {
     align-items: center;
 }
 
-.game-wrapper {
-    transform: scale(0.25);
-    transform-origin: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100vw;
-    height: 100vh;
-}
-
 .game-container {
-    position: bottom center;
+    position: absolute;
+    bottom: 0;
     padding: 20px;
     background: transparent;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     gap: 10px;
-    width: 80vw;
-    max-width: 600px;
-    aspect-ratio: 1/1;
+    width: 240vw;
+    max-width: 1800px;
+    transform: scale(0.25);
+    transform-origin: bottom center;
 }
 
 #word-grid {
