@@ -10,9 +10,13 @@ body {
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-color: #fff;
+    
     height: 100vh;
     margin: 0;
     overflow: hidden;
+    transform: scale(0.25);
+    transform-origin: top left;
+    
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -20,17 +24,17 @@ body {
 }
 
 .game-container {
-    position: absolute;
-    bottom: 0;
+    margin: 140px auto;
+    position: center;
     padding: 20px;
-    background: transparent;
+    background: white;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     gap: 10px;
-    width: 240vw;
-    max-width: 1800px;
-    transform: scale(0.25);
-    transform-origin: bottom center;
+    width: 80vw; /* Set width relative to the screen */
+    margin-bottom: 5vh;
+    max-width: 600px; /* Prevent it from stretching too much */
+    aspect-ratio: 1/1; /* Keep it square-like */
 }
 
 #word-grid {
