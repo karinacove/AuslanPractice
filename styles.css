@@ -30,7 +30,7 @@ body {
 }
 
 .game-container {
-    position: relative;
+    position: bottom center;
     padding: 20px;
     background: transparent;
     border-radius: 10px;
