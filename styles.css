@@ -11,6 +11,7 @@ body {
     background-attachment: fixed;
     background-color: #fff;
     transform: scale(0.25);
+    transform-origin: top left;
 }
 
 h1 {
