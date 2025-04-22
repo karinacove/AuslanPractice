@@ -19,22 +19,22 @@ h1 {
 }
 
 #game-board {
-    position: fixed;
-    left: 50%;
+    position: absolute;
     bottom: 0;
-    transform: translate(-50%, 0) scale(0.25);
-    transform-origin: bottom center;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 10;
 }
 
-.game-container {
-    max-width: 1820px;
-    margin: 140px auto;
-    padding: 20px;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
+#background-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: url('assets/Wordle Template 2.png') no-repeat center center;
+    background-size: contain;
+    overflow: hidden;
+    transform: scale(0.25);
+    transform-origin: top left;
 
 #word-grid {
     display: grid;
