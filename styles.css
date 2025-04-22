@@ -17,6 +17,13 @@ h1 {
     margin-top: 230px;
 }
 
+#game-board {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10; /* Optional: keep it on top */
+}
 .game-container {
     max-width: 1820px;
     margin: 140px auto;
