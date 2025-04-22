@@ -20,11 +20,13 @@ h1 {
 
 #game-board {
     position: fixed;
-    bottom: 0;
     left: 50%;
-    transform: translateX(-50%);
-    z-index: 10; /* Optional: keep it on top */
+    bottom: 0;
+    transform: translate(-50%, 0) scale(0.25);
+    transform-origin: bottom center;
+    z-index: 10;
 }
+
 .game-container {
     max-width: 1820px;
     margin: 140px auto;
