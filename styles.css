@@ -3,42 +3,31 @@
     src: url('assets/Auslan Finger Spelling.otf') format('opentype');
 }
 
-/* Reset & Layout */
-html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-}
-
 body {
     font-family: 'AuslanFingerSpelling', sans-serif;
     text-align: center;
     background: url('assets/Wordle Template 2.png') no-repeat center center;
-    background-size: cover;
+    background-size: contain;
+    background-attachment: fixed;
     background-color: #fff;
     transform: scale(0.25);
 }
 
-/* Title */
 h1 {
     margin-top: 230px;
 }
 
-/* Main Game Board Container */
-#game-board {
-    position: fixed;
-    bottom: 0;
-    left: 50%;
+.game-container {
     max-width: 1820px;
     margin: 140px auto;
     padding: 20px;
     background: white;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    position: centre bottom;
+    height: 10vh;
 }
 
-/* Word Grid (if used elsewhere) */
 #word-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -46,26 +35,46 @@ h1 {
     margin-bottom: 2px;
 }
 
-/* Letter Squares */
-.letter-box,
-.cell {
-    width: clamp(60px, 10vw, 120px);
-    height: clamp(60px, 10vw, 120px);
-    font-size: clamp(50px, 8vw, 100px);
+.letter-box {
+    width: 100px;
+    height: 100px;
+    font-size: 200px;
     font-weight: bold;
     border: 5px solid #000;
-    border-radius: 10px;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: white;
+    background: white;
     text-transform: uppercase;
-    aspect-ratio: 1 / 1;
-    margin: 6px;
-    cursor: pointer;
+    aspect-ratio: 1/1;
 }
 
-/* Hover and Color States */
+#keyboard {
+    margin-top: 20px;
+}
+
+.row {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.cell {
+    width: 100px;
+    height: 100px;
+    margin: 6px;
+    font-size: clamp(30px, 5vw, 80px);
+    font-weight: bold;
+    cursor: pointer;
+    border: 4px solid #000;
+    border-radius: 10px;
+    background-color: #ddd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: 1/1;
+}
+
 .cell:hover {
     background-color: #bbb;
 }
@@ -85,14 +94,6 @@ h1 {
     color: white;
 }
 
-/* Row Layout */
-.row {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-}
-
-/* Auslan Clap Animation */
 #AuslanClap {
     display: none;
     position: fixed;
@@ -104,7 +105,6 @@ h1 {
     z-index: 1000;
 }
 
-/* Incorrect Word Popup */
 #incorrectWordMessage {
     display: none;
     position: fixed;
