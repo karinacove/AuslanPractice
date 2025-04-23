@@ -18,15 +18,17 @@ h1 {
 }
 
 .game-container {
-    max-width: 1820px;
     margin: 140px auto;
+    position: center;
     padding: 20px;
     background: white;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    position: centre bottom;
-    height: 10vh;
-    size: contain;
+    gap: 10px;
+    width: 80vw; /* Set width relative to the screen */
+    margin-bottom: 5vh;
+    max-width: 600px; /* Prevent it from stretching too much */
+    aspect-ratio: 1/1; /* Keep it square-like */
 }
 
 #word-grid {
