@@ -17,6 +17,7 @@ body {
     background: url('assets/Wordle Template 2.png') no-repeat center center;
     background-size: cover;
     background-color: #fff;
+    transform: scale(0.25);
 }
 
 /* Title */
@@ -29,7 +30,7 @@ h1 {
     position: fixed;
     bottom: 0;
     left: 50%;
-    transform: translateX(-50%) scale(0.25);
+    transform: translateX(-50%);
     transform-origin: bottom center;
     display: flex;
     flex-direction: column;
