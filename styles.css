@@ -13,10 +13,6 @@ body {
     transform: scale(0.25);
 }
 
-h1 {
-    margin-top: 230px;
-}
-
 .game-container {
     margin: 140px auto;
     position: center;
