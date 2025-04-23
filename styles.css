@@ -30,8 +30,6 @@ h1 {
     position: fixed;
     bottom: 0;
     left: 50%;
-    transform: translateX(-50%);
-    transform-origin: bottom center;
     max-width: 1820px;
     margin: 140px auto;
     padding: 20px;
