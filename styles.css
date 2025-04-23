@@ -3,6 +3,13 @@
     src: url('assets/Auslan Finger Spelling.otf') format('opentype');
 }
 
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
 body {
     font-family: 'AuslanFingerSpelling', sans-serif;
     text-align: center;
