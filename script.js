@@ -156,3 +156,8 @@ document.getElementById('AuslanClap').style.display = 'block';
 setTimeout(() => {
     document.getElementById('playAgain').style.display = 'block';
 }, 2500); // Adjust delay if needed
+
+document.getElementById('playAgain').addEventListener('click', () => {
+    location.reload();
+});
+
