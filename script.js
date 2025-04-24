@@ -1,4 +1,4 @@
-console.log("🚀 JavaScript is running!");
+// 🚀 JavaScript is running!
 
 function adjustZoom() {
     let scale = window.innerWidth / document.documentElement.clientWidth;
@@ -25,14 +25,13 @@ fetch('wordle_words.json')
         if (!data.words || !Array.isArray(data.words) || data.words.length === 0) {
             throw new Error("Word list is empty or invalid.");
         }
-        words = data.words;  // ✅ Extracts the "words" array correctly
+        words = data.words;
         correctWord = words[Math.floor(Math.random() * words.length)].toUpperCase();
         console.log("Correct Word:", correctWord);
     })
     .catch(error => {
         console.error("Error loading words:", error);
     });
-
 
 // Handle Key Press
 document.addEventListener("keydown", (event) => {
@@ -92,23 +91,36 @@ function checkGuess() {
         }
     });
 
-   if (currentGuess === correctWord) {
-    console.log("🎉 Correct word guessed! Showing Auslan Clap...");
-    showAuslanClap();
-} else {
-    showIncorrectWordMessage(currentGuess);
-    attempts++;
-    
-    if (attempts >= maxAttempts) {
-        alert(`The correct word was: ${correctWord}`);
-    } else {
+    if (currentGuess === correctWord) {
+        console.log("🎉 Correct word guessed! Showing Auslan Clap...");
+        showAuslanClap();
+
         setTimeout(() => {
-            currentGuess = "";
-            currentRow++;
-            updateGrid();
-        }, 2000); // 2-second delay
+            document.getElementById('playAgain').style.display = 'block';
+        }, 2500);
+    } else {
+        showIncorrectWordMessage(currentGuess);
+        attempts++;
+
+        if (attempts >= maxAttempts) {
+            alert(`The correct word was: ${correctWord}`);
+
+            setTimeout(() => {
+                const playAgainBtn = document.getElementById('playAgain');
+                if (playAgainBtn) {
+                    playAgainBtn.style.display = 'block';
+                }
+            }, 2000);
+        } else {
+            setTimeout(() => {
+                currentGuess = "";
+                currentRow++;
+                updateGrid();
+            }, 2000);
+        }
     }
 }
+
 function showIncorrectWordMessage(word) {
     const message = document.createElement("div");
     message.textContent = word;
@@ -129,19 +141,16 @@ function showIncorrectWordMessage(word) {
 
     setTimeout(() => {
         message.remove();
-    }, 2000); // Display for 2 seconds
+    }, 2000);
 }
 
-}  // ✅ Function `checkGuess` now properly ends here
-
-// ✅ Move `showAuslanClap` OUTSIDE `checkGuess`
 function showAuslanClap() {
-    const clapGif = document.getElementById("AuslanClap");  
+    const clapGif = document.getElementById("AuslanClap");
 
-    if (clapGif) {  // Check if the element exists
-        clapGif.src = "assets/auslan-clap.gif";  
+    if (clapGif) {
+        clapGif.src = "assets/auslan-clap.gif";
         clapGif.style.display = "block";
-        
+
         setTimeout(() => {
             clapGif.style.display = "none";
         }, 3000);
@@ -150,14 +159,13 @@ function showAuslanClap() {
     }
 }
 
-document.getElementById('AuslanClap').style.display = 'block';
-
-// Show the 'Play Again' button shortly after the clap
-setTimeout(() => {
-    document.getElementById('playAgain').style.display = 'block';
-}, 2500); // Adjust delay if needed
-
-document.getElementById('playAgain').addEventListener('click', () => {
-    location.reload();
+// Setup the Play Again button if it exists
+document.addEventListener("DOMContentLoaded", () => {
+    const playAgainBtn = document.getElementById('playAgain');
+    if (playAgainBtn) {
+        playAgainBtn.style.display = 'none';
+        playAgainBtn.addEventListener('click', () => {
+            location.reload();
+        });
+    }
 });
-
