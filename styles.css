@@ -10,7 +10,6 @@ body {
     background-size: contain;
     background-attachment: fixed;
     background-color: #fff;
-    transform: scale(0.25);
 }
 
 .game-container {
@@ -25,6 +24,7 @@ body {
     margin-bottom: 5vh;
     max-width: 600px; /* Prevent it from stretching too much */
     aspect-ratio: 1/1; /* Keep it square-like */
+    transform: translateX(-50%) scale(0.25);
     transform-origin: bottom center;
     size: contain;
 }
