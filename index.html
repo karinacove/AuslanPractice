@@ -1,62 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        @font-face {
-            font-family: 'Auslan Finger Spelling';
-            src: url('assets/Auslan Finger Spelling.otf') format('opentype');
-        }
-        body {
-            text-align: center;
-            background-image: url('assets/Wordle Template 2.png');
-            background-position: center;
-        }
-        .cell {
-            font-family: 'Auslan Finger Spelling', sans-serif;
-            width: 250px;
-            height: 250px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: 15px solid black;
-            border-radius: 30px;
-            padding: 10px;
-            font-size: 200pt;
-            margin: 9px;
-        }
-        .row {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-                   }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    @font-face {
+      font-family: 'Auslan Finger Spelling';
+      src: url('assets/Auslan Finger Spelling.otf') format('opentype');
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'Auslan Finger Spelling', sans-serif;
+      text-align: center;
+      background: url('assets/Wordle Template 2.png') no-repeat center center;
+      background-size: contain;
+      background-attachment: fixed;
+      background-color: #fff;
+    }
+
+    #game-container {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) scale(0.25);
+      transform-origin: bottom center;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      z-index: 10;
+
+      width: auto;
+      max-width: 100vw;
+      padding: 20px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .cell {
+      width: 250px;
+      height: 250px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 15px solid black;
+      border-radius: 30px;
+      padding: 10px;
+      font-size: 200pt;
+      margin: 9px;
+    }
+  </style>
 </head>
 <body>
-    <div id="game-container" class="grid-container">
-        <!-- 6 rows for attempts -->
-        <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
-        <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
-        <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
-        <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
-        <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
-        <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
-    </div>
+  <div id="game-container">
+    <!-- 6 rows of game cells -->
+    <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+    <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+    <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+    <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+    <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+    <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+  </div>
 
-    <img id="AuslanClap" src="assets/auslan-clap.gif" style="display: none;" alt="Auslan Clap">
-    
-    <script src="script.js"></script>
+  <img id="AuslanClap" src="assets/auslan-clap.gif" style="display: none;" alt="Auslan Clap" />
+  <div id="incorrectWordMessage"></div>
+  <div id="leaderboard"></div>
 
-    <div id="incorrectWordMessage"></div>
-    
-    <div id="leaderboard"></div>
-
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
-
-    
+  <script src="script.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
 </body>
 </html>
