@@ -6,8 +6,8 @@ function adjustZoom() {
     document.documentElement.style.overflow = "hidden";
 }
 
-// Global Variables
 let words = [];
+let validWords = [];
 let correctWord = "";
 let currentGuess = "";
 let attempts = 0;
@@ -15,43 +15,42 @@ const maxAttempts = 6;
 const rows = document.querySelectorAll(".row");
 let currentRow = 0;
 
-// Load Words
+// Load playable words
 fetch('wordle_words.json')
-    .then(response => {
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-        if (!data.words || !Array.isArray(data.words) || data.words.length === 0) {
-            throw new Error("Word list is empty or invalid.");
-        }
-        words = data.words;
-        correctWord = words[Math.floor(Math.random() * words.length)].toUpperCase();
+        words = data.words.map(word => word.toUpperCase());
+        correctWord = words[Math.floor(Math.random() * words.length)];
         console.log("Correct Word:", correctWord);
     })
-    .catch(error => {
-        console.error("Error loading words:", error);
-    });
+    .catch(error => console.error("Error loading word list:", error));
 
-// Handle Key Press
+// Load valid words for checking
+fetch('valid_words.json')
+    .then(response => response.json())
+    .then(data => {
+        validWords = data.words.map(word => word.toUpperCase());
+    })
+    .catch(error => console.error("Error loading valid words:", error));
+
+// Handle key press
 document.addEventListener("keydown", (event) => {
-    console.log("Key pressed:", event.key);
-
     if (event.key.length === 1 && event.key.match(/[a-zA-Z]/i) && currentGuess.length < 5) {
         currentGuess += event.key.toUpperCase();
-        console.log("Updated Guess:", currentGuess);
         updateGrid();
-    } else if (event.key === "Backspace" && currentGuess.length > 0) {
+    } else if (event.key === "Backspace") {
         currentGuess = currentGuess.slice(0, -1);
-        console.log("Updated Guess after backspace:", currentGuess);
         updateGrid();
     } else if (event.key === "Enter" && currentGuess.length === 5) {
+        if (!validWords.includes(currentGuess)) {
+            showInvalidWordMessage(currentGuess);
+            return;
+        }
         checkGuess();
     }
 });
 
 function updateGrid() {
-    console.log("Updating grid... Current Guess:", currentGuess);
     const cells = rows[currentRow].querySelectorAll(".cell");
     cells.forEach((cell, index) => {
         cell.textContent = currentGuess[index] || "";
@@ -61,12 +60,9 @@ function updateGrid() {
 }
 
 function checkGuess() {
-    if (!correctWord) return;
-
     const guessArray = currentGuess.split("");
     const correctArray = correctWord.split("");
     const cells = rows[currentRow].querySelectorAll(".cell");
-
     let remainingLetters = [...correctArray];
 
     guessArray.forEach((letter, index) => {
@@ -86,31 +82,19 @@ function checkGuess() {
     });
 
     guessArray.forEach((letter, index) => {
-        if (cells[index].style.backgroundColor !== "green" && cells[index].style.backgroundColor !== "orange") {
+        if (!cells[index].style.backgroundColor || cells[index].style.backgroundColor === "") {
             cells[index].style.backgroundColor = "red";
         }
     });
 
     if (currentGuess === correctWord) {
-        console.log("🎉 Correct word guessed! Showing Auslan Clap...");
         showAuslanClap();
-
-        setTimeout(() => {
-            document.getElementById('playAgain').style.display = 'block';
-        }, 2500);
+        setTimeout(showPlayAgainButton, 3000);
     } else {
-        showIncorrectWordMessage(currentGuess);
         attempts++;
-
         if (attempts >= maxAttempts) {
             alert(`The correct word was: ${correctWord}`);
-
-            setTimeout(() => {
-                const playAgainBtn = document.getElementById('playAgain');
-                if (playAgainBtn) {
-                    playAgainBtn.style.display = 'block';
-                }
-            }, 2000);
+            showPlayAgainButton();
         } else {
             setTimeout(() => {
                 currentGuess = "";
@@ -121,9 +105,40 @@ function checkGuess() {
     }
 }
 
-function showIncorrectWordMessage(word) {
+function showAuslanClap() {
+    const clapGif = document.getElementById("AuslanClap");
+    if (clapGif) {
+        clapGif.src = "assets/auslan-clap.gif";
+        clapGif.style.display = "block";
+        setTimeout(() => {
+            clapGif.style.display = "none";
+        }, 3000);
+    }
+}
+
+function showPlayAgainButton() {
+    let button = document.getElementById("playAgain");
+    if (!button) {
+        button = document.createElement("img");
+        button.id = "playAgain";
+        button.src = "assets/Again.png";
+        button.alt = "Play Again";
+        button.style.position = "fixed";
+        button.style.bottom = "5vh";
+        button.style.left = "50%";
+        button.style.transform = "translateX(-50%)";
+        button.style.cursor = "pointer";
+        button.style.width = "200px";
+        button.style.zIndex = "1000";
+        document.body.appendChild(button);
+    }
+    button.style.display = "block";
+    button.addEventListener("click", () => location.reload());
+}
+
+function showInvalidWordMessage(word) {
     const message = document.createElement("div");
-    message.textContent = word;
+    message.textContent = `\"${word}\" is not a valid word!`;
     message.style.position = "fixed";
     message.style.top = "50%";
     message.style.left = "50%";
@@ -135,37 +150,9 @@ function showIncorrectWordMessage(word) {
     message.style.padding = "20px";
     message.style.borderRadius = "10px";
     message.style.zIndex = "1000";
-    message.style.textAlign = "center";
-
     document.body.appendChild(message);
 
     setTimeout(() => {
         message.remove();
     }, 2000);
 }
-
-function showAuslanClap() {
-    const clapGif = document.getElementById("AuslanClap");
-
-    if (clapGif) {
-        clapGif.src = "assets/auslan-clap.gif";
-        clapGif.style.display = "block";
-
-        setTimeout(() => {
-            clapGif.style.display = "none";
-        }, 3000);
-    } else {
-        console.error("❌ Auslan Clap GIF not found! Check file name and path.");
-    }
-}
-
-// Setup the Play Again button if it exists
-document.addEventListener("DOMContentLoaded", () => {
-    const playAgainBtn = document.getElementById('playAgain');
-    if (playAgainBtn) {
-        playAgainBtn.style.display = 'none';
-        playAgainBtn.addEventListener('click', () => {
-            location.reload();
-        });
-    }
-});
