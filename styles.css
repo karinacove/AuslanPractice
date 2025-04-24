@@ -14,7 +14,7 @@ body {
 }
 
 .game-container {
-    margin: 140px auto;
+    margin: 20px auto;
     position: center;
     padding: 20px;
     background: white;
@@ -33,6 +33,7 @@ body {
     grid-template-columns: repeat(5, 1fr);
     gap: 10px;
     margin-bottom: 2px;
+    size: contain;
 }
 
 .letter-box {
