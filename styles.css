@@ -3,6 +3,13 @@
     src: url('assets/Auslan Finger Spelling.otf') format('opentype');
 }
 
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
 body {
     font-family: 'AuslanFingerSpelling', sans-serif;
     text-align: center;
@@ -10,23 +17,29 @@ body {
     background-size: contain;
     background-attachment: fixed;
     background-color: #fff;
+    position: relative;
 }
 
 .game-container {
-    margin: 20px auto;
-    position: fixed center;
-    padding: 20px;
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) scale(0.25);
+    transform-origin: bottom center;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+
     background: white;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    gap: 10px;
-    width: 80vw; /* Set width relative to the screen */
-    margin-bottom: 5vh;
-    max-width: 600px; /* Prevent it from stretching too much */
-    aspect-ratio: 1/1; /* Keep it square-like */
-    transform: translateX(-50%) scale(0.25);
-    transform-origin: bottom center;
-    size: contain;
+
+    width: 80vw;
+    max-width: 600px;
+    padding: 20px;
+    z-index: 10;
 }
 
 #word-grid {
