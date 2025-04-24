@@ -149,3 +149,10 @@ function showAuslanClap() {
         console.error("❌ Auslan Clap GIF not found! Check file name and path.");
     }
 }
+
+document.getElementById('AuslanClap').style.display = 'block';
+
+// Show the 'Play Again' button shortly after the clap
+setTimeout(() => {
+    document.getElementById('playAgain').style.display = 'block';
+}, 2500); // Adjust delay if needed
