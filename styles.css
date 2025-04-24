@@ -15,7 +15,7 @@ body {
 
 .game-container {
     margin: 20px auto;
-    position: center;
+    position: fixed center;
     padding: 20px;
     background: white;
     border-radius: 10px;
@@ -25,6 +25,7 @@ body {
     margin-bottom: 5vh;
     max-width: 600px; /* Prevent it from stretching too much */
     aspect-ratio: 1/1; /* Keep it square-like */
+    transform-origin: bottom center;
     size: contain;
 }
 
