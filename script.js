@@ -26,14 +26,13 @@ fetch('wordle_words.json')
     .catch(error => console.error("Error loading word list:", error));
 
 // Load valid words for checking
-fetch('valid_words.json')
+fetch("valid_words.json")
     .then(response => response.json())
     .then(data => {
-        validWords = data.words.map(word => word.toUpperCase());
-    })
+       validWords = data.validWords.map(word => word.toUpperCase());
+  });
     .catch(error => console.error("Error loading valid words:", error));
 
-// Handle key press
 document.addEventListener("keydown", (event) => {
     if (event.key.length === 1 && event.key.match(/[a-zA-Z]/i) && currentGuess.length < 5) {
         currentGuess += event.key.toUpperCase();
