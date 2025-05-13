@@ -156,3 +156,8 @@ function showInvalidWordMessage(word) {
         message.remove();
     }, 2000);
 }
+
+    setTimeout(() => {
+        message.remove();
+    }, 2000);
+}
