@@ -27,13 +27,16 @@ fetch('wordle_words.json')
 
 // Load valid words for checking
 fetch("valid_words.json")
-    .then(response => response.json())
-    .then(data => {
-       validWords = data.validWords.map(word => word.toUpperCase());
-  });
-    .catch(error => console.error("Error loading valid words:", error));
+  .then(response => response.json())
+  .then(data => {
+    validWords = data.validWords.map(word => word.toUpperCase());
+  })
+  .catch(error => console.error("Error loading valid words:", error));
 
 document.addEventListener("keydown", (event) => {
+    // Wait until validWords has loaded
+    if (!validWords || validWords.length === 0) return;
+
     if (event.key.length === 1 && event.key.match(/[a-zA-Z]/i) && currentGuess.length < 5) {
         currentGuess += event.key.toUpperCase();
         updateGrid();
