@@ -30,14 +30,14 @@ fetch("valid_words.json")
   .then(response => response.json())
   .then(data => {
     validWords = data.validWords.map(word => word.toUpperCase());
+    console.log("✅ Valid words loaded:", validWords.length);
   })
   .catch(error => console.error("Error loading valid words:", error));
 
 // Handle key presses
 
 document.addEventListener("keydown", (event) => {
-    // Wait until validWords has loaded
-    if (!validWords || validWords.length === 0) return;
+    console.log("🔑 Key pressed:", event.key);
 
     if (event.key.length === 1 && event.key.match(/[a-zA-Z]/i) && currentGuess.length < 5) {
         currentGuess += event.key.toUpperCase();
@@ -46,7 +46,7 @@ document.addEventListener("keydown", (event) => {
         currentGuess = currentGuess.slice(0, -1);
         updateGrid();
     } else if (event.key === "Enter" && currentGuess.length === 5) {
-        if (!validWords.includes(currentGuess.toUpperCase())) {
+        if (!validWords || validWords.length === 0 || !validWords.includes(currentGuess.toUpperCase())) {
             showInvalidWordMessage(currentGuess);
             return;
         }
