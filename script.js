@@ -33,6 +33,8 @@ fetch("valid_words.json")
   })
   .catch(error => console.error("Error loading valid words:", error));
 
+// Handle key presses
+
 document.addEventListener("keydown", (event) => {
     // Wait until validWords has loaded
     if (!validWords || validWords.length === 0) return;
@@ -43,13 +45,15 @@ document.addEventListener("keydown", (event) => {
     } else if (event.key === "Backspace") {
         currentGuess = currentGuess.slice(0, -1);
         updateGrid();
-else if (event.key === "Enter" && currentGuess.length === 5) {
-    if (!validWords.includes(currentGuess.toUpperCase())) {
-        showInvalidWordMessage(currentGuess);
-        return;
+    } else if (event.key === "Enter" && currentGuess.length === 5) {
+        if (!validWords.includes(currentGuess.toUpperCase())) {
+            showInvalidWordMessage(currentGuess);
+            return;
+        }
+        checkGuess();
     }
-    checkGuess();
-}
+});
+
 function updateGrid() {
     const cells = rows[currentRow].querySelectorAll(".cell");
     cells.forEach((cell, index) => {
@@ -151,11 +155,6 @@ function showInvalidWordMessage(word) {
     message.style.borderRadius = "10px";
     message.style.zIndex = "1000";
     document.body.appendChild(message);
-
-    setTimeout(() => {
-        message.remove();
-    }, 2000);
-}
 
     setTimeout(() => {
         message.remove();
