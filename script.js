@@ -43,15 +43,13 @@ document.addEventListener("keydown", (event) => {
     } else if (event.key === "Backspace") {
         currentGuess = currentGuess.slice(0, -1);
         updateGrid();
-    } else if (event.key === "Enter" && currentGuess.length === 5) {
-        if (!validWords.includes(currentGuess)) {
-            showInvalidWordMessage(currentGuess);
-            return;
-        }
-        checkGuess();
+else if (event.key === "Enter" && currentGuess.length === 5) {
+    if (!validWords.includes(currentGuess.toUpperCase())) {
+        showInvalidWordMessage(currentGuess);
+        return;
     }
-});
-
+    checkGuess();
+}
 function updateGrid() {
     const cells = rows[currentRow].querySelectorAll(".cell");
     cells.forEach((cell, index) => {
