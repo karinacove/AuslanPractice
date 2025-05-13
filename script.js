@@ -138,7 +138,7 @@ function showPlayAgainButton() {
 
 function showInvalidWordMessage(word) {
     const message = document.createElement("div");
-    message.textContent = `\"${word}\" is not a valid word!`;
+    message.innerHTML = `<span style="font-family: 'AuslanFingerSpelling', sans-serif;">${word}</span> <span style="font-family: sans-serif;">is not a valid word!</span>`;
     message.style.position = "fixed";
     message.style.top = "50%";
     message.style.left = "50%";
