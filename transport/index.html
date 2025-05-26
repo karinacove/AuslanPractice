@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Auslan Transport Activity</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
   <style>
     html, body {
       height: 100%;
@@ -17,32 +17,6 @@
       background: url('assets/Map.png') no-repeat center center fixed;
       background-size: cover;
       font-family: sans-serif;
-      position: relative;
-    }
-
-    #student-form {
-      position: absolute;
-      top: 20%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(255,255,255,0.9);
-      padding: 30px;
-      border-radius: 12px;
-      z-index: 10;
-    }
-
-    #q1-button, #submit-button {
-      display: none;
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      padding: 10px 20px;
-      background: #007acc;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      z-index: 10;
     }
 
     #vehicle-palette {
@@ -55,33 +29,51 @@
       background: rgba(255, 255, 255, 0.8);
       padding: 10px;
       border-radius: 10px;
-      z-index: 10;
     }
 
     .draggable {
       width: 80px;
+      height: auto;
       cursor: grab;
-      position: relative;
     }
 
-    .placed {
+    #student-form {
       position: absolute;
-      z-index: 5;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,0.9);
+      padding: 30px;
+      border-radius: 12px;
+    }
+
+    #question-buttons button, #submit-button {
+      display: none;
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background: #007acc;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #question-buttons button:hover, #submit-button:hover {
+      background: #005fa3;
     }
   </style>
 </head>
 <body>
-  <!-- Sign-in form -->
   <form id="student-form">
-    <input type="text" name="studentName" placeholder="Name" required />
-    <input type="text" name="className" placeholder="Class" required />
+    <input type="text" name="studentName" placeholder="Name" required>
+    <input type="text" name="className" placeholder="Class" required>
     <button type="submit">Start Activity</button>
   </form>
 
-  <!-- Question button -->
-  <button id="q1-button">Start Question 1</button>
-      
-  <!-- Vehicle palette -->
+  <div id="question-buttons"></div>
+
   <div id="vehicle-palette">
     <img src="assets/Blue Car.png" alt="BlueCar" class="draggable" draggable="true" data-vehicle="BlueCar">
     <img src="assets/Blue Van.png" alt="BlueVan" class="draggable" draggable="true" data-vehicle="BlueVan">
@@ -95,75 +87,95 @@
     <img src="assets/Yellow Boat.png" alt="YellowBoat" class="draggable" draggable="true" data-vehicle="YellowBoat">
   </div>
 
-  <!-- Submit -->
   <button id="submit-button">Submit Answer</button>
 
-<script>
-  const form = document.getElementById('student-form');
-  const q1Button = document.getElementById('q1-button');
-  const palette = document.getElementById('vehicle-palette');
-  const submitButton = document.getElementById('submit-button');
+  <script>
+    const form = document.getElementById('student-form');
+    const questionButtonsContainer = document.getElementById('question-buttons');
+    const palette = document.getElementById('vehicle-palette');
+    const submitButton = document.getElementById('submit-button');
 
-  let studentName = '';
-  let className = '';
+    let studentName = '';
+    let className = '';
+    let currentQuestion = 0;
 
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    studentName = form.elements['studentName'].value;
-    className = form.elements['className'].value;
-    form.style.display = 'none';
-    q1Button.style.display = 'block';
-  });
-
-  q1Button.addEventListener('click', function () {
-    q1Button.style.display = 'none';
-    palette.style.display = 'flex';
-    submitButton.style.display = 'inline-block';
-  });
-
-  // Drag-and-drop setup
-  let dragged;
-
-  document.querySelectorAll('.draggable').forEach(el => {
-    el.addEventListener('dragstart', (e) => {
-      dragged = e.target.cloneNode(true);
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      studentName = form.elements['studentName'].value;
+      className = form.elements['className'].value;
+      form.style.display = 'none';
+      generateQuestionButtons();
     });
-  });
 
-  document.body.addEventListener('dragover', (e) => {
-    e.preventDefault();
-  });
-
-  document.body.addEventListener('drop', (e) => {
-    e.preventDefault();
-    if (dragged) {
-      dragged.classList.add('placed');
-      dragged.style.position = 'absolute';
-      dragged.style.left = (e.pageX - 40) + 'px';
-      dragged.style.top = (e.pageY - 40) + 'px';
-      document.body.appendChild(dragged);
-      dragged = null;
+    function generateQuestionButtons() {
+      for (let i = 1; i <= 10; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = 'Question ' + i;
+        btn.style.left = (20 + (i - 1) * 120) + 'px';
+        btn.style.top = '20px';
+        btn.style.position = 'absolute';
+        btn.style.display = 'inline-block';
+        btn.addEventListener('click', () => startQuestion(i));
+        questionButtonsContainer.appendChild(btn);
+      }
     }
-  });
 
-  submitButton.addEventListener('click', () => {
-    const vehicleData = [...document.querySelectorAll('.placed')].map(el => {
-      return `${el.alt} at (${el.style.left}, ${el.style.top})`;
-    }).join('; ');
+    function startQuestion(qNum) {
+      currentQuestion = qNum;
+      palette.style.display = 'flex';
+      submitButton.style.display = 'inline-block';
+      clearPreviousVehicles();
+    }
 
-    const formData = new FormData();
-    formData.append('entry.2134015542', studentName); // Name
-    formData.append('entry.1433860140', className);   // Class
-    formData.append('entry.1357162145', vehicleData); // Vehicle info
+    function clearPreviousVehicles() {
+      document.querySelectorAll('.placed').forEach(el => el.remove());
+    }
 
-    fetch('https://docs.google.com/forms/d/e/1FAIpQLSfYZw5EHO5L3AEsmUbbUdfCzkc37iJ_vXqB7S5MsU9Xz69hTA/formResponse', {
-      method: 'POST',
-      mode: 'no-cors',
-      body: formData
+    // Drag-and-drop
+    let dragged;
+
+    document.querySelectorAll('.draggable').forEach(el => {
+      el.addEventListener('dragstart', (e) => {
+        dragged = e.target.cloneNode(true);
+      });
     });
 
-    alert('Submitted!');
-    submitButton.disabled = true;
-    submitButton.innerText = 'Submitted';
-  });
-</script>
+    document.body.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    document.body.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (dragged) {
+        dragged.classList.add('placed');
+        dragged.style.position = 'absolute';
+        dragged.style.left = (e.pageX - 40) + 'px';
+        dragged.style.top = (e.pageY - 40) + 'px';
+        document.body.appendChild(dragged);
+        dragged = null;
+      }
+    });
+
+    submitButton.addEventListener('click', () => {
+      const vehicleData = [...document.querySelectorAll('.placed')].map(el => {
+        return `${el.alt} at (${el.style.left}, ${el.style.top})`;
+      }).join('; ');
+
+      const formData = new FormData();
+      formData.append('entry.2134015542', studentName);
+      formData.append('entry.1433860140', className);
+      formData.append('entry.1357162145', `Q${currentQuestion}: ${vehicleData}`);
+
+      fetch('https://docs.google.com/forms/d/e/1FAIpQLSfYZw5EHO5L3AEsmUbbUdfCzkc37iJ_vXqB7S5MsU9Xz69hTA/formResponse', {
+        method: 'POST',
+        mode: 'no-cors',
+        body: formData
+      });
+
+      alert('Submitted Question ' + currentQuestion);
+      submitButton.disabled = true;
+      submitButton.innerText = 'Submitted';
+    });
+  </script>
+</body>
+</html>
