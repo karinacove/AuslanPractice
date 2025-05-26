@@ -6,38 +6,95 @@
   <title>Auslan Transport Activity</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    #map-container, #vehicle-palette, #submit-button, #overlay, #q1-button {
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    body {
+      background: url('assets/map.jpg') no-repeat center center fixed;
+      background-size: cover;
+      font-family: sans-serif;
+    }
+
+    #map-container {
+      display: none;
+    }
+
+    #vehicle-palette {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      gap: 20px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .draggable {
+      width: 80px;
+      height: auto;
+      cursor: grab;
+    }
+
+    #drop-zone {
+      position: absolute;
+      top: 100px;
+      left: 100px;
+      width: 200px;
+      height: 200px;
+      border: 2px dashed #ccc;
       display: none;
     }
 
     #student-form {
-      margin-top: 30px;
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,0.9);
+      padding: 30px;
+      border-radius: 12px;
     }
 
-    #q1-button {
-      margin-top: 20px;
-      padding: 12px 24px;
-      background-color: #ff9800;
+    #q1-button, #submit-button {
+      display: none;
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background: #007acc;
       color: white;
       border: none;
       border-radius: 8px;
-      font-size: 1rem;
       cursor: pointer;
     }
 
-    #q1-button:hover {
-      background-color: #e68900;
+    #q1-button:hover, #submit-button:hover {
+      background: #005fa3;
+    }
+
+    #overlay {
+      display: none;
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      z-index: 10;
     }
 
     video {
-      max-width: 90%;
-      margin-top: 20px;
+      width: 100%;
       border-radius: 12px;
     }
   </style>
 </head>
 <body>
-
   <!-- Sign-in form -->
   <form id="student-form">
     <input type="text" name="studentName" placeholder="Name" required>
@@ -56,14 +113,9 @@
     </video>
   </div>
 
-  <!-- Map and drop zone -->
-  <div id="map-container">
-    <img src="assets/map.jpg" alt="Map" id="map">
-    <div id="drop-zone"></div>
-  </div>
-
   <!-- Vehicle options -->
   <div id="vehicle-palette">
+<div id="vehicle-palette">
     <img src="assets/Blue Car.png" alt="BlueCar" class="draggable" draggable="true" data-vehicle="BlueCar">
     <img src="assets/Blue Van.png" alt="BlueVan" class="draggable" draggable="true" data-vehicle="BlueVan">
     <img src="assets/Red Car.png" alt="RedCar" class="draggable" draggable="true" data-vehicle="RedCar">
@@ -76,17 +128,19 @@
     <img src="assets/Yellow Boat.png" alt="YellowBoat" class="draggable" draggable="true" data-vehicle="YellowBoat">
   </div>
 
+  <!-- Optional drop-zone -->
+  <div id="drop-zone"></div>
+
   <!-- Submit -->
   <button id="submit-button">Submit Answer</button>
 
   <script src="script.js"></script>
   <script>
-    // Wait for student to sign in
     const form = document.getElementById('student-form');
     const q1Button = document.getElementById('q1-button');
     const overlay = document.getElementById('overlay');
-    const map = document.getElementById('map-container');
     const palette = document.getElementById('vehicle-palette');
+    const dropZone = document.getElementById('drop-zone');
     const submitButton = document.getElementById('submit-button');
 
     form.addEventListener('submit', function(e) {
@@ -98,8 +152,8 @@
     q1Button.addEventListener('click', function () {
       q1Button.style.display = 'none';
       overlay.style.display = 'block';
-      map.style.display = 'block';
       palette.style.display = 'flex';
+      dropZone.style.display = 'block';
       submitButton.style.display = 'inline-block';
     });
   </script>
