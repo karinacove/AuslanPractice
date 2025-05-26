@@ -87,6 +87,7 @@
   <form id="student-form">
     <input type="text" name="studentName" placeholder="Name" required>
     <input type="text" name="className" placeholder="Class" required>
+    <input type="text" name="partnerName" placeholder="Partner Name">
     <button type="submit">Start Activity</button>
   </form>
 
@@ -147,22 +148,6 @@
         dragged = null;
       }
     });
-
-    finishButton.addEventListener('click', () => {
-      const vehicleData = [...document.querySelectorAll('.placed')].map(el => {
-        return `${el.alt} at (${el.style.left}, ${el.style.top})`;
-      }).join('; ');
-
-      const formData = new FormData();
-      formData.append('entry.2134015542', studentName);
-      formData.append('entry.1433860140', className);
-      formData.append('entry.1357162145', vehicleData);
-
-      fetch('https://docs.google.com/forms/d/1oL81A0H4c9F80lM_m9Wy6CFIQKV9JG6bIxjYQh_WqYc/formResponse', {
-        method: 'POST',
-        mode: 'no-cors',
-        body: formData
-      });
 
       alert(Please take a screenshot of your map before leaving.");
       finishButton.disabled = true;
