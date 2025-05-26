@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Auslan Transport Activity</title>
   <link rel="stylesheet" href="style.css">
   <style>
@@ -19,24 +19,6 @@
       font-family: sans-serif;
     }
 
-    #vehicle-palette {
-      position: absolute;
-      top: 100px;
-      right: 20px;
-      display: none;
-      flex-direction: column;
-      gap: 20px;
-      background: rgba(255, 255, 255, 0.8);
-      padding: 10px;
-      border-radius: 10px;
-    }
-
-    .draggable {
-      width: 80px;
-      height: auto;
-      cursor: grab;
-    }
-
     #student-form {
       position: absolute;
       top: 20%;
@@ -45,12 +27,32 @@
       background: rgba(255,255,255,0.9);
       padding: 30px;
       border-radius: 12px;
+      z-index: 10;
     }
 
-    #question-buttons button, #submit-button {
+    #vehicle-palette {
+      position: absolute;
+      top: 80px;
+      right: 20px;
+      display: none;
+      flex-direction: column;
+      gap: 15px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border-radius: 10px;
+      z-index: 5;
+    }
+
+    .draggable {
+      width: 80px;
+      height: auto;
+      cursor: grab;
+    }
+
+    #submit-button {
       display: none;
       position: absolute;
-      top: 20px;
+      bottom: 20px;
       right: 20px;
       padding: 10px 20px;
       background: #007acc;
@@ -58,22 +60,23 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      z-index: 5;
     }
 
-    #question-buttons button:hover, #submit-button:hover {
+    #submit-button:hover {
       background: #005fa3;
     }
   </style>
 </head>
 <body>
+  <!-- Sign-in Form -->
   <form id="student-form">
     <input type="text" name="studentName" placeholder="Name" required>
     <input type="text" name="className" placeholder="Class" required>
     <button type="submit">Start Activity</button>
   </form>
 
-  <div id="question-buttons"></div>
-
+  <!-- Vehicle Palette -->
   <div id="vehicle-palette">
     <img src="assets/Blue Car.png" alt="BlueCar" class="draggable" draggable="true" data-vehicle="BlueCar">
     <img src="assets/Blue Van.png" alt="BlueVan" class="draggable" draggable="true" data-vehicle="BlueVan">
@@ -87,62 +90,34 @@
     <img src="assets/Yellow Boat.png" alt="YellowBoat" class="draggable" draggable="true" data-vehicle="YellowBoat">
   </div>
 
-  <button id="submit-button">Submit Answer</button>
+  <!-- Submit -->
+  <button id="submit-button">Submit</button>
 
   <script>
     const form = document.getElementById('student-form');
-    const questionButtonsContainer = document.getElementById('question-buttons');
     const palette = document.getElementById('vehicle-palette');
     const submitButton = document.getElementById('submit-button');
-
     let studentName = '';
     let className = '';
-    let currentQuestion = 0;
+    let dragged;
 
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       studentName = form.elements['studentName'].value;
       className = form.elements['className'].value;
       form.style.display = 'none';
-      generateQuestionButtons();
-    });
-
-    function generateQuestionButtons() {
-      for (let i = 1; i <= 10; i++) {
-        const btn = document.createElement('button');
-        btn.textContent = 'Question ' + i;
-        btn.style.left = (20 + (i - 1) * 120) + 'px';
-        btn.style.top = '20px';
-        btn.style.position = 'absolute';
-        btn.style.display = 'inline-block';
-        btn.addEventListener('click', () => startQuestion(i));
-        questionButtonsContainer.appendChild(btn);
-      }
-    }
-
-    function startQuestion(qNum) {
-      currentQuestion = qNum;
       palette.style.display = 'flex';
       submitButton.style.display = 'inline-block';
-      clearPreviousVehicles();
-    }
+    });
 
-    function clearPreviousVehicles() {
-      document.querySelectorAll('.placed').forEach(el => el.remove());
-    }
-
-    // Drag-and-drop
-    let dragged;
-
+    // Drag and Drop
     document.querySelectorAll('.draggable').forEach(el => {
       el.addEventListener('dragstart', (e) => {
         dragged = e.target.cloneNode(true);
       });
     });
 
-    document.body.addEventListener('dragover', (e) => {
-      e.preventDefault();
-    });
+    document.body.addEventListener('dragover', (e) => e.preventDefault());
 
     document.body.addEventListener('drop', (e) => {
       e.preventDefault();
@@ -156,6 +131,7 @@
       }
     });
 
+    // Submit data
     submitButton.addEventListener('click', () => {
       const vehicleData = [...document.querySelectorAll('.placed')].map(el => {
         return `${el.alt} at (${el.style.left}, ${el.style.top})`;
@@ -164,7 +140,7 @@
       const formData = new FormData();
       formData.append('entry.2134015542', studentName);
       formData.append('entry.1433860140', className);
-      formData.append('entry.1357162145', `Q${currentQuestion}: ${vehicleData}`);
+      formData.append('entry.1357162145', vehicleData);
 
       fetch('https://docs.google.com/forms/d/e/1FAIpQLSfYZw5EHO5L3AEsmUbbUdfCzkc37iJ_vXqB7S5MsU9Xz69hTA/formResponse', {
         method: 'POST',
@@ -172,7 +148,7 @@
         body: formData
       });
 
-      alert('Submitted Question ' + currentQuestion);
+      alert("Submitted! Please take a screenshot of your map before leaving.");
       submitButton.disabled = true;
       submitButton.innerText = 'Submitted';
     });
