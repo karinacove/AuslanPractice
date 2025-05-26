@@ -88,6 +88,7 @@
     <input type="text" name="studentName" placeholder="Name" required>
     <input type="text" name="className" placeholder="Class" required>
     <input type="text" name="partnerName" placeholder="Partner Name">
+    <input type="text" name="jobDescription" placeholder="Giving Instructions or Following Instructions?">
     <button type="submit">Start Activity</button>
   </form>
 
@@ -165,7 +166,7 @@
         body: formData
       });
 
-      alert("Submitted! Please take a screenshot of your map before leaving.");
+      alert("How many vehicles did you park correctly? Please take a screenshot of your map before playing again.");
       submitButton.disabled = true;
       submitButton.innerText = 'Submitted';
     });
