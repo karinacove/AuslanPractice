@@ -14,9 +14,9 @@
     }
 
     body {
-      background: url('assets/Map.png') no-repeat left center fixed;
+      background: url('assets/Map.png') no-repeat center center fixed;
       background-size: contain;
-      background-color: #c8f5c8; /* light green padding */
+      background-color: #c8f5c8;
       font-family: sans-serif;
       padding: 20px;
       box-sizing: border-box;
@@ -25,16 +25,17 @@
     #vehicle-palette {
       position: absolute;
       top: 0;
-      right: 10px;
-      display: none;
-      flex-direction: column;
-      flex-wrap: wrap;
+      right: 20px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
       gap: 10px;
       background: rgba(255, 255, 255, 0.8);
-      padding: 5px;
-      border-radius: 5px;
+      padding: 10px;
+      border-radius: 10px;
       height: 100vh;
+      width: 300px;
       overflow-y: auto;
+      justify-items: center;
     }
 
     .draggable {
@@ -52,6 +53,7 @@
       padding: 10px;
       border-radius: 8px;
       font-weight: bold;
+      max-width: 300px;
     }
 
     #student-form {
@@ -68,7 +70,7 @@
     #submit-button {
       display: none;
       position: absolute;
-      top: 30px;
+      top: 120px;
       left: 20px;
       padding: 10px 20px;
       background: #007acc;
@@ -88,8 +90,8 @@
   <form id="student-form">
     <input type="text" name="studentName" placeholder="Name" required>
     <input type="text" name="className" placeholder="Class" required>
-    <input type="text" name="partnerName" placeholder="Partner Name">
-    <input type="text" name="jobDescription" placeholder="Giving Instructions or Following Instructions?">
+    <input type="text" name="jobDescription" placeholder="Job Description" required>
+    <input type="text" name="partnerName" placeholder="Partner Name" required>
     <button type="submit">Start Activity</button>
   </form>
 
@@ -126,7 +128,7 @@
     <img src="assets/Yellow Tram.png" alt="YellowTram" class="draggable" draggable="true" data-vehicle="YellowTram">
   </div>
 
-  <button id="submit-button">Finish</button>
+  <button id="submit-button">Submit</button>
 
   <script>
     const form = document.getElementById('student-form');
@@ -136,21 +138,21 @@
 
     let studentName = '';
     let className = '';
-    let partnerName = ''; 
     let jobDescription = '';
+    let partnerName = '';
     let dragged;
 
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       studentName = form.elements['studentName'].value;
       className = form.elements['className'].value;
+      jobDescription = form.elements['jobDescription'].value;
       partnerName = form.elements['partnerName'].value;
-      jobDescription = form.elements['jobDescription'}.value;
       form.style.display = 'none';
-      palette.style.display = 'flex';
+      palette.style.display = 'grid';
       submitButton.style.display = 'inline-block';
       studentInfo.style.display = 'block';
-      studentInfo.innerText = `${studentName} (${className}) (${partnerName}) (${jobDescription})`;
+      studentInfo.innerText = `${studentName} (${className})\n${jobDescription} with ${partnerName}`;
     });
 
     document.querySelectorAll('.draggable').forEach(el => {
@@ -179,20 +181,24 @@
       }).join('; ');
 
       const formData = new FormData();
-      formData.append('entry.2134015542', studentName);
-      formData.append('entry.1433860140', className);
-      formData.append('entry.1357162145', vehicleData);
+      formData.append('entry.1202364028', studentName);
+      formData.append('entry.1957249768', className);
+      formData.append('entry.436910009', jobDescription);
+      formData.append('entry.169376211', partnerName);
+      formData.append('entry.1017965571', '1');
+      formData.append('entry.1568301781', vehicleData);
 
-      fetch('https://docs.google.com/forms/d/e/1FAIpQLSfYZw5EHO5L3AEsmUbbUdfCzkc37iJ_vXqB7S5MsU9Xz69hTA/formResponse', {
+      fetch('https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse', {
         method: 'POST',
         mode: 'no-cors',
         body: formData
       });
 
-      alert("How many vehicles did you park correctly? Please take a screenshot of your map before playing again.");
+      alert("How many vehicles did you get right? Please take a screenshot of your map before leaving.");
       submitButton.disabled = true;
       submitButton.innerText = 'Submitted';
     });
   </script>
 </body>
 </html>
+ 
