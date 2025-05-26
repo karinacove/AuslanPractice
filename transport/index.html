@@ -1,11 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
-  
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Auslan Transport Activity</title>
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="style.css">
+  <style>
+    @font-face {
+      font-family: 'Auslan Finger Spelling';
+      src: url('assets/Auslan Finger Spelling.otf') format('opentype');
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'Auslan Finger Spelling', sans-serif;
+      text-align: center;
+      background: url('assets/Map.png') no-repeat center center;
+      background-size: contain;
+      background-attachment: fixed;
+      background-color: #fff;
+    }
+    
 </head>
 <body>
   <div id="overlay">
@@ -13,12 +36,6 @@
       <source src="assets/instructions.mp4" type="video/mp4">
       Your browser does not support the video tag.
     </video>
-  </div>
-
-  <div id="map-container">
-    <img src="assets/map.jpg" alt="Map" id="map">
-    <!-- Vehicle drop zone -->
-    <div id="drop-zone"></div>
   </div>
 
   <div id="vehicle-palette">
