@@ -14,7 +14,7 @@
     }
 
     body {
-      background: url('assets/map.jpg') no-repeat center center fixed;
+      background: url('assets/map.png') no-repeat center center fixed;
       background-size: cover;
       font-family: sans-serif;
     }
@@ -43,11 +43,7 @@
 
     #drop-zone {
       position: absolute;
-      top: 100px;
-      left: 100px;
-      width: 200px;
-      height: 200px;
-      border: 2px dashed #ccc;
+      size: cover;
       display: none;
     }
 
@@ -88,10 +84,6 @@
       z-index: 10;
     }
 
-    video {
-      width: 100%;
-      border-radius: 12px;
-    }
   </style>
 </head>
 <body>
@@ -102,16 +94,8 @@
     <button type="submit">Start Activity</button>
   </form>
 
-  <!-- Show Q1 video button -->
+  <!-- Show Q1 button -->
   <button id="q1-button">Start Question 1</button>
-
-  <!-- Video overlay -->
-  <div id="overlay">
-    <video id="instructionVideo" controls>
-      <source src="assets/instructions.mp4" type="video/mp4">
-      Your browser does not support the video tag.
-    </video>
-  </div>
 
  <!-- Vehicle options -->
   <div id="vehicle-palette">
