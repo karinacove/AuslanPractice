@@ -19,10 +19,6 @@
       font-family: sans-serif;
     }
 
-    #map-container {
-      display: none;
-    }
-
     #vehicle-palette {
       position: absolute;
       top: 100px;
@@ -65,7 +61,7 @@
       display: none;
       position: absolute;
       top: 20px;
-      left: 50%;
+      right: 20px;
       padding: 10px 20px;
       background: #007acc;
       color: white;
@@ -77,17 +73,6 @@
     #q1-button:hover, #submit-button:hover {
       background: #005fa3;
     }
-
-    #overlay {
-      display: none;
-      position: absolute;
-      top: 60px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80%;
-      z-index: 10;
-    }
-
   </style>
 </head>
 <body>
@@ -98,12 +83,11 @@
     <button type="submit">Start Activity</button>
   </form>
 
-  <!-- Show Q1 video button -->
+  <!-- Start Question 1 button -->
   <button id="q1-button">Start Question 1</button>
 
   <!-- Vehicle options -->
   <div id="vehicle-palette">
-<div id="vehicle-palette">
     <img src="assets/Blue Car.png" alt="BlueCar" class="draggable" draggable="true" data-vehicle="BlueCar">
     <img src="assets/Blue Van.png" alt="BlueVan" class="draggable" draggable="true" data-vehicle="BlueVan">
     <img src="assets/Red Car.png" alt="RedCar" class="draggable" draggable="true" data-vehicle="RedCar">
