@@ -144,11 +144,13 @@
       e.preventDefault();
       studentName = form.elements['studentName'].value;
       className = form.elements['className'].value;
+      partnerName = form.elements['partnerName'].value;
+      jobDescription = form.elements['jobDescription'}.value;
       form.style.display = 'none';
       palette.style.display = 'flex';
       submitButton.style.display = 'inline-block';
       studentInfo.style.display = 'block';
-      studentInfo.innerText = `${studentName} (${className})`;
+      studentInfo.innerText = `${studentName} (${className}) (${partnerName}) (${jobDescription})`;
     });
 
     document.querySelectorAll('.draggable').forEach(el => {
