@@ -1,1 +1,39 @@
-<h1>Transport Activity Placeholder</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auslan Transport Activity</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="overlay">
+    <video id="instructionVideo" controls>
+      <source src="assets/instructions.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  </div>
+
+  <div id="map-container">
+    <img src="assets/map.jpg" alt="Map" id="map">
+    <!-- Vehicle drop zone -->
+    <div id="drop-zone"></div>
+  </div>
+
+  <div id="vehicle-palette">
+    <img src="assets/car.png" alt="Car" class="draggable" draggable="true" data-vehicle="Car">
+    <img src="assets/bus.png" alt="Bus" class="draggable" draggable="true" data-vehicle="Bus">
+    <img src="assets/truck.png" alt="Truck" class="draggable" draggable="true" data-vehicle="Truck">
+  </div>
+
+  <form id="student-form">
+    <input type="text" name="studentName" placeholder="Name" required>
+    <input type="text" name="className" placeholder="Class" required>
+    <button type="submit">Start Activity</button>
+  </form>
+
+  <button id="submit-button">Submit Answer</button>
+
+  <script src="script.js"></script>
+</body>
+</html>
