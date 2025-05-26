@@ -98,48 +98,72 @@
   <!-- Submit -->
   <button id="submit-button">Submit Answer</button>
 
-  <script>
-    const form = document.getElementById('student-form');
-    const q1Button = document.getElementById('q1-button');
-    const palette = document.getElementById('vehicle-palette');
-    const submitButton = document.getElementById('submit-button');
+<script>
+  const form = document.getElementById('student-form');
+  const q1Button = document.getElementById('q1-button');
+  const palette = document.getElementById('vehicle-palette');
+  const submitButton = document.getElementById('submit-button');
 
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      form.style.display = 'none';
-      q1Button.style.display = 'block';
+  let studentName = '';
+  let className = '';
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    studentName = form.elements['studentName'].value;
+    className = form.elements['className'].value;
+    form.style.display = 'none';
+    q1Button.style.display = 'block';
+  });
+
+  q1Button.addEventListener('click', function () {
+    q1Button.style.display = 'none';
+    palette.style.display = 'flex';
+    submitButton.style.display = 'inline-block';
+  });
+
+  // Drag-and-drop setup
+  let dragged;
+
+  document.querySelectorAll('.draggable').forEach(el => {
+    el.addEventListener('dragstart', (e) => {
+      dragged = e.target.cloneNode(true);
+    });
+  });
+
+  document.body.addEventListener('dragover', (e) => {
+    e.preventDefault();
+  });
+
+  document.body.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (dragged) {
+      dragged.classList.add('placed');
+      dragged.style.position = 'absolute';
+      dragged.style.left = (e.pageX - 40) + 'px';
+      dragged.style.top = (e.pageY - 40) + 'px';
+      document.body.appendChild(dragged);
+      dragged = null;
+    }
+  });
+
+  submitButton.addEventListener('click', () => {
+    const vehicleData = [...document.querySelectorAll('.placed')].map(el => {
+      return `${el.alt} at (${el.style.left}, ${el.style.top})`;
+    }).join('; ');
+
+    const formData = new FormData();
+    formData.append('entry.2134015542', studentName); // Name
+    formData.append('entry.1433860140', className);   // Class
+    formData.append('entry.1357162145', vehicleData); // Vehicle info
+
+    fetch('https://docs.google.com/forms/d/e/1FAIpQLSfYZw5EHO5L3AEsmUbbUdfCzkc37iJ_vXqB7S5MsU9Xz69hTA/formResponse', {
+      method: 'POST',
+      mode: 'no-cors',
+      body: formData
     });
 
-    q1Button.addEventListener('click', function () {
-      q1Button.style.display = 'none';
-      palette.style.display = 'flex';
-      submitButton.style.display = 'inline-block';
-    });
-
-    // Drag-and-drop logic
-    let dragged;
-
-    document.querySelectorAll('.draggable').forEach(el => {
-      el.addEventListener('dragstart', (e) => {
-        dragged = e.target.cloneNode(true);
-      });
-    });
-
-    document.body.addEventListener('dragover', (e) => {
-      e.preventDefault();
-    });
-
-    document.body.addEventListener('drop', (e) => {
-      e.preventDefault();
-      if (dragged) {
-        dragged.classList.add('placed');
-        dragged.style.left = (e.pageX - 40) + 'px';
-        dragged.style.top = (e.pageY - 40) + 'px';
-        document.body.appendChild(dragged);
-        dragged = null;
-      }
-    });
-  </script>
-</body>
-</html>
-
+    alert('Submitted!');
+    submitButton.disabled = true;
+    submitButton.innerText = 'Submitted';
+  });
+</script>
