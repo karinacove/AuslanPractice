@@ -1,36 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Auslan Transport Activity</title>
-  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="style.css">
   <style>
-    @font-face {
-      font-family: 'Auslan Finger Spelling';
-      src: url('assets/Auslan Finger Spelling.otf') format('opentype');
+    #map-container, #vehicle-palette, #submit-button, #overlay, #q1-button {
+      display: none;
     }
 
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
+    #student-form {
+      margin-top: 30px;
     }
 
-    body {
-      font-family: 'Auslan Finger Spelling', sans-serif;
-      text-align: center;
-      background: url('assets/Map.png') no-repeat center center;
-      background-size: contain;
-      background-attachment: fixed;
-      background-color: #fff;
+    #q1-button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      background-color: #ff9800;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
     }
-    
+
+    #q1-button:hover {
+      background-color: #e68900;
+    }
+
+    video {
+      max-width: 90%;
+      margin-top: 20px;
+      border-radius: 12px;
+    }
+  </style>
 </head>
 <body>
+
+  <!-- Sign-in form -->
+  <form id="student-form">
+    <input type="text" name="studentName" placeholder="Name" required>
+    <input type="text" name="className" placeholder="Class" required>
+    <button type="submit">Start Activity</button>
+  </form>
+
+  <!-- Show Q1 video button -->
+  <button id="q1-button">Start Question 1</button>
+
+  <!-- Video overlay -->
   <div id="overlay">
     <video id="instructionVideo" controls>
       <source src="assets/instructions.mp4" type="video/mp4">
@@ -38,20 +56,45 @@
     </video>
   </div>
 
+  <!-- Map and drop zone -->
+  <div id="map-container">
+    <img src="assets/map.jpg" alt="Map" id="map">
+    <div id="drop-zone"></div>
+  </div>
+
+  <!-- Vehicle options -->
   <div id="vehicle-palette">
     <img src="assets/car.png" alt="Car" class="draggable" draggable="true" data-vehicle="Car">
     <img src="assets/bus.png" alt="Bus" class="draggable" draggable="true" data-vehicle="Bus">
     <img src="assets/truck.png" alt="Truck" class="draggable" draggable="true" data-vehicle="Truck">
   </div>
 
-  <form id="student-form">
-    <input type="text" name="studentName" placeholder="Name" required>
-    <input type="text" name="className" placeholder="Class" required>
-    <button type="submit">Start Activity</button>
-  </form>
-
+  <!-- Submit -->
   <button id="submit-button">Submit Answer</button>
 
   <script src="script.js"></script>
+  <script>
+    // Wait for student to sign in
+    const form = document.getElementById('student-form');
+    const q1Button = document.getElementById('q1-button');
+    const overlay = document.getElementById('overlay');
+    const map = document.getElementById('map-container');
+    const palette = document.getElementById('vehicle-palette');
+    const submitButton = document.getElementById('submit-button');
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      form.style.display = 'none';
+      q1Button.style.display = 'block';
+    });
+
+    q1Button.addEventListener('click', function () {
+      q1Button.style.display = 'none';
+      overlay.style.display = 'block';
+      map.style.display = 'block';
+      palette.style.display = 'flex';
+      submitButton.style.display = 'inline-block';
+    });
+  </script>
 </body>
 </html>
