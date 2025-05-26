@@ -2,43 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Auslan Practice</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Auslan Practice Activities</title>
   <style>
     body {
       font-family: sans-serif;
-      background: #f4f4f4;
-      text-align: center;
-      padding: 50px;
+      background: #eef6f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
     }
+
     h1 {
-      font-size: 2.5rem;
-      margin-bottom: 20px;
+      font-size: 2rem;
+      margin-bottom: 2rem;
     }
-    .game-link {
-      display: inline-block;
-      margin: 15px;
-      padding: 20px 40px;
-      background: #0077cc;
-      color: white;
-      border-radius: 12px;
+
+    .links {
+      display: flex;
+      gap: 20px;
+    }
+
+    .activity-link {
       text-decoration: none;
-      font-size: 1.25rem;
-      transition: background 0.3s;
+      padding: 15px 30px;
+      background-color: #007acc;
+      color: white;
+      font-weight: bold;
+      border-radius: 10px;
+      transition: background-color 0.3s;
     }
-    .game-link:hover {
-      background: #005fa3;
+
+    .activity-link:hover {
+      background-color: #005fa3;
     }
   </style>
 </head>
 <body>
-  <h1>Auslan Practice Hub</h1>
-  <p>Select a game to begin practicing:</p>
-
-  <div>
-    <a class="game-link" href="wordle/index.html">Auslan Wordle</a>
-    <a class="game-link" href="transport/index.html">Transport Activity</a>
-    <!-- Add more games here in the future -->
+  <h1>Auslan Practice Activities</h1>
+  <div class="links">
+    <a class="activity-link" href="wordle/">Auslan Wordle</a>
+    <a class="activity-link" href="transport/">Transport Map Activity</a>
   </div>
 </body>
 </html>
