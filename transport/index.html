@@ -64,7 +64,7 @@
       z-index: 10;
     }
 
-    #submit-button {
+    #finish-button {
       display: none;
       position: absolute;
       top: 20px;
@@ -78,7 +78,7 @@
       z-index: 10;
     }
 
-    #submit-button:hover {
+    #finish-button:hover {
       background: #005fa3;
     }
   </style>
@@ -105,12 +105,12 @@
     <img src="assets/Yellow Boat.png" alt="YellowBoat" class="draggable" draggable="true" data-vehicle="YellowBoat">
   </div>
 
-  <button id="submit-button">Submit</button>
+  <button id="finish-button">Finish</button>
 
   <script>
     const form = document.getElementById('student-form');
     const palette = document.getElementById('vehicle-palette');
-    const submitButton = document.getElementById('submit-button');
+    const finishButton = document.getElementById('finish-button');
     const studentInfo = document.getElementById('student-info');
 
     let studentName = '';
@@ -123,7 +123,7 @@
       className = form.elements['className'].value;
       form.style.display = 'none';
       palette.style.display = 'flex';
-      submitButton.style.display = 'inline-block';
+      finishButton.style.display = 'inline-block';
       studentInfo.style.display = 'block';
       studentInfo.innerText = `${studentName} (${className})`;
     });
@@ -148,7 +148,7 @@
       }
     });
 
-    submitButton.addEventListener('click', () => {
+    finishButton.addEventListener('click', () => {
       const vehicleData = [...document.querySelectorAll('.placed')].map(el => {
         return `${el.alt} at (${el.style.left}, ${el.style.top})`;
       }).join('; ');
@@ -158,15 +158,15 @@
       formData.append('entry.1433860140', className);
       formData.append('entry.1357162145', vehicleData);
 
-      fetch('https://docs.google.com/forms/d/e/1FAIpQLSfYZw5EHO5L3AEsmUbbUdfCzkc37iJ_vXqB7S5MsU9Xz69hTA/formResponse', {
+      fetch('https://docs.google.com/forms/d/1oL81A0H4c9F80lM_m9Wy6CFIQKV9JG6bIxjYQh_WqYc/formResponse', {
         method: 'POST',
         mode: 'no-cors',
         body: formData
       });
 
-      alert("Submitted! Please take a screenshot of your map before leaving.");
-      submitButton.disabled = true;
-      submitButton.innerText = 'Submitted';
+      alert(Please take a screenshot of your map before leaving.");
+      finishButton.disabled = true;
+      finishButton.innerText = 'Finished';
     });
   </script>
 </body>
