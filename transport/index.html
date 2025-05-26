@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Auslan Transport Activity</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
   <style>
     html, body {
       height: 100%;
@@ -17,34 +17,7 @@
       background: url('assets/map.png') no-repeat center center fixed;
       background-size: cover;
       font-family: sans-serif;
-    }
-
-    #map-container {
-      display: none;
-    }
-
-    #vehicle-palette {
-      position: absolute;
-      top: 100px;
-      right: 20px;
-      display: none;
-      flex-direction: column;
-      gap: 20px;
-      background: rgba(255, 255, 255, 0.8);
-      padding: 10px;
-      border-radius: 10px;
-    }
-
-    .draggable {
-      width: 80px;
-      height: auto;
-      cursor: grab;
-    }
-
-    #drop-zone {
-      position: absolute;
-      size: cover;
-      display: none;
+      position: relative;
     }
 
     #student-form {
@@ -55,6 +28,7 @@
       background: rgba(255,255,255,0.9);
       padding: 30px;
       border-radius: 12px;
+      z-index: 10;
     }
 
     #q1-button, #submit-button {
@@ -68,36 +42,46 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
-    }
-
-    #q1-button:hover, #submit-button:hover {
-      background: #005fa3;
-    }
-
-    #overlay {
-      display: none;
-      position: absolute;
-      top: 60px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80%;
       z-index: 10;
     }
 
+    #vehicle-palette {
+      position: absolute;
+      top: 100px;
+      right: 20px;
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border-radius: 10px;
+      z-index: 10;
+    }
+
+    .draggable {
+      width: 80px;
+      cursor: grab;
+      position: relative;
+    }
+
+    .placed {
+      position: absolute;
+      z-index: 5;
+    }
   </style>
 </head>
 <body>
   <!-- Sign-in form -->
   <form id="student-form">
-    <input type="text" name="studentName" placeholder="Name" required>
-    <input type="text" name="className" placeholder="Class" required>
+    <input type="text" name="studentName" placeholder="Name" required />
+    <input type="text" name="className" placeholder="Class" required />
     <button type="submit">Start Activity</button>
   </form>
 
-  <!-- Show Q1 button -->
+  <!-- Question button -->
   <button id="q1-button">Start Question 1</button>
 
- <!-- Vehicle options -->
+  <!-- Vehicle palette -->
   <div id="vehicle-palette">
     <img src="assets/Blue Car.png" alt="BlueCar" class="draggable" draggable="true" data-vehicle="BlueCar">
     <img src="assets/Blue Van.png" alt="BlueVan" class="draggable" draggable="true" data-vehicle="BlueVan">
@@ -111,19 +95,13 @@
     <img src="assets/Yellow Boat.png" alt="YellowBoat" class="draggable" draggable="true" data-vehicle="YellowBoat">
   </div>
 
-  <!-- Optional drop-zone -->
-  <div id="drop-zone"></div>
-
   <!-- Submit -->
   <button id="submit-button">Submit Answer</button>
 
-  <script src="script.js"></script>
   <script>
     const form = document.getElementById('student-form');
     const q1Button = document.getElementById('q1-button');
-    const overlay = document.getElementById('overlay');
     const palette = document.getElementById('vehicle-palette');
-    const dropZone = document.getElementById('drop-zone');
     const submitButton = document.getElementById('submit-button');
 
     form.addEventListener('submit', function(e) {
@@ -134,11 +112,34 @@
 
     q1Button.addEventListener('click', function () {
       q1Button.style.display = 'none';
-      overlay.style.display = 'block';
       palette.style.display = 'flex';
-      dropZone.style.display = 'block';
       submitButton.style.display = 'inline-block';
+    });
+
+    // Drag-and-drop logic
+    let dragged;
+
+    document.querySelectorAll('.draggable').forEach(el => {
+      el.addEventListener('dragstart', (e) => {
+        dragged = e.target.cloneNode(true);
+      });
+    });
+
+    document.body.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    document.body.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (dragged) {
+        dragged.classList.add('placed');
+        dragged.style.left = (e.pageX - 40) + 'px';
+        dragged.style.top = (e.pageY - 40) + 'px';
+        document.body.appendChild(dragged);
+        dragged = null;
+      }
     });
   </script>
 </body>
 </html>
+
