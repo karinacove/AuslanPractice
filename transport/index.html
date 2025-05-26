@@ -111,20 +111,20 @@
   <script>
     const form = document.getElementById('student-form');
     const palette = document.getElementById('vehicle-palette');
-    const finishButton = document.getElementById('finish-button');
+    const submitButton = document.getElementById('submit-button');
     const studentInfo = document.getElementById('student-info');
 
     let studentName = '';
     let className = '';
     let dragged;
 
-    form.addEventListener('finish', function(e) {
+    form.addEventListener('submit', function(e) {
       e.preventDefault();
       studentName = form.elements['studentName'].value;
       className = form.elements['className'].value;
       form.style.display = 'none';
       palette.style.display = 'flex';
-      finishButton.style.display = 'inline-block';
+      submitButton.style.display = 'inline-block';
       studentInfo.style.display = 'block';
       studentInfo.innerText = `${studentName} (${className})`;
     });
@@ -149,9 +149,25 @@
       }
     });
 
-      alert(Please take a screenshot of your map before leaving.");
-      finishButton.disabled = true;
-      finishButton.innerText = 'Finished';
+    submitButton.addEventListener('click', () => {
+      const vehicleData = [...document.querySelectorAll('.placed')].map(el => {
+        return `${el.alt} at (${el.style.left}, ${el.style.top})`;
+      }).join('; ');
+
+      const formData = new FormData();
+      formData.append('entry.2134015542', studentName);
+      formData.append('entry.1433860140', className);
+      formData.append('entry.1357162145', vehicleData);
+
+      fetch('https://docs.google.com/forms/d/e/1FAIpQLSfYZw5EHO5L3AEsmUbbUdfCzkc37iJ_vXqB7S5MsU9Xz69hTA/formResponse', {
+        method: 'POST',
+        mode: 'no-cors',
+        body: formData
+      });
+
+      alert("Submitted! Please take a screenshot of your map before leaving.");
+      submitButton.disabled = true;
+      submitButton.innerText = 'Submitted';
     });
   </script>
 </body>
