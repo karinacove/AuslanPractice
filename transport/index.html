@@ -100,34 +100,34 @@
   <div id="student-info" style="display: none;"></div>
 
   <div id="vehicle-palette" style="display: none;">
-    <img src="assets/Blue Car.png" alt="BlueCar" class="draggable" draggable="true">
-    <img src="assets/Blue Van.png" alt="BlueVan" class="draggable" draggable="true">
-    <img src="assets/Red Car.png" alt="RedCar" class="draggable" draggable="true">
-    <img src="assets/Yellow Car.png" alt="YellowCar" class="draggable" draggable="true">
-    <img src="assets/White Van.png" alt="WhiteVan" class="draggable" draggable="true">
-    <img src="assets/Green Car.png" alt="GreenCar" class="draggable" draggable="true">
-    <img src="assets/Green Boat.png" alt="GreenBoat" class="draggable" draggable="true">
-    <img src="assets/Purple Train.png" alt="PurpleTrain" class="draggable" draggable="true">
-    <img src="assets/Red Train.png" alt="RedTrain" class="draggable" draggable="true">
-    <img src="assets/Yellow Boat.png" alt="YellowBoat" class="draggable" draggable="true">
-    <img src="assets/Blue Bus.png" alt="BlueBus" class="draggable" draggable="true">
-    <img src="assets/Blue Plane.png" alt="BluePlane" class="draggable" draggable="true">
-    <img src="assets/Blue Truck.png" alt="BlueTruck" class="draggable" draggable="true">
-    <img src="assets/Girl and Dog.png" alt="GirlDog" class="draggable" draggable="true">
-    <img src="assets/Green Bike.png" alt="GreenBike" class="draggable" draggable="true">
-    <img src="assets/Green Helicopter.png" alt="GreenHelicopter" class="draggable" draggable="true">
-    <img src="assets/Green Motorbike.png" alt="GreenMotorbike" class="draggable" draggable="true">
-    <img src="assets/Green Tram.png" alt="GreenTram" class="draggable" draggable="true">
-    <img src="assets/Man and Dog.png" alt="ManDog" class="draggable" draggable="true">
-    <img src="assets/Pink Caravan.png" alt="PinkCaravan" class="draggable" draggable="true">
-    <img src="assets/Pink Plane.png" alt="PinkPlane" class="draggable" draggable="true">
-    <img src="assets/Purple Bike.png" alt="PurpleBike" class="draggable" draggable="true">
-    <img src="assets/Red Helicopter.png" alt="RedHelicopter" class="draggable" draggable="true">
-    <img src="assets/Red Motorbike.png" alt="RedMotorbike" class="draggable" draggable="true">
-    <img src="assets/Red Truck.png" alt="RedTruck" class="draggable" draggable="true">
-    <img src="assets/Two People Walking.png" alt="TwoPeopleWalking" class="draggable" draggable="true">
-    <img src="assets/Yellow Bus.png" alt="YellowBus" class="draggable" draggable="true">
-    <img src="assets/Yellow Tram.png" alt="YellowTram" class="draggable" draggable="true">
+    <img src="assets/Blue Car.png" alt="BlueCar" class="draggable" draggable="false">
+    <img src="assets/Blue Van.png" alt="BlueVan" class="draggable" draggable="false">
+    <img src="assets/Red Car.png" alt="RedCar" class="draggable" draggable="false">
+    <img src="assets/Yellow Car.png" alt="YellowCar" class="draggable" draggable="false">
+    <img src="assets/White Van.png" alt="WhiteVan" class="draggable" draggable="false">
+    <img src="assets/Green Car.png" alt="GreenCar" class="draggable" draggable="false">
+    <img src="assets/Green Boat.png" alt="GreenBoat" class="draggable" draggable="false">
+    <img src="assets/Purple Train.png" alt="PurpleTrain" class="draggable" draggable="false">
+    <img src="assets/Red Train.png" alt="RedTrain" class="draggable" draggable="false">
+    <img src="assets/Yellow Boat.png" alt="YellowBoat" class="draggable" draggable="false">
+    <img src="assets/Blue Bus.png" alt="BlueBus" class="draggable" draggable="false">
+    <img src="assets/Blue Plane.png" alt="BluePlane" class="draggable" draggable="false">
+    <img src="assets/Blue Truck.png" alt="BlueTruck" class="draggable" draggable="false">
+    <img src="assets/Girl and Dog.png" alt="GirlDog" class="draggable" draggable="false">
+    <img src="assets/Green Bike.png" alt="GreenBike" class="draggable" draggable="false">
+    <img src="assets/Green Helicopter.png" alt="GreenHelicopter" class="draggable" draggable="false">
+    <img src="assets/Green Motorbike.png" alt="GreenMotorbike" class="draggable" draggable="false">
+    <img src="assets/Green Tram.png" alt="GreenTram" class="draggable" draggable="false">
+    <img src="assets/Man and Dog.png" alt="ManDog" class="draggable" draggable="false">
+    <img src="assets/Pink Caravan.png" alt="PinkCaravan" class="draggable" draggable="false">
+    <img src="assets/Pink Plane.png" alt="PinkPlane" class="draggable" draggable="false">
+    <img src="assets/Purple Bike.png" alt="PurpleBike" class="draggable" draggable="false">
+    <img src="assets/Red Helicopter.png" alt="RedHelicopter" class="draggable" draggable="false">
+    <img src="assets/Red Motorbike.png" alt="RedMotorbike" class="draggable" draggable="false">
+    <img src="assets/Red Truck.png" alt="RedTruck" class="draggable" draggable="false">
+    <img src="assets/Two People Walking.png" alt="TwoPeopleWalking" class="draggable" draggable="false">
+    <img src="assets/Yellow Bus.png" alt="YellowBus" class="draggable" draggable="false">
+    <img src="assets/Yellow Tram.png" alt="YellowTram" class="draggable" draggable="false">
   </div>
 
   <button id="submit-button">Submit</button>
@@ -159,18 +159,19 @@
     });
 
     document.body.addEventListener('mousedown', (e) => {
+      if (!e.target.classList.contains('draggable') || e.target.parentElement !== palette) return;
       const existingCount = document.querySelectorAll('body > .draggable').length;
-      if (e.target.classList.contains('draggable') && existingCount < MAX_VEHICLES) {
-        dragged = e.target.cloneNode(true);
-        dragged.style.position = 'absolute';
-        dragged.style.left = e.pageX - 40 + 'px';
-        dragged.style.top = e.pageY - 40 + 'px';
-        dragged.style.zIndex = 1000;
-        document.body.appendChild(dragged);
+      if (existingCount >= MAX_VEHICLES) return;
 
-        dragged.offsetX = e.offsetX;
-        dragged.offsetY = e.offsetY;
-      }
+      dragged = e.target.cloneNode(true);
+      dragged.style.position = 'absolute';
+      dragged.style.left = e.pageX - 40 + 'px';
+      dragged.style.top = e.pageY - 40 + 'px';
+      dragged.style.zIndex = 1000;
+      document.body.appendChild(dragged);
+
+      dragged.offsetX = e.offsetX;
+      dragged.offsetY = e.offsetY;
     });
 
     document.body.addEventListener('mousemove', (e) => {
