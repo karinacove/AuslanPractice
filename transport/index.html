@@ -14,7 +14,7 @@
     }
 
     body {
-      background: url('assets/Map.png') no-repeat center center fixed;
+      background: url('assets/Map.png') no-repeat left center fixed;
       background-size: contain;
       background-color: #c8f5c8;
       font-family: sans-serif;
@@ -156,31 +156,49 @@
       studentInfo.innerText = `${studentName} (${className})\n${jobDescription} with ${partnerName}`;
     });
 
-    document.body.addEventListener('mousedown', (e) => {
-      if (e.target.classList.contains('draggable')) {
-        dragged = e.target.cloneNode(true);
-        dragged.style.position = 'absolute';
-        dragged.style.left = e.pageX - 40 + 'px';
-        dragged.style.top = e.pageY - 40 + 'px';
-        dragged.style.zIndex = 1000;
-        document.body.appendChild(dragged);
+    let dragged = null;
+    let isDragging = false;
+    let initialX = 0;
+    let initialY = 0;
 
-        dragged.offsetX = e.offsetX;
-        dragged.offsetY = e.offsetY;
-      }
-    });
+document.body.addEventListener('mousedown', (e) => {
+  if (e.target.classList.contains('draggable')) {
+    isDragging = true;
+    initialX = e.pageX;
+    initialY = e.pageY;
 
-    document.body.addEventListener('mousemove', (e) => {
-      if (dragged) {
-        dragged.style.left = (e.pageX - dragged.offsetX) + 'px';
-        dragged.style.top = (e.pageY - dragged.offsetY) + 'px';
-      }
-    });
+    dragged = e.target.cloneNode(true);
+    dragged.style.position = 'absolute';
+    dragged.style.left = initialX - 40 + 'px';
+    dragged.style.top = initialY - 40 + 'px';
+    dragged.style.zIndex = 1000;
+    dragged.offsetX = e.offsetX;
+    dragged.offsetY = e.offsetY;
+    dragged.style.pointerEvents = 'none'; // Prevent interference while dragging
+    document.body.appendChild(dragged);
+  }
+});
 
-    document.body.addEventListener('mouseup', () => {
-      if (dragged) dragged.style.zIndex = '';
-      dragged = null;
-    });
+document.body.addEventListener('mousemove', (e) => {
+  if (dragged && isDragging) {
+    const dx = Math.abs(e.pageX - initialX);
+    const dy = Math.abs(e.pageY - initialY);
+
+    if (dx > 5 || dy > 5) {
+      dragged.style.left = (e.pageX - dragged.offsetX) + 'px';
+      dragged.style.top = (e.pageY - dragged.offsetY) + 'px';
+    }
+  }
+});
+
+document.body.addEventListener('mouseup', () => {
+  if (dragged) {
+    dragged.style.zIndex = '';
+    dragged.style.pointerEvents = 'auto';
+    dragged = null;
+  }
+  isDragging = false;
+});
 
     submitButton.addEventListener('click', () => {
       const vehicleData = [...document.querySelectorAll('body > .draggable')].map(el => {
