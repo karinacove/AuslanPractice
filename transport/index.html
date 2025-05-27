@@ -14,7 +14,7 @@
     }
 
     body {
-      background: url('assets/Map.png') no-repeat left center fixed;
+      background: url('assets/Map.png') no-repeat center center fixed;
       background-size: contain;
       background-color: #c8f5c8;
       font-family: sans-serif;
@@ -25,15 +25,15 @@
     #vehicle-palette {
       position: absolute;
       top: 0;
-      right: 5px;
+      right: 20px;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 2px;
+      gap: 10px;
       background: rgba(255, 255, 255, 0.8);
-      padding: 2px;
-      border-radius: 2px;
+      padding: 10px;
+      border-radius: 10px;
       height: 100vh;
-      width: 250px;
+      width: 300px;
       overflow-y: auto;
       justify-items: center;
     }
@@ -42,6 +42,7 @@
       width: 80px;
       height: auto;
       cursor: grab;
+      position: absolute;
     }
 
     #student-info {
@@ -70,7 +71,7 @@
     #submit-button {
       display: none;
       position: absolute;
-      top: 120px;
+      top: 200px;
       left: 20px;
       padding: 10px 20px;
       background: #007acc;
@@ -160,44 +161,8 @@
         dragged = e.target;
         dragged.offsetX = e.offsetX;
         dragged.offsetY = e.offsetY;
+        dragged.style.zIndex = 1000;
       });
     });
 
-    document.body.addEventListener('mousemove', (e) => {
-      if (dragged) {
-        dragged.style.left = (e.pageX - dragged.offsetX) + 'px';
-        dragged.style.top = (e.pageY - dragged.offsetY) + 'px';
-      }
-    });
-
-    document.body.addEventListener('mouseup', () => {
-      dragged = null;
-    });
-
-    submitButton.addEventListener('click', () => {
-      const vehicleData = [...document.querySelectorAll('.placed')].map(el => {
-        return `${el.alt} at (${el.style.left}, ${el.style.top})`;
-      }).join('; ');
-
-      const formData = new FormData();
-      formData.append('entry.1202364028', studentName);
-      formData.append('entry.1957249768', className);
-      formData.append('entry.436910009', jobDescription);
-      formData.append('entry.169376211', partnerName);
-      formData.append('entry.1017965571', '1');
-      formData.append('entry.1568301781', vehicleData);
-
-      fetch('https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse', {
-        method: 'POST',
-        mode: 'no-cors',
-        body: formData
-      });
-
-      alert("How many vehicles did you get right? Please take a screenshot of your map before leaving.");
-      submitButton.disabled = true;
-      submitButton.innerText = 'Submitted';
-    });
-  </script>
-</body>
-</html>
- 
+    document.body.a
