@@ -33,7 +33,7 @@
       padding: 3px;
       border-radius: 3px;
       height: 100vh;
-      width: 270px;
+      width: 300px;
       overflow-y: auto;
       justify-items: center;
       align-content: start;
@@ -43,6 +43,7 @@
       width: 80px;
       height: auto;
       cursor: grab;
+      filter: drop-shadow(0 0 2px white);
     }
 
     #student-info {
@@ -99,34 +100,34 @@
   <div id="student-info" style="display: none;"></div>
 
   <div id="vehicle-palette" style="display: none;">
-    <img src="assets/Blue Car.png" alt="BlueCar" class="draggable" draggable="true" data-vehicle="BlueCar">
-    <img src="assets/Blue Van.png" alt="BlueVan" class="draggable" draggable="true" data-vehicle="BlueVan">
-    <img src="assets/Red Car.png" alt="RedCar" class="draggable" draggable="true" data-vehicle="RedCar">
-    <img src="assets/Yellow Car.png" alt="YellowCar" class="draggable" draggable="true" data-vehicle="YellowCar">
-    <img src="assets/White Van.png" alt="WhiteVan" class="draggable" draggable="true" data-vehicle="WhiteVan">
-    <img src="assets/Green Car.png" alt="GreenCar" class="draggable" draggable="true" data-vehicle="GreenCar">
-    <img src="assets/Green Boat.png" alt="GreenBoat" class="draggable" draggable="true" data-vehicle="GreenBoat">
-    <img src="assets/Purple Train.png" alt="PurpleTrain" class="draggable" draggable="true" data-vehicle="PurpleTrain">
-    <img src="assets/Red Train.png" alt="RedTrain" class="draggable" draggable="true" data-vehicle="RedTrain">
-    <img src="assets/Yellow Boat.png" alt="YellowBoat" class="draggable" draggable="true" data-vehicle="YellowBoat">
-    <img src="assets/Blue Bus.png" alt="BlueBus" class="draggable" draggable="true" data-vehicle="BlueBus">
-    <img src="assets/Blue Plane.png" alt="BluePlane" class="draggable" draggable="true" data-vehicle="BluePlane">
-    <img src="assets/Blue Truck.png" alt="BlueTruck" class="draggable" draggable="true" data-vehicle="BlueTruck">
-    <img src="assets/Girl and Dog.png" alt="GirlDog" class="draggable" draggable="true" data-vehicle="GirlDog">
-    <img src="assets/Green Bike.png" alt="GreenBike" class="draggable" draggable="true" data-vehicle="GreenBike">
-    <img src="assets/Green Helicopter.png" alt="GreenHelicopter" class="draggable" draggable="true" data-vehicle="GreenHelicopter">
-    <img src="assets/Green Motorbike.png" alt="GreenMotorbike" class="draggable" draggable="true" data-vehicle="GreenMotorbike">
-    <img src="assets/Green Tram.png" alt="GreenTram" class="draggable" draggable="true" data-vehicle="GreenTram">
-    <img src="assets/Man and Dog.png" alt="ManDog" class="draggable" draggable="true" data-vehicle="ManDog">
-    <img src="assets/Pink Caravan.png" alt="PinkCaravan" class="draggable" draggable="true" data-vehicle="PinkCaravan">
-    <img src="assets/Pink Plane.png" alt="PinkPlane" class="draggable" draggable="true" data-vehicle="PinkPlane">
-    <img src="assets/Purple Bike.png" alt="PurpleBike" class="draggable" draggable="true" data-vehicle="PurpleBike">
-    <img src="assets/Red Helicopter.png" alt="RedHelicopter" class="draggable" draggable="true" data-vehicle="RedHelicopter">
-    <img src="assets/Red Motorbike.png" alt="RedMotorbike" class="draggable" draggable="true" data-vehicle="RedMotorbike">
-    <img src="assets/Red Truck.png" alt="RedTruck" class="draggable" draggable="true" data-vehicle="RedTruck">
-    <img src="assets/Two People Walking.png" alt="TwoPeopleWalking" class="draggable" draggable="true" data-vehicle="TwoPeopleWalking">
-    <img src="assets/Yellow Bus.png" alt="YellowBus" class="draggable" draggable="true" data-vehicle="YellowBus">
-    <img src="assets/Yellow Tram.png" alt="YellowTram" class="draggable" draggable="true" data-vehicle="YellowTram">
+    <img src="assets/Blue Car.png" alt="BlueCar" class="draggable" draggable="true">
+    <img src="assets/Blue Van.png" alt="BlueVan" class="draggable" draggable="true">
+    <img src="assets/Red Car.png" alt="RedCar" class="draggable" draggable="true">
+    <img src="assets/Yellow Car.png" alt="YellowCar" class="draggable" draggable="true">
+    <img src="assets/White Van.png" alt="WhiteVan" class="draggable" draggable="true">
+    <img src="assets/Green Car.png" alt="GreenCar" class="draggable" draggable="true">
+    <img src="assets/Green Boat.png" alt="GreenBoat" class="draggable" draggable="true">
+    <img src="assets/Purple Train.png" alt="PurpleTrain" class="draggable" draggable="true">
+    <img src="assets/Red Train.png" alt="RedTrain" class="draggable" draggable="true">
+    <img src="assets/Yellow Boat.png" alt="YellowBoat" class="draggable" draggable="true">
+    <img src="assets/Blue Bus.png" alt="BlueBus" class="draggable" draggable="true">
+    <img src="assets/Blue Plane.png" alt="BluePlane" class="draggable" draggable="true">
+    <img src="assets/Blue Truck.png" alt="BlueTruck" class="draggable" draggable="true">
+    <img src="assets/Girl and Dog.png" alt="GirlDog" class="draggable" draggable="true">
+    <img src="assets/Green Bike.png" alt="GreenBike" class="draggable" draggable="true">
+    <img src="assets/Green Helicopter.png" alt="GreenHelicopter" class="draggable" draggable="true">
+    <img src="assets/Green Motorbike.png" alt="GreenMotorbike" class="draggable" draggable="true">
+    <img src="assets/Green Tram.png" alt="GreenTram" class="draggable" draggable="true">
+    <img src="assets/Man and Dog.png" alt="ManDog" class="draggable" draggable="true">
+    <img src="assets/Pink Caravan.png" alt="PinkCaravan" class="draggable" draggable="true">
+    <img src="assets/Pink Plane.png" alt="PinkPlane" class="draggable" draggable="true">
+    <img src="assets/Purple Bike.png" alt="PurpleBike" class="draggable" draggable="true">
+    <img src="assets/Red Helicopter.png" alt="RedHelicopter" class="draggable" draggable="true">
+    <img src="assets/Red Motorbike.png" alt="RedMotorbike" class="draggable" draggable="true">
+    <img src="assets/Red Truck.png" alt="RedTruck" class="draggable" draggable="true">
+    <img src="assets/Two People Walking.png" alt="TwoPeopleWalking" class="draggable" draggable="true">
+    <img src="assets/Yellow Bus.png" alt="YellowBus" class="draggable" draggable="true">
+    <img src="assets/Yellow Tram.png" alt="YellowTram" class="draggable" draggable="true">
   </div>
 
   <button id="submit-button">Submit</button>
@@ -142,6 +143,7 @@
     let jobDescription = '';
     let partnerName = '';
     let dragged;
+    const MAX_VEHICLES = 10;
 
     form.addEventListener('submit', function(e) {
       e.preventDefault();
@@ -156,49 +158,38 @@
       studentInfo.innerText = `${studentName} (${className})\n${jobDescription} with ${partnerName}`;
     });
 
-    let dragged = null;
-    let isDragging = false;
-    let initialX = 0;
-    let initialY = 0;
+    document.body.addEventListener('mousedown', (e) => {
+      const existingCount = document.querySelectorAll('body > .draggable').length;
+      if (e.target.classList.contains('draggable') && existingCount < MAX_VEHICLES) {
+        dragged = e.target.cloneNode(true);
+        dragged.style.position = 'absolute';
+        dragged.style.left = e.pageX - 40 + 'px';
+        dragged.style.top = e.pageY - 40 + 'px';
+        dragged.style.zIndex = 1000;
+        document.body.appendChild(dragged);
 
-document.body.addEventListener('mousedown', (e) => {
-  if (e.target.classList.contains('draggable')) {
-    isDragging = true;
-    initialX = e.pageX;
-    initialY = e.pageY;
+        dragged.offsetX = e.offsetX;
+        dragged.offsetY = e.offsetY;
+      }
+    });
 
-    dragged = e.target.cloneNode(true);
-    dragged.style.position = 'absolute';
-    dragged.style.left = initialX - 40 + 'px';
-    dragged.style.top = initialY - 40 + 'px';
-    dragged.style.zIndex = 1000;
-    dragged.offsetX = e.offsetX;
-    dragged.offsetY = e.offsetY;
-    dragged.style.pointerEvents = 'none'; // Prevent interference while dragging
-    document.body.appendChild(dragged);
-  }
-});
+    document.body.addEventListener('mousemove', (e) => {
+      if (dragged) {
+        dragged.style.left = (e.pageX - dragged.offsetX) + 'px';
+        dragged.style.top = (e.pageY - dragged.offsetY) + 'px';
+      }
+    });
 
-document.body.addEventListener('mousemove', (e) => {
-  if (dragged && isDragging) {
-    const dx = Math.abs(e.pageX - initialX);
-    const dy = Math.abs(e.pageY - initialY);
+    document.body.addEventListener('mouseup', () => {
+      if (dragged) dragged.style.zIndex = '';
+      dragged = null;
+    });
 
-    if (dx > 5 || dy > 5) {
-      dragged.style.left = (e.pageX - dragged.offsetX) + 'px';
-      dragged.style.top = (e.pageY - dragged.offsetY) + 'px';
-    }
-  }
-});
-
-document.body.addEventListener('mouseup', () => {
-  if (dragged) {
-    dragged.style.zIndex = '';
-    dragged.style.pointerEvents = 'auto';
-    dragged = null;
-  }
-  isDragging = false;
-});
+    document.body.addEventListener('dblclick', (e) => {
+      if (e.target.classList.contains('draggable') && e.target.parentElement === document.body) {
+        e.target.remove();
+      }
+    });
 
     submitButton.addEventListener('click', () => {
       const vehicleData = [...document.querySelectorAll('body > .draggable')].map(el => {
