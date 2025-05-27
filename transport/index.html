@@ -205,22 +205,11 @@
       formData.append('entry.1017965571', '1');
       formData.append('entry.1568301781', vehicleData);
 
-  // ⛔ Temporarily comment out the fetch:
-  /*
   fetch('https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse', {
     method: 'POST',
     mode: 'no-cors',
     body: formData
   });
-  */
-
-  // ✅ Add this to check what's being submitted:
-  console.log([...formData.entries()]);
-  for (const pair of formData.entries()) {
-    console.log(`${pair[0]}: ${pair[1]}`);
-  }
-
-  alert("This is a test log – check the console to see what would be submitted.");
 
   alert("How many vehicles did you get right? Please take a screenshot of your map before leaving.");
   submitButton.disabled = true;
