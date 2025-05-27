@@ -131,32 +131,35 @@
 
   <button id="submit-button">Submit</button>
 
-  <script>
-    const form = document.getElementById('student-form');
-    const palette = document.getElementById('vehicle-palette');
-    const submitButton = document.getElementById('submit-button');
-    const studentInfo = document.getElementById('student-info');
+ <script>
+  const form = document.getElementById('student-form');
+  const palette = document.getElementById('vehicle-palette');
+  const submitButton = document.getElementById('submit-button');
+  const studentInfo = document.getElementById('student-info');
 
-    let studentName = '';
-    let className = '';
-    let jobDescription = '';
-    let partnerName = '';
-    let dragged;
+  let studentName = '';
+  let className = '';
+  let jobDescription = '';
+  let partnerName = '';
+  let dragged;
 
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      studentName = form.elements['studentName'].value;
-      className = form.elements['className'].value;
-      jobDescription = form.elements['jobDescription'].value;
-      partnerName = form.elements['partnerName'].value;
-      form.style.display = 'none';
-      palette.style.display = 'grid';
-      submitButton.style.display = 'inline-block';
-      studentInfo.style.display = 'block';
-      studentInfo.innerText = `${studentName} (${className})\n${jobDescription} with ${partnerName}`;
-    });
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    studentName = form.elements['studentName'].value;
+    className = form.elements['className'].value;
+    jobDescription = form.elements['jobDescription'].value;
+    partnerName = form.elements['partnerName'].value;
+    form.style.display = 'none';
+    palette.style.display = 'grid';
+    submitButton.style.display = 'inline-block';
+    studentInfo.style.display = 'block';
+    studentInfo.innerText = `${studentName} (${className})\n${jobDescription} with ${partnerName}`;
+  });
 
+  // Wait for DOM and all images to load
+  window.addEventListener('load', () => {
     document.querySelectorAll('.draggable').forEach(el => {
+      el.style.position = 'absolute'; // ensures they are draggable on the map
       el.addEventListener('mousedown', (e) => {
         dragged = e.target;
         dragged.offsetX = e.offsetX;
@@ -164,5 +167,41 @@
         dragged.style.zIndex = 1000;
       });
     });
+  });
 
-    document.body.a
+  document.body.addEventListener('mousemove', (e) => {
+    if (dragged) {
+      dragged.style.left = (e.pageX - dragged.offsetX) + 'px';
+      dragged.style.top = (e.pageY - dragged.offsetY) + 'px';
+    }
+  });
+
+  document.body.addEventListener('mouseup', () => {
+    if (dragged) dragged.style.zIndex = '';
+    dragged = null;
+  });
+
+  submitButton.addEventListener('click', () => {
+    const vehicleData = [...document.querySelectorAll('.draggable')].map(el => {
+      return `${el.alt} at (${el.style.left}, ${el.style.top})`;
+    }).join('; ');
+
+    const formData = new FormData();
+    formData.append('entry.1202364028', studentName);
+    formData.append('entry.1957249768', className);
+    formData.append('entry.436910009', jobDescription);
+    formData.append('entry.169376211', partnerName);
+    formData.append('entry.1017965571', '1');
+    formData.append('entry.1568301781', vehicleData);
+
+    fetch('https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse', {
+      method: 'POST',
+      mode: 'no-cors',
+      body: formData
+    });
+
+    alert("How many vehicles did you get right? Please take a screenshot of your map before leaving.");
+    submitButton.disabled = true;
+    submitButton.innerText = 'Submitted';
+  });
+</script>
