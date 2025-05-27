@@ -205,11 +205,13 @@
       formData.append('entry.1017965571', '1');
       formData.append('entry.1568301781', vehicleData);
 
-      fetch('https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse', {
+      //fetch('https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse', {
         method: 'POST',
         mode: 'no-cors',
         body: formData
-      });
+      });//
+
+      console.log([...formData.entries()]);
 
       alert("How many vehicles did you get right? Please take a screenshot of your map before leaving.");
       submitButton.disabled = true;
