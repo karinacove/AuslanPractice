@@ -218,6 +218,26 @@
   submitButton.disabled = true;
   submitButton.innerText = 'Submitted';
  });
+
+    function showPlayAgainButton() {
+    let button = document.getElementById("playAgain");
+    if (!button) {
+        button = document.createElement("img");
+        button.id = "playAgain";
+        button.src = "assets/Again.png";
+        button.alt = "Play Again";
+        button.style.position = "fixed";
+        button.style.bottom = "5vh";
+        button.style.left = "50%";
+        button.style.transform = "translateX(-50%)";
+        button.style.cursor = "pointer";
+        button.style.width = "200px";
+        button.style.zIndex = "1000";
+        document.body.appendChild(button);
+    }
+    button.style.display = "block";
+    button.addEventListener("click", () => location.reload());
+}
   </script>
 </body>
 </html>
