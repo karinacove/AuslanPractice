@@ -193,17 +193,17 @@
     });
 
     submitButton.addEventListener('click', () => {
-  const vehicleData = [...document.querySelectorAll('body > .draggable')].map(el => {
-    return `${el.alt} at (${el.style.left}, ${el.style.top})`;
-  }).join('; ');
+      const vehicleData = [...document.querySelectorAll('body > .draggable')].map(el => {
+      return `${el.alt} at (${el.style.left}, ${el.style.top})`;
+    }).join('; ');
 
-  const formData = new FormData();
-  formData.append('entry.1202364028', studentName);
-  formData.append('entry.1957249768', className);
-  formData.append('entry.436910009', jobDescription);
-  formData.append('entry.169376211', partnerName);
-  formData.append('entry.1017965571', '1');
-  formData.append('entry.1568301781', vehicleData);
+    const formData = new FormData();
+      formData.append('entry.1202364028', studentName);
+      formData.append('entry.1957249768', className);
+      formData.append('entry.436910009', jobDescription);
+      formData.append('entry.169376211', partnerName);
+      formData.append('entry.1017965571', '1');
+      formData.append('entry.1568301781', vehicleData);
 
   // ⛔ Temporarily comment out the fetch:
   /*
@@ -215,19 +215,18 @@
   */
 
   // ✅ Add this to check what's being submitted:
-  console.log('Form submission preview:');
+  console.log([...formData.entries()]);
   for (const pair of formData.entries()) {
     console.log(`${pair[0]}: ${pair[1]}`);
   }
 
   alert("This is a test log – check the console to see what would be submitted.");
-});
+ });
 
-
-      alert("How many vehicles did you get right? Please take a screenshot of your map before leaving.");
-      submitButton.disabled = true;
-      submitButton.innerText = 'Submitted';
-    });
+  alert("How many vehicles did you get right? Please take a screenshot of your map before leaving.");
+  submitButton.disabled = true;
+  submitButton.innerText = 'Submitted';
+ });
   </script>
 </body>
 </html>
