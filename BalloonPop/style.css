@@ -1,9 +1,8 @@
 body {
-  font-family: Arial, sans-serif;
-  text-align: center;
   margin: 0;
-  padding: 0;
-  background: #cceeff;
+  font-family: sans-serif;
+  background-color: #f0f8ff;
+  overflow: hidden;
 }
 
 .hidden {
@@ -11,19 +10,32 @@ body {
 }
 
 #start-screen {
-  margin-top: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
 }
 
 #game-container {
   position: relative;
+  width: 100%;
   height: 100vh;
-  overflow: hidden;
+}
+
+#info {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 1.5em;
+  z-index: 10;
 }
 
 #balloon-area {
-  position: relative;
   width: 100%;
   height: 100%;
+  overflow: hidden;
+  position: relative;
 }
 
 .balloon {
@@ -34,6 +46,19 @@ body {
   text-align: center;
   color: white;
   cursor: pointer;
+  animation: float-up 10s linear;
+  font-size: 1.2em;
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateY(0);
+    bottom: -100px;
+  }
+  100% {
+    transform: translateY(-120vh);
+    bottom: 100%;
+  }
 }
 
 #video-container {
@@ -45,8 +70,6 @@ body {
 
 #mrs-c {
   width: 150px;
-  position: relative;
-  z-index: 1;
 }
 
 #thought-bubble {
@@ -68,20 +91,4 @@ body {
 #thought-bubble img {
   width: 60px;
   height: auto;
-}
-
-.balloon {
-  position: absolute;
-  font-weight: bold;
-  border-radius: 50%;
-  padding: 20px;
-  text-align: center;
-  color: white;
-  cursor: pointer;
-  animation: float-up 10s linear infinite;
-}
-
-@keyframes float-up {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-120vh); }
 }
