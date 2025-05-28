@@ -15,7 +15,7 @@ document.getElementById("player-form").addEventListener("submit", function (e) {
 function startGame() {
   // Load a random Auslan video
   const video = document.getElementById("auslan-video");
-  video.src = "assets/videos/example.mp4"; // Replace with your video logic
+  video.src = "assets/videos/AuslanBlue.mp4"; // Replace with your video logic
 
   // Placeholder: generate some balloons
   for (let i = 0; i < 5; i++) {
@@ -47,7 +47,7 @@ function createBalloon(number, color) {
 }
 
 function getRandomColor() {
-  const colors = ["red", "blue", "green", "yellow", "purple"];
+  const colors = ["red", "blue", "green", "yellow", "purple"], "orange", "pink", "brown", "black", "white", "grey";
   return colors[Math.floor(Math.random() * colors.length)];
 }
 
