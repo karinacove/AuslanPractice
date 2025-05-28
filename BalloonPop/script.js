@@ -24,8 +24,11 @@ function setNewRequest() {
   const colour = getRandomColor();
   const number = Math.floor(Math.random() * 20) + 1;
 
-  document.getElementById("colour-sign").src = `assets/colour/${colour}.png`;
-  document.getElementById("number-sign").src = `assets/number/${number}.png`;
+  const colourImg = document.getElementById("colour-sign");
+  const numberImg = document.getElementById("number-sign");
+
+  colourImg.src = `assets/colour/${colour}.png`;
+  numberImg.src = `assets/number/${number}.png`;
 
   currentRequest = { colour, number };
 }
@@ -44,24 +47,11 @@ function createBalloon(number, color) {
   balloon.textContent = number;
   balloon.style.backgroundColor = color;
   balloon.style.left = `${Math.random() * 90}%`;
-  balloon.style.bottom = `-100px`;
-
   balloon.dataset.color = color;
   balloon.dataset.number = number;
 
+  // click handler
   balloon.addEventListener("click", () => handleBalloonClick(balloon));
-
-  let position = -100;
-  const speed = 2 + level; // increase speed by level
-  const interval = setInterval(() => {
-    if (position > window.innerHeight) {
-      balloon.remove();
-      clearInterval(interval);
-    } else {
-      position += speed;
-      balloon.style.bottom = `${position}px`;
-    }
-  }, 30);
 
   document.getElementById("balloon-area").appendChild(balloon);
 }
@@ -91,9 +81,10 @@ function handleBalloonClick(balloon) {
 }
 
 function moveBalloonBehindMrsC(balloon) {
+  balloon.style.animation = "none";
   balloon.style.transition = "all 1s ease-in-out";
-  balloon.style.left = "90%";
-  balloon.style.bottom = "140px";
+  balloon.style.left = "92%";
+  balloon.style.bottom = "150px";
   balloon.style.opacity = "0.8";
   balloon.style.transform = "scale(0.8)";
   balloon.style.zIndex = "0";
@@ -104,6 +95,7 @@ function popBalloon(balloon) {
   balloon.textContent = "💥";
   balloon.style.backgroundColor = "black";
   balloon.style.color = "white";
+  balloon.style.animation = "none";
   setTimeout(() => balloon.remove(), 300);
 }
 
