@@ -1,90 +1,99 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const startScreen = document.getElementById("start-screen");
-  const gameContainer = document.getElementById("game-container");
-  const form = document.getElementById("player-form");
+// script.js
 
-  const colourSign = document.getElementById("colour-sign");
-  const numberSign = document.getElementById("number-sign");
-  const thoughtBubble = document.getElementById("thought-bubble");
+document.addEventListener('DOMContentLoaded', () => {
+  const startForm = document.getElementById('start-form');
+  const startScreen = document.getElementById('start-screen');
+  const gameContainer = document.getElementById('game-container');
+  const balloonArea = document.getElementById('balloon-area');
+  const targetColourImg = document.getElementById('target-colour');
+  const targetNumberImg = document.getElementById('target-number');
+  const scoreDisplay = document.getElementById('score');
+  const levelDisplay = document.getElementById('level');
 
-  const scoreDisplay = document.getElementById("score");
-  const levelDisplay = document.getElementById("level");
+  const colours = ["green", "red", "orange", "yellow", "purple", "pink", "blue", "brown", "black", "white"];
+  const numbers = Array.from({ length: 21 }, (_, i) => i); // 0-20
 
-  const balloonArea = document.getElementById("balloon-area");
-
+  let targetColour = "";
+  let targetNumber = -1;
   let score = 0;
   let level = 1;
-  let currentRequest = { colour: "", number: 0 };
+  let interval = 2000;
+  let gameInterval;
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    startScreen.classList.add("hidden");
-    gameContainer.classList.remove("hidden");
-    thoughtBubble.classList.remove("hidden");
-    startGame();
-  });
-
-  function startGame() {
-    setNewRequest();
-    spawnBalloons(5);
+  function updateTarget() {
+    targetColour = colours[Math.floor(Math.random() * colours.length)];
+    targetNumber = numbers[Math.floor(Math.random() * numbers.length)];
+    targetColourImg.src = `assets/colour/${targetColour}.png`;
+    targetNumberImg.src = `assets/number/${targetNumber}.png`;
   }
 
-  function setNewRequest() {
-    const colours = [
-      "green", "red", "orange", "yellow", "purple",
-      "pink", "blue", "brown", "black", "white", "grey"
-    ];
+  function createBalloon() {
     const colour = colours[Math.floor(Math.random() * colours.length)];
-    const number = Math.floor(Math.random() * 21); // 0–20
+    const number = numbers[Math.floor(Math.random() * numbers.length)];
 
-    colourSign.src = `assets/colour/${colour}.png`;
-    numberSign.src = `assets/number/${number}.png`;
+    const balloon = document.createElement('img');
+    balloon.classList.add('balloon');
+    balloon.src = `assets/colour/${colour}.png`;
+    balloon.dataset.colour = colour;
+    balloon.dataset.number = number;
 
-    currentRequest = { colour, number };
+    balloon.style.left = `${Math.random() * 90}%`;
+    balloon.style.bottom = '-100px';
+    balloon.textContent = number;
+
+    const numberOverlay = document.createElement('div');
+    numberOverlay.style.position = 'absolute';
+    numberOverlay.style.top = '50%';
+    numberOverlay.style.left = '50%';
+    numberOverlay.style.transform = 'translate(-50%, -50%)';
+    numberOverlay.style.fontSize = '20px';
+    numberOverlay.style.color = 'white';
+    numberOverlay.style.textShadow = '1px 1px 2px black';
+    numberOverlay.innerText = number;
+    balloon.appendChild(numberOverlay);
+
+    balloonArea.appendChild(balloon);
+
+    const floatDuration = interval + 1000;
+    let position = 0;
+    const float = setInterval(() => {
+      position += 2;
+      balloon.style.bottom = `${position}px`;
+      if (position > window.innerHeight) {
+        balloon.remove();
+        clearInterval(float);
+      }
+    }, 30);
+
+    balloon.addEventListener('click', () => {
+      if (colour === targetColour && number === targetNumber) {
+        score++;
+        scoreDisplay.textContent = `Score: ${score}`;
+        balloon.style.zIndex = 0;
+        balloon.style.bottom = '10px';
+      } else {
+        balloon.remove();
+      }
+      updateTarget();
+      checkLevelUp();
+    });
   }
 
-  function spawnBalloons(count) {
-    for (let i = 0; i < count; i++) {
-      const number = Math.floor(Math.random() * 21);
-      const colour = getRandomColour();
-
-      const balloon = document.createElement("div");
-      balloon.classList.add("balloon");
-      balloon.textContent = number;
-      balloon.style.backgroundColor = colour;
-      balloon.style.left = `${Math.random() * 90}%`;
-      balloon.dataset.number = number;
-      balloon.dataset.colour = colour;
-
-      balloon.addEventListener("click", () => {
-        if (
-          parseInt(balloon.dataset.number) === currentRequest.number &&
-          balloon.dataset.colour === currentRequest.colour
-        ) {
-          score++;
-          scoreDisplay.textContent = `Score: ${score}`;
-          balloon.remove();
-          setNewRequest();
-          spawnBalloons(2);
-        } else {
-          balloon.textContent = "💥";
-          balloon.style.backgroundColor = "black";
-          setTimeout(() => balloon.remove(), 300);
-        }
-      });
-
-      balloonArea.appendChild(balloon);
-
-      // Auto-remove balloon after it floats away
-      setTimeout(() => balloon.remove(), 10000);
+  function checkLevelUp() {
+    if (score > 0 && score % 10 === 0) {
+      level++;
+      interval = Math.max(500, interval - 300);
+      levelDisplay.textContent = `Level: ${level}`;
+      clearInterval(gameInterval);
+      gameInterval = setInterval(createBalloon, interval);
     }
   }
 
-  function getRandomColour() {
-    const colours = [
-      "green", "red", "orange", "yellow", "purple",
-      "pink", "blue", "brown", "black", "white"
-    ];
-    return colours[Math.floor(Math.random() * colours.length)];
-  }
+  startForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    startScreen.style.display = 'none';
+    gameContainer.style.display = 'block';
+    updateTarget();
+    gameInterval = setInterval(createBalloon, interval);
+  });
 });
