@@ -20,12 +20,6 @@ body {
   overflow: hidden;
 }
 
-#video-container {
-  position: absolute;
-  bottom: 0;
-  left: 10px;
-}
-
 #balloon-area {
   position: relative;
   width: 100%;
