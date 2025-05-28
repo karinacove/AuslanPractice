@@ -1,14 +1,20 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("player-form");
   const startScreen = document.getElementById("start-screen");
   const gameContainer = document.getElementById("game-container");
-  const thoughtBubble = document.getElementById("thought-bubble");
+  const form = document.getElementById("player-form");
+
   const colourSign = document.getElementById("colour-sign");
   const numberSign = document.getElementById("number-sign");
+  const thoughtBubble = document.getElementById("thought-bubble");
 
-  let currentRequest = {};
-  let correctCount = 0;
+  const scoreDisplay = document.getElementById("score");
+  const levelDisplay = document.getElementById("level");
+
+  const balloonArea = document.getElementById("balloon-area");
+
+  let score = 0;
   let level = 1;
+  let currentRequest = { colour: "", number: 0 };
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -24,8 +30,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setNewRequest() {
-    const colour = getRandomColor();
-    const number = Math.floor(Math.random() * 21);
+    const colours = [
+      "green", "red", "orange", "yellow", "purple",
+      "pink", "blue", "brown", "black", "white", "grey"
+    ];
+    const colour = colours[Math.floor(Math.random() * colours.length)];
+    const number = Math.floor(Math.random() * 21); // 0–20
 
     colourSign.src = `assets/colour/${colour}.png`;
     numberSign.src = `assets/number/${number}.png`;
@@ -35,51 +45,46 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function spawnBalloons(count) {
     for (let i = 0; i < count; i++) {
-      const num = Math.floor(Math.random() * 21);
-      const col = getRandomColor();
-      createBalloon(num, col);
+      const number = Math.floor(Math.random() * 21);
+      const colour = getRandomColour();
+
+      const balloon = document.createElement("div");
+      balloon.classList.add("balloon");
+      balloon.textContent = number;
+      balloon.style.backgroundColor = colour;
+      balloon.style.left = `${Math.random() * 90}%`;
+      balloon.dataset.number = number;
+      balloon.dataset.colour = colour;
+
+      balloon.addEventListener("click", () => {
+        if (
+          parseInt(balloon.dataset.number) === currentRequest.number &&
+          balloon.dataset.colour === currentRequest.colour
+        ) {
+          score++;
+          scoreDisplay.textContent = `Score: ${score}`;
+          balloon.remove();
+          setNewRequest();
+          spawnBalloons(2);
+        } else {
+          balloon.textContent = "💥";
+          balloon.style.backgroundColor = "black";
+          setTimeout(() => balloon.remove(), 300);
+        }
+      });
+
+      balloonArea.appendChild(balloon);
+
+      // Auto-remove balloon after it floats away
+      setTimeout(() => balloon.remove(), 10000);
     }
   }
 
-  function createBalloon(number, color) {
-    const balloon = document.createElement("div");
-    balloon.className = "balloon";
-    balloon.textContent = number;
-    balloon.style.backgroundColor = color;
-    balloon.style.left = `${Math.random() * 90}%`;
-    balloon.dataset.color = color;
-    balloon.dataset.number = number;
-
-    balloon.addEventListener("click", () => handleBalloonClick(balloon));
-    document.getElementById("balloon-area").appendChild(balloon);
-
-    setTimeout(() => {
-      if (balloon.parentElement) balloon.remove();
-    }, 10000);
-  }
-
-  function handleBalloonClick(balloon) {
-    const number = parseInt(balloon.dataset.number);
-    const color = balloon.dataset.color;
-
-    if (number === currentRequest.number && color === currentRequest.colour) {
-      correctCount++;
-      document.getElementById("score").textContent = `Score: ${correctCount}`;
-      balloon.style.display = "none";
-      setNewRequest();
-      spawnBalloons(3);
-    } else {
-      balloon.textContent = "💥";
-      balloon.style.backgroundColor = "black";
-      setTimeout(() => balloon.remove(), 300);
-    }
-  }
-
-  function getRandomColor() {
-    const colors = [
+  function getRandomColour() {
+    const colours = [
       "green", "red", "orange", "yellow", "purple",
       "pink", "blue", "brown", "black", "white"
     ];
-    return colors[Math.floor(Math.random() * colors.length)];
+    return colours[Math.floor(Math.random() * colours.length)];
   }
 });
