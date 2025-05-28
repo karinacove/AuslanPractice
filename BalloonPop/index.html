@@ -2,34 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Auslan Balloon Pop</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="start-screen">
-    <h1>Welcome to Auslan Balloon Pop!</h1>
+    <h1>Welcome to Auslan Balloon Pop</h1>
     <form id="player-form">
-      <label for="player-name">Name:</label>
-      <input type="text" id="player-name" required />
-      <label for="player-class">Class:</label>
-      <input type="text" id="player-class" required />
+      <input type="text" id="player-name" placeholder="Name" required />
+      <input type="text" id="player-class" placeholder="Class" required />
       <button type="submit">Start</button>
     </form>
   </div>
 
   <div id="game-container" class="hidden">
-    <div id="info">
-      <div id="score">Score: 0</div>
-      <div id="level">Level: 1</div>
+    <div id="scoreboard">
+      <span id="score">Score: 0</span>
+      <span id="level">Level: 1</span>
     </div>
     <div id="balloon-area"></div>
 
-    <div id="video-container">
+    <div id="mrs-c-container">
       <img id="mrs-c" src="assets/character/MrsC.png" alt="Mrs C" />
       <div id="thought-bubble" class="hidden">
-        <img id="colour-sign" src="" alt="Colour sign" />
-        <img id="number-sign" src="" alt="Number sign" />
+        <img id="colour-sign" src="" alt="Colour" />
+        <img id="number-sign" src="" alt="Number" />
       </div>
     </div>
   </div>
