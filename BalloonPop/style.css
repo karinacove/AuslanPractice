@@ -52,11 +52,9 @@ body {
 
 @keyframes float-up {
   0% {
-    transform: translateY(0);
     bottom: -100px;
   }
   100% {
-    transform: translateY(-120vh);
     bottom: 100%;
   }
 }
