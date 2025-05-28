@@ -11,6 +11,7 @@ document.getElementById("player-form").addEventListener("submit", function (e) {
 
   document.getElementById("start-screen").classList.add("hidden");
   document.getElementById("game-container").classList.remove("hidden");
+  document.getElementById("thought-bubble").classList.remove("hidden");
 
   startGame();
 });
@@ -22,20 +23,17 @@ function startGame() {
 
 function setNewRequest() {
   const colour = getRandomColor();
-  const number = Math.floor(Math.random() * 20) + 1;
+  const number = Math.floor(Math.random() * 21); // 0–20
 
-  const colourImg = document.getElementById("colour-sign");
-  const numberImg = document.getElementById("number-sign");
-
-  colourImg.src = `assets/colour/${colour}.png`;
-  numberImg.src = `assets/number/${number}.png`;
+  document.getElementById("colour-sign").src = `assets/colour/${colour}.png`;
+  document.getElementById("number-sign").src = `assets/number/${number}.png`;
 
   currentRequest = { colour, number };
 }
 
 function spawnBalloons(count) {
   for (let i = 0; i < count; i++) {
-    const num = Math.floor(Math.random() * 20) + 1;
+    const num = Math.floor(Math.random() * 21); // 0–20
     const col = getRandomColor();
     createBalloon(num, col);
   }
@@ -50,10 +48,13 @@ function createBalloon(number, color) {
   balloon.dataset.color = color;
   balloon.dataset.number = number;
 
-  // click handler
   balloon.addEventListener("click", () => handleBalloonClick(balloon));
 
   document.getElementById("balloon-area").appendChild(balloon);
+
+  setTimeout(() => {
+    if (balloon && balloon.parentElement) balloon.remove();
+  }, 10000);
 }
 
 function handleBalloonClick(balloon) {
@@ -104,6 +105,9 @@ function updateScore() {
 }
 
 function getRandomColor() {
-  const colors = ["red", "blue", "green", "yellow", "purple"];
+  const colors = [
+    "green", "red", "orange", "yellow", "purple",
+    "pink", "blue", "brown", "black", "white", "grey"
+  ];
   return colors[Math.floor(Math.random() * colors.length)];
 }
