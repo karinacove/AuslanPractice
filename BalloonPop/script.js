@@ -107,7 +107,7 @@ function updateScore() {
 function getRandomColor() {
   const colors = [
     "green", "red", "orange", "yellow", "purple",
-    "pink", "blue", "brown", "black", "white", "grey"
+    "pink", "blue", "brown", "black", "white"
   ];
   return colors[Math.floor(Math.random() * colors.length)];
 }
