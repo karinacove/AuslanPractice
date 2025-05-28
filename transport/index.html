@@ -217,8 +217,10 @@
   alert("How many vehicles did you get right?");
   submitButton.disabled = true;
   submitButton.innerText = 'Submitted';
-  showPlayAgainButton();
- });
+  setTimeout(() => {
+    showPlayAgainButton();
+  }, 3000);
+});
 
     function showPlayAgainButton() {
     let button = document.getElementById("playAgain");
