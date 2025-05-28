@@ -1,38 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Auslan Balloon Game</title>
-  <base href="/AuslanPractice/BalloonPop/">
+  <base href="/AuslanPractice/BalloonPop/" />
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
   <div id="start-screen">
-    <h1>Welcome to Auslan Balloon Pop</h1>
-    <form id="player-form">
-      <input type="text" id="player-name" placeholder="Name" required />
-      <input type="text" id="player-class" placeholder="Class" required />
+    <h1>Auslan Balloon Game</h1>
+    <form id="start-form">
+      <input type="text" id="name" placeholder="Your Name" required />
+      <input type="text" id="class" placeholder="Your Class" required />
       <button type="submit">Start</button>
     </form>
   </div>
 
-  <div id="game-container" class="hidden">
+  <div id="game-container" style="display: none;">
     <div id="scoreboard">
-      <span id="score">Score: 0</span>
-      <span id="level">Level: 1</span>
+      <p id="score">Score: 0</p>
+      <p id="level">Level: 1</p>
     </div>
-    <div id="balloon-area"></div>
-
-    <div id="mrs-c-container">
-      <img id="mrs-c" src="assets/character/MrsC.png" alt="Mrs C" />
-      <div id="thought-bubble" class="hidden">
-        <img id="colour-sign" src="" alt="Colour" />
-        <img id="number-sign" src="" alt="Number" />
+    <div id="character-container">
+      <img src="assets/character/MrsC.png" id="mrsC" alt="Mrs C" />
+      <div id="thought-bubble">
+        <img id="target-colour" src="" alt="Colour Sign" />
+        <img id="target-number" src="" alt="Number Sign" />
       </div>
     </div>
+    <div id="balloon-area"></div>
   </div>
 
   <script src="script.js"></script>
