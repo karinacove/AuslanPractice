@@ -1,19 +1,20 @@
 document.addEventListener("DOMContentLoaded", () => {
-  let playerName = '';
-  let playerClass = '';
-  let currentRequest = { colour: "", number: 0 };
+  const form = document.getElementById("player-form");
+  const startScreen = document.getElementById("start-screen");
+  const gameContainer = document.getElementById("game-container");
+  const thoughtBubble = document.getElementById("thought-bubble");
+  const colourSign = document.getElementById("colour-sign");
+  const numberSign = document.getElementById("number-sign");
+
+  let currentRequest = {};
   let correctCount = 0;
   let level = 1;
 
-  document.getElementById("player-form").addEventListener("submit", function (e) {
+  form.addEventListener("submit", (e) => {
     e.preventDefault();
-    playerName = document.getElementById("player-name").value;
-    playerClass = document.getElementById("player-class").value;
-
-    document.getElementById("start-screen").classList.add("hidden");
-    document.getElementById("game-container").classList.remove("hidden");
-    document.getElementById("thought-bubble").classList.remove("hidden");
-
+    startScreen.classList.add("hidden");
+    gameContainer.classList.remove("hidden");
+    thoughtBubble.classList.remove("hidden");
     startGame();
   });
 
@@ -24,17 +25,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function setNewRequest() {
     const colour = getRandomColor();
-    const number = Math.floor(Math.random() * 21); // 0–20
+    const number = Math.floor(Math.random() * 21);
 
-    document.getElementById("colour-sign").src = `assets/colour/${colour}.png`;
-    document.getElementById("number-sign").src = `assets/number/${number}.png`;
+    colourSign.src = `assets/colour/${colour}.png`;
+    numberSign.src = `assets/number/${number}.png`;
 
     currentRequest = { colour, number };
   }
 
   function spawnBalloons(count) {
     for (let i = 0; i < count; i++) {
-      const num = Math.floor(Math.random() * 21); // 0–20
+      const num = Math.floor(Math.random() * 21);
       const col = getRandomColor();
       createBalloon(num, col);
     }
@@ -53,55 +54,25 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("balloon-area").appendChild(balloon);
 
     setTimeout(() => {
-      if (balloon && balloon.parentElement) balloon.remove();
+      if (balloon.parentElement) balloon.remove();
     }, 10000);
   }
 
   function handleBalloonClick(balloon) {
-    const balloonNumber = parseInt(balloon.dataset.number);
-    const balloonColor = balloon.dataset.color;
+    const number = parseInt(balloon.dataset.number);
+    const color = balloon.dataset.color;
 
-    if (
-      balloonNumber === currentRequest.number &&
-      balloonColor === currentRequest.colour
-    ) {
+    if (number === currentRequest.number && color === currentRequest.colour) {
       correctCount++;
-      updateScore();
-      moveBalloonBehindMrsC(balloon);
-
-      if (correctCount % 10 === 0) {
-        level++;
-        document.getElementById("level").textContent = `Level: ${level}`;
-      }
-
+      document.getElementById("score").textContent = `Score: ${correctCount}`;
+      balloon.style.display = "none";
       setNewRequest();
       spawnBalloons(3);
     } else {
-      popBalloon(balloon);
+      balloon.textContent = "💥";
+      balloon.style.backgroundColor = "black";
+      setTimeout(() => balloon.remove(), 300);
     }
-  }
-
-  function moveBalloonBehindMrsC(balloon) {
-    balloon.style.animation = "none";
-    balloon.style.transition = "all 1s ease-in-out";
-    balloon.style.left = "92%";
-    balloon.style.bottom = "150px";
-    balloon.style.opacity = "0.8";
-    balloon.style.transform = "scale(0.8)";
-    balloon.style.zIndex = "0";
-    balloon.removeEventListener("click", handleBalloonClick);
-  }
-
-  function popBalloon(balloon) {
-    balloon.textContent = "💥";
-    balloon.style.backgroundColor = "black";
-    balloon.style.color = "white";
-    balloon.style.animation = "none";
-    setTimeout(() => balloon.remove(), 300);
-  }
-
-  function updateScore() {
-    document.getElementById("score").textContent = `Score: ${correctCount}`;
   }
 
   function getRandomColor() {
