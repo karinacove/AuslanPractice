@@ -1,7 +1,8 @@
 body {
   margin: 0;
+  padding: 0;
   font-family: sans-serif;
-  background-color: #f0f8ff;
+  background-color: #e0f7fa;
   overflow: hidden;
 }
 
@@ -10,11 +11,11 @@ body {
 }
 
 #start-screen {
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  height: 100vh;
+  align-items: center;
 }
 
 #game-container {
@@ -23,34 +24,33 @@ body {
   height: 100vh;
 }
 
-#info {
+#scoreboard {
   position: absolute;
   top: 10px;
   left: 10px;
-  font-size: 1.5em;
+  font-size: 20px;
   z-index: 10;
 }
 
 #balloon-area {
+  position: absolute;
   width: 100%;
   height: 100%;
   overflow: hidden;
-  position: relative;
 }
 
 .balloon {
   position: absolute;
-  font-weight: bold;
   border-radius: 50%;
   padding: 20px;
-  text-align: center;
   color: white;
+  font-weight: bold;
+  text-align: center;
   cursor: pointer;
-  animation: float-up 10s linear;
-  font-size: 1.2em;
+  animation: floatUp 10s linear;
 }
 
-@keyframes float-up {
+@keyframes floatUp {
   0% {
     bottom: -100px;
   }
@@ -59,7 +59,7 @@ body {
   }
 }
 
-#video-container {
+#mrs-c-container {
   position: absolute;
   bottom: 10px;
   right: 10px;
@@ -72,21 +72,16 @@ body {
 
 #thought-bubble {
   position: absolute;
-  bottom: 140px;
-  right: 40px;
+  bottom: 130px;
+  right: 20px;
   background: white;
-  border: 2px solid #333;
-  border-radius: 20px;
+  border: 2px solid #444;
+  border-radius: 15px;
   padding: 10px;
   display: flex;
   gap: 10px;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 10px rgba(0,0,0,0.2);
-  z-index: 2;
 }
 
 #thought-bubble img {
   width: 60px;
-  height: auto;
 }
