@@ -23,8 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const collectedArea = document.createElement('div');
   collectedArea.id = 'collected-area';
   collectedArea.style.position = 'absolute';
-  collectedArea.style.right = '20px';
-  collectedArea.style.bottom = '100px';
+  collectedArea.style.right = '160px';
+  collectedArea.style.bottom = '120px';
   collectedArea.style.width = '150px';
   collectedArea.style.height = '400px';
   collectedArea.style.display = 'flex';
@@ -67,10 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
     balloon.dataset.colour = colour;
     balloon.dataset.number = number;
 
-    const margin = 100;
+    const margin = 150;
     balloon.style.left = `${margin + Math.random() * (window.innerWidth - 2 * margin - 110)}px`;
     balloon.style.bottom = '-150px';
-    balloon.style.width = '120px'; // Bigger size
+    balloon.style.width = '120px';
 
     balloonArea.appendChild(balloon);
 
@@ -89,19 +89,24 @@ document.addEventListener('DOMContentLoaded', () => {
         score++;
         scoreDisplay.textContent = `Score: ${score}`;
         clearInterval(float);
-        balloon.style.transition = 'all 1s ease-in-out';
-        balloon.style.position = 'absolute';
-        balloon.style.left = `${window.innerWidth - 150}px`;
-        balloon.style.bottom = `${100 + collectedArea.children.length * 30}px`;
-        collectedArea.appendChild(balloon);
+
+        const clone = balloon.cloneNode(true);
+        clone.style.transition = 'all 1s ease-in-out';
+        clone.style.position = 'absolute';
+        clone.style.left = `${window.innerWidth - 200}px`;
+        clone.style.bottom = `${120 + collectedArea.children.length * 30}px`;
+        collectedArea.appendChild(clone);
+        balloon.remove();
+
         updateTarget();
+        ensureAnswerBalloon();
       } else {
         const pop = document.createElement('img');
-        pop.src = 'assets/pop.gif'; // You must upload this image
+        pop.src = 'assets/pop.png';
         pop.style.position = 'absolute';
         pop.style.left = balloon.style.left;
         pop.style.bottom = balloon.style.bottom;
-        pop.style.width = '60px';
+        pop.style.width = '600px'; // 10x larger
         balloonArea.appendChild(pop);
         setTimeout(() => pop.remove(), 500);
         balloon.remove();
@@ -123,12 +128,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function ensureAnswerBalloon() {
     clearInterval(answerBalloonTimer);
     answerBalloonTimer = setInterval(() => {
-      const exists = [...document.querySelectorAll('.balloon')].some(b => 
+      const exists = [...document.querySelectorAll('.balloon')].some(b =>
         b.dataset.colour === targetColour && parseInt(b.dataset.number) === targetNumber);
       if (!exists) {
         createBalloon(true);
       }
-    }, 5000);
+    }, 3000); // shorter interval to reduce waiting
   }
 
   startForm.addEventListener('submit', (e) => {
