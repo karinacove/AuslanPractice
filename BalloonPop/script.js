@@ -18,12 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let level = 1;
   let interval = 2000;
   let gameInterval;
+  let answerBalloonTimer;
 
   function updateTarget() {
     targetColour = colours[Math.floor(Math.random() * colours.length)];
     targetNumber = numbers[Math.floor(Math.random() * numbers.length)];
 
-    // Clear previous
     targetDisplay.innerHTML = "";
 
     const colourSign = document.createElement("img");
@@ -38,9 +38,15 @@ document.addEventListener('DOMContentLoaded', () => {
     targetDisplay.appendChild(numberSign);
   }
 
-  function createBalloon() {
-    const colour = colours[Math.floor(Math.random() * colours.length)];
-    const number = numbers[Math.floor(Math.random() * numbers.length)];
+  function createBalloon(forceAnswer = false) {
+    let colour, number;
+    if (forceAnswer) {
+      colour = targetColour;
+      number = targetNumber;
+    } else {
+      colour = colours[Math.floor(Math.random() * colours.length)];
+      number = numbers[Math.floor(Math.random() * numbers.length)];
+    }
 
     const balloon = document.createElement('img');
     balloon.classList.add('balloon');
@@ -49,7 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
     balloon.dataset.number = number;
 
     balloon.style.left = `${Math.random() * 90}%`;
-    balloon.style.bottom = '-100px';
+    balloon.style.bottom = '-150px';
+    balloon.style.width = '90px';
 
     balloonArea.appendChild(balloon);
 
@@ -69,10 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
         scoreDisplay.textContent = `Score: ${score}`;
         balloon.style.zIndex = 0;
         balloon.style.bottom = '10px';
+        updateTarget();
       } else {
         balloon.remove();
+        // Do NOT update target, allow retry on same target
       }
-      updateTarget();
       checkLevelUp();
     });
   }
@@ -83,8 +91,19 @@ document.addEventListener('DOMContentLoaded', () => {
       interval = Math.max(500, interval - 300);
       levelDisplay.textContent = `Level: ${level}`;
       clearInterval(gameInterval);
-      gameInterval = setInterval(createBalloon, interval);
+      gameInterval = setInterval(() => createBalloon(false), interval);
     }
+  }
+
+  function ensureAnswerBalloon() {
+    clearInterval(answerBalloonTimer);
+    answerBalloonTimer = setInterval(() => {
+      const exists = [...document.querySelectorAll('.balloon')].some(b => 
+        b.dataset.colour === targetColour && parseInt(b.dataset.number) === targetNumber);
+      if (!exists) {
+        createBalloon(true);
+      }
+    }, 5000);
   }
 
   startForm.addEventListener('submit', (e) => {
@@ -92,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     startScreen.style.display = 'none';
     gameContainer.style.display = 'block';
     updateTarget();
-    gameInterval = setInterval(createBalloon, interval);
+    gameInterval = setInterval(() => createBalloon(false), interval);
+    ensureAnswerBalloon();
   });
 });
