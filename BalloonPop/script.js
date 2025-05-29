@@ -20,6 +20,17 @@ document.addEventListener('DOMContentLoaded', () => {
   let gameInterval;
   let answerBalloonTimer;
   let currentTargetKey = "";
+  const collectedArea = document.createElement('div');
+  collectedArea.id = 'collected-area';
+  collectedArea.style.position = 'absolute';
+  collectedArea.style.right = '20px';
+  collectedArea.style.bottom = '100px';
+  collectedArea.style.width = '150px';
+  collectedArea.style.height = '400px';
+  collectedArea.style.display = 'flex';
+  collectedArea.style.flexDirection = 'column';
+  collectedArea.style.alignItems = 'center';
+  gameContainer.appendChild(collectedArea);
 
   function updateTarget() {
     targetColour = colours[Math.floor(Math.random() * colours.length)];
@@ -56,9 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
     balloon.dataset.colour = colour;
     balloon.dataset.number = number;
 
-    balloon.style.left = `${Math.random() * 90}%`;
+    const margin = 100;
+    balloon.style.left = `${margin + Math.random() * (window.innerWidth - 2 * margin - 110)}px`;
     balloon.style.bottom = '-150px';
-    balloon.style.width = '110px'; // increased size
+    balloon.style.width = '120px'; // Bigger size
 
     balloonArea.appendChild(balloon);
 
@@ -76,10 +88,22 @@ document.addEventListener('DOMContentLoaded', () => {
       if (balloon.dataset.colour === targetColour && parseInt(balloon.dataset.number) === targetNumber) {
         score++;
         scoreDisplay.textContent = `Score: ${score}`;
-        balloon.style.zIndex = 0;
-        balloon.style.bottom = '10px';
+        clearInterval(float);
+        balloon.style.transition = 'all 1s ease-in-out';
+        balloon.style.position = 'absolute';
+        balloon.style.left = `${window.innerWidth - 150}px`;
+        balloon.style.bottom = `${100 + collectedArea.children.length * 30}px`;
+        collectedArea.appendChild(balloon);
         updateTarget();
       } else {
+        const pop = document.createElement('img');
+        pop.src = 'assets/pop.gif'; // You must upload this image
+        pop.style.position = 'absolute';
+        pop.style.left = balloon.style.left;
+        pop.style.bottom = balloon.style.bottom;
+        pop.style.width = '60px';
+        balloonArea.appendChild(pop);
+        setTimeout(() => pop.remove(), 500);
         balloon.remove();
       }
       checkLevelUp();
