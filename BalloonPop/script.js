@@ -19,10 +19,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let interval = 2000;
   let gameInterval;
   let answerBalloonTimer;
+  let currentTargetKey = "";
 
   function updateTarget() {
     targetColour = colours[Math.floor(Math.random() * colours.length)];
     targetNumber = numbers[Math.floor(Math.random() * numbers.length)];
+    currentTargetKey = `${targetColour}_${targetNumber}`;
 
     targetDisplay.innerHTML = "";
 
@@ -56,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     balloon.style.left = `${Math.random() * 90}%`;
     balloon.style.bottom = '-150px';
-    balloon.style.width = '90px';
+    balloon.style.width = '110px'; // increased size
 
     balloonArea.appendChild(balloon);
 
@@ -79,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTarget();
       } else {
         balloon.remove();
-        // Do NOT update target, allow retry on same target
       }
       checkLevelUp();
     });
