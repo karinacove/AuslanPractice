@@ -26,23 +26,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear previous
     targetDisplay.innerHTML = "";
 
-    const targetImg = document.createElement("img");
-    targetImg.src = `assets/colour/${targetColour}.png`;
-    targetImg.classList.add("balloon", "target-balloon");
-    targetImg.style.position = "relative";
+    const colourSign = document.createElement("img");
+    colourSign.src = `assets/colour/${targetColour}.png`;
+    colourSign.classList.add("sign-img");
 
-    const numberOverlay = document.createElement("div");
-    numberOverlay.style.position = 'absolute';
-    numberOverlay.style.top = '50%';
-    numberOverlay.style.left = '50%';
-    numberOverlay.style.transform = 'translate(-50%, -50%)';
-    numberOverlay.style.fontSize = '20px';
-    numberOverlay.style.color = 'white';
-    numberOverlay.style.textShadow = '1px 1px 2px black';
-    numberOverlay.innerText = targetNumber;
+    const numberSign = document.createElement("img");
+    numberSign.src = `assets/number/${targetNumber}.png`;
+    numberSign.classList.add("sign-img");
 
-    targetDisplay.appendChild(targetImg);
-    targetImg.appendChild(numberOverlay);
+    targetDisplay.appendChild(colourSign);
+    targetDisplay.appendChild(numberSign);
   }
 
   function createBalloon() {
@@ -51,23 +44,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const balloon = document.createElement('img');
     balloon.classList.add('balloon');
-    balloon.src = `assets/colour/${colour}.png`;
+    balloon.src = `assets/balloon/${colour}_${number}.png`;
     balloon.dataset.colour = colour;
     balloon.dataset.number = number;
 
     balloon.style.left = `${Math.random() * 90}%`;
     balloon.style.bottom = '-100px';
-
-    const numberOverlay = document.createElement('div');
-    numberOverlay.style.position = 'absolute';
-    numberOverlay.style.top = '50%';
-    numberOverlay.style.left = '50%';
-    numberOverlay.style.transform = 'translate(-50%, -50%)';
-    numberOverlay.style.fontSize = '20px';
-    numberOverlay.style.color = 'white';
-    numberOverlay.style.textShadow = '1px 1px 2px black';
-    numberOverlay.innerText = number;
-    balloon.appendChild(numberOverlay);
 
     balloonArea.appendChild(balloon);
 
@@ -82,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 30);
 
     balloon.addEventListener('click', () => {
-      if (colour === targetColour && number === targetNumber) {
+      if (balloon.dataset.colour === targetColour && parseInt(balloon.dataset.number) === targetNumber) {
         score++;
         scoreDisplay.textContent = `Score: ${score}`;
         balloon.style.zIndex = 0;
