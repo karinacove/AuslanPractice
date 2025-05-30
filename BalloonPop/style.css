@@ -1,81 +1,64 @@
-/* style.css */
 body {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
-  background: linear-gradient(to top, #c2e9fb, #a1c4fd);
+  background-color: #e0f7fa;
   overflow: hidden;
+  position: relative;
 }
 
 #start-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  position: absolute;
+  width: 100%;
   height: 100vh;
-  background-color: white;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
 }
 
 #start-form {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 15px;
 }
 
 #start-form input, #start-form button {
   padding: 10px;
   font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+#start-form button {
+  background-color: #00796b;
+  color: white;
+  cursor: pointer;
 }
 
 #game-container {
-  position: relative;
   width: 100%;
   height: 100vh;
+  position: relative;
+  overflow: hidden;
 }
 
 #scoreboard {
   position: absolute;
   top: 10px;
   left: 10px;
-  z-index: 10;
-  background-color: rgba(255,255,255,0.7);
-  padding: 10px;
-  border-radius: 8px;
-}
-
-#character-container {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  display: flex;
-  align-items: center;
-}
-
-#thought-bubble {
-  margin-left: 10px;
   background: white;
-  border: 2px solid black;
-  border-radius: 10px;
-  padding: 10px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
   display: flex;
-  gap: 10px;
-  height: 100px;
-}
-
-#thought-bubble img {
-  height: 100%;
-  object-fit: contain;
-}
-
-#mrsC {
-  height: 150px;
-}
-
-.balloon {
-  position: absolute;
-  width: 80px;
-  cursor: pointer;
-  transition: transform 0.2s;
+  gap: 20px;
+  font-size: 18px;
   z-index: 5;
 }
 
@@ -83,6 +66,63 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
-  overflow: hidden;
-  z-index: 1;
+  pointer-events: none;
+}
+
+.balloon {
+  position: absolute;
+  width: 120px;
+  transition: transform 0.3s ease;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 2;
+}
+
+#character-container {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  z-index: 3;
+}
+
+#mrs-c {
+  width: 150px;
+  height: auto;
+}
+
+#thought-bubble {
+  background: white;
+  border: 2px solid #999;
+  border-radius: 20px;
+  padding: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  z-index: 4;
+}
+
+.sign-img {
+  height: 60px;
+  margin: 5px;
+}
+
+#collected-area {
+  z-index: 3;
+}
+
+img[src*="pop.gif"] {
+  pointer-events: none;
+  z-index: 5;
+  animation: popfade 0.4s forwards;
+}
+
+@keyframes popfade {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.2); }
 }
