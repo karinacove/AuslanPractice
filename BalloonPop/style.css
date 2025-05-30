@@ -81,16 +81,16 @@ body {
 #character-container {
   position: absolute;
   bottom: 0;
-  right: 0;
+  right: 10px;
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   align-items: center;
-  padding: 10px;
+  padding-bottom: 10px;
   z-index: 3;
 }
 
 #mrs-c {
-  width: 150px;
+  width: 75px;
   height: auto;
 }
 
@@ -116,7 +116,12 @@ body {
   z-index: 3;
 }
 
-img[src*="pop.gif"] {
+.pop-effect {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  margin-left: -50px;
+  margin-top: -50px;
   pointer-events: none;
   z-index: 5;
   animation: popfade 0.4s forwards;
