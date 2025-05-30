@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   collectedArea.id = 'collected-area';
   collectedArea.style.position = 'absolute';
   collectedArea.style.right = '160px';
-  collectedArea.style.bottom = '120px';
+  collectedArea.style.bottom = '250px';
   collectedArea.style.width = '150px';
   collectedArea.style.height = '400px';
   collectedArea.style.display = 'flex';
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const margin = 150;
     balloon.style.left = `${margin + Math.random() * (window.innerWidth - 2 * margin - 110)}px`;
     balloon.style.bottom = '-150px';
-    balloon.style.width = '120px';
+    balloon.style.width = '140px';
 
     balloonArea.appendChild(balloon);
 
@@ -84,7 +84,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }, 30);
 
-    balloon.addEventListener('click', () => {
+    balloon.addEventListener('click', (e) => {
+      const rect = e.target.getBoundingClientRect();
+      const clickX = rect.left + rect.width / 2;
+      const clickY = rect.bottom - rect.height / 2;
+
       if (balloon.dataset.colour === targetColour && parseInt(balloon.dataset.number) === targetNumber) {
         score++;
         scoreDisplay.textContent = `Score: ${score}`;
@@ -94,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clone.style.transition = 'all 1s ease-in-out';
         clone.style.position = 'absolute';
         clone.style.left = `${window.innerWidth - 200}px`;
-        clone.style.bottom = `${120 + collectedArea.children.length * 30}px`;
+        clone.style.bottom = `${250 + collectedArea.children.length * 40}px`;
         collectedArea.appendChild(clone);
         balloon.remove();
 
@@ -104,9 +108,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const pop = document.createElement('img');
         pop.src = 'assets/pop.gif';
         pop.style.position = 'absolute';
-        pop.style.left = balloon.style.left;
-        pop.style.bottom = balloon.style.bottom;
-        pop.style.width = '600px'; // 10x larger
+        pop.style.left = `${clickX - 150}px`;
+        pop.style.top = `${clickY - 150}px`;
+        pop.style.width = '300px';
         balloonArea.appendChild(pop);
         setTimeout(() => pop.remove(), 500);
         balloon.remove();
@@ -133,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!exists) {
         createBalloon(true);
       }
-    }, 3000); // shorter interval to reduce waiting
+    }, 3000);
   }
 
   startForm.addEventListener('submit', (e) => {
