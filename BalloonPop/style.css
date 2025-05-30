@@ -42,10 +42,11 @@ body {
 }
 
 #game-container {
+  position: relative;
   width: 100%;
   height: 100vh;
-  position: relative;
   overflow: hidden;
+  background-color: #e0f7fa;
 }
 
 #scoreboard {
@@ -64,9 +65,9 @@ body {
 
 #balloon-area {
   position: absolute;
-  width: 80%;
+  width: 100%;
   height: 100%;
-  pointer-events: none;
+  pointer-events: none; /* lets clicks pass through if needed */
 }
 
 .balloon {
@@ -99,21 +100,22 @@ body {
 }
 
 #thought-bubble {
-  background: white;
-  border: 2px solid #999;
-  border-radius: 20px;
-  padding: 10px;
+  position: absolute;
   margin-bottom: 310px;
-  display: flex;
+  right: 5px;
+  width: auto;
+  height: 200px;
+  background: url('assets/character/thought-bubble.png') no-repeat center;
   flex-direction: row;
   align-items: center;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  padding: 10px;
+  gap: 5px;
   z-index: 4;
 }
 
 .sign-img {
-  height: 60px;
-  margin: 5px;
+  width: auto;
+  height: 170px;
 }
 
 #collected-area {
