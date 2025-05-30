@@ -60,7 +60,11 @@ document.addEventListener('DOMContentLoaded', () => {
     balloon.src = `assets/balloon/${colour}_${number}.png`;
     balloon.classList.add('balloon');
 
-    const x = Math.random() * (window.innerWidth - 120);
+    const gameWidth = window.innerWidth;
+    const minX = gameWidth * 0.2;
+    const maxX = gameWidth * 0.8 - 120;
+    const x = Math.random() * (maxX - minX) + minX;
+
     balloon.style.left = `${x}px`;
     balloon.style.bottom = `-150px`;
 
