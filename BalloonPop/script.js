@@ -1,104 +1,151 @@
+// script.js
+
 document.addEventListener('DOMContentLoaded', () => {
   const startForm = document.getElementById('start-form');
   const startScreen = document.getElementById('start-screen');
   const gameContainer = document.getElementById('game-container');
   const balloonArea = document.getElementById('balloon-area');
+  const targetDisplay = document.getElementById('thought-bubble');
   const scoreDisplay = document.getElementById('score');
   const levelDisplay = document.getElementById('level');
-  const thoughtBubble = document.getElementById('thought-bubble');
 
-  let playerName = '';
-  let playerClass = '';
+  const colours = ["green", "red", "orange", "yellow", "purple", "pink", "blue", "brown", "black", "white"];
+  const numbers = Array.from({ length: 21 }, (_, i) => i); // 0-20
+
+  let targetColour = "";
+  let targetNumber = -1;
   let score = 0;
   let level = 1;
-  let targetColour = '';
-  let targetNumber = '';
+  let interval = 2000;
+  let gameInterval;
+  let answerBalloonTimer;
+  let currentTargetKey = "";
+  const collectedArea = document.createElement('div');
+  collectedArea.id = 'collected-area';
+  collectedArea.style.position = 'absolute';
+  collectedArea.style.right = '160px';
+  collectedArea.style.bottom = '250px';
+  collectedArea.style.width = '150px';
+  collectedArea.style.height = '400px';
+  collectedArea.style.display = 'flex';
+  collectedArea.style.flexDirection = 'column';
+  collectedArea.style.alignItems = 'center';
+  gameContainer.appendChild(collectedArea);
 
-  const colours = ['green', 'red', 'orange', 'yellow', 'purple', 'pink', 'blue', 'brown', 'black', 'white'];
-  const numbers = Array.from({ length: 21 }, (_, i) => i);
+  function updateTarget() {
+    targetColour = colours[Math.floor(Math.random() * colours.length)];
+    targetNumber = numbers[Math.floor(Math.random() * numbers.length)];
+    currentTargetKey = `${targetColour}_${targetNumber}`;
+
+    targetDisplay.innerHTML = "";
+
+    const colourSign = document.createElement("img");
+    colourSign.src = `assets/colour/${targetColour}.png`;
+    colourSign.classList.add("sign-img");
+
+    const numberSign = document.createElement("img");
+    numberSign.src = `assets/number/${targetNumber}.png`;
+    numberSign.classList.add("sign-img");
+
+    targetDisplay.appendChild(colourSign);
+    targetDisplay.appendChild(numberSign);
+  }
+
+  function createBalloon(forceAnswer = false) {
+    let colour, number;
+    if (forceAnswer) {
+      colour = targetColour;
+      number = targetNumber;
+    } else {
+      colour = colours[Math.floor(Math.random() * colours.length)];
+      number = numbers[Math.floor(Math.random() * numbers.length)];
+    }
+
+    const balloon = document.createElement('img');
+    balloon.classList.add('balloon');
+    balloon.src = `assets/balloon/${colour}_${number}.png`;
+    balloon.dataset.colour = colour;
+    balloon.dataset.number = number;
+
+    const margin = 150;
+    balloon.style.left = `${margin + Math.random() * (window.innerWidth - 2 * margin - 110)}px`;
+    balloon.style.bottom = '-150px';
+    balloon.style.width = '140px';
+
+    balloonArea.appendChild(balloon);
+
+    let position = 0;
+    const float = setInterval(() => {
+      position += 2;
+      balloon.style.bottom = `${position}px`;
+      if (position > window.innerHeight) {
+        balloon.remove();
+        clearInterval(float);
+      }
+    }, 30);
+
+    balloon.addEventListener('click', (e) => {
+      const rect = e.target.getBoundingClientRect();
+      const clickX = rect.left + rect.width / 2;
+      const clickY = rect.bottom - rect.height / 2;
+
+      if (balloon.dataset.colour === targetColour && parseInt(balloon.dataset.number) === targetNumber) {
+        score++;
+        scoreDisplay.textContent = `Score: ${score}`;
+        clearInterval(float);
+
+        const clone = balloon.cloneNode(true);
+        clone.style.transition = 'all 1s ease-in-out';
+        clone.style.position = 'absolute';
+        clone.style.left = `${window.innerWidth - 200}px`;
+        clone.style.bottom = `${250 + collectedArea.children.length * 40}px`;
+        collectedArea.appendChild(clone);
+        balloon.remove();
+
+        updateTarget();
+        ensureAnswerBalloon();
+      } else {
+        const pop = document.createElement('img');
+        pop.src = 'assets/pop.gif';
+        pop.style.position = 'absolute';
+        pop.style.left = `${clickX - 150}px`;
+        pop.style.top = `${clickY - 150}px`;
+        pop.style.width = '300px';
+        balloonArea.appendChild(pop);
+        setTimeout(() => pop.remove(), 500);
+        balloon.remove();
+      }
+      checkLevelUp();
+    });
+  }
+
+  function checkLevelUp() {
+    if (score > 0 && score % 10 === 0) {
+      level++;
+      interval = Math.max(500, interval - 300);
+      levelDisplay.textContent = `Level: ${level}`;
+      clearInterval(gameInterval);
+      gameInterval = setInterval(() => createBalloon(false), interval);
+    }
+  }
+
+  function ensureAnswerBalloon() {
+    clearInterval(answerBalloonTimer);
+    answerBalloonTimer = setInterval(() => {
+      const exists = [...document.querySelectorAll('.balloon')].some(b =>
+        b.dataset.colour === targetColour && parseInt(b.dataset.number) === targetNumber);
+      if (!exists) {
+        createBalloon(true);
+      }
+    }, 3000);
+  }
 
   startForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const inputs = startForm.querySelectorAll('input');
-    playerName = inputs[0].value.trim();
-    playerClass = inputs[1].value.trim();
-    if (playerName && playerClass) {
-      startScreen.style.display = 'none';
-      gameContainer.style.display = 'block';
-      startGame();
-    }
+    startScreen.style.display = 'none';
+    gameContainer.style.display = 'block';
+    updateTarget();
+    gameInterval = setInterval(() => createBalloon(false), interval);
+    ensureAnswerBalloon();
   });
-
-  function startGame() {
-    updateThoughtBubble();
-    spawnBalloon();
-    setInterval(spawnBalloon, 1500);
-  }
-
-  function updateThoughtBubble() {
-    targetColour = colours[Math.floor(Math.random() * colours.length)];
-    targetNumber = numbers[Math.floor(Math.random() * numbers.length)];
-    thoughtBubble.innerHTML = `
-      <img src="assets/colour/${targetColour}.png" class="sign-img" />
-      <img src="assets/number/${targetNumber}.png" class="sign-img" />
-    `;
-  }
-
-  function spawnBalloon() {
-    const colour = colours[Math.floor(Math.random() * colours.length)];
-    const number = numbers[Math.floor(Math.random() * numbers.length)];
-    const balloon = document.createElement('img');
-    balloon.src = `assets/balloon/${colour}_${number}.png`;
-    balloon.classList.add('balloon');
-
-    const x = Math.random() * (window.innerWidth - 120);
-    balloon.style.left = `${x}px`;
-    balloon.style.bottom = `-150px`;
-
-    balloon.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (colour === targetColour && number === targetNumber) {
-        score++;
-        scoreDisplay.textContent = `Score: ${score}`;
-        moveToCollected(balloon);
-        updateThoughtBubble();
-      } else {
-        createPopEffect(e.clientX, e.clientY);
-        balloon.remove();
-      }
-    });
-
-    balloonArea.appendChild(balloon);
-    floatBalloon(balloon);
-  }
-
-  function floatBalloon(balloon) {
-    let pos = -150;
-    const interval = setInterval(() => {
-      pos += 2;
-      balloon.style.bottom = `${pos}px`;
-      if (pos > window.innerHeight + 100) {
-        balloon.remove();
-        clearInterval(interval);
-      }
-    }, 30);
-  }
-
-  function createPopEffect(x, y) {
-    const pop = document.createElement('img');
-    pop.src = 'assets/pop.gif';
-    pop.classList.add('pop-effect');
-    pop.style.left = `${x}px`;
-    pop.style.top = `${y}px`;
-    document.body.appendChild(pop);
-    setTimeout(() => pop.remove(), 400);
-  }
-
-  function moveToCollected(balloon) {
-    balloon.style.transition = 'all 1s ease';
-    balloon.style.left = 'calc(100% - 100px)';
-    balloon.style.bottom = '120px';
-    balloon.style.zIndex = 1;
-    balloon.removeEventListener('click', () => {});
-  }
 });
