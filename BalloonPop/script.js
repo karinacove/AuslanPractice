@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let level = 1;
   let targetColour = '';
   let targetNumber = '';
+  let collectedCount = 0;
 
   const colours = ['green', 'red', 'orange', 'yellow', 'purple', 'pink', 'blue', 'brown', 'black', 'white'];
   const numbers = Array.from({ length: 21 }, (_, i) => i);
@@ -97,6 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clearInterval(interval);
       }
     }, 30);
+    balloon.dataset.floatInterval = interval;
   }
 
   function createPopEffect(x, y) {
@@ -110,10 +112,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function moveToCollected(balloon) {
+    const intervalId = balloon.dataset.floatInterval;
+    clearInterval(intervalId);
+
     balloon.style.transition = 'all 1s ease';
-    balloon.style.left = 'calc(100% - 100px)';
-    balloon.style.bottom = '120px';
-    balloon.style.zIndex = 1;
+    const offsetX = 100 + (collectedCount % 10) * 30;
+    const offsetY = 400 + Math.floor(collectedCount / 10) * 50;
+    balloon.style.left = `calc(100% - ${offsetX}px)`;
+    balloon.style.bottom = `${offsetY}px`;
+    balloon.style.zIndex = 3;
     balloon.removeEventListener('click', () => {});
+    collectedCount++;
   }
 });
