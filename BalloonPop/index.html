@@ -4,32 +4,28 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Auslan Balloon Game</title>
-  <base href="/AuslanPractice/BalloonPop/" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="start-screen">
-    <h1>Auslan Balloon Game</h1>
     <form id="start-form">
-      <input type="text" id="name" placeholder="Your Name" required />
-      <input type="text" id="class" placeholder="Your Class" required />
+      <h2>Enter Your Details</h2>
+      <input type="text" placeholder="Name" required />
+      <input type="text" placeholder="Class" required />
       <button type="submit">Start</button>
     </form>
   </div>
 
   <div id="game-container" style="display: none;">
     <div id="scoreboard">
-      <p id="score">Score: 0</p>
-      <p id="level">Level: 1</p>
-    </div>
-    <div id="character-container">
-      <img src="assets/character/MrsC.png" id="mrsC" alt="Mrs C" />
-      <div id="thought-bubble">
-        <img id="target-colour" src="" alt="Colour Sign" />
-        <img id="target-number" src="" alt="Number Sign" />
-      </div>
+      <div id="score">Score: 0</div>
+      <div id="level">Level: 1</div>
     </div>
     <div id="balloon-area"></div>
+    <div id="character-container">
+      <img src="assets/character/MrsC.png" alt="Mrs C" id="mrs-c" />
+      <div id="thought-bubble"></div>
+    </div>
   </div>
 
   <script src="script.js"></script>
