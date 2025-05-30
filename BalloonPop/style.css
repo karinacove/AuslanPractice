@@ -124,11 +124,11 @@ body {
   position: absolute;
   width: 100px;
   height: 100px;
-  margin-left: -50px;
-  margin-top: -50px;
+  margin-left: auto;
+  margin-top: auto;
   pointer-events: none;
   z-index: 5;
-  animation: popfade 0.4s forwards;
+  animation: popfade 1s forwards;
 }
 
 @keyframes popfade {
