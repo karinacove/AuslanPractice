@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateThoughtBubble();
     spawnBalloon();
     setInterval(spawnBalloon, 1500);
+    setInterval(spawnCorrectBalloon, 5000); // Ensures correct answer appears every 5 seconds
   }
 
   function updateThoughtBubble() {
@@ -47,6 +48,14 @@ document.addEventListener('DOMContentLoaded', () => {
   function spawnBalloon() {
     const colour = colours[Math.floor(Math.random() * colours.length)];
     const number = numbers[Math.floor(Math.random() * numbers.length)];
+    createBalloon(colour, number);
+  }
+
+  function spawnCorrectBalloon() {
+    createBalloon(targetColour, targetNumber);
+  }
+
+  function createBalloon(colour, number) {
     const balloon = document.createElement('img');
     balloon.src = `assets/balloon/${colour}_${number}.png`;
     balloon.classList.add('balloon');
@@ -57,13 +66,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     balloon.addEventListener('click', (e) => {
       e.stopPropagation();
+      const clickX = e.clientX;
+      const clickY = e.clientY;
       if (colour === targetColour && number === targetNumber) {
         score++;
         scoreDisplay.textContent = `Score: ${score}`;
         moveToCollected(balloon);
         updateThoughtBubble();
       } else {
-        createPopEffect(e.clientX, e.clientY);
+        createPopEffect(clickX, clickY);
         balloon.remove();
       }
     });
@@ -88,8 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const pop = document.createElement('img');
     pop.src = 'assets/pop.gif';
     pop.classList.add('pop-effect');
-    pop.style.left = `${x}px`;
-    pop.style.top = `${y}px`;
+    pop.style.left = `${x - 50}px`; // Centered
+    pop.style.top = `${y - 50}px`;
     document.body.appendChild(pop);
     setTimeout(() => pop.remove(), 400);
   }
