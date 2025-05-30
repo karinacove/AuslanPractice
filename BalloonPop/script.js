@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ensureAnswerBalloon();
       } else {
         const pop = document.createElement('img');
-        pop.src = 'assets/pop.png';
+        pop.src = 'assets/pop.gif';
         pop.style.position = 'absolute';
         pop.style.left = balloon.style.left;
         pop.style.bottom = balloon.style.bottom;
