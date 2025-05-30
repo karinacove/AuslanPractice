@@ -90,8 +90,12 @@ body {
 }
 
 #mrs-c {
-  width: 75px;
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 150px; /* Increase this value to make her bigger */
   height: auto;
+  z-index: 2;
 }
 
 #thought-bubble {
