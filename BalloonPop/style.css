@@ -84,7 +84,7 @@ body {
   bottom: 0;
   right: 5px;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   padding-bottom: 0px;
   z-index: 3;
@@ -101,7 +101,7 @@ body {
 
 #thought-bubble {
   position: absolute;
-  bottom: centre;
+  bottom: 350px;
   right: 5px;
   width: 200px;
   height: 120px;
