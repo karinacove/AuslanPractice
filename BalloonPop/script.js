@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateThoughtBubble();
     spawnBalloon();
     setInterval(spawnBalloon, 1000);
-    setInterval(spawnCorrectBalloon, 5000); // Ensures correct answer appears every 5 seconds
+    setInterval(spawnCorrectBalloon, 5000);
   }
 
   function updateThoughtBubble() {
@@ -60,6 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const balloon = document.createElement('img');
     balloon.src = `assets/balloon/${colour}_${number}.png`;
     balloon.classList.add('balloon');
+    balloon.dataset.colour = colour;
+    balloon.dataset.number = number;
 
     const gameWidth = window.innerWidth;
     const minX = gameWidth * 0.2;
@@ -73,7 +75,10 @@ document.addEventListener('DOMContentLoaded', () => {
       e.stopPropagation();
       const clickX = e.clientX;
       const clickY = e.clientY;
-      if (colour === targetColour && number === targetNumber) {
+      const clickedColour = balloon.dataset.colour;
+      const clickedNumber = parseInt(balloon.dataset.number);
+
+      if (clickedColour === targetColour && clickedNumber === targetNumber) {
         score++;
         scoreDisplay.textContent = `Score: ${score}`;
         moveToCollected(balloon);
@@ -105,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pop = document.createElement('img');
     pop.src = 'assets/pop.gif';
     pop.classList.add('pop-effect');
-    pop.style.left = `${x - 50}px`; // Centered
+    pop.style.left = `${x - 50}px`;
     pop.style.top = `${y - 50}px`;
     document.body.appendChild(pop);
     setTimeout(() => pop.remove(), 400);
