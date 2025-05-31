@@ -82,11 +82,11 @@ body {
 #character-container {
   position: absolute;
   bottom: 0;
-  right: 10px;
+  right: 5px;
   display: flex;
   flex-direction: row-reverse;
   align-items: center;
-  padding-bottom: 10px;
+  padding-bottom: 0px;
   z-index: 3;
 }
 
