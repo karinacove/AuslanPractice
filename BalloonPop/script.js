@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let targetColour = '';
   let targetNumber = '';
   let collectedCount = 0;
+  let floatSpeed = 30;
 
   const colours = ['green', 'red', 'orange', 'yellow', 'purple', 'pink', 'blue', 'brown', 'black', 'white'];
   const numbers = Array.from({ length: 21 }, (_, i) => i);
@@ -75,14 +76,17 @@ document.addEventListener('DOMContentLoaded', () => {
       e.stopPropagation();
       const clickX = e.clientX;
       const clickY = e.clientY;
-      const clickedColour = balloon.dataset.colour;
-      const clickedNumber = parseInt(balloon.dataset.number);
-
-      if (clickedColour === targetColour && clickedNumber === targetNumber) {
+      if (balloon.dataset.colour === targetColour && parseInt(balloon.dataset.number) === targetNumber) {
         score++;
         scoreDisplay.textContent = `Score: ${score}`;
         moveToCollected(balloon);
         updateThoughtBubble();
+        if (score === 10) {
+          level++;
+          levelDisplay.textContent = `Level: ${level}`;
+          floatSpeed = 20;
+          clearBalloons();
+        }
       } else {
         createPopEffect(clickX, clickY);
         balloon.remove();
@@ -102,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         balloon.remove();
         clearInterval(interval);
       }
-    }, 30);
+    }, floatSpeed);
     balloon.dataset.floatInterval = interval;
   }
 
@@ -110,8 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const pop = document.createElement('img');
     pop.src = 'assets/pop.gif';
     pop.classList.add('pop-effect');
-    pop.style.left = `${x - 50}px`;
-    pop.style.top = `${y - 50}px`;
+    pop.style.left = `${x}px`;
+    pop.style.top = `${y}px`;
     document.body.appendChild(pop);
     setTimeout(() => pop.remove(), 400);
   }
@@ -128,5 +132,9 @@ document.addEventListener('DOMContentLoaded', () => {
     balloon.style.zIndex = 3;
     balloon.removeEventListener('click', () => {});
     collectedCount++;
+  }
+
+  function clearBalloons() {
+    document.querySelectorAll('.balloon').forEach(b => b.remove());
   }
 });
