@@ -121,7 +121,7 @@ body {
 .sign-img {
   width: auto;
   height: 100px;
-  margin-top: -10px; /* Raise the image slightly */
+  margin-top: -5px; /* Raise the image slightly */
 }
 
 #collected-area {
