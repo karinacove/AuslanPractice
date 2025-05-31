@@ -1,3 +1,5 @@
+# Balloon Game Styles
+
 body {
   margin: 0;
   padding: 0;
@@ -67,7 +69,10 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
-  pointer-events: none; /* lets clicks pass through if needed */
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 .balloon {
@@ -82,27 +87,24 @@ body {
 #character-container {
   position: absolute;
   bottom: 0;
-  right: 5px;
+  right: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-bottom: 0px;
+  padding: 10px;
   z-index: 3;
 }
 
 #mrs-c {
-  position: absolute;
-  bottom: 0px;
-  right: 10px;
-  width: auto; 
-  height: 300px; /* Increase this value to make her bigger */
+  width: auto;
+  height: 250px; /* Adjusted to be smaller */
   z-index: 2;
 }
 
 #thought-bubble {
   position: absolute;
-  bottom: 315px;
-  right: 5px;
+  bottom: 260px;
+  right: 30px;
   width: 250px;
   min-height: 150px;
   background: url('assets/character/thought-bubble.png') no-repeat center center;
@@ -129,8 +131,7 @@ body {
   position: absolute;
   width: 300px;
   height: 300px;
-  margin-left: auto;
-  margin-top: auto;
+  transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 5;
   animation: popfade 3s forwards;
