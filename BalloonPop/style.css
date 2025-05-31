@@ -103,10 +103,10 @@ body {
 
 #thought-bubble {
   position: absolute;
-  bottom: 290px;
+  bottom: 2000px;
   right: 0;
   width: 300px; /* Wider bubble */
-  min-height: 150px;
+  min-height: 180px;
   background: url('assets/character/thought-bubble.png') no-repeat center center;
   background-size: contain;
   display: flex;
