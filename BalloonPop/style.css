@@ -103,7 +103,7 @@ body {
   position: absolute;
   bottom: centre;
   right: 5px;
-  width: 300px;
+  width: 200px;
   height: 120px;
   background: url('assets/character/thought-bubble.png') no-repeat center;
   flex-direction: row;
@@ -115,7 +115,7 @@ body {
 
 .sign-img {
   width: auto;
-  height: 80px;
+  height: 100px;
 }
 
 #collected-area {
