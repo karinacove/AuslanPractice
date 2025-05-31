@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function startGame() {
     updateThoughtBubble();
     spawnBalloon();
-    setInterval(spawnBalloon, 1500);
+    setInterval(spawnBalloon, 1000);
     setInterval(spawnCorrectBalloon, 5000); // Ensures correct answer appears every 5 seconds
   }
 
