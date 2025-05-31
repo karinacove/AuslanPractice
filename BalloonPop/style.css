@@ -103,7 +103,7 @@ body {
 
 #thought-bubble {
   position: absolute;
-  bottom: 200px;
+  bottom: 210px;
   right: 0;
   width: 300px; /* Wider bubble */
   min-height: 180px;
@@ -121,6 +121,7 @@ body {
 .sign-img {
   width: auto;
   height: 100px;
+  margin-top: -10px; /* Raise the image slightly */
 }
 
 #collected-area {
