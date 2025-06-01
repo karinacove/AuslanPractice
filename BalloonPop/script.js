@@ -116,8 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
     pop.classList.add('pop-effect');
 
     const rect = balloon.getBoundingClientRect();
-    const x = rect.left + rect.width * 0.5 - 40; // Horizontal center, adjusted
-    const y = rect.top + rect.height * 0.1 - 40; // Higher vertical position, adjusted
+    const x = rect.left + rect.width * 0.5 - 60; // Better horizontal centering
+    const y = rect.top - rect.height * 0.2; // Positioned near the top of the balloon
 
     pop.style.left = `${x}px`;
     pop.style.top = `${y}px`;
