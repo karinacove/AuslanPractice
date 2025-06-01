@@ -7,10 +7,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const levelDisplay = document.getElementById('level');
   const thoughtBubble = document.getElementById('thought-bubble');
   const background = document.getElementById('background');
+  const endButton = document.createElement('button');
+  endButton.textContent = 'End Game';
+  endButton.style.position = 'absolute';
+  endButton.style.top = '10px';
+  endButton.style.right = '10px';
+  endButton.style.zIndex = '6';
+  endButton.style.padding = '10px 20px';
+  endButton.style.fontSize = '16px';
+  endButton.style.cursor = 'pointer';
+
+  gameContainer.appendChild(endButton);
 
   let playerName = '';
   let playerClass = '';
   let score = 0;
+  let totalQuestions = 0;
+  let correctAnswers = 0;
   let level = 1;
   let targetColour = '';
   let targetNumber = '';
@@ -32,6 +45,10 @@ document.addEventListener('DOMContentLoaded', () => {
       updateBackground();
       startGame();
     }
+  });
+
+  endButton.addEventListener('click', () => {
+    endGame(true);
   });
 
   function startGame() {
@@ -60,10 +77,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function spawnBalloon() {
     const colour = colours[Math.floor(Math.random() * colours.length)];
     const number = numbers[Math.floor(Math.random() * numbers.length)];
+    totalQuestions++;
     createBalloon(colour, number);
   }
 
   function spawnCorrectBalloon() {
+    totalQuestions++;
     createBalloon(targetColour, targetNumber);
   }
 
@@ -86,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
       e.stopPropagation();
       if (balloon.dataset.colour === targetColour && parseInt(balloon.dataset.number) === targetNumber) {
         score++;
+        correctAnswers++;
         scoreDisplay.textContent = `Score: ${score}`;
         moveToCollected(balloon);
         updateThoughtBubble();
@@ -165,13 +185,14 @@ document.addEventListener('DOMContentLoaded', () => {
     background.style.backgroundImage = `url('assets/background/background_${bgIndex}.png')`;
   }
 
-  function endGame() {
+  function endGame(early = false) {
     clearInterval(balloonInterval);
     clearInterval(correctBalloonInterval);
     clearBalloons();
-    alert(`Congratulations ${playerName} from ${playerClass}! You completed the game with a score of ${score}.`);
-    // Optional: submit to Google Forms or redirect to results page
+    const message = early ? 'Game ended early.' : 'Congratulations! You completed the game!';
+    alert(`${message}\n\n${playerName} from ${playerClass},\nScore: ${score}\nQuestions Answered: ${totalQuestions}\nCorrect Answers: ${correctAnswers}`);
+    // Optionally submit to Google Forms or redirect
     // Example:
-    // window.location.href = `https://docs.google.com/forms/d/e/your-form-id/viewform?entry.12345=${playerName}&entry.67890=${playerClass}&entry.54321=${score}`;
+    // window.location.href = `https://docs.google.com/forms/d/e/your-form-id/viewform?entry.12345=${playerName}&entry.67890=${playerClass}&entry.54321=${score}&entry.98765=${totalQuestions}&entry.111213=${correctAnswers}`;
   }
 });
