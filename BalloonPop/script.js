@@ -112,15 +112,21 @@ document.addEventListener('DOMContentLoaded', () => {
     balloon.dataset.floatInterval = interval;
   }
 
-  function createPopEffect(x, y) {
-    const pop = document.createElement('img');
-    pop.src = 'assets/pop.gif';
-    pop.classList.add('pop-effect');
-    pop.style.left = `${x}px`;
-    pop.style.top = `${y}px`;
-    document.body.appendChild(pop);
-    setTimeout(() => pop.remove(), 400);
-  }
+function createPopEffect(balloon) {
+  const pop = document.createElement('img');
+  pop.src = 'assets/pop.gif';
+  pop.classList.add('pop-effect');
+
+  const rect = balloon.getBoundingClientRect();
+  const x = rect.left + rect.width / 2;
+  const y = rect.top + rect.height * 0.3; // Adjust vertical position toward the top
+
+  pop.style.left = `${x}px`;
+  pop.style.top = `${y}px`;
+
+  document.body.appendChild(pop);
+  setTimeout(() => pop.remove(), 400);
+}
 
   function moveToCollected(balloon) {
     const intervalId = balloon.dataset.floatInterval;
