@@ -65,8 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
     balloon.dataset.number = number;
 
     const gameWidth = window.innerWidth;
-    const minX = gameWidth * 0.2;
-    const maxX = gameWidth * 0.8 - 120;
+    const minX = gameWidth * 0.15; // Slightly more to the left
+    const maxX = gameWidth * 0.75 - 120;
     const x = Math.random() * (maxX - minX) + minX;
 
     balloon.style.left = `${x}px`;
@@ -116,8 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
     pop.classList.add('pop-effect');
 
     const rect = balloon.getBoundingClientRect();
-    const x = rect.left + rect.width * 0.5 - 60; // Better horizontal centering
-    const y = rect.top - rect.height * 0.2; // Positioned near the top of the balloon
+    const x = rect.left + rect.width * 0.45 - 50; // More leftward horizontal alignment
+    const y = rect.top + rect.height * 0.1; // Closer to the top of the balloon
 
     pop.style.left = `${x}px`;
     pop.style.top = `${y}px`;
