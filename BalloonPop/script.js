@@ -81,11 +81,13 @@ document.addEventListener('DOMContentLoaded', () => {
         scoreDisplay.textContent = `Score: ${score}`;
         moveToCollected(balloon);
         updateThoughtBubble();
-        if (score === 10) {
+
+        if (score === 10 || score === 20) {
           level++;
           levelDisplay.textContent = `Level: ${level}`;
-          floatSpeed = 20;
+          floatSpeed -= 5; // Increase speed each level
           clearBalloons();
+          collectedCount = 0; // Reset collection offset
         }
       } else {
         createPopEffect(clickX, clickY);
@@ -126,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     balloon.style.transition = 'all 1s ease';
     const offsetX = 100 + (collectedCount % 10) * 30;
-    const offsetY = 400 + Math.floor(collectedCount / 10) * 50;
+    const offsetY = 400; // Keep all collected balloons at same height
     balloon.style.left = `calc(100% - ${offsetX}px)`;
     balloon.style.bottom = `${offsetY}px`;
     balloon.style.zIndex = 3;
