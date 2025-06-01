@@ -139,7 +139,7 @@ body, html {
   position: absolute;
   width: 250px;
   height: 250px;
-  transform: translate(-50%, -50%);
+  transform: translate(-5%, -5%);
   pointer-events: none;
   z-index: 5;
   animation: popfade 0.4s ease-out forwards;
