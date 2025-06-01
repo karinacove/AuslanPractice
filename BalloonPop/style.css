@@ -114,14 +114,14 @@ body {
   justify-content: center;
   align-items: center;
   padding: 2px;
-  gap: 5px;
+  gap: 2px;
   z-index: 4;
 }
 
 .sign-img {
   width: auto;
   height: 110px;
-  margin-bottom: 20px; /* Raise the image slightly */
+  margin-bottom: 25px; /* Raise the image slightly */
 }
 
 #collected-area {
