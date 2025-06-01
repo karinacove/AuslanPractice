@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let targetNumber = '';
   let collectedCount = 0;
   let floatSpeed = 30;
+  let balloonInterval, correctBalloonInterval;
 
   const colours = ['green', 'red', 'orange', 'yellow', 'purple', 'pink', 'blue', 'brown', 'black', 'white'];
   const numbers = Array.from({ length: 21 }, (_, i) => i);
@@ -34,10 +35,17 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function startGame() {
+    updateFloatSpeed();
     updateThoughtBubble();
     spawnBalloon();
-    setInterval(spawnBalloon, 1000);
-    setInterval(spawnCorrectBalloon, 5000);
+    balloonInterval = setInterval(spawnBalloon, 1000);
+    correctBalloonInterval = setInterval(spawnCorrectBalloon, 5000);
+  }
+
+  function updateFloatSpeed() {
+    if ([1, 4, 7, 10].includes(level)) floatSpeed = 30;
+    else if ([2, 5, 8, 11].includes(level)) floatSpeed = 20;
+    else if ([3, 6, 9, 12].includes(level)) floatSpeed = 10;
   }
 
   function updateThoughtBubble() {
@@ -67,8 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
     balloon.dataset.number = number;
 
     const gameWidth = window.innerWidth;
-    const minX = gameWidth * 0.15;
-    const maxX = gameWidth * 0.75 - 120;
+    const minX = gameWidth * 0.1;
+    const maxX = gameWidth * 0.7 - 120;
     const x = Math.random() * (maxX - minX) + minX;
 
     balloon.style.left = `${x}px`;
@@ -82,13 +90,18 @@ document.addEventListener('DOMContentLoaded', () => {
         moveToCollected(balloon);
         updateThoughtBubble();
 
-        if (score === 10 || score === 20) {
+        if (score % 10 === 0 && level < 12) {
           level++;
           levelDisplay.textContent = `Level: ${level}`;
-          floatSpeed -= 5;
-          clearBalloons();
           collectedCount = 0;
+          clearBalloons();
           updateBackground();
+          updateFloatSpeed();
+          clearInterval(balloonInterval);
+          clearInterval(correctBalloonInterval);
+          startGame();
+        } else if (score === 120) {
+          endGame();
         }
       } else {
         createPopEffect(balloon);
@@ -119,8 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
     pop.classList.add('pop-effect');
 
     const rect = balloon.getBoundingClientRect();
-    const x = rect.left + rect.width * 0.4 - 50;
-    const y = rect.top + rect.height * 0.1;
+    const x = rect.left + rect.width * 0.3;
+    const y = rect.top;
 
     pop.style.left = `${x}px`;
     pop.style.top = `${y}px`;
@@ -150,5 +163,15 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateBackground() {
     const bgIndex = Math.min(level, 12);
     background.style.backgroundImage = `url('assets/background/background_${bgIndex}.png')`;
+  }
+
+  function endGame() {
+    clearInterval(balloonInterval);
+    clearInterval(correctBalloonInterval);
+    clearBalloons();
+    alert(`Congratulations ${playerName} from ${playerClass}! You completed the game with a score of ${score}.`);
+    // Optional: submit to Google Forms or redirect to results page
+    // Example:
+    // window.location.href = `https://docs.google.com/forms/d/e/your-form-id/viewform?entry.12345=${playerName}&entry.67890=${playerClass}&entry.54321=${score}`;
   }
 });
