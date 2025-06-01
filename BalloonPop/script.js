@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const scoreDisplay = document.getElementById('score');
   const levelDisplay = document.getElementById('level');
   const thoughtBubble = document.getElementById('thought-bubble');
+  const background = document.getElementById('background');
 
   let playerName = '';
   let playerClass = '';
@@ -27,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (playerName && playerClass) {
       startScreen.style.display = 'none';
       gameContainer.style.display = 'block';
+      updateBackground();
       startGame();
     }
   });
@@ -65,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     balloon.dataset.number = number;
 
     const gameWidth = window.innerWidth;
-    const minX = gameWidth * 0.15; // Slightly more to the left
+    const minX = gameWidth * 0.15;
     const maxX = gameWidth * 0.75 - 120;
     const x = Math.random() * (maxX - minX) + minX;
 
@@ -83,9 +85,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (score === 10 || score === 20) {
           level++;
           levelDisplay.textContent = `Level: ${level}`;
-          floatSpeed -= 5; // Increase speed each level
+          floatSpeed -= 5;
           clearBalloons();
-          collectedCount = 0; // Reset collection offset
+          collectedCount = 0;
+          updateBackground();
         }
       } else {
         createPopEffect(balloon);
@@ -116,8 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
     pop.classList.add('pop-effect');
 
     const rect = balloon.getBoundingClientRect();
-    const x = rect.left + rect.width * 0.45 - 50; // More leftward horizontal alignment
-    const y = rect.top + rect.height * 0.1; // Closer to the top of the balloon
+    const x = rect.left + rect.width * 0.4 - 50;
+    const y = rect.top + rect.height * 0.1;
 
     pop.style.left = `${x}px`;
     pop.style.top = `${y}px`;
@@ -132,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     balloon.style.transition = 'all 1s ease';
     const offsetX = 100 + (collectedCount % 10) * 30;
-    const offsetY = 400; // Keep all collected balloons at same height
+    const offsetY = 400;
     balloon.style.left = `calc(100% - ${offsetX}px)`;
     balloon.style.bottom = `${offsetY}px`;
     balloon.style.zIndex = 3;
@@ -142,5 +145,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function clearBalloons() {
     document.querySelectorAll('.balloon').forEach(b => b.remove());
+  }
+
+  function updateBackground() {
+    const bgIndex = Math.min(level, 12);
+    background.style.backgroundImage = `url('assets/background/background_${bgIndex}.png')`;
   }
 });
