@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let score = 0;
   let totalQuestions = 0;
   let correctAnswers = 0;
+  let incorrectAnswersList = [];
   let level = 1;
   let targetColour = '';
   let targetNumber = '';
@@ -124,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
           endGame();
         }
       } else {
+        incorrectAnswersList.push(`${balloon.dataset.colour} ${balloon.dataset.number}`);
         createPopEffect(balloon);
         balloon.remove();
       }
@@ -191,8 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
     clearBalloons();
     const message = early ? 'Game ended early.' : 'Congratulations! You completed the game!';
     alert(`${message}\n\n${playerName} from ${playerClass},\nScore: ${score}\nQuestions Answered: ${totalQuestions}\nCorrect Answers: ${correctAnswers}`);
-    // Optionally submit to Google Forms or redirect
-    // Example:
-    // window.location.href = `https://docs.google.com/forms/d/e/your-form-id/viewform?entry.12345=${playerName}&entry.67890=${playerClass}&entry.54321=${score}&entry.98765=${totalQuestions}&entry.111213=${correctAnswers}`;
+    const incorrectList = incorrectAnswersList.join(', ');
+    window.location.href = `https://docs.google.com/forms/d/e/1FAIpQLSeHCxQ4czHbx1Gdv649vlr5-Dz9-4DQu5M5OcIfC46WlL-6Qw/viewform?entry.1609572894=${encodeURIComponent(playerName)}&entry.1168342531=${encodeURIComponent(playerClass)}&entry.91913727=${score}&entry.63569940=${totalQuestions}&entry.1746910343=${correctAnswers}&entry.1748975026=${encodeURIComponent(incorrectList)}`;
   }
 });
