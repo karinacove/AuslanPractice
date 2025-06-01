@@ -7,24 +7,26 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="start-screen">
-    <form id="start-form">
-      <h2>Enter Your Details</h2>
-      <input type="text" placeholder="Name" required />
-      <input type="text" placeholder="Class" required />
-      <button type="submit">Start</button>
-    </form>
-  </div>
-
-  <div id="game-container" style="display: none;">
-    <div id="scoreboard">
-      <div id="score">Score: 0</div>
-      <div id="level">Level: 1</div>
+  <div id="background">
+    <div id="start-screen">
+      <form id="start-form">
+        <h2>Enter Your Details</h2>
+        <input type="text" placeholder="Name" required />
+        <input type="text" placeholder="Class" required />
+        <button type="submit">Start</button>
+      </form>
     </div>
-    <div id="balloon-area"></div>
-    <div id="character-container">
-      <img src="assets/character/MrsC.png" alt="Mrs C" id="mrs-c" />
-      <div id="thought-bubble"></div>
+
+    <div id="game-container" style="display: none;">
+      <div id="scoreboard">
+        <div id="score">Score: 0</div>
+        <div id="level">Level: 1</div>
+      </div>
+      <div id="balloon-area"></div>
+      <div id="character-container">
+        <img src="assets/character/MrsC.png" alt="Mrs C" id="mrs-c" />
+        <div id="thought-bubble"></div>
+      </div>
     </div>
   </div>
 
