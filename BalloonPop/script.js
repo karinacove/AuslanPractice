@@ -74,8 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     balloon.addEventListener('click', (e) => {
       e.stopPropagation();
-      const clickX = e.clientX;
-      const clickY = e.clientY;
       if (balloon.dataset.colour === targetColour && parseInt(balloon.dataset.number) === targetNumber) {
         score++;
         scoreDisplay.textContent = `Score: ${score}`;
@@ -90,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
           collectedCount = 0; // Reset collection offset
         }
       } else {
-        createPopEffect(clickX, clickY);
+        createPopEffect(balloon);
         balloon.remove();
       }
     });
@@ -112,21 +110,21 @@ document.addEventListener('DOMContentLoaded', () => {
     balloon.dataset.floatInterval = interval;
   }
 
-function createPopEffect(balloon) {
-  const pop = document.createElement('img');
-  pop.src = 'assets/pop.gif';
-  pop.classList.add('pop-effect');
+  function createPopEffect(balloon) {
+    const pop = document.createElement('img');
+    pop.src = 'assets/pop.gif';
+    pop.classList.add('pop-effect');
 
-  const rect = balloon.getBoundingClientRect();
-  const x = rect.left + rect.width / 2;
-  const y = rect.top + rect.height * 0.3; // Adjust vertical position toward the top
+    const rect = balloon.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height * 0.3; // Adjust vertical position toward the top
 
-  pop.style.left = `${x}px`;
-  pop.style.top = `${y}px`;
+    pop.style.left = `${x}px`;
+    pop.style.top = `${y}px`;
 
-  document.body.appendChild(pop);
-  setTimeout(() => pop.remove(), 400);
-}
+    document.body.appendChild(pop);
+    setTimeout(() => pop.remove(), 400);
+  }
 
   function moveToCollected(balloon) {
     const intervalId = balloon.dataset.floatInterval;
