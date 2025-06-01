@@ -1,12 +1,24 @@
-# Balloon Game Styles
+/* Balloon Game Styles */
 
-body {
+body, html {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
-  background-color: #e0f7fa;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
-  position: relative;
+}
+
+#background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -1;
 }
 
 #start-screen {
@@ -30,7 +42,8 @@ body {
   gap: 15px;
 }
 
-#start-form input, #start-form button {
+#start-form input,
+#start-form button {
   padding: 10px;
   font-size: 16px;
   border-radius: 5px;
@@ -43,21 +56,11 @@ body {
   cursor: pointer;
 }
 
-#background {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  background-size: cover;
-  background-position: center;
-  overflow: hidden;
-}
-
 #game-container {
   position: relative;
   width: 100%;
   height: 100vh;
   overflow: hidden;
-  background-color: #e0f7fa;
 }
 
 #scoreboard {
@@ -87,7 +90,6 @@ body {
 .balloon {
   position: absolute;
   width: 130px;
-  transition: transform 0.3s ease;
   pointer-events: auto;
   cursor: pointer;
   z-index: 2;
@@ -106,7 +108,7 @@ body {
 
 #mrs-c {
   width: auto;
-  height: 270px; /* Slightly bigger */
+  height: 270px;
   z-index: 2;
 }
 
@@ -114,7 +116,7 @@ body {
   position: absolute;
   bottom: 210px;
   right: 0;
-  width: 310px; /* Wider bubble */
+  width: 310px;
   min-height: 180px;
   background: url('assets/character/thought-bubble.png') no-repeat center center;
   background-size: contain;
@@ -130,21 +132,17 @@ body {
 .sign-img {
   width: auto;
   height: 110px;
-  margin-bottom: 40px; /* Raise the image slightly */
-}
-
-#collected-area {
-  z-index: 3;
+  margin-bottom: 40px;
 }
 
 .pop-effect {
   position: absolute;
-  width: 300px;
-  height: 300px;
+  width: 250px;
+  height: 250px;
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 5;
-  animation: popfade 3s forwards;
+  animation: popfade 0.4s ease-out forwards;
 }
 
 @keyframes popfade {
