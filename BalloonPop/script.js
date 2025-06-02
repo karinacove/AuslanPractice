@@ -206,8 +206,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const x = rect.left + rect.width * 0.3;
     const y = rect.top;
 
-    pop.style.left.auto = `${x}px`;
-    pop.style.top.auto = `${y}px`;
+    pop.style.left = `${x}px`;
+    pop.style.top = `${y}px`;
 
     document.body.appendChild(pop);
     setTimeout(() => pop.remove(), 400);
