@@ -70,10 +70,38 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateThoughtBubble() {
     targetColour = colours[Math.floor(Math.random() * colours.length)];
     targetNumber = numbers[Math.floor(Math.random() * numbers.length)];
-    thoughtBubble.innerHTML = `
-      <img src="assets/colour/${targetColour}.png" class="sign-img" />
-      <img src="assets/number/${targetNumber}.png" class="sign-img" />
-    `;
+    thoughtBubble.innerHTML = '';
+
+    const colourImg = document.createElement('img');
+    colourImg.src = `assets/colour/${targetColour}.png`;
+    colourImg.classList.add('sign-img');
+    colourImg.addEventListener('click', () => playSignVideo(targetColour, 'colour'));
+
+    const numberImg = document.createElement('img');
+    numberImg.src = `assets/number/${targetNumber}.png`;
+    numberImg.classList.add('sign-img');
+    numberImg.addEventListener('click', () => playSignVideo(targetNumber, 'number'));
+
+    thoughtBubble.appendChild(colourImg);
+    thoughtBubble.appendChild(numberImg);
+  }
+
+  function playSignVideo(value, type) {
+    const video = document.createElement('video');
+    video.src = `assets/${type}/${value}.mp4`;
+    video.style.position = 'absolute';
+    video.style.top = '50%';
+    video.style.left = '50%';
+    video.style.transform = 'translate(-50%, -50%)';
+    video.style.zIndex = '1000';
+    video.autoplay = true;
+    video.controls = false;
+
+    video.addEventListener('ended', () => {
+      video.remove();
+    });
+
+    document.body.appendChild(video);
   }
 
   function spawnBalloon() {
