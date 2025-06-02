@@ -240,25 +240,27 @@ document.addEventListener('DOMContentLoaded', () => {
     showPlayAgainButton();
   }
 
-  function showPlayAgainButton() {
-    const playAgainButton = document.createElement('button');
-    playAgainButton.textContent = 'Play Again';
-    playAgainButton.style.position = 'absolute';
-    playAgainButton.style.top = '50%';
-    playAgainButton.style.left = '50%';
-    playAgainButton.style.transform = 'translate(-50%, -50%)';
-    playAgainButton.style.padding = '20px 40px';
-    playAgainButton.style.fontSize = '20px';
-    playAgainButton.style.zIndex = '999';
-    playAgainButton.style.cursor = 'pointer';
+function showPlayAgainButton() {
+  const playAgainButton = document.createElement('img');
+  playAgainButton.src = 'assets/Again.png';
+  playAgainButton.alt = 'Play Again';
+  playAgainButton.style.position = 'absolute';
+  playAgainButton.style.top = '50%';
+  playAgainButton.style.left = '50%';
+  playAgainButton.style.transform = 'translate(-50%, -50%)';
+  playAgainButton.style.padding = '20px';
+  playAgainButton.style.height = '100px';
+  playAgainButton.style.cursor = 'pointer';
+  playAgainButton.style.zIndex = '999';
 
-    playAgainButton.addEventListener('click', () => {
-      playAgainButton.remove();
-      resetGame();
-    });
+  playAgainButton.addEventListener('click', () => {
+    playAgainButton.remove();
+    resetGame();
+  });
 
-    document.body.appendChild(playAgainButton);
-  }
+  document.body.appendChild(playAgainButton);
+}
+
 
   function resetGame() {
     score = 0;
