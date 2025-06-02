@@ -146,8 +146,8 @@ body, html {
 
 .pop-effect {
   position: absolute;
-  width: 100px;
-  height: 100px;
+  width: 180px;
+  height: 180px;
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 5;
