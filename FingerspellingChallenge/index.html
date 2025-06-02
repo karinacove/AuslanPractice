@@ -8,7 +8,7 @@
   <style>
     @font-face {
       font-family: 'Fingerspelling';
-      src: url('FingerspellingChallenge/Assets/Font/Auslan Finger Spelling.otf') format('opentype');
+      src: url('Assets/Font/Auslan Finger Spelling.otf') format('opentype');
     }
   </style>
 </head>
@@ -22,29 +22,18 @@
       <option value="timed">2-Minute Challenge</option>
       <option value="levelup">Level Up Challenge</option>
     </select><br />
-    <label for="word-length">Select Word Length:</label>
-    <select id="word-length">
-      <option value="3">3 Letters</option>
-      <option value="4">4 Letters</option>
-      <option value="5">5 Letters</option>
-      <option value="6">6 Letters</option>
-      <option value="7">7 Letters</option>
-      <option value="8">8 Letters</option>
-      <option value="9">9 Letters</option>
-      <option value="10">10 Letters</option>
-    </select><br />
     <button id="start-button">Start</button>
   </div>
 
-<div id="game-screen" style="display: none;">
-  <div id="letter-display"></div>
-  <input type="text" id="answer" autocomplete="off" />
-  <button id="submit-button">Submit</button>
-  <button id="again-button">Again</button>
-  <input type="range" id="speed-slider" min="10" max="100" value="50" />
-  <button id="finish-button" style="display: none;">Finish</button>
-</div>
-
+  <div id="game-screen" style="display:none;">
+    <div id="timer">Time: 120</div>
+    <div id="score">Score: 0</div>
+    <div class="fs-letter" id="letter-display"></div>
+    <input type="text" id="word-input" placeholder="Type the word" autocomplete="off" />
+    <button id="submit-word">Submit</button>
+    <img src="assets/icons/again.png" id="again-button" alt="Again" />
+    <label>Speed: <input type="range" id="speed-slider" min="500" max="2000" value="1000" step="100" /></label>
+  </div>
 
   <script src="script.js"></script>
 </body>
