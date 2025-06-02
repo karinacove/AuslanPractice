@@ -22,8 +22,9 @@ let incorrectWords = [];
 let score = 0;
 let timer = null;
 let timeLeft = 120;
+let currentLevel = 3;
+let levelUpCorrect = 0;
 
-// Example word lists by length
 const wordLists = {
   3: ["cat", "dog", "mat", "rat", "leg"],
   4: ["gold", "hair", "chin"],
@@ -37,7 +38,9 @@ const wordLists = {
 
 function getRandomWord(length) {
   const list = wordLists[length];
-  return list[Math.floor(Math.random() * list.length)];
+  const availableWords = list.filter(word => !correctWords.includes(word));
+  if (availableWords.length === 0) return list[Math.floor(Math.random() * list.length)];
+  return availableWords[Math.floor(Math.random() * availableWords.length)];
 }
 
 function displayWord(word) {
@@ -102,13 +105,14 @@ function pickNewWord(length) {
   currentWord = getRandomWord(length);
   displayWord(currentWord);
   wordInput.value = "";
+  wordInput.focus();
 }
 
 function checkWord() {
   const guess = wordInput.value.trim().toLowerCase();
   if (guess === currentWord) {
     score++;
-    correctWords.push(currentWord);
+    if (!correctWords.includes(currentWord)) correctWords.push(currentWord);
     scoreDisplay.textContent = `Score: ${score}`;
     if (gameMode === "levelup") {
       levelUpCorrect++;
@@ -121,8 +125,12 @@ function checkWord() {
       pickNewWord(3);
     }
   } else {
-    incorrectWords.push(currentWord);
+    if (!incorrectWords.includes(currentWord)) incorrectWords.push(currentWord);
     wordInput.value = "";
+    wordInput.focus();
+    // Trigger "breathe" animation
+    againButton.classList.add("breathe");
+    setTimeout(() => againButton.classList.remove("breathe"), 1000);
   }
 }
 
@@ -159,7 +167,17 @@ function endGame() {
 
 startButton.addEventListener("click", startGame);
 submitWord.addEventListener("click", checkWord);
-againButton.addEventListener("click", () => displayWord(currentWord));
+againButton.addEventListener("click", () => {
+  wordInput.value = "";
+  wordInput.focus();
+  displayWord(currentWord);
+});
 speedSlider.addEventListener("input", () => {
   interval = parseInt(speedSlider.value);
+});
+wordInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    checkWord();
+  }
 });
