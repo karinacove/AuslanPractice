@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let score = 0;
   let totalQuestions = 0;
   let correctAnswers = 0;
+  let correctAnswersList = [];
   let incorrectAnswersList = [];
   let level = 1;
   let targetColour = '';
@@ -79,20 +80,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const colour = colours[Math.floor(Math.random() * colours.length)];
     const number = numbers[Math.floor(Math.random() * numbers.length)];
     totalQuestions++;
-    createBalloon(colour, number);
+    createBalloon(colour, number, false);
   }
 
   function spawnCorrectBalloon() {
     totalQuestions++;
-    createBalloon(targetColour, targetNumber);
+    createBalloon(targetColour, targetNumber, true);
   }
 
-  function createBalloon(colour, number) {
+  function createBalloon(colour, number, isCorrect) {
     const balloon = document.createElement('img');
     balloon.src = `assets/balloon/${colour}_${number}.png`;
     balloon.classList.add('balloon');
     balloon.dataset.colour = colour;
     balloon.dataset.number = number;
+    balloon.dataset.correct = isCorrect;
 
     const gameWidth = window.innerWidth;
     const minX = gameWidth * 0.1;
@@ -104,9 +106,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     balloon.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (balloon.dataset.colour === targetColour && parseInt(balloon.dataset.number) === targetNumber) {
+      const colourClicked = balloon.dataset.colour;
+      const numberClicked = parseInt(balloon.dataset.number);
+      if (colourClicked === targetColour && numberClicked === targetNumber) {
         score++;
         correctAnswers++;
+        correctAnswersList.push(`${colourClicked} ${numberClicked}`);
         scoreDisplay.textContent = `Score: ${score}`;
         moveToCollected(balloon);
         updateThoughtBubble();
@@ -125,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
           endGame();
         }
       } else {
-        incorrectAnswersList.push(`${balloon.dataset.colour} ${balloon.dataset.number}`);
+        incorrectAnswersList.push(`${colourClicked} ${numberClicked}`);
         createPopEffect(balloon);
         balloon.remove();
       }
@@ -194,7 +199,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const message = early ? 'Game ended early.' : 'Congratulations! You completed the game!';
     const percentage = Math.round((correctAnswers / totalQuestions) * 100);
     alert(`${message}\n\n${playerName} from ${playerClass},\nScore: ${score}\nQuestions Answered: ${totalQuestions}\nCorrect Answers: ${correctAnswers}\nPercentage: ${percentage}%`);
-    const incorrectList = incorrectAnswersList.join(', ');
+
+    const incorrectList = [...incorrectAnswersList].sort().join(', ');
+    const correctList = [...correctAnswersList].sort().join(', ');
 
     const form = document.createElement('form');
     form.action = 'https://docs.google.com/forms/d/e/1FAIpQLSeHCxQ4czHbx1Gdv649vlr5-Dz9-4DQu5M5OcIfC46WlL-6Qw/formResponse';
@@ -207,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'entry.91913727': score,
       'entry.63569940': totalQuestions,
       'entry.1746910343': correctAnswers,
-      'entry.1748975026': incorrectList
+      'entry.1748975026': `Correct: ${correctList} | Incorrect: ${incorrectList}`
     };
 
     for (let key in entries) {
