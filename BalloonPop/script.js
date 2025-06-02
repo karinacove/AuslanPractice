@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
   endButton.style.padding = '10px 20px';
   endButton.style.fontSize = '16px';
   endButton.style.cursor = 'pointer';
-
   gameContainer.appendChild(endButton);
 
   let playerName = '';
@@ -209,6 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.createElement('form');
     form.action = 'https://docs.google.com/forms/d/e/1FAIpQLSeHCxQ4czHbx1Gdv649vlr5-Dz9-4DQu5M5OcIfC46WlL-6Qw/formResponse';
     form.method = 'POST';
+    form.target = 'hidden_iframe';
     form.style.display = 'none';
 
     const entries = {
@@ -228,7 +228,49 @@ document.addEventListener('DOMContentLoaded', () => {
       form.appendChild(input);
     }
 
+    const iframe = document.createElement('iframe');
+    iframe.name = 'hidden_iframe';
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
     document.body.appendChild(form);
     form.submit();
+
+    showPlayAgainButton();
+  }
+
+  function showPlayAgainButton() {
+    const playAgainButton = document.createElement('button');
+    playAgainButton.textContent = 'Play Again';
+    playAgainButton.style.position = 'absolute';
+    playAgainButton.style.top = '50%';
+    playAgainButton.style.left = '50%';
+    playAgainButton.style.transform = 'translate(-50%, -50%)';
+    playAgainButton.style.padding = '20px 40px';
+    playAgainButton.style.fontSize = '20px';
+    playAgainButton.style.zIndex = '999';
+    playAgainButton.style.cursor = 'pointer';
+
+    playAgainButton.addEventListener('click', () => {
+      playAgainButton.remove();
+      resetGame();
+    });
+
+    document.body.appendChild(playAgainButton);
+  }
+
+  function resetGame() {
+    score = 0;
+    totalClicks = 0;
+    correctAnswers = 0;
+    correctAnswersList = [];
+    incorrectAnswersList = [];
+    level = 1;
+    collectedCount = 0;
+    scoreDisplay.textContent = `Score: 0`;
+    levelDisplay.textContent = `Level: 1`;
+    updateBackground();
+    updateThoughtBubble();
+    gameContainer.style.display = 'block';
+    startGame();
   }
 });
