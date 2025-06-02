@@ -192,8 +192,33 @@ document.addEventListener('DOMContentLoaded', () => {
     clearInterval(correctBalloonInterval);
     clearBalloons();
     const message = early ? 'Game ended early.' : 'Congratulations! You completed the game!';
-    alert(`${message}\n\n${playerName} from ${playerClass},\nScore: ${score}\nQuestions Answered: ${totalQuestions}\nCorrect Answers: ${correctAnswers}`);
+    const percentage = Math.round((correctAnswers / totalQuestions) * 100);
+    alert(`${message}\n\n${playerName} from ${playerClass},\nScore: ${score}\nQuestions Answered: ${totalQuestions}\nCorrect Answers: ${correctAnswers}\nPercentage: ${percentage}%`);
     const incorrectList = incorrectAnswersList.join(', ');
-    window.location.href = `https://docs.google.com/forms/d/e/1FAIpQLSeHCxQ4czHbx1Gdv649vlr5-Dz9-4DQu5M5OcIfC46WlL-6Qw/viewform?entry.1609572894=${encodeURIComponent(playerName)}&entry.1168342531=${encodeURIComponent(playerClass)}&entry.91913727=${score}&entry.63569940=${totalQuestions}&entry.1746910343=${correctAnswers}&entry.1748975026=${encodeURIComponent(incorrectList)}`;
+
+    const form = document.createElement('form');
+    form.action = 'https://docs.google.com/forms/d/e/1FAIpQLSeHCxQ4czHbx1Gdv649vlr5-Dz9-4DQu5M5OcIfC46WlL-6Qw/formResponse';
+    form.method = 'POST';
+    form.style.display = 'none';
+
+    const entries = {
+      'entry.1609572894': playerName,
+      'entry.1168342531': playerClass,
+      'entry.91913727': score,
+      'entry.63569940': totalQuestions,
+      'entry.1746910343': correctAnswers,
+      'entry.1748975026': incorrectList
+    };
+
+    for (let key in entries) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = entries[key];
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
   }
 });
