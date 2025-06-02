@@ -12,6 +12,11 @@ body {
   height: 100vh;
 }
 
+.fs-letter {
+  font-family: 'Fingerspelling', sans-serif;
+  font-size: 5rem;
+}
+
 #signin-screen,
 #game-screen {
   text-align: center;
