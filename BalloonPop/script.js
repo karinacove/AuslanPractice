@@ -197,21 +197,27 @@ document.addEventListener('DOMContentLoaded', () => {
     balloon.dataset.floatInterval = interval;
   }
 
-  function createPopEffect(balloon) {
-    const pop = document.createElement('img');
-    pop.src = 'assets/pop.gif';
-    pop.classList.add('pop-effect');
+function createPopEffect(balloon) {
+  const pop = document.createElement('img');
+  pop.src = 'assets/pop.gif';
+  pop.classList.add('pop-effect');
+  pop.style.position = 'absolute';
+  pop.style.zIndex = 1000;
+  pop.style.pointerEvents = 'none';
+  pop.style.width = '100px'; // Make the pop more visible
+  pop.style.opacity = '0.9';
 
-    const rect = balloon.getBoundingClientRect();
-    const x = rect.left + rect.width * 0.3;
-    const y = rect.top;
+  // Get balloon's position relative to the viewport
+  const rect = balloon.getBoundingClientRect();
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
 
-    pop.style.left = `${x}px`;
-    pop.style.top = `${y}px`;
+  pop.style.left = `${rect.left + scrollLeft + rect.width / 2 - 50}px`;
+  pop.style.top = `${rect.top + scrollTop + rect.height / 2 - 50}px`;
 
-    document.body.appendChild(pop);
-    setTimeout(() => pop.remove(), 400);
-  }
+  document.body.appendChild(pop);
+  setTimeout(() => pop.remove(), 500); // Slightly longer for a more satisfying pop
+}
 
   function moveToCollected(balloon) {
     const intervalId = balloon.dataset.floatInterval;
