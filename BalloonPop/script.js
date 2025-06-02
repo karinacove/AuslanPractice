@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const levelDisplay = document.getElementById('level');
   const thoughtBubble = document.getElementById('thought-bubble');
   const background = document.getElementById('background');
+  const mrsC = document.getElementById('mrs-c');
   const endButton = document.createElement('button');
   endButton.textContent = 'End Game';
   endButton.style.position = 'absolute';
@@ -118,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         correctAnswersList.push(answerKey);
         scoreDisplay.textContent = `Score: ${score}`;
         moveToCollected(balloon);
+        animateMrsC();
         updateThoughtBubble();
 
         if (score % 10 === 0 && level < 12) {
@@ -142,6 +144,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     balloonArea.appendChild(balloon);
     floatBalloon(balloon);
+  }
+
+  function animateMrsC() {
+    if (mrsC) {
+      mrsC.style.transition = 'transform 0.3s ease';
+      mrsC.style.transform = 'translateY(-10px)';
+      setTimeout(() => {
+        mrsC.style.transform = 'translateY(0)';
+      }, 300);
+    }
   }
 
   function floatBalloon(balloon) {
@@ -240,27 +252,26 @@ document.addEventListener('DOMContentLoaded', () => {
     showPlayAgainButton();
   }
 
-function showPlayAgainButton() {
-  const playAgainButton = document.createElement('img');
-  playAgainButton.src = 'assets/Again.png';
-  playAgainButton.alt = 'Play Again';
-  playAgainButton.style.position = 'absolute';
-  playAgainButton.style.top = '50%';
-  playAgainButton.style.left = '50%';
-  playAgainButton.style.transform = 'translate(-50%, -50%)';
-  playAgainButton.style.padding = '20px';
-  playAgainButton.style.height = '100px';
-  playAgainButton.style.cursor = 'pointer';
-  playAgainButton.style.zIndex = '999';
+  function showPlayAgainButton() {
+    const playAgainButton = document.createElement('img');
+    playAgainButton.src = 'assets/Again.png';
+    playAgainButton.alt = 'Play Again';
+    playAgainButton.style.position = 'absolute';
+    playAgainButton.style.top = '50%';
+    playAgainButton.style.left = '50%';
+    playAgainButton.style.transform = 'translate(-50%, -50%)';
+    playAgainButton.style.padding = '20px';
+    playAgainButton.style.height = '300px';
+    playAgainButton.style.cursor = 'pointer';
+    playAgainButton.style.zIndex = '999';
 
-  playAgainButton.addEventListener('click', () => {
-    playAgainButton.remove();
-    resetGame();
-  });
+    playAgainButton.addEventListener('click', () => {
+      playAgainButton.remove();
+      resetGame();
+    });
 
-  document.body.appendChild(playAgainButton);
-}
-
+    document.body.appendChild(playAgainButton);
+  }
 
   function resetGame() {
     score = 0;
