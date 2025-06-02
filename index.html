@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Auslan Practice Activities</title>
   <style>
-
     body {
       font-family: 'Auslan Finger Spelling', sans-serif;
       text-align: center;
@@ -13,49 +12,62 @@
       background-size: contain;
       background-attachment: fixed;
       background-color: #fff;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
     }
 
     h1 {
       font-size: 2rem;
-      margin-bottom: 2rem;
+      margin-top: 40px;
     }
 
-    .links {
+    .corner-link {
       position: fixed;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      z-index: 10;
-    }
-
-    .activity-link {
-      text-decoration: none;
       padding: 15px 30px;
       background-color: #007acc;
       color: white;
       font-weight: bold;
       border-radius: 10px;
+      text-decoration: none;
       transition: background-color 0.3s;
       white-space: nowrap;
     }
 
-    .activity-link:hover {
+    .corner-link:hover {
       background-color: #005fa3;
     }
 
+    .top-left {
+      top: 20px;
+      left: 20px;
+    }
+
+    .top-right {
+      top: 20px;
+      right: 20px;
+    }
+
+    .bottom-left {
+      bottom: 20px;
+      left: 20px;
+    }
+
+    .bottom-right {
+      bottom: 20px;
+      right: 20px;
+    }
   </style>
 </head>
 <body>
+
   <h1>Auslan Practice Activities</h1>
 
-  <div class="links">
-    <a class="activity-link" href="wordle/">Auslan Wordle</a>
-    <a class="activity-link" href="BalloonPop/index.html">🎈 Balloon Pop</a>
-    <a class="activity-link" href="transport/">Transport Map Activity</a>
-  </div>
+  <a class="corner-link top-left" href="wordle/">Auslan Wordle</a>
+  <a class="corner-link top-right" href="BalloonPop/index.html">🎈 Balloon Pop</a>
+  <a class="corner-link bottom-left" href="transport/">Transport Map Activity</a>
+  <a class="corner-link bottom-right" href="#">Coming Soon</a>
 
 </body>
 </html>
