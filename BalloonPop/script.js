@@ -110,10 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const colourClicked = balloon.dataset.colour;
       const numberClicked = parseInt(balloon.dataset.number);
+      const answerKey = `${colourClicked}_${numberClicked}`;
+
       if (colourClicked === targetColour && numberClicked === targetNumber) {
         score++;
         correctAnswers++;
-        correctAnswersList.push(`${colourClicked} ${numberClicked}`);
+        correctAnswersList.push(answerKey);
         scoreDisplay.textContent = `Score: ${score}`;
         moveToCollected(balloon);
         updateThoughtBubble();
@@ -132,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
           endGame();
         }
       } else {
-        incorrectAnswersList.push(`${colourClicked} ${numberClicked}`);
+        incorrectAnswersList.push(answerKey);
         createPopEffect(balloon);
         balloon.remove();
       }
@@ -202,8 +204,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const percentage = totalClicks > 0 ? Math.round((correctAnswers / totalClicks) * 100) : 0;
     alert(`${message}\n\n${playerName} from ${playerClass},\nScore: ${score}\nQuestions Answered: ${totalClicks}\nCorrect Answers: ${correctAnswers}\nPercentage: ${percentage}%`);
 
-    const incorrectList = [...incorrectAnswersList].sort().join(', ');
     const correctList = [...correctAnswersList].sort().join(', ');
+    const incorrectList = [...incorrectAnswersList].sort().join(', ');
 
     const form = document.createElement('form');
     form.action = 'https://docs.google.com/forms/d/e/1FAIpQLSeHCxQ4czHbx1Gdv649vlr5-Dz9-4DQu5M5OcIfC46WlL-6Qw/formResponse';
@@ -216,8 +218,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'entry.1168342531': playerClass,
       'entry.91913727': score,
       'entry.63569940': totalClicks,
-      'entry.1746910343': correctAnswers,
-      'entry.1748975026': `Correct: ${correctList} | Incorrect: ${incorrectList}`
+      'entry.1746910343': correctList,
+      'entry.1748975026': incorrectList
     };
 
     for (let key in entries) {
