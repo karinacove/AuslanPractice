@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let playerName = '';
   let playerClass = '';
   let score = 0;
-  let totalQuestions = 0;
+  let totalClicks = 0;
   let correctAnswers = 0;
   let correctAnswersList = [];
   let incorrectAnswersList = [];
@@ -79,12 +79,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function spawnBalloon() {
     const colour = colours[Math.floor(Math.random() * colours.length)];
     const number = numbers[Math.floor(Math.random() * numbers.length)];
-    totalQuestions++;
     createBalloon(colour, number, false);
   }
 
   function spawnCorrectBalloon() {
-    totalQuestions++;
     createBalloon(targetColour, targetNumber, true);
   }
 
@@ -95,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     balloon.dataset.colour = colour;
     balloon.dataset.number = number;
     balloon.dataset.correct = isCorrect;
+    balloon.dataset.clicked = 'false';
 
     const gameWidth = window.innerWidth;
     const minX = gameWidth * 0.1;
@@ -106,6 +105,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     balloon.addEventListener('click', (e) => {
       e.stopPropagation();
+      if (balloon.dataset.clicked === 'true') return;
+      balloon.dataset.clicked = 'true';
+      totalClicks++;
+
       const colourClicked = balloon.dataset.colour;
       const numberClicked = parseInt(balloon.dataset.number);
       if (colourClicked === targetColour && numberClicked === targetNumber) {
@@ -197,8 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
     clearInterval(correctBalloonInterval);
     clearBalloons();
     const message = early ? 'Game ended early.' : 'Congratulations! You completed the game!';
-    const percentage = Math.round((correctAnswers / totalQuestions) * 100);
-    alert(`${message}\n\n${playerName} from ${playerClass},\nScore: ${score}\nQuestions Answered: ${totalQuestions}\nCorrect Answers: ${correctAnswers}\nPercentage: ${percentage}%`);
+    const percentage = totalClicks > 0 ? Math.round((correctAnswers / totalClicks) * 100) : 0;
+    alert(`${message}\n\n${playerName} from ${playerClass},\nScore: ${score}\nQuestions Answered: ${totalClicks}\nCorrect Answers: ${correctAnswers}\nPercentage: ${percentage}%`);
 
     const incorrectList = [...incorrectAnswersList].sort().join(', ');
     const correctList = [...correctAnswersList].sort().join(', ');
@@ -212,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'entry.1609572894': playerName,
       'entry.1168342531': playerClass,
       'entry.91913727': score,
-      'entry.63569940': totalQuestions,
+      'entry.63569940': totalClicks,
       'entry.1746910343': correctAnswers,
       'entry.1748975026': `Correct: ${correctList} | Incorrect: ${incorrectList}`
     };
