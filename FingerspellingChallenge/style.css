@@ -1,74 +1,59 @@
+/* style.css */
+
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Auslan Finger Spelling', sans-serif;
   background-color: #f0f8ff;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+#signin-screen,
+#game-screen {
   text-align: center;
-  padding: 20px;
 }
 
-#signin-screen, #game-screen {
-  max-width: 600px;
-  margin: auto;
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+#letter-display {
+  font-size: 5rem;
+  margin: 20px 0;
 }
 
-label, select, input, button {
+input[type="text"] {
+  font-size: 1.5rem;
+  padding: 10px;
   margin: 10px;
-  font-size: 1rem;
-}
-
-input[type="text"], select {
-  padding: 8px;
-  width: 60%;
-  border-radius: 6px;
-  border: 1px solid #ccc;
 }
 
 button {
+  font-size: 1.2rem;
   padding: 10px 20px;
+  margin: 10px;
+  cursor: pointer;
+  border-radius: 8px;
   border: none;
-  border-radius: 6px;
   background-color: #007acc;
   color: white;
-  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
 button:hover {
   background-color: #005fa3;
 }
 
-#letter-display {
-  font-family: 'Fingerspelling', sans-serif;
-  font-size: 6rem;
-  margin: 30px 0;
+#speed-slider {
+  width: 200px;
 }
 
-#word-input {
-  font-size: 1.5rem;
-  padding: 10px;
-  width: 80%;
-  border: 2px solid #007acc;
-  border-radius: 6px;
-  text-align: center;
+.breathe {
+  animation: breathe 1s ease-in-out;
 }
 
-#again-button {
-  width: 50px;
-  height: 50px;
-  cursor: pointer;
-  vertical-align: middle;
-  margin-left: 10px;
-}
-
-#timer, #score {
-  font-size: 1.2rem;
-  margin: 10px 0;
-  font-weight: bold;
-}
-
-input[type="range"] {
-  width: 60%;
-  margin-top: 10px;
+@keyframes breathe {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
 }
