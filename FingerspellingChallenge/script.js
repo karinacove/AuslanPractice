@@ -10,9 +10,9 @@ let level = 3;
 let timer;
 let startTime;
 
-const nameInput = document.getElementById("name");
-const classInput = document.getElementById("class");
-const modeSelect = document.getElementById("mode");
+const nameInput = document.getElementById("student-name");
+const classInput = document.getElementById("student-class");
+const modeSelect = document.getElementById("game-mode");
 const gameScreen = document.getElementById("game-screen");
 const signinScreen = document.getElementById("signin-screen");
 const letterDisplay = document.getElementById("letter-display");
