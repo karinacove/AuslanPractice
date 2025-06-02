@@ -19,6 +19,7 @@ const letterDisplay = document.getElementById("letter-display");
 const answerInput = document.getElementById("answer");
 const againButton = document.getElementById("again-button");
 const speedSlider = document.getElementById("speed-slider");
+const finishButton = document.getElementById("finish-button");
 
 // Load word list
 fetch("data/wordlist.json")
@@ -41,6 +42,9 @@ function startGame() {
   if (mode === "time") {
     startTime = Date.now();
     timer = setTimeout(() => endGame(), 2 * 60 * 1000);
+    finishButton.style.display = "none";
+  } else {
+    finishButton.style.display = "inline-block";
   }
 
   showNextWord();
@@ -112,12 +116,24 @@ document.getElementById("again-button").addEventListener("click", function () {
   displayLetters();
 });
 
+finishButton.addEventListener("click", endGame);
+
 function getAllWords() {
   return Object.values(wordLists).flat();
 }
 
 function endGame() {
   clearTimeout(timer);
-  alert("Great job! You've finished the challenge.");
-  // Submit to Google Form (additional logic needed here)
+  const correct = Array.from(guessedWords).join(", ");
+  const wrong = incorrectWords.join(", ");
+  const score = guessedWords.size;
+  const speed = speedSlider.value;
+  const formURL = `https://docs.google.com/forms/d/e/1FAIpQLSfOFWu8FcUR3bOwg0mo_3Kb2O7p4m0TLvfUpZjx0zdzqKac4Q/formResponse?entry.423692452=${encodeURIComponent(nameInput.value)}&entry.1307864012=${encodeURIComponent(classInput.value)}&entry.468778567=${encodeURIComponent(mode)}&entry.1083699348=${score}&entry.746947164=${encodeURIComponent(correct)}&entry.1534005804=${encodeURIComponent(wrong)}&entry.1974555000=${encodeURIComponent(speed)}`;
+
+  fetch(formURL, { method: "POST", mode: "no-cors" })
+    .then(() => alert("Results submitted. Great job!"))
+    .catch(() => alert("Error submitting results, but game is complete."));
+
+  gameScreen.style.display = "none";
+  signinScreen.style.display = "block";
 }
