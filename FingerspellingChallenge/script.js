@@ -1,183 +1,123 @@
 // script.js
 
-const startButton = document.getElementById("start-button");
-const signinScreen = document.getElementById("signin-screen");
-const gameScreen = document.getElementById("game-screen");
-const letterDisplay = document.getElementById("letter-display");
-const wordInput = document.getElementById("word-input");
-const againButton = document.getElementById("again-button");
-const speedSlider = document.getElementById("speed-slider");
-const timerDisplay = document.getElementById("timer");
-const scoreDisplay = document.getElementById("score");
-const submitWord = document.getElementById("submit-word");
-
-let studentName = "";
-let studentClass = "";
-let gameMode = "";
+let wordLists = {};
 let currentWord = "";
 let currentIndex = 0;
-let interval = 1000;
-let correctWords = [];
+let guessedWords = new Set();
 let incorrectWords = [];
-let score = 0;
-let timer = null;
-let timeLeft = 120;
-let currentLevel = 3;
-let levelUpCorrect = 0;
+let mode = "";
+let level = 3;
+let timer;
+let startTime;
 
-const wordLists = {
-  3: ["cat", "dog", "mat", "rat", "leg"],
-  4: ["gold", "hair", "chin"],
-  5: ["silver", "ankle"],
-  6: [],
-  7: [],
-  8: [],
-  9: [],
-  10: []
-};
+const nameInput = document.getElementById("name");
+const classInput = document.getElementById("class");
+const modeSelect = document.getElementById("mode");
+const gameScreen = document.getElementById("game-screen");
+const signinScreen = document.getElementById("signin-screen");
+const letterDisplay = document.getElementById("letter-display");
+const answerInput = document.getElementById("answer");
+const againButton = document.getElementById("again-button");
+const speedSlider = document.getElementById("speed-slider");
 
-function getRandomWord(length) {
-  const list = wordLists[length];
-  const availableWords = list.filter(word => !correctWords.includes(word));
-  if (availableWords.length === 0) return list[Math.floor(Math.random() * list.length)];
-  return availableWords[Math.floor(Math.random() * availableWords.length)];
-}
-
-function displayWord(word) {
-  letterDisplay.textContent = "";
-  currentIndex = 0;
-  const letters = word.split("");
-
-  const intervalId = setInterval(() => {
-    if (currentIndex < letters.length) {
-      letterDisplay.textContent = letters[currentIndex];
-      currentIndex++;
-    } else {
-      clearInterval(intervalId);
-    }
-  }, interval);
-}
-
-function resetGame() {
-  currentWord = "";
-  correctWords = [];
-  incorrectWords = [];
-  score = 0;
-  scoreDisplay.textContent = "Score: 0";
-  timeLeft = 120;
-}
+// Load word list
+fetch("data/wordlist.json")
+  .then(response => response.json())
+  .then(data => {
+    wordLists = data;
+  })
+  .catch(error => console.error("Error loading word list:", error));
 
 function startGame() {
-  studentName = document.getElementById("student-name").value;
-  studentClass = document.getElementById("student-class").value;
-  gameMode = document.getElementById("game-mode").value;
-  interval = parseInt(speedSlider.value);
-
-  if (!studentName || !studentClass) return alert("Please fill out all fields.");
-
+  mode = modeSelect.value;
+  level = 3;
+  guessedWords.clear();
+  incorrectWords = [];
   signinScreen.style.display = "none";
   gameScreen.style.display = "block";
-  resetGame();
+  answerInput.value = "";
+  answerInput.focus();
 
-  if (gameMode === "timed") startTimedGame();
-  else startLevelUpGame();
+  if (mode === "time") {
+    startTime = Date.now();
+    timer = setTimeout(() => endGame(), 2 * 60 * 1000);
+  }
+
+  showNextWord();
 }
 
-function startTimedGame() {
-  pickNewWord(3);
-  timer = setInterval(() => {
-    timeLeft--;
-    timerDisplay.textContent = `Time: ${timeLeft}`;
-    if (timeLeft <= 0) {
-      clearInterval(timer);
-      endGame();
-    }
-  }, 1000);
-}
+document.getElementById("start-button").addEventListener("click", startGame);
 
-function startLevelUpGame() {
-  currentLevel = 3;
-  levelUpCorrect = 0;
-  pickNewWord(currentLevel);
-}
+function showNextWord() {
+  let wordPool = mode === "level" ? wordLists[level.toString()] || [] : getAllWords();
 
-function pickNewWord(length) {
-  currentWord = getRandomWord(length);
-  displayWord(currentWord);
-  wordInput.value = "";
-  wordInput.focus();
-}
-
-function checkWord() {
-  const guess = wordInput.value.trim().toLowerCase();
-  if (guess === currentWord) {
-    score++;
-    if (!correctWords.includes(currentWord)) correctWords.push(currentWord);
-    scoreDisplay.textContent = `Score: ${score}`;
-    if (gameMode === "levelup") {
-      levelUpCorrect++;
-      if (levelUpCorrect >= 10 && currentLevel < 10) {
-        currentLevel++;
-        levelUpCorrect = 0;
-      }
-      pickNewWord(currentLevel);
+  let filtered = wordPool.filter(w => !guessedWords.has(w));
+  if (filtered.length === 0 && incorrectWords.length === 0) {
+    if (mode === "level" && level < 10) {
+      level++;
+      showNextWord();
+      return;
     } else {
-      pickNewWord(3);
+      endGame();
+      return;
     }
+  }
+
+  currentWord = (incorrectWords.length > 0) ? incorrectWords[0] :
+                 filtered[Math.floor(Math.random() * filtered.length)];
+  currentIndex = 0;
+  letterDisplay.textContent = "";
+  answerInput.value = "";
+  answerInput.focus();
+  displayLetters();
+}
+
+function displayLetters() {
+  if (currentIndex < currentWord.length) {
+    letterDisplay.textContent = currentWord[currentIndex].toUpperCase();
+    currentIndex++;
+    setTimeout(displayLetters, 2100 - speedSlider.value * 20);
   } else {
-    if (!incorrectWords.includes(currentWord)) incorrectWords.push(currentWord);
-    wordInput.value = "";
-    wordInput.focus();
-    // Trigger "breathe" animation
+    letterDisplay.textContent = "";
+  }
+}
+
+answerInput.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    submitAnswer();
+  }
+});
+
+document.getElementById("submit-button").addEventListener("click", submitAnswer);
+
+function submitAnswer() {
+  const guess = answerInput.value.trim().toLowerCase();
+  if (guess === currentWord.toLowerCase()) {
+    guessedWords.add(currentWord);
+    incorrectWords = incorrectWords.filter(w => w !== currentWord);
+  } else if (!incorrectWords.includes(currentWord)) {
+    incorrectWords.push(currentWord);
     againButton.classList.add("breathe");
     setTimeout(() => againButton.classList.remove("breathe"), 1000);
+    answerInput.value = "";
+    answerInput.focus();
+    return;
   }
+
+  showNextWord();
+}
+
+document.getElementById("again-button").addEventListener("click", function () {
+  currentIndex = 0;
+  displayLetters();
+});
+
+function getAllWords() {
+  return Object.values(wordLists).flat();
 }
 
 function endGame() {
-  const form = document.createElement("form");
-  form.method = "POST";
-  form.action = "https://docs.google.com/forms/d/e/1FAIpQLSfOFWu8FcUR3bOwg0mo_3Kb2O7p4m0TLvfUpZjx0zdzqKac4Q/formResponse";
-  form.target = "_blank";
-
-  const fields = {
-    "entry.423692452": studentName,
-    "entry.1307864012": studentClass,
-    "entry.468778567": gameMode,
-    "entry.1083699348": score,
-    "entry.746947164": correctWords.join(", "),
-    "entry.1534005804": incorrectWords.join(", "),
-    "entry.1974555000": speedSlider.value
-  };
-
-  for (let name in fields) {
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = name;
-    input.value = fields[name];
-    form.appendChild(input);
-  }
-
-  document.body.appendChild(form);
-  form.submit();
-  document.body.removeChild(form);
-  alert("Thanks for playing!");
-  location.reload();
+  clearTimeout(timer);
+  alert("Great job! You've finished the challenge.");
+  // Submit to Google Form (additional logic needed here)
 }
-
-startButton.addEventListener("click", startGame);
-submitWord.addEventListener("click", checkWord);
-againButton.addEventListener("click", () => {
-  wordInput.value = "";
-  wordInput.focus();
-  displayWord(currentWord);
-});
-speedSlider.addEventListener("input", () => {
-  interval = parseInt(speedSlider.value);
-});
-wordInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    e.preventDefault();
-    checkWord();
-  }
-});
