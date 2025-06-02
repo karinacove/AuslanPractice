@@ -112,6 +112,15 @@ body, html {
   z-index: 2;
 }
 
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+#character.animate-mrs-c {
+  animation: bounce 1s ease;
+}
+
 #thought-bubble {
   position: absolute;
   bottom: 210px;
