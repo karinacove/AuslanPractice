@@ -146,15 +146,10 @@ body, html {
 
 .pop-effect {
   position: absolute;
-  width: 250px;
-  height: 250px;
-  transform: translate(-5%, -5%);
+  width: 350px;
+  height: 350px;
+  transform: translate(-50%, +10%);
   pointer-events: none;
   z-index: 5;
-  animation: popfade 0.4s ease-out forwards;
-}
-
-@keyframes popfade {
-  0% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1.2); }
+  animation: popfade 0.4s ease-out;
 }
