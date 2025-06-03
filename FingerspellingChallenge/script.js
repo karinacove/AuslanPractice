@@ -121,14 +121,36 @@ function showNextWord() {
 }
 
 // Display letters one at a time
+const startDelay = 500; // ms before first letter
+const letterDuration = parseInt(speedSlider.value); // from slider
+const gapDuration = 200; // ms blank gap between letters
+
 function displayLetters() {
-  if (currentIndex < currentWord.length) {
-    letterDisplay.textContent = currentWord[currentIndex].toUpperCase();
-    currentIndex++;
-    setTimeout(displayLetters, parseInt(speedSlider.value));
-  } else {
-    letterDisplay.textContent = "";
-  }
+  const letters = currentWord.toUpperCase().split("");
+  let index = 0;
+
+  // Disable input during display
+  wordInput.disabled = true;
+
+  setTimeout(function showNext() {
+    if (index < letters.length) {
+      letterDisplay.textContent = letters[index];
+      letterDisplay.classList.add("breathe");
+
+      setTimeout(() => {
+        letterDisplay.textContent = "";
+        letterDisplay.classList.remove("breathe");
+
+        setTimeout(showNext, gapDuration); // gap before next
+      }, letterDuration);
+      
+      index++;
+    } else {
+      // Re-enable input after word shown
+      wordInput.disabled = false;
+      wordInput.focus();
+    }
+  }, startDelay);
 }
 
 // Submit word
