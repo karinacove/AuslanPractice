@@ -179,8 +179,9 @@ function checkWord() {
 
 // Replay Word
 againButton.addEventListener("click", () => {
-  currentIndex = 0;
-  displayLetters();
+  signinScreen.style.display = "block";
+  gameScreen.style.display = "none";
+  againButton.style.display = "none";
 });
 
 // Finish Button (Level Up Mode)
