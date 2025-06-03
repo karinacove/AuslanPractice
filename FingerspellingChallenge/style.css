@@ -51,6 +51,14 @@ button:hover {
   margin-bottom: 20px;
 }
 
+#again-button {
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
 .breathe {
   animation: breathe 1s ease-in-out;
 }
