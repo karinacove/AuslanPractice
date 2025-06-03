@@ -17,6 +17,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const timerDisplay = document.getElementById('timer');
   const scoreDisplay = document.getElementById('score');
 
+  const lengthContainer = document.getElementById('length-container');
+
   const wordBank = {
     "3": ["And", "Are", "Ape", "Ace", "Act", "Ask", "Arm", "Age", "Ago", "Air", "Ate", "All", "But", "Bye", "Bad", "Big", "Bed", "Bat", "Boy", "Bus", "Bag", "Cat", "Car", "Cut", "Cow", "Cry"],
     "4": ["Come", "Bell", "Bear", "Play", "Sing", "Bird", "Bean", "Game", "Rice", "Four", "Five", "Tree", "Keep", "Dark", "Moon", "Cool", "Abide", "Abort", "About", "Abuse", "Aches", "Adult", "After", "Again"],
@@ -46,7 +48,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const name = nameInput.value.trim();
     const studentClass = classInput.value.trim();
     const mode = modeSelect.value;
-    const wordLength = wordLengthSelect ? wordLengthSelect.value : "3";
+    const wordLength = mode === 'timed' && wordLengthSelect ? wordLengthSelect.value : "3";
 
     if (!name || !studentClass) {
       alert('Please enter name and class.');
@@ -75,12 +77,14 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function checkWord() {
     const input = wordInput.value.trim();
+    const mode = modeSelect.value;
+    const wordLength = mode === 'timed' && wordLengthSelect ? wordLengthSelect.value : currentWord.length;
+
     if (input.toLowerCase() === currentWord.toLowerCase()) {
       score++;
       scoreDisplay.textContent = `Score: ${score}`;
     }
     wordInput.value = '';
-    const wordLength = wordLengthSelect ? wordLengthSelect.value : "3";
     currentWord = getRandomWord(wordLength);
     displayWord(currentWord);
   }
@@ -91,11 +95,18 @@ window.addEventListener('DOMContentLoaded', () => {
     location.reload();
   }
 
+  modeSelect.addEventListener('change', () => {
+    if (lengthContainer) {
+      lengthContainer.style.display = modeSelect.value === 'timed' ? 'block' : 'none';
+    }
+  });
+
   startButton.addEventListener('click', startGame);
   submitButton.addEventListener('click', checkWord);
   againButton.addEventListener('click', () => {
     wordInput.value = '';
-    const wordLength = wordLengthSelect ? wordLengthSelect.value : "3";
+    const mode = modeSelect.value;
+    const wordLength = mode === 'timed' && wordLengthSelect ? wordLengthSelect.value : currentWord.length;
     currentWord = getRandomWord(wordLength);
     displayWord(currentWord);
   });
