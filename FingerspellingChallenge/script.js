@@ -8,6 +8,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const classInput = document.getElementById('student-class');
   const modeSelect = document.getElementById('game-mode');
   const speedSlider = document.getElementById('speed-slider');
+  const wordLengthSelect = document.getElementById('word-length');
 
   const signinScreen = document.getElementById('signin-screen');
   const gameScreen = document.getElementById('game-screen');
@@ -45,7 +46,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const name = nameInput.value.trim();
     const studentClass = classInput.value.trim();
     const mode = modeSelect.value;
-    const wordLength = document.getElementById('word-length')?.value || "3";
+    const wordLength = wordLengthSelect ? wordLengthSelect.value : "3";
 
     if (!name || !studentClass) {
       alert('Please enter name and class.');
@@ -79,7 +80,7 @@ window.addEventListener('DOMContentLoaded', () => {
       scoreDisplay.textContent = `Score: ${score}`;
     }
     wordInput.value = '';
-    const wordLength = document.getElementById('word-length')?.value || "3";
+    const wordLength = wordLengthSelect ? wordLengthSelect.value : "3";
     currentWord = getRandomWord(wordLength);
     displayWord(currentWord);
   }
@@ -94,7 +95,7 @@ window.addEventListener('DOMContentLoaded', () => {
   submitButton.addEventListener('click', checkWord);
   againButton.addEventListener('click', () => {
     wordInput.value = '';
-    const wordLength = document.getElementById('word-length')?.value || "3";
+    const wordLength = wordLengthSelect ? wordLengthSelect.value : "3";
     currentWord = getRandomWord(wordLength);
     displayWord(currentWord);
   });
