@@ -47,6 +47,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function getValidNumbersForColour(colour) {
+    const baseNumbers = Array.from({ length: 41 }, (_, i) => i); // 0–40
+    const colourOffsets = {
+      green: 41,
+      red: 42,
+      orange: 43,
+      yellow: 44,
+      purple: 45,
+      pink: 46,
+      blue: 47,
+      brown: 48,
+      black: 49,
+      white: 50
+    };
+
+    let extendedNumbers = [];
+    const start = colourOffsets[colour];
+    if (start !== undefined) {
+      for (let i = start; i <= 100; i += 4) {
+        extendedNumbers.push(i);
+      }
+    }
+
+    return baseNumbers.concat(extendedNumbers);
+  }
+
   startForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const inputs = startForm.querySelectorAll('input');
@@ -80,8 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateThoughtBubble() {
     targetColour = colours[Math.floor(Math.random() * colours.length)];
-    const numberRange = getNumberRangeForLevel(level);
-    targetNumber = numberRange[Math.floor(Math.random() * numberRange.length)];
+    const validNumbers = getValidNumbersForColour(targetColour)
+      .filter(n => getNumberRangeForLevel(level).includes(n));
+    targetNumber = validNumbers[Math.floor(Math.random() * validNumbers.length)];
+
     thoughtBubble.innerHTML = '';
 
     const colourImg = document.createElement('img');
@@ -118,8 +146,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function spawnBalloon() {
     const colour = colours[Math.floor(Math.random() * colours.length)];
-    const numberRange = getNumberRangeForLevel(level);
-    const number = numberRange[Math.floor(Math.random() * numberRange.length)];
+    const validNumbers = getValidNumbersForColour(colour)
+      .filter(n => getNumberRangeForLevel(level).includes(n));
+    const number = validNumbers[Math.floor(Math.random() * validNumbers.length)];
     createBalloon(colour, number, false);
   }
 
