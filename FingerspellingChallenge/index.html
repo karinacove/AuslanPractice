@@ -50,29 +50,41 @@
       <option value="timed">2-Minute Challenge</option>
       <option value="levelup">Level Up Challenge</option>
     </select><br />
-    <button type="submit">Start</button>
+
+    <div id="length-container" style="display: none;">
+      <label>Word Length:</label>
+      <select id="word-length">
+        <option value="3">3 letters</option>
+        <option value="4">4 letters</option>
+        <option value="5">5 letters</option>
+        <option value="6">6 letters</option>
+        <option value="7">7 letters</option>
+        <option value="8">8 letters</option>
+        <option value="9">9 letters</option>
+        <option value="10">10 letters</option>
+      </select><br />
+    </div>
+
+    <button type="button" id="start-button">Start</button>
   </div>
 
   <div id="game-screen">
+    <button id="finish-button">Finish</button>
+
     <div id="top-bar">
       <label>Speed: <input type="range" id="speed-slider" min="500" max="2000" value="1000" step="100" /></label>
       <div>
         <div id="timer">Time: 120</div>
         <div id="score">Score: 0</div>
-      </div> 
-      <div id="letter-display"></div>
-        <input type="text" id="answer" autocomplete="off" />
-        <button id="submit-button">Submit</button>
-        <button id="again-button">Again</button>
-        <button id="finish-button">Finish</button>
-       </div>
+      </div>
+    </div>
 
     <div id="letter-display"></div>
 
     <div id="controls">
       <input type="text" id="word-input" placeholder="Type the word" autocomplete="off" />
       <button id="submit-word">Submit</button>
-      <img src="Assets/Icons/Again.png" id="again-button" alt="Again" />
+      <button id="again-button"><img src="Assets/Icons/Again.png" alt="Again" style="height: 24px;" /></button>
     </div>
   </div>
 
