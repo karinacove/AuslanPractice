@@ -34,7 +34,18 @@ document.addEventListener('DOMContentLoaded', () => {
   let balloonInterval, correctBalloonInterval;
 
   const colours = ['green', 'red', 'orange', 'yellow', 'purple', 'pink', 'blue', 'brown', 'black', 'white'];
-  const numbers = Array.from({ length: 21 }, (_, i) => i);
+
+  function getNumberRangeForLevel(level) {
+    if (level >= 1 && level <= 3) {
+      return Array.from({ length: 21 }, (_, i) => i); // 0–20
+    } else if (level >= 4 && level <= 6) {
+      return Array.from({ length: 30 }, (_, i) => i + 21); // 21–50
+    } else if (level >= 7 && level <= 9) {
+      return Array.from({ length: 50 }, (_, i) => i + 51); // 51–100
+    } else {
+      return Array.from({ length: 101 }, (_, i) => i); // 0–100
+    }
+  }
 
   startForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -69,7 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateThoughtBubble() {
     targetColour = colours[Math.floor(Math.random() * colours.length)];
-    targetNumber = numbers[Math.floor(Math.random() * numbers.length)];
+    const numberRange = getNumberRangeForLevel(level);
+    targetNumber = numberRange[Math.floor(Math.random() * numberRange.length)];
     thoughtBubble.innerHTML = '';
 
     const colourImg = document.createElement('img');
@@ -106,7 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function spawnBalloon() {
     const colour = colours[Math.floor(Math.random() * colours.length)];
-    const number = numbers[Math.floor(Math.random() * numbers.length)];
+    const numberRange = getNumberRangeForLevel(level);
+    const number = numberRange[Math.floor(Math.random() * numberRange.length)];
     createBalloon(colour, number, false);
   }
 
@@ -197,19 +210,19 @@ document.addEventListener('DOMContentLoaded', () => {
     balloon.dataset.floatInterval = interval;
   }
 
-function createPopEffect(balloon) {
-  const pop = document.createElement('img');
-  pop.src = 'assets/pop.gif';
-  pop.classList.add('pop-effect');
+  function createPopEffect(balloon) {
+    const pop = document.createElement('img');
+    pop.src = 'assets/pop.gif';
+    pop.classList.add('pop-effect');
 
-  const rect = balloon.getBoundingClientRect();
+    const rect = balloon.getBoundingClientRect();
 
-  pop.style.left = `${rect.left + rect.width / 2}px`;
-  pop.style.top = `${rect.top + rect.height / 2}px`;
+    pop.style.left = `${rect.left + rect.width / 2}px`;
+    pop.style.top = `${rect.top + rect.height / 2}px`;
 
-  document.body.appendChild(pop);
-  setTimeout(() => pop.remove(), 500);
-}
+    document.body.appendChild(pop);
+    setTimeout(() => pop.remove(), 500);
+  }
 
   function moveToCollected(balloon) {
     const intervalId = balloon.dataset.floatInterval;
