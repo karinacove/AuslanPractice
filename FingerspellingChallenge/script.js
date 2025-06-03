@@ -123,7 +123,7 @@ function showNextWord() {
 // Display letters one at a time
 const startDelay = 500; // ms before first letter
 const letterDuration = parseInt(speedSlider.value); // from slider
-const gapDuration = 200; // ms blank gap between letters
+const gapDuration = 100; // ms blank gap between letters
 
 function displayLetters() {
   const letters = currentWord.toUpperCase().split("");
