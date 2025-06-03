@@ -10,6 +10,9 @@ let timerInterval;
 let startTime;
 let selectedWordLength = 3;
 let score = 0;
+let correctCount = 0;
+let delayBeforeStart = 500;
+let letterGap = 50;
 
 // DOM Elements
 const nameInput = document.getElementById("student-name");
@@ -26,6 +29,7 @@ const againButton = document.getElementById("again-button");
 const finishButton = document.getElementById("finish-button");
 const scoreDisplay = document.getElementById("score");
 const timerDisplay = document.getElementById("timer");
+const clapDisplay = document.getElementById("clap-display");
 
 // Load word list
 fetch("data/wordlist.json")
@@ -55,6 +59,7 @@ document.getElementById("start-button").addEventListener("click", () => {
   incorrectWords = [];
   level = 3;
   score = 0;
+  correctCount = 0;
   scoreDisplay.textContent = "Score: 0";
   wordInput.value = "";
   letterDisplay.textContent = "";
@@ -62,13 +67,14 @@ document.getElementById("start-button").addEventListener("click", () => {
   selectedWordLength = parseInt(wordLengthSelect?.value || "3");
 
   signinScreen.style.display = "none";
-  gameScreen.style.display = "block";
+  gameScreen.style.display = "flex";
+  clapDisplay.innerHTML = "";
 
   if (mode === "timed") {
     startTimedMode();
   } else {
     finishButton.style.display = "inline-block";
-    showNextWord();
+    setTimeout(showNextWord, delayBeforeStart);
   }
 });
 
@@ -87,7 +93,7 @@ function startTimedMode() {
     }
   }, 1000);
 
-  showNextWord();
+  setTimeout(showNextWord, delayBeforeStart);
 }
 
 // Show Next Word
@@ -101,6 +107,7 @@ function showNextWord() {
   if (filtered.length === 0 && incorrectWords.length === 0) {
     if (mode === "levelup" && level < 10) {
       level++;
+      correctCount = 0;
       showNextWord();
       return;
     } else {
@@ -121,36 +128,23 @@ function showNextWord() {
 }
 
 // Display letters one at a time
-const startDelay = 500; // ms before first letter
-const letterDuration = parseInt(speedSlider.value); // from slider
-const gapDuration = 50; // ms blank gap between letters
-
 function displayLetters() {
-  const letters = currentWord.toUpperCase().split("");
+  const speed = parseInt(speedSlider.value);
+  const letterDuration = 300 + (200 - speed); // higher speed = shorter display
+  const interLetterGap = letterGap;
+
   let index = 0;
-
-  // Disable input during display
-  wordInput.disabled = true;
-
-  setTimeout(function showNext() {
-    if (index < letters.length) {
-      letterDisplay.textContent = letters[index];
-      letterDisplay.classList.add("breathe");
-
+  function showLetter() {
+    if (index < currentWord.length) {
+      letterDisplay.textContent = currentWord[index].toUpperCase();
       setTimeout(() => {
         letterDisplay.textContent = "";
-        letterDisplay.classList.remove("breathe");
-
-        setTimeout(showNext, gapDuration); // gap before next
+        setTimeout(showLetter, interLetterGap);
       }, letterDuration);
-      
       index++;
-    } else {
-      // Re-enable input after word shown
-      wordInput.disabled = false;
-      wordInput.focus();
     }
-  }, startDelay);
+  }
+  showLetter();
 }
 
 // Submit word
@@ -167,7 +161,13 @@ function checkWord() {
     guessedWords.add(currentWord);
     incorrectWords = incorrectWords.filter(w => w !== currentWord);
     score++;
+    correctCount++;
     scoreDisplay.textContent = `Score: ${score}`;
+
+    if (mode === "levelup" && correctCount >= 10 && level < 10) {
+      level++;
+      correctCount = 0;
+    }
   } else if (!incorrectWords.includes(currentWord)) {
     incorrectWords.push(currentWord);
     againButton.classList.add("breathe");
@@ -207,9 +207,14 @@ function endGame() {
   )}&entry.1974555000=${encodeURIComponent(speedSlider.value)}`;
 
   fetch(formURL, { method: "POST", mode: "no-cors" })
-    .then(() => alert("Results submitted. Great job!"))
+    .then(() => {
+      letterDisplay.textContent = "";
+      clapDisplay.innerHTML = `<img src='Assets/Icons/auslan-clap.gif' alt='Clap' style='max-width:150px;' /><h2>Score: ${score}</h2>`;
+      againButton.style.display = "inline-block";
+      finishButton.style.display = "none";
+    })
     .catch(() => alert("Error submitting results, but game is complete."));
 
+  gameScreen.style.display = "flex";
   signinScreen.style.display = "block";
-  gameScreen.style.display = "none";
 }
