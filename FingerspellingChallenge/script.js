@@ -9,10 +9,12 @@ let mode = "";
 let level = 3;
 let timer;
 let startTime;
+let selectedWordLength = 3;
 
 const nameInput = document.getElementById("student-name");
 const classInput = document.getElementById("student-class");
 const modeSelect = document.getElementById("game-mode");
+const wordLengthSelect = document.getElementById("word-length");
 const gameScreen = document.getElementById("game-screen");
 const signinScreen = document.getElementById("signin-screen");
 const letterDisplay = document.getElementById("letter-display");
@@ -34,12 +36,14 @@ function startGame() {
   level = 3;
   guessedWords.clear();
   incorrectWords = [];
+  selectedWordLength = parseInt(wordLengthSelect.value);
+
   signinScreen.style.display = "none";
   gameScreen.style.display = "block";
   answerInput.value = "";
   answerInput.focus();
 
-  if (mode === "time") {
+  if (mode === "timed" || mode === "time") {
     startTime = Date.now();
     timer = setTimeout(() => endGame(), 2 * 60 * 1000);
     finishButton.style.display = "none";
@@ -53,11 +57,18 @@ function startGame() {
 document.getElementById("start-button").addEventListener("click", startGame);
 
 function showNextWord() {
-  let wordPool = mode === "level" ? wordLists[level.toString()] || [] : getAllWords();
+  let wordPool;
+  if (mode === "levelup" || mode === "level") {
+    wordPool = wordLists[level.toString()] || [];
+  } else if (mode === "timed" || mode === "time") {
+    wordPool = wordLists[selectedWordLength.toString()] || [];
+  } else {
+    wordPool = getAllWords();
+  }
 
   let filtered = wordPool.filter(w => !guessedWords.has(w));
   if (filtered.length === 0 && incorrectWords.length === 0) {
-    if (mode === "level" && level < 10) {
+    if ((mode === "levelup" || mode === "level") && level < 10) {
       level++;
       showNextWord();
       return;
