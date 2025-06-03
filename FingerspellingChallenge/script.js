@@ -237,4 +237,3 @@ function endGame() {
     displayWord(currentWord);
   });
   finishButton.addEventListener('click', endGame);
-}
