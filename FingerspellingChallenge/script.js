@@ -207,15 +207,18 @@ function endGame() {
     wrong
   )}&entry.1974555000=${encodeURIComponent(speedSlider.value)}`;
 
-  fetch(formURL, { method: "POST", mode: "no-cors" })
-    .then(() => {
-      letterDisplay.textContent = "";
-      clapDisplay.innerHTML = `<img src='Assets/Icons/auslan-clap.gif' alt='Clap' style='max-width:150px;' /><h2>Score: ${score}</h2>`;
-      againButton.style.display = "inline-block";
-      finishButton.style.display = "none";
-    })
-    .catch(() => alert("Error submitting results, but game is complete."));
+fetch(formURL, { method: "POST", mode: "no-cors" })
+  .then(() => {
+    letterDisplay.textContent = "";
+    clapDisplay.innerHTML = `
+      <img src='Assets/Icons/auslan-clap.gif' alt='Clap' style='max-width:150px;' />
+      <h2>Score: ${score}</h2>
+    `;
 
-  gameScreen.style.display = "flex";
-  signinScreen.style.display = "block";
-}
+    // Show Again button properly
+    againButton.style.display = "block"; // <- change from "inline-block" to "block"
+    againButton.style.marginTop = "20px";
+    againButton.style.marginBottom = "20px";
+    finishButton.style.display = "none";
+  })
+
