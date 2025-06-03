@@ -12,12 +12,13 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 20px;
 }
 
 /* MAIN CONTAINER */
 #signin-screen,
 #game-screen {
-  width: 90%;
+  width: 100%;
   max-width: 800px;
   background-color: #ffffff;
   padding: 30px;
@@ -66,7 +67,7 @@ button:hover {
 
 /* GAME ELEMENTS */
 #letter-display {
-  font-size: 80px;
+  font-size: 60px;
   text-align: center;
   margin: 20px 0;
   word-break: break-word;
@@ -76,6 +77,53 @@ button:hover {
   font-size: 24px;
   text-align: center;
   padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-bottom: 20px;
 }
 
-#timer
+#timer,
+#score {
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  margin: 10px 0;
+}
+
+/* BUTTON GROUPS */
+.button-group {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* AGAIN BUTTON IMAGE STYLE (if using image) */
+#again-button {
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* MOBILE FRIENDLY */
+@media (max-width: 600px) {
+  #letter-display {
+    font-size: 40px;
+  }
+
+  #word-input {
+    font-size: 20px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+
+  #again-button {
+    width: 32px;
+    height: 32px;
+  }
+}
