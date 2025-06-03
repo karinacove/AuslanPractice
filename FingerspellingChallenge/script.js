@@ -40,9 +40,15 @@ window.addEventListener('DOMContentLoaded', () => {
     return words[Math.floor(Math.random() * words.length)];
   }
 
-  function displayWord(word) {
-    letterDisplay.textContent = word.toUpperCase();
-  }
+function displayWord(word) {
+  letterDisplay.innerHTML = ''; // clear existing
+  [...word.toUpperCase()].forEach(letter => {
+    const span = document.createElement('span');
+    span.textContent = letter;
+    span.className = 'fingerspelling-letter';
+    letterDisplay.appendChild(span);
+  });
+}
 
   function startGame() {
     const name = nameInput.value.trim();
