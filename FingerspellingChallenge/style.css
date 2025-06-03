@@ -76,6 +76,14 @@ button {
   cursor: pointer;
 }
 
+#again-button {
+  display: none;
+  cursor: pointer;
+  max-width: 200px;
+  margin: 20px auto;
+  display: block;
+}
+
 .breathe {
   animation: breathe 1s ease-in-out;
 }
