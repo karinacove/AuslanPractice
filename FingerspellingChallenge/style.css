@@ -5,6 +5,17 @@ body {
   background: #f0f8ff;
 }
 
+@font-face {
+  font-family: 'AuslanFingerspelling';
+  src: url('Assets/Font/Auslan%20Finger%20Spelling.otf') format('opentype');
+}
+
+#letter-display {
+  font-family: 'AuslanFingerspelling', sans-serif;
+  font-size: 5rem; /* Adjust size as needed */
+  text-align: center;
+}
+
 #signin-screen,
 #game-screen {
   max-width: 600px;
