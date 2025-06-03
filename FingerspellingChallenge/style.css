@@ -1,135 +1,62 @@
-/* GENERAL STYLES */
-* {
-  box-sizing: border-box;
+/* style.css */
+
+body {
+  font-family: 'Auslan Finger Spelling', sans-serif;
+  background-color: #f0f8ff;
   margin: 0;
   padding: 0;
-}
-
-html, body {
-  height: 100%;
-  font-family: Arial, sans-serif;
-  background-color: #eef6ff;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  padding: 20px;
+  justify-content: center;
+  height: 100vh;
 }
 
-/* MAIN CONTAINER */
 #signin-screen,
 #game-screen {
-  width: 100%;
-  max-width: 800px;
-  background-color: #ffffff;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-  display: none;
-  flex-direction: column;
-  gap: 15px;
+  text-align: center;
 }
 
-/* SHOW SIGN-IN BY DEFAULT */
-#signin-screen {
-  display: flex;
+#letter-display {
+  font-size: 5rem;
+  margin: 20px 0;
+  transition: all 0.3s ease-in-out;
 }
 
-/* FORM ELEMENTS */
-label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: bold;
-}
-
-input, select {
-  width: 100%;
+input[type="text"] {
+  font-size: 1.5rem;
   padding: 10px;
-  margin-bottom: 15px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  margin: 10px;
 }
 
 button {
+  font-size: 1.2rem;
   padding: 10px 20px;
-  font-size: 16px;
-  margin-right: 10px;
-  border: none;
-  border-radius: 6px;
-  background-color: #007bff;
-  color: white;
+  margin: 10px;
   cursor: pointer;
+  border-radius: 8px;
+  border: none;
+  background-color: #007acc;
+  color: white;
+  transition: background-color 0.3s;
 }
 
 button:hover {
-  background-color: #0056b3;
+  background-color: #005fa3;
 }
 
-/* GAME ELEMENTS */
-#letter-display {
-  font-size: 60px;
-  text-align: center;
-  margin: 20px 0;
-  word-break: break-word;
-}
-
-.fingerspelling-letter {
-  font-family: 'Fingerspelling', sans-serif;
-  font-size: 5rem;
-  margin: 0 0.2rem;
-}
-
-#word-input {
-  font-size: 24px;
-  text-align: center;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+#speed-slider {
+  width: 200px;
+  margin-top: 10px;
   margin-bottom: 20px;
 }
 
-#timer,
-#score {
-  font-size: 18px;
-  font-weight: bold;
-  text-align: center;
-  margin: 10px 0;
+.breathe {
+  animation: breathe 1s ease-in-out;
 }
 
-/* BUTTON GROUPS */
-.button-group {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-/* AGAIN BUTTON IMAGE STYLE (if using image) */
-#again-button {
-  width: 40px;
-  height: 40px;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-/* MOBILE FRIENDLY */
-@media (max-width: 600px) {
-  #letter-display {
-    font-size: 40px;
-  }
-
-  #word-input {
-    font-size: 20px;
-  }
-
-  button {
-    font-size: 14px;
-    padding: 8px 16px;
-  }
-
-  #again-button {
-    width: 32px;
-    height: 32px;
-  }
+@keyframes breathe {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
 }
