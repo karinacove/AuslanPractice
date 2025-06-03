@@ -130,8 +130,9 @@ function showNextWord() {
 // Display letters one at a time
 function displayLetters() {
   const speed = parseInt(speedSlider.value);
-  const letterDuration = 1000 - (speed * 4); // Speed 10 → 960ms, speed 200 → 200ms
+  const letterDuration = 1200 - (speed * 5); // Speed 10 → 960ms, speed 200 → 200ms
   const interLetterGap = letterGap;
+  
   let index = 0;
   function showLetter() {
     if (index < currentWord.length) {
