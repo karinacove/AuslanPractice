@@ -161,11 +161,6 @@ function endGame() {
     "10": ["Foundation", "Discovery", "Remarkable", "Perpetuate", "Absorptive", "Jackrabbit", "Ponderable", "Navigation", "Blissfully", "Lighthouse", "Quenchable", "Suggestion", "Technology", "Navigating", "Basketball", "Confidence", "Visibility"]
   };
 
-  let currentWord = '';
-  let score = 0;
-  let timer;
-  let timeLeft = 120;
-
   function getRandomWord(length) {
     const words = wordBank[length];
     return words[Math.floor(Math.random() * words.length)];
