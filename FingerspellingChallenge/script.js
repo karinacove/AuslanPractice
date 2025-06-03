@@ -221,4 +221,3 @@ fetch(formURL, { method: "POST", mode: "no-cors" })
     againButton.style.marginBottom = "20px";
     finishButton.style.display = "none";
   })
-
