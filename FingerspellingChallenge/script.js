@@ -235,5 +235,5 @@ function endGame() {
     const wordLength = mode === 'timed' && wordLengthSelect ? wordLengthSelect.value : currentWord.length;
     currentWord = getRandomWord(wordLength);
     displayWord(currentWord);
-  });
   finishButton.addEventListener('click', endGame);
+  });
