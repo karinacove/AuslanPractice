@@ -28,6 +28,16 @@ const finishButton = document.getElementById("finish-button");
 const scoreDisplay = document.getElementById("score");
 const timerDisplay = document.getElementById("timer");
 const clapDisplay = document.getElementById("clap-display");
+const endButton = document.createElement('button');
+  endButton.textContent = 'End Game';
+  endButton.style.position = 'absolute';
+  endButton.style.top = '10px';
+  endButton.style.right = '10px';
+  endButton.style.zIndex = '6';
+  endButton.style.padding = '10px 20px';
+  endButton.style.fontSize = '16px';
+  endButton.style.cursor = 'pointer';
+  gameContainer.appendChild(endButton);
 
 // Load word list
 fetch("data/wordlist.json")
@@ -66,8 +76,8 @@ document.getElementById("start-button").addEventListener("click", () => {
   gameScreen.style.display = "flex";
   clapDisplay.innerHTML = "";
   againButton.style.display = "block";
-  finishButton.disabled = false;
-  finishButton.style.display = mode === "timed" ? "none" : "inline-block";
+  endButton.disabled = false;
+  endButton.style.display = mode === "timed" ? "none" : "inline-block";
 
   if (mode === "timed") {
     startTimedMode();
@@ -79,7 +89,7 @@ document.getElementById("start-button").addEventListener("click", () => {
 function startTimedMode() {
   let timeLeft = 120;
   timerDisplay.textContent = `Time: ${timeLeft}`;
-  finishButton.style.display = "none";
+  endButton.style.display = "none";
 
   timerInterval = setInterval(() => {
     timeLeft--;
@@ -184,14 +194,14 @@ againButton.addEventListener("click", () => {
   }
 });
 
-finishButton.addEventListener("click", () => {
-  finishButton.disabled = true;
+endButton.addEventListener("click", () => {
+  endButton.disabled = true;
   endGame();
 });
 
 function endGame() {
   clearInterval(timerInterval);
-  finishButton.style.display = "none";
+  endButton.style.display = "none";
 
   const correct = Array.from(guessedWords).join(", ");
   const wrong = incorrectWords.join(", ");
@@ -211,7 +221,7 @@ function endGame() {
     letterDisplay.textContent = "";
     clapDisplay.innerHTML = `<img src='Assets/Icons/auslan-clap.gif' alt='Clap' style='max-width:150px;' />`;
     againButton.style.display = "none";
-    finishButton.style.display = "none";
+    endButton.style.display = "none";
 
     setTimeout(() => {
       clapDisplay.innerHTML = "";
