@@ -28,15 +28,15 @@ const scoreDisplay = document.getElementById("score");
 const timerDisplay = document.getElementById("timer");
 const clapDisplay = document.getElementById("clap-display");
 const endButton = document.getElementById("end-button");
-  endButton.textContent = 'End Game';
-  endButton.style.position = 'absolute';
-  endButton.style.top = '10px';
-  endButton.style.right = '10px';
-  endButton.style.zIndex = '6';
-  endButton.style.padding = '10px 20px';
-  endButton.style.fontSize = '16px';
-  endButton.style.cursor = 'pointer';
-  gameContainer.appendChild(endButton);
+endButton.textContent = 'End Game';
+endButton.style.position = 'absolute';
+endButton.style.top = '10px';
+endButton.style.right = '10px';
+endButton.style.zIndex = '6';
+endButton.style.padding = '10px 20px';
+endButton.style.fontSize = '16px';
+endButton.style.cursor = 'pointer';
+gameContainer.appendChild(endButton);
 
 // Load word list
 fetch("data/wordlist.json")
