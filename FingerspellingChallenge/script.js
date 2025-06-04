@@ -5,9 +5,7 @@ let guessedWords = new Set();
 let incorrectWords = [];
 let mode = "";
 let level = 3;
-let timer;
 let timerInterval;
-let startTime;
 let selectedWordLength = 3;
 let score = 0;
 let correctCount = 0;
@@ -39,12 +37,10 @@ fetch("data/wordlist.json")
   })
   .catch(error => console.error("Error loading word list:", error));
 
-// Show/hide word length selector
 modeSelect.addEventListener("change", () => {
   lengthContainer.style.display = modeSelect.value === "timed" ? "block" : "none";
 });
 
-// Start Game
 document.getElementById("start-button").addEventListener("click", () => {
   const name = nameInput.value.trim();
   const studentClass = classInput.value.trim();
@@ -69,6 +65,7 @@ document.getElementById("start-button").addEventListener("click", () => {
   signinScreen.style.display = "none";
   gameScreen.style.display = "flex";
   clapDisplay.innerHTML = "";
+  againButton.style.display = "none";
 
   if (mode === "timed") {
     startTimedMode();
@@ -78,7 +75,6 @@ document.getElementById("start-button").addEventListener("click", () => {
   }
 });
 
-// Timed Mode Setup
 function startTimedMode() {
   let timeLeft = 120;
   timerDisplay.textContent = `Time: ${timeLeft}`;
@@ -96,7 +92,6 @@ function startTimedMode() {
   setTimeout(showNextWord, delayBeforeStart);
 }
 
-// Show Next Word
 function showNextWord() {
   let pool =
     mode === "levelup"
@@ -127,13 +122,14 @@ function showNextWord() {
   displayLetters();
 }
 
-// Display letters one at a time
 function displayLetters() {
   const speed = parseInt(speedSlider.value);
-  const letterDuration = 1200 - (speed * 5); // Speed 10 → 960ms, speed 200 → 200ms
+  const letterDuration = 1200 - speed * 5;
   const interLetterGap = letterGap;
-  
+
   let index = 0;
+  againButton.style.display = "none";
+
   function showLetter() {
     if (index < currentWord.length) {
       letterDisplay.textContent = currentWord[index].toUpperCase();
@@ -142,12 +138,14 @@ function displayLetters() {
         setTimeout(showLetter, interLetterGap);
       }, letterDuration);
       index++;
+    } else {
+      againButton.style.display = "inline-block";
     }
   }
+
   showLetter();
 }
 
-// Submit word
 document.getElementById("submit-word").addEventListener("click", checkWord);
 wordInput.addEventListener("keydown", e => {
   if (e.key === "Enter") checkWord();
@@ -177,19 +175,21 @@ function checkWord() {
   showNextWord();
 }
 
-// Replay Word
 againButton.addEventListener("click", () => {
-  signinScreen.style.display = "block";
-  gameScreen.style.display = "none";
-  againButton.style.display = "none";
+  if (clapDisplay.innerHTML !== "") {
+    signinScreen.style.display = "block";
+    gameScreen.style.display = "none";
+    againButton.style.display = "none";
+    clapDisplay.innerHTML = "";
+  } else {
+    displayLetters();
+  }
 });
 
-// Finish Button (Level Up Mode)
 finishButton.addEventListener("click", () => {
   endGame();
 });
 
-// End Game + Submit to Google Form
 function endGame() {
   clearInterval(timerInterval);
 
@@ -207,18 +207,17 @@ function endGame() {
     wrong
   )}&entry.1974555000=${encodeURIComponent(speedSlider.value)}`;
 
-fetch(formURL, { method: "POST", mode: "no-cors" })
-  .then(() => {
+  fetch(formURL, { method: "POST", mode: "no-cors" }).then(() => {
     letterDisplay.textContent = "";
-    clapDisplay.innerHTML = `
-      <img src='Assets/Icons/auslan-clap.gif' alt='Clap' style='max-width:150px;' />
-      <h2>Score: ${score}</h2>
-    `;
-
-    // Show Again button properly
-    againButton.style.display = "block"; // <- change from "inline-block" to "block"
-    againButton.style.marginTop = "20px";
-    againButton.style.marginBottom = "20px";
+    clapDisplay.innerHTML = `<img src='Assets/Icons/auslan-clap.gif' alt='Clap' style='max-width:150px;' />`;
+    againButton.style.display = "none";
     finishButton.style.display = "none";
-   });
+
+    setTimeout(() => {
+      clapDisplay.innerHTML += `<h2>Score: ${score}</h2>`;
+      againButton.style.display = "block";
+      againButton.style.marginTop = "20px";
+      againButton.style.marginBottom = "20px";
+    }, 3000);
+  });
 }
