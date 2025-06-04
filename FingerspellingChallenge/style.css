@@ -12,8 +12,10 @@ body {
 
 #letter-display {
   font-family: 'AuslanFingerspelling', sans-serif;
-  font-size: 5rem; /* Adjust size as needed */
+  font-size: 5rem;
   text-align: center;
+  min-height: 6rem;
+  margin: 20px 0;
 }
 
 #signin-screen,
@@ -30,12 +32,6 @@ body {
   justify-content: space-around;
   min-height: 500px;
   position: relative;
-}
-
-#letter-display {
-  font-size: 5rem;
-  min-height: 6rem;
-  margin: 20px 0;
 }
 
 #word-input {
@@ -81,15 +77,20 @@ button {
   cursor: pointer;
   max-width: 200px;
   margin: 20px auto;
-  display: in-line;
 }
 
 .breathe {
-  animation: breathe 1s ease-in-out;
+  animation: breathe 0.8s ease-in-out;
 }
 
 @keyframes breathe {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
