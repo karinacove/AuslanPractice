@@ -196,9 +196,10 @@
     });
 
     submitButton.addEventListener('click', () => {
-      const vehicleData = [...document.querySelectorAll('body > .draggable')].map(el => {
-      return `${el.alt} at (${el.style.left}, ${el.style.top})`;
-    }).join('; ');
+      const vehicleData = [...document.querySelectorAll('body > .draggable')]
+        .map(el => `${el.alt} at (${el.style.left}, ${el.style.top})`)
+        .sort((a, b) => a.localeCompare(b))
+        .join('; ');
 
     const formData = new FormData();
       formData.append('entry.1202364028', studentName);
