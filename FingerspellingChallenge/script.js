@@ -24,11 +24,10 @@ const letterDisplay = document.getElementById("letter-display");
 const wordInput = document.getElementById("word-input");
 const speedSlider = document.getElementById("speed-slider");
 const againButton = document.getElementById("again-button");
-const endButton = document.getElementById("end-button");
 const scoreDisplay = document.getElementById("score");
 const timerDisplay = document.getElementById("timer");
 const clapDisplay = document.getElementById("clap-display");
-
+const endButton = document.getElementById("end-button");
   endButton.textContent = 'End Game';
   endButton.style.position = 'absolute';
   endButton.style.top = '10px';
