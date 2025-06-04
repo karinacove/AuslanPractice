@@ -216,7 +216,7 @@ function endGame() {
     setTimeout(() => {
       clapDisplay.innerHTML = "";
       clapDisplay.innerHTML += `<h2>Score: ${score}</h2>`;
-      img id="playAgain" src="Assets/Icons/Again.png" alt="Play Again" style="display: none; position: fixed; top: 70%; left: 50%; transform: translate(-50%, -50%); cursor: pointer; width: 20vw; max-width: 300px; z-index: 1001";
+      againButton.style.display = "block";
     }, 3000);
   });
 }
