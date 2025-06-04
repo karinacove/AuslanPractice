@@ -24,7 +24,7 @@ const letterDisplay = document.getElementById("letter-display");
 const wordInput = document.getElementById("word-input");
 const speedSlider = document.getElementById("speed-slider");
 const againButton = document.getElementById("again-button");
-const finishButton = document.getElementById("finish-button");
+const endButton = document.getElementById("end-button");
 const scoreDisplay = document.getElementById("score");
 const timerDisplay = document.getElementById("timer");
 const clapDisplay = document.getElementById("clap-display");
@@ -183,16 +183,25 @@ function checkWord() {
   showNextWord();
 }
 
-againButton.addEventListener("click", () => {
-  if (clapDisplay.innerHTML !== "") {
-    signinScreen.style.display = "block";
-    gameScreen.style.display = "none";
-    againButton.style.display = "none";
-    clapDisplay.innerHTML = "";
-  } else {
-    displayLetters();
-  }
-});
+function showAgainButton() {
+    let button = document.getElementById("againButton");
+    if (!button) {
+        button = document.createElement("img");
+        button.id = "againButton";
+        button.src = "Assets/Icons/Again.png";
+        button.alt = "Again Button";
+        button.style.position = "fixed";
+        button.style.bottom = "5vh";
+        button.style.left = "50%";
+        button.style.transform = "translateX(-50%)";
+        button.style.cursor = "pointer";
+        button.style.width = "100px";
+        button.style.zIndex = "1000";
+        document.body.appendChild(button);
+    }
+    button.style.display = "block";
+    button.addEventListener("click", () => location.reload());
+}
 
 endButton.addEventListener("click", () => {
   endButton.disabled = true;
