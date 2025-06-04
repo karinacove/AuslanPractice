@@ -37,13 +37,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function getNumberRangeForLevel(level) {
     if (level >= 1 && level <= 3) {
-      return Array.from({ length: 21 }, (_, i) => i); // 0–20
-    } else if (level >= 4 && level <= 6) {
-      return Array.from({ length: 30 }, (_, i) => i + 21); // 21–50
+      return Array.from({ length: 12 }, (_, i) => i + 1); // 1–12
+    } else if (level >= 4 && level <= 5) {
+      return Array.from({ length: 8 }, (_, i) => i + 13); // 13–20
     } else if (level >= 7 && level <= 9) {
-      return Array.from({ length: 50 }, (_, i) => i + 51); // 51–100
+      return Array.from({ length: 21 }, (_, i) => i + 20); // 21–41 (20–40)
+    } else if (level >= 10 && level <= 12) {
+      return Array.from({ length: 60 }, (_, i) => i + 41); // 41–100
     } else {
-      return Array.from({ length: 101 }, (_, i) => i); // 0–100
+      return Array.from({ length: 100 }, (_, i) => i + 1); // fallback 1–100
     }
   }
 
@@ -51,15 +53,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const baseNumbers = Array.from({ length: 41 }, (_, i) => i); // 0–40
     const colourOffsets = {
       green: 41,
-      red: 42,
+      red: 41,
       orange: 43,
-      yellow: 44,
-      purple: 45,
-      pink: 46,
-      blue: 47,
-      brown: 48,
-      black: 49,
-      white: 50
+      yellow: 42,
+      purple: 43,
+      pink: 44,
+      blue: 44,
+      brown: 42,
+      black: 44,
+      white: 43
     };
 
     let extendedNumbers = [];
