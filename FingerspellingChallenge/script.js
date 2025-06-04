@@ -66,11 +66,12 @@ document.getElementById("start-button").addEventListener("click", () => {
   gameScreen.style.display = "flex";
   clapDisplay.innerHTML = "";
   againButton.style.display = "block";
+  finishButton.disabled = false;
+  finishButton.style.display = mode === "timed" ? "none" : "inline-block";
 
   if (mode === "timed") {
     startTimedMode();
   } else {
-    finishButton.style.display = "inline-block";
     setTimeout(showNextWord, delayBeforeStart);
   }
 });
@@ -184,11 +185,13 @@ againButton.addEventListener("click", () => {
 });
 
 finishButton.addEventListener("click", () => {
+  finishButton.disabled = true;
   endGame();
 });
 
 function endGame() {
   clearInterval(timerInterval);
+  finishButton.style.display = "none";
 
   const correct = Array.from(guessedWords).join(", ");
   const wrong = incorrectWords.join(", ");
@@ -211,6 +214,7 @@ function endGame() {
     finishButton.style.display = "none";
 
     setTimeout(() => {
+      clapDisplay.innerHTML = "";
       clapDisplay.innerHTML += `<h2>Score: ${score}</h2>`;
       againButton.style.display = "block";
       againButton.style.marginTop = "20px";
