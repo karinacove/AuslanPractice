@@ -76,6 +76,11 @@ document.getElementById("start-button").addEventListener("click", () => {
   gameScreen.style.display = "flex";
   clapDisplay.innerHTML = "";
   againButton.style.display = "block";
+  againButton.style.width = "100px";
+  againButton.style.height = "auto";
+  againButton.style.margin = "20px auto 0";
+  againButton.style.display = "block";
+
   endButton.disabled = false;
   endButton.style.display = mode === "timed" ? "none" : "inline-block";
 
