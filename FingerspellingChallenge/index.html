@@ -2,22 +2,105 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Fingerspelling Challenge</title>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    #game-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    #letter-display {
+      font-size: 5rem;
+      margin: 40px 0 20px;
+      height: 100px;
+    }
+    #word-input {
+      padding: 10px;
+      font-size: 1rem;
+      width: 200px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    #submit-word {
+      padding: 10px 20px;
+      font-size: 1rem;
+      margin-left: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #input-group {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+    }
+    #score, #timer {
+      font-size: 1.2rem;
+      margin: 10px 0;
+    }
+    #controls {
+      position: fixed;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    #again-button, #finish-button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #again-button {
+      background-color: #007BFF;
+      color: white;
+    }
+    #finish-button {
+      background-color: #DC3545;
+      color: white;
+    }
+    #signin-screen {
+      padding: 20px;
+    }
+    #clap-display img {
+      max-width: 150px;
+    }
+  </style>
 </head>
 <body>
+
+  <!-- Sign-in screen -->
   <div id="signin-screen">
     <h1>Fingerspelling Challenge</h1>
-    <input type="text" id="student-name" placeholder="Name" />
-    <input type="text" id="student-class" placeholder="Class" />
+    <label for="student-name">Name:</label><br/>
+    <input type="text" id="student-name"/><br/><br/>
+    <label for="student-class">Class:</label><br/>
+    <input type="text" id="student-class"/><br/><br/>
+
+    <label for="game-mode">Game Mode:</label><br/>
     <select id="game-mode">
-      <option value="timed">Timed Challenge</option>
-      <option value="levelup">Level Up Challenge</option>
-    </select>
+      <option value="timed">2 Minute Challenge</option>
+      <option value="levelup">Level Challenge</option>
+    </select><br/><br/>
 
     <div id="length-container">
-      <label for="word-length">Word Length:</label>
+      <label for="word-length">Word Length:</label><br/>
       <select id="word-length">
         <option value="3">3 letters</option>
         <option value="4">4 letters</option>
@@ -27,29 +110,31 @@
         <option value="8">8 letters</option>
         <option value="9">9 letters</option>
         <option value="10">10 letters</option>
-      </select>
+      </select><br/><br/>
     </div>
 
     <button id="start-button">Start</button>
   </div>
 
-  <div id="game-screen" style="display: none;">
-    <div id="score-timer-row">
-      <div id="score">Score: 0</div>
-      <div id="timer">Time: 120</div>
-    </div>
-
+  <!-- Game screen -->
+  <div id="game-screen">
     <div id="letter-display"></div>
 
-    <input type="text" id="word-input" placeholder="Type the word" autocomplete="off" />
-    <input type="range" id="speed-slider" min="10" max="200" value="100" />
+    <div id="input-group">
+      <input type="text" id="word-input" placeholder="Type the word..." />
+      <button id="submit-word">Enter</button>
+    </div>
 
-    <div id="clap-display"></div>
+    <div id="score">Score: 0</div>
+    <div id="timer"></div>
 
-    <div class="buttons">
-      <button id="submit-word">Submit</button>
-      <img id="again-button" src="Assets/Icons/Again.png" alt="Play Again" style="display: none; cursor: pointer; max-width: 200px;" />
-      <button id="finish-button" style="display:none;">Finish</button>
+    <div id="clap-display" style="margin-top: 20px;"></div>
+
+    <input type="range" id="speed-slider" min="1" max="200" value="100" style="margin-top: 30px; width: 200px;" />
+
+    <div id="controls">
+      <button id="again-button" style="display: none;">Again</button>
+      <button id="finish-button">Finish</button>
     </div>
   </div>
 
