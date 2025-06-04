@@ -27,16 +27,17 @@ const againButton = document.getElementById("again-button");
 const scoreDisplay = document.getElementById("score");
 const timerDisplay = document.getElementById("timer");
 const clapDisplay = document.getElementById("clap-display");
-const endButton = document.getElementById("end-button");
-endButton.textContent = 'End Game';
-endButton.style.position = 'absolute';
-endButton.style.top = '10px';
-endButton.style.right = '10px';
-endButton.style.zIndex = '6';
-endButton.style.padding = '10px 20px';
-endButton.style.fontSize = '16px';
-endButton.style.cursor = 'pointer';
-gameContainer.appendChild(endButton);
+const endButton = document.createElement("button");
+endButton.id = "end-button";
+endButton.textContent = "End Game";
+endButton.style.position = "absolute";
+endButton.style.top = "10px";
+endButton.style.right = "10px";
+endButton.style.zIndex = "6";
+endButton.style.padding = "10px 20px";
+endButton.style.fontSize = "16px";
+endButton.style.cursor = "pointer";
+document.body.appendChild(endButton);
 
 // Load word list
 fetch("data/wordlist.json")
@@ -180,26 +181,6 @@ function checkWord() {
   }
 
   showNextWord();
-}
-
-function showAgainButton() {
-    let button = document.getElementById("againButton");
-    if (!button) {
-        button = document.createElement("img");
-        button.id = "againButton";
-        button.src = "Assets/Icons/Again.png";
-        button.alt = "Again Button";
-        button.style.position = "fixed";
-        button.style.bottom = "5vh";
-        button.style.left = "50%";
-        button.style.transform = "translateX(-50%)";
-        button.style.cursor = "pointer";
-        button.style.width = "100px";
-        button.style.zIndex = "1000";
-        document.body.appendChild(button);
-    }
-    button.style.display = "block";
-    button.addEventListener("click", () => location.reload());
 }
 
 endButton.addEventListener("click", () => {
