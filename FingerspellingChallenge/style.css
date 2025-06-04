@@ -81,7 +81,7 @@ button {
   cursor: pointer;
   max-width: 200px;
   margin: 20px auto;
-  display: block;
+  display: in-line;
 }
 
 .breathe {
