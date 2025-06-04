@@ -16,6 +16,30 @@
         font-size: 6rem;
         text-align: center;
       }
+
+      #again-button {
+        width: 100px;
+        height: auto;
+        margin: 20px auto 0;
+        display: block;
+        padding: 10px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+      }
+
+      #again-button img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      #finish-button {
+        margin-top: 10px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
@@ -65,10 +89,11 @@
       <input type="range" id="speed-slider" min="0" max="200" value="100" />
       <button id="again-button" class="button">
         <img src="Assets/Icons/Again.png" alt="Again" />
+      </button>
       <button id="finish-button" class="bottom-button">Finish Early</button>
       <div id="clap-display"></div>
     </div>
-    
+
     <script src="script.js"></script>
   </body>
 </html>
