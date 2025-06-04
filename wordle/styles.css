@@ -137,3 +137,17 @@ body {
     text-align: center;
     z-index: 1000;
 }
+
+#again-button {
+  display: none;
+  max-width: 150px;
+  padding: 10px;
+  margin: 20px auto;
+  border: none;
+  background: none;
+}
+#again-button img {
+  width: 100%;
+  height: auto;
+  pointer-events: none; /* ensures the button captures the click, not just the image */
+}
