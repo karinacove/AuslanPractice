@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function getNumberRangeForLevel(level) {
     if (level >= 1 && level <= 3) {
       return Array.from({ length: 12 }, (_, i) => i + 1); // 1–12
-    } else if (level >= 4 && level <= 5) {
+    } else if (level >= 4 && level <= 6) {
       return Array.from({ length: 8 }, (_, i) => i + 13); // 13–20
     } else if (level >= 7 && level <= 9) {
       return Array.from({ length: 21 }, (_, i) => i + 20); // 21–41 (20–40)
