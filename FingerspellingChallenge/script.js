@@ -164,6 +164,12 @@ wordInput.addEventListener("keydown", e => {
   if (e.key === "Enter") checkWord();
 });
 
+againButton.addEventListener("click", () => {
+  if (currentWord) {
+    displayLetters();
+  }
+});
+
 function checkWord() {
   const input = wordInput.value.trim().toLowerCase();
   if (!input) return;
