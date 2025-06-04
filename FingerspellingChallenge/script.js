@@ -65,7 +65,7 @@ document.getElementById("start-button").addEventListener("click", () => {
   signinScreen.style.display = "none";
   gameScreen.style.display = "flex";
   clapDisplay.innerHTML = "";
-  againButton.style.display = "none";
+  againButton.style.display = "block";
 
   if (mode === "timed") {
     startTimedMode();
@@ -128,7 +128,6 @@ function displayLetters() {
   const interLetterGap = letterGap;
 
   let index = 0;
-  againButton.style.display = "none";
 
   function showLetter() {
     if (index < currentWord.length) {
@@ -138,8 +137,6 @@ function displayLetters() {
         setTimeout(showLetter, interLetterGap);
       }, letterDuration);
       index++;
-    } else {
-      againButton.style.display = "inline-block";
     }
   }
 
