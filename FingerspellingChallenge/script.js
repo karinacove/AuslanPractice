@@ -79,7 +79,6 @@ document.getElementById("start-button").addEventListener("click", () => {
   againButton.style.width = "100px";
   againButton.style.height = "auto";
   againButton.style.margin = "20px auto 0";
-  againButton.style.display = "block";
 
   endButton.disabled = false;
   endButton.style.display = mode === "timed" ? "none" : "inline-block";
@@ -94,7 +93,7 @@ document.getElementById("start-button").addEventListener("click", () => {
 function startTimedMode() {
   let timeLeft = 120;
   timerDisplay.textContent = `Time: ${timeLeft}`;
-  endButton.style.display = "inline-block";
+  endButton.style.display = "none";
 
   timerInterval = setInterval(() => {
     timeLeft--;
@@ -153,10 +152,6 @@ function displayLetters() {
         setTimeout(showLetter, interLetterGap);
       }, letterDuration);
       index++;
-    } else {
-      setTimeout(() => {
-        displayLetters();
-      }, 1500);
     }
   }
 
@@ -169,13 +164,15 @@ wordInput.addEventListener("keydown", e => {
 });
 
 wordInput.addEventListener("input", () => {
-  if (wordInput.value.length === currentWord.length) {
+  if (wordInput.value.trim().length === currentWord.length) {
     checkWord();
   }
 });
 
 againButton.addEventListener("click", () => {
-  displayLetters();
+  if (currentWord) {
+    displayLetters();
+  }
 });
 
 function checkWord() {
