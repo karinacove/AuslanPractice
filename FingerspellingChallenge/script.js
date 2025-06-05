@@ -164,11 +164,6 @@ function displayLetters() {
   showLetter();
 }
 
-document.getElementById("submit-word").addEventListener("click", checkWord);
-wordInput.addEventListener("keydown", e => {
-  if (e.key === "Enter") checkWord();
-});
-
 wordInput.addEventListener("input", () => {
   if (wordInput.value.trim().length === currentWord.length) {
     checkWord();
