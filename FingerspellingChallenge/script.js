@@ -82,7 +82,11 @@ document.getElementById("start-button").addEventListener("click", () => {
   againButton.style.margin = "20px auto 0";
 
   endButton.disabled = false;
-  endButton.style.display = mode === "timed" ? "none" : "inline-block";
+  if (mode === "levelup") {
+    endButton.style.display = "inline-block";
+  } else {
+    endButton.style.display = "none";
+  }
 
   if (mode === "timed") {
     startTimedMode();
