@@ -94,7 +94,7 @@ document.getElementById("start-button").addEventListener("click", () => {
 function startTimedMode() {
   let timeLeft = 120;
   timerDisplay.textContent = `Time: ${timeLeft}`;
-  endButton.style.display = "none";
+  endButton.style.display = "inline-block";
 
   timerInterval = setInterval(() => {
     timeLeft--;
@@ -144,7 +144,6 @@ function displayLetters() {
   const interLetterGap = letterGap;
 
   let index = 0;
-  let totalDuration = 0;
 
   function showLetter() {
     if (index < currentWord.length) {
@@ -153,10 +152,11 @@ function displayLetters() {
         letterDisplay.textContent = "";
         setTimeout(showLetter, interLetterGap);
       }, letterDuration);
-      totalDuration += letterDuration + interLetterGap;
       index++;
     } else {
-      setTimeout(displayLetters, 1500); // Auto replay after 1.5 seconds
+      setTimeout(() => {
+        displayLetters();
+      }, 1500);
     }
   }
 
@@ -204,7 +204,6 @@ function checkWord() {
 
 endButton.addEventListener("click", () => {
   endButton.disabled = true;
-  endButton.style.display = "none";
   endGame();
 });
 
