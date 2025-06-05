@@ -29,7 +29,7 @@ const timerDisplay = document.getElementById("timer");
 const clapDisplay = document.getElementById("clap-display");
 const endButton = document.createElement("button");
 endButton.id = "end-button";
-endButton.textContent = "End Game";
+endButton.textContent = "Finish Early";
 endButton.style.position = "absolute";
 endButton.style.top = "10px";
 endButton.style.right = "10px";
@@ -75,7 +75,6 @@ document.getElementById("start-button").addEventListener("click", () => {
   signinScreen.style.display = "none";
   gameScreen.style.display = "flex";
   clapDisplay.innerHTML = "";
-  againButton.style.display = "block";
   againButton.style.width = "100px";
   againButton.style.height = "auto";
   againButton.style.margin = "20px auto 0";
@@ -94,13 +93,14 @@ document.getElementById("start-button").addEventListener("click", () => {
 function startTimedMode() {
   let timeLeft = 120;
   timerDisplay.textContent = `Time: ${timeLeft}`;
-  endButton.style.display = "none";
+  endButton.style.display = "inline-block";
 
   timerInterval = setInterval(() => {
     timeLeft--;
     timerDisplay.textContent = `Time: ${timeLeft}`;
     if (timeLeft <= 0) {
       clearInterval(timerInterval);
+      endButton.style.display = "none"; // Hide finish early button when time ends
       endGame();
     }
   }, 1000);
@@ -159,13 +159,15 @@ function displayLetters() {
   showLetter();
 }
 
+againButton.addEventListener("click", () => {
+  if (currentWord) {
+    setTimeout(displayLetters, 1500); // replay after a short delay
+  }
+});
+
 document.getElementById("submit-word").addEventListener("click", checkWord);
 wordInput.addEventListener("keydown", e => {
   if (e.key === "Enter") checkWord();
-});
-
-againButton.addEventListener("click", () => {
-  if (currentWord) displayLetters();
 });
 
 function checkWord() {
@@ -194,6 +196,7 @@ function checkWord() {
 
 endButton.addEventListener("click", () => {
   endButton.disabled = true;
+  endButton.style.display = "none"; // Hide on click to prevent double submission
   endGame();
 });
 
