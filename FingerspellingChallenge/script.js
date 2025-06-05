@@ -29,7 +29,7 @@ const timerDisplay = document.getElementById("timer");
 const clapDisplay = document.getElementById("clap-display");
 const endButton = document.createElement("button");
 endButton.id = "end-button";
-endButton.textContent = "Finish Early";
+endButton.textContent = "End Game";
 endButton.style.position = "absolute";
 endButton.style.top = "10px";
 endButton.style.right = "10px";
@@ -93,14 +93,13 @@ document.getElementById("start-button").addEventListener("click", () => {
 function startTimedMode() {
   let timeLeft = 120;
   timerDisplay.textContent = `Time: ${timeLeft}`;
-  endButton.style.display = "inline-block";
+  endButton.style.display = "none";
 
   timerInterval = setInterval(() => {
     timeLeft--;
     timerDisplay.textContent = `Time: ${timeLeft}`;
     if (timeLeft <= 0) {
       clearInterval(timerInterval);
-      endButton.style.display = "none"; // Hide finish early button when time ends
       endGame();
     }
   }, 1000);
@@ -136,6 +135,10 @@ function showNextWord() {
   wordInput.value = "";
   letterDisplay.textContent = "";
   displayLetters();
+
+  setTimeout(() => {
+    displayLetters();
+  }, 1500);
 }
 
 function displayLetters() {
@@ -159,15 +162,19 @@ function displayLetters() {
   showLetter();
 }
 
-againButton.addEventListener("click", () => {
-  if (currentWord) {
-    setTimeout(displayLetters, 1500); // replay after a short delay
-  }
-});
-
 document.getElementById("submit-word").addEventListener("click", checkWord);
 wordInput.addEventListener("keydown", e => {
   if (e.key === "Enter") checkWord();
+});
+
+wordInput.addEventListener("input", () => {
+  if (wordInput.value.length === currentWord.length) {
+    checkWord();
+  }
+});
+
+againButton.addEventListener("click", () => {
+  displayLetters();
 });
 
 function checkWord() {
@@ -196,7 +203,6 @@ function checkWord() {
 
 endButton.addEventListener("click", () => {
   endButton.disabled = true;
-  endButton.style.display = "none"; // Hide on click to prevent double submission
   endGame();
 });
 
