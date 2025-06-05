@@ -99,7 +99,6 @@ document.getElementById("start-button").addEventListener("click", () => {
 function startTimedMode() {
   let timeLeft = 120;
   timerDisplay.textContent = `Time: ${timeLeft}`;
-  endButton.style.display = "none";
 
   timerInterval = setInterval(() => {
     timeLeft--;
