@@ -38,6 +38,7 @@ endButton.style.zIndex = "6";
 endButton.style.padding = "10px 20px";
 endButton.style.fontSize = "16px";
 endButton.style.cursor = "pointer";
+endButton.style.display = "none";
 document.body.appendChild(endButton);
 
 // Load word list
@@ -139,7 +140,7 @@ function showNextWord() {
   currentIndex = 0;
   wordInput.value = "";
   letterDisplay.textContent = "";
-  displayLetters();
+  setTimeout(displayLetters, 500); // 0.5 second delay before fingerspelling
 }
 
 function displayLetters() {
