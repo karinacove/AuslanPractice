@@ -11,6 +11,7 @@ let score = 0;
 let correctCount = 0;
 let delayBeforeStart = 500;
 let letterGap = 50;
+let isSpelling = false; // Prevent overlapping replay
 
 // DOM Elements
 const nameInput = document.getElementById("student-name");
@@ -138,6 +139,9 @@ function showNextWord() {
 }
 
 function displayLetters() {
+  if (isSpelling) return;
+  isSpelling = true;
+
   const speed = parseInt(speedSlider.value);
   const letterDuration = 1200 - speed * 5;
   const interLetterGap = letterGap;
@@ -152,6 +156,8 @@ function displayLetters() {
         setTimeout(showLetter, interLetterGap);
       }, letterDuration);
       index++;
+    } else {
+      isSpelling = false;
     }
   }
 
@@ -170,7 +176,7 @@ wordInput.addEventListener("input", () => {
 });
 
 againButton.addEventListener("click", () => {
-  if (currentWord) {
+  if (!isSpelling && currentWord) {
     displayLetters();
   }
 });
