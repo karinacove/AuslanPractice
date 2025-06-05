@@ -165,9 +165,7 @@ wordInput.addEventListener("keydown", e => {
 });
 
 againButton.addEventListener("click", () => {
-  if (currentWord) {
-    displayLetters();
-  }
+  if (currentWord) displayLetters();
 });
 
 function checkWord() {
