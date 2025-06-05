@@ -75,6 +75,7 @@ document.getElementById("start-button").addEventListener("click", () => {
   signinScreen.style.display = "none";
   gameScreen.style.display = "flex";
   clapDisplay.innerHTML = "";
+  againButton.style.display = "block";
   againButton.style.width = "100px";
   againButton.style.height = "auto";
   againButton.style.margin = "20px auto 0";
@@ -135,10 +136,6 @@ function showNextWord() {
   wordInput.value = "";
   letterDisplay.textContent = "";
   displayLetters();
-
-  setTimeout(() => {
-    displayLetters();
-  }, 1500);
 }
 
 function displayLetters() {
@@ -147,6 +144,7 @@ function displayLetters() {
   const interLetterGap = letterGap;
 
   let index = 0;
+  let totalDuration = 0;
 
   function showLetter() {
     if (index < currentWord.length) {
@@ -155,7 +153,10 @@ function displayLetters() {
         letterDisplay.textContent = "";
         setTimeout(showLetter, interLetterGap);
       }, letterDuration);
+      totalDuration += letterDuration + interLetterGap;
       index++;
+    } else {
+      setTimeout(displayLetters, 1500); // Auto replay after 1.5 seconds
     }
   }
 
@@ -203,6 +204,7 @@ function checkWord() {
 
 endButton.addEventListener("click", () => {
   endButton.disabled = true;
+  endButton.style.display = "none";
   endGame();
 });
 
