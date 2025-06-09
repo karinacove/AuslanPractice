@@ -1,1 +1,89 @@
+<!-- game.html (Matching Game Page) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auslan Matching Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1 id="levelTitle">Level 1: Match the Sign to the Picture</h1>
+    <p id="studentInfo"></p>
+    <div id="gameBoard" class="game-board"></div>
+    <button id="nextLevel" style="display:none">Next Level</button>
+  </div>
+
+  <script>
+    const studentName = localStorage.getItem("studentName") || "";
+    const studentClass = localStorage.getItem("studentClass") || "";
+    if (!studentName || !studentClass) {
+      window.location.href = "index.html";
+    } else {
+      document.getElementById("studentInfo").textContent = `Signed in as: ${studentName} (${studentClass})`;
+    }
+
+    let level = 1;
+    let topic = localStorage.getItem("selectedTopic") || "animals"; // fallback
+    let correctCount = 0;
+    let incorrectCount = 0;
+    let usedItems = new Set();
+
+    document.getElementById("nextLevel").addEventListener("click", () => {
+      level++;
+      if (level <= 3) {
+        loadLevel(level);
+      } else {
+        submitResults();
+      }
+    });
+
+    function loadLevel(currentLevel) {
+      document.getElementById("gameBoard").innerHTML = "";
+      document.getElementById("levelTitle").textContent =
+        currentLevel === 1 ? "Level 1: Match the Sign to the Picture"
+        : currentLevel === 2 ? "Level 2: Match the Picture to the Sign"
+        : "Level 3: Mixed Matching";
+      document.getElementById("nextLevel").style.display = "none";
+      // This would be where we load and render the 3x3 grid + 12 items around based on level
+      // For now, you can plug in your image/sign loading logic here
+
+      // Dummy completion trigger for testing
+      setTimeout(() => {
+        document.getElementById("nextLevel").style.display = "inline-block";
+      }, 1000);
+    }
+
+    function submitResults() {
+      const form = document.createElement("form");
+      form.action = "https://docs.google.com/forms/d/e/YOUR_GOOGLE_FORM_ID/formResponse";
+      form.method = "POST";
+      form.target = "_self";
+
+      const nameField = document.createElement("input");
+      nameField.name = "entry.YOUR_NAME_ENTRY_ID";
+      nameField.value = studentName;
+
+      const classField = document.createElement("input");
+      classField.name = "entry.YOUR_CLASS_ENTRY_ID";
+      classField.value = studentClass;
+
+      const correctField = document.createElement("input");
+      correctField.name = "entry.YOUR_CORRECT_ENTRY_ID";
+      correctField.value = correctCount;
+
+      const incorrectField = document.createElement("input");
+      incorrectField.name = "entry.YOUR_INCORRECT_ENTRY_ID";
+      incorrectField.value = incorrectCount;
+
+      [nameField, classField, correctField, incorrectField].forEach(field => form.appendChild(field));
+      document.body.appendChild(form);
+      form.submit();
+    }
+
+    loadLevel(level);
+  </script>
+</body>
+</html>
 
