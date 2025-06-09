@@ -1,1 +1,38 @@
 
+<!-- index.html (Sign-in Page) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auslan Games - Sign In</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to Auslan Games</h1>
+    <form id="signinForm">
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" required />
+
+      <label for="class">Class:</label>
+      <input type="text" id="class" name="class" required />
+
+      <button type="submit">Start</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("signinForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const name = document.getElementById("name").value.trim();
+      const studentClass = document.getElementById("class").value.trim();
+      if (name && studentClass) {
+        localStorage.setItem("studentName", name);
+        localStorage.setItem("studentClass", studentClass);
+        window.location.href = "hub.html";
+      }
+    });
+  </script>
+</body>
+</html>
