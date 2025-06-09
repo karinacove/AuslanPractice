@@ -1,1 +1,71 @@
+<!-- hub.html (Universal Sign-In and Topic Selector) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auslan Game Hub</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      background: #f2f2f2;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to Auslan Games</h1>
+  <label for="studentName">Your Name:</label>
+  <input type="text" id="studentName" required>
+
+  <label for="studentClass">Your Class:</label>
+  <input type="text" id="studentClass" required>
+
+  <label for="selectedTopic">Choose a Topic:</label>
+  <select id="selectedTopic">
+    <option value="alphabet">Alphabet</option>
+    <option value="animals">Animals</option>
+    <option value="colours">Colours</option>
+    <option value="food">Food</option>
+    <option value="transport">Transport</option>
+    <option value="numbers">Numbers</option>
+  </select>
+
+  <button id="startGame">Start Game</button>
+
+  <script>
+    document.getElementById("startGame").addEventListener("click", () => {
+      const name = document.getElementById("studentName").value.trim();
+      const studentClass = document.getElementById("studentClass").value.trim();
+      const topic = document.getElementById("selectedTopic").value;
+
+      if (!name || !studentClass) {
+        alert("Please enter both your name and class.");
+        return;
+      }
+
+      localStorage.setItem("studentName", name);
+      localStorage.setItem("studentClass", studentClass);
+      localStorage.setItem("selectedTopic", topic);
+
+      window.location.href = "game.html";
+    });
+  </script>
+</body>
+</html>
 
