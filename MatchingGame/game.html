@@ -1,72 +1,151 @@
-<!-- game.html (Matching Game Page) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Auslan Matching Game</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
   <style>
     body {
       margin: 0;
       padding: 0;
-      overflow: hidden;
       font-family: sans-serif;
+      background-color: #f7f7f7;
     }
     .container {
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding: 10px;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 0.3em;
+      text-align: center;
+    }
+    #studentInfo {
+      margin-bottom: 1em;
+      font-size: 1rem;
+      color: #333;
+      text-align: center;
     }
     .game-board {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      grid-gap: 20px;
-      margin: 20px auto;
-      width: 90vw;
+      grid-gap: 15px;
+      margin: 10px 0;
+      width: 100%;
       max-width: 600px;
     }
     .grid-item {
-      width: 120px;
-      height: 120px;
+      aspect-ratio: 1 / 1;
       border: 2px solid #ccc;
       position: relative;
       background-color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     .grid-item img {
-      width: 100%;
-      height: 100%;
+      width: 90%;
+      height: 90%;
       object-fit: contain;
+      user-select: none;
+      pointer-events: none;
     }
     .grid-item.matched::after {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       background-image: url('assets/correct.png');
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
       pointer-events: none;
+      border-radius: 8px;
+      animation: fadeIn 0.5s ease forwards;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
     }
     .draggable-container {
       display: flex;
-      justify-content: space-around;
       flex-wrap: wrap;
-      width: 100vw;
-      max-width: 1000px;
-      margin-bottom: 20px;
+      justify-content: center;
+      max-width: 640px;
+      margin-bottom: 10px;
+      gap: 12px;
     }
     .draggable {
-      width: 80px;
-      height: 80px;
-      margin: 10px;
+      width: 70px;
+      height: 70px;
       cursor: grab;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+      user-select: none;
+      transition: transform 0.2s ease;
+    }
+    .draggable:active {
+      cursor: grabbing;
+      transform: scale(1.1);
+      z-index: 1000;
     }
     .draggable.hidden {
       display: none;
+    }
+    #nextLevel {
+      padding: 12px 24px;
+      font-size: 1.2rem;
+      border: none;
+      background-color: #007BFF;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 15px;
+      display: none;
+      user-select: none;
+    }
+    #nextLevel:hover {
+      background-color: #0056b3;
+    }
+    .end-buttons {
+      margin-top: 15px;
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      width: 100%;
+      max-width: 400px;
+    }
+    .end-button {
+      width: 80px;
+      height: 80px;
+      cursor: pointer;
+      user-select: none;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      transition: transform 0.2s ease;
+    }
+    .end-button:active {
+      transform: scale(0.9);
+    }
+    @media (max-width: 480px) {
+      .draggable {
+        width: 55px;
+        height: 55px;
+      }
+      .grid-item {
+        border-width: 1.5px;
+      }
+      .end-button {
+        width: 60px;
+        height: 60px;
+      }
     }
   </style>
 </head>
@@ -76,7 +155,11 @@
     <p id="studentInfo"></p>
     <div class="draggable-container" id="draggables"></div>
     <div id="gameBoard" class="game-board"></div>
-    <button id="nextLevel" style="display:none">Next Level</button>
+    <button id="nextLevel">Next Level</button>
+    <div class="end-buttons" id="endButtons" style="display:none;">
+      <img src="assets/home.png" alt="Home" id="btnHome" class="end-button" />
+      <img src="assets/again.png" alt="Again" id="btnAgain" class="end-button" />
+    </div>
   </div>
 
   <script>
@@ -88,29 +171,52 @@
       document.getElementById("studentInfo").textContent = `Signed in as: ${studentName} (${studentClass})`;
     }
 
+    const urlParams = new URLSearchParams(window.location.search);
     const topic = localStorage.getItem("selectedTopic") || "alphabet";
+    let level = parseInt(urlParams.get("level") || "1");
     const levelTitle = document.getElementById("levelTitle");
     const gameBoard = document.getElementById("gameBoard");
     const draggables = document.getElementById("draggables");
     const nextButton = document.getElementById("nextLevel");
+    const endButtons = document.getElementById("endButtons");
+    const btnHome = document.getElementById("btnHome");
+    const btnAgain = document.getElementById("btnAgain");
 
     let correctMatches = 0;
+    let totalAttempts = 0;
 
-    const letters = "abcdefghijklmnopqrstuvwxyz".split("").slice(0, 12);
+    const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
+
+    function getLevelLetters(level) {
+      if (level === 1) return allLetters.slice(0, 9);         // a - i
+      if (level === 2) return allLetters.slice(9, 18);        // j - r
+      if (level === 3) return allLetters.slice(18, 26);       // s - z
+      return [];
+    }
 
     function initGame() {
+      const matchItems = getLevelLetters(level);
+      // 3 extra signs not in matchItems to drag from
+      const extras = allLetters.filter(l => !matchItems.includes(l)).sort(() => 0.5 - Math.random()).slice(0, 3);
+
       gameBoard.innerHTML = "";
       draggables.innerHTML = "";
       correctMatches = 0;
+      totalAttempts = 0;
+      nextButton.style.display = "none";
+      endButtons.style.display = "none";
 
-      matchItems.forEach(word => {
+      levelTitle.textContent = `Level ${level}: Match the Sign to the Letter`;
+
+      // Create grid target items
+      matchItems.forEach(letter => {
         const div = document.createElement("div");
         div.className = "grid-item";
-        div.dataset.word = word;
+        div.dataset.word = letter;
 
         const img = document.createElement("img");
-        img.src = `assets/${topic}/clipart/${word}.png`;
-        img.alt = word;
+        img.src = `assets/${topic}/clipart/${letter}.png`;
+        img.alt = letter;
         div.appendChild(img);
 
         div.addEventListener("dragover", e => e.preventDefault());
@@ -119,18 +225,19 @@
         gameBoard.appendChild(div);
       });
 
+      // Create draggable sign images
       const allSigns = [...matchItems, ...extras].sort(() => 0.5 - Math.random());
 
-      allSigns.forEach(word => {
+      allSigns.forEach(letter => {
         const img = document.createElement("img");
-        img.src = `assets/${topic}/signs/sign-${word}.png`;
-        img.alt = word;
+        img.src = `assets/${topic}/signs/sign-${letter}.png`;
+        img.alt = letter;
         img.className = "draggable";
         img.setAttribute("draggable", true);
-        img.dataset.word = word;
+        img.dataset.word = letter;
 
         img.addEventListener("dragstart", e => {
-          e.dataTransfer.setData("text/plain", word);
+          e.dataTransfer.setData("text/plain", letter);
         });
 
         draggables.appendChild(img);
@@ -142,41 +249,87 @@
       const dropTarget = e.currentTarget;
       const targetWord = dropTarget.dataset.word;
       const draggedWord = e.dataTransfer.getData("text/plain");
-      const draggedImg = document.querySelector(`[data-word='${draggedWord}']`);
+      const draggedImg = document.querySelector(`.draggable[data-word='${draggedWord}']:not(.hidden)`);
+
+      totalAttempts++;
 
       if (draggedWord === targetWord && !dropTarget.classList.contains("matched")) {
         dropTarget.classList.add("matched");
         if (draggedImg) draggedImg.classList.add("hidden");
         correctMatches++;
 
-        if (correctMatches === 9) {
-          nextButton.style.display = "block";
+        if (correctMatches === getLevelLetters(level).length) {
+          // Show end buttons or next level
+          if (level < 3) {
+            nextButton.style.display = "inline-block";
+          } else {
+            endButtons.style.display = "flex";
+          }
+          sendResults();
         }
       } else {
-        // show incorrect overlay briefly then reset
         if (draggedImg) {
-          const originalPos = draggedImg.parentElement;
-          const wrongIndicator = document.createElement("img");
-          wrongIndicator.src = "assets/wrong.png";
-          wrongIndicator.style.position = "absolute";
-          wrongIndicator.style.width = "100px";
-          wrongIndicator.style.zIndex = "10";
-          wrongIndicator.style.top = "0";
-          wrongIndicator.style.left = "0";
-          document.body.appendChild(wrongIndicator);
-          setTimeout(() => wrongIndicator.remove(), 500);
+          // Show a quick "wrong" flash effect on dragged img
+          draggedImg.style.transition = "transform 0.2s";
+          draggedImg.style.transform = "translateX(-10px)";
+          setTimeout(() => {
+            draggedImg.style.transform = "translateX(10px)";
+            setTimeout(() => {
+              draggedImg.style.transform = "translateX(0)";
+            }, 100);
+          }, 100);
         }
       }
     }
 
-    initGame();
+    function sendResults() {
+      const incorrect = totalAttempts - correctMatches;
+      const percent = totalAttempts ? Math.round((correctMatches / totalAttempts) * 100) : 0;
+
+      // Map letters matched (correct matches) joined by commas
+      const matchedLetters = [];
+      document.querySelectorAll(".grid-item.matched").forEach(el => {
+        matchedLetters.push(el.dataset.word);
+      });
+
+      const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdQyv-QC2JpHThn4kUBbGlROdArYXV6NK6dHz6Jc-BHmIHs7w/formResponse";
+
+      const params = new URLSearchParams({
+        "entry.1234567890": studentName,   // <-- CHANGE entry IDs to your actual form IDs
+        "entry.0987654321": studentClass,
+        "entry.1111111111": topic,
+        "entry.2222222222": `Level ${level}`,
+        "entry.3333333333": correctMatches,
+        "entry.4444444444": incorrect,
+        "entry.5555555555": percent + "%",
+        "entry.6666666666": matchedLetters.join(",")
+      });
+
+      // Submit via fetch - no reload
+      fetch(`${formURL}?${params.toString()}`, {
+        method: "POST",
+        mode: "no-cors"
+      }).catch(e => {
+        console.warn("Error sending results:", e);
+      });
+    }
 
     nextButton.addEventListener("click", () => {
-      alert("Proceeding to Level 2: functionality coming soon.");
+      level++;
+      if (level > 3) level = 3;
+      window.location.href = `game.html?level=${level}`;
     });
+
+    btnHome.addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+
+    btnAgain.addEventListener("click", () => {
+      window.location.href = `game.html?level=${level}`;
+    });
+
+    // Initialize game on load
+    window.addEventListener("load", initGame);
   </script>
 </body>
 </html>
-
-
-
