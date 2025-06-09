@@ -1,0 +1,39 @@
+<!-- matching.html (Topic Selection Page) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select Matching Topic</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Select a Topic</h1>
+    <p id="studentInfo"></p>
+    <div class="topics">
+      <button onclick="selectTopic('alphabet')">Alphabet</button>
+      <button onclick="selectTopic('animals')">Animals</button>
+      <button onclick="selectTopic('food')">Food</button>
+      <button onclick="selectTopic('transport')">Transport</button>
+      <button onclick="selectTopic('colours')">Colours</button>
+      <button onclick="selectTopic('numbers')">Numbers</button>
+    </div>
+  </div>
+
+  <script>
+    const name = localStorage.getItem("studentName") || "";
+    const studentClass = localStorage.getItem("studentClass") || "";
+    if (!name || !studentClass) {
+      window.location.href = "index.html";
+    } else {
+      document.getElementById("studentInfo").textContent = `Signed in as: ${name} (${studentClass})`;
+    }
+
+    function selectTopic(topic) {
+      localStorage.setItem("selectedTopic", topic);
+      window.location.href = "game.html";
+    }
+  </script>
+</body>
+</html>
