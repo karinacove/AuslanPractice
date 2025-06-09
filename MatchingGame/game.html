@@ -1,294 +1,373 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Auslan Matching Game</title>
-<style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    height: 100vh;
-    background-color: #e6f0ff;
-    user-select: none;
-  }
-
-  #draggables-container {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 1200px;
-    margin: 20px 10px;
-  }
-
-  .draggables-column {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 120px;
-    max-height: 600px;
-    overflow-y: auto;
-    background: #f9f9f9;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    padding: 10px;
-  }
-
-  .draggable-letter {
-    background-color: #5a8dee;
-    color: white;
-    font-size: 24px;
-    font-weight: bold;
-    text-align: center;
-    padding: 14px 0;
-    border-radius: 8px;
-    cursor: grab;
-    user-select: none;
-  }
-  .draggable-letter:active {
-    cursor: grabbing;
-  }
-
-  #grid-container {
-    display: grid;
-    grid-template-columns: repeat(3, 120px);
-    grid-template-rows: repeat(3, 120px);
-    gap: 15px;
-    background: white;
-    border: 3px solid #333;
-    border-radius: 10px;
-    padding: 10px;
-    margin: 20px 20px;
-    user-select: none;
-  }
-
-  .grid-cell {
-    border: 2px dashed #888;
-    border-radius: 8px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 22px;
-    font-weight: bold;
-    color: #444;
-    position: relative;
-  }
-  .grid-cell.correct {
-    border-color: #4CAF50;
-    background-color: #d9f6dd;
-    color: #2a6f2a;
-  }
-
-  img.clipart {
-    max-width: 100px;
-    max-height: 100px;
-    user-select: none;
-    pointer-events: none;
-  }
-
-  /* Feedback icons style */
-  #correct-feedback, #wrong-feedback {
-    position: fixed;
-    width: 80px;
-    height: 80px;
-    pointer-events: none;
-    display: none;
-    z-index: 1000;
-  }
-
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Auslan Matching Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      background-color: #f7f7f7;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      width: 100%;
+      max-width: 900px;
+      padding: 10px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-grow: 1;
+    }
+    #levelTitle {
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    #studentInfo {
+      margin-bottom: 20px;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    .game-wrapper {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      flex-grow: 1;
+      gap: 15px;
+      flex-wrap: nowrap;
+    }
+    /* Draggables columns on left and right */
+    .draggable-column {
+      display: flex;
+      flex-direction: column;
+      flex-wrap: wrap;
+      max-height: 550px;
+      width: 80px;
+      gap: 8px;
+      justify-content: flex-start;
+      overflow-y: auto;
+    }
+    .draggable {
+      width: 70px;
+      height: 70px;
+      cursor: grab;
+      user-select: none;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+      background: white;
+      box-sizing: border-box;
+      object-fit: contain;
+    }
+    .draggable.hidden {
+      display: none;
+    }
+    /* Game board grid in center */
+    #gameBoard {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-gap: 15px;
+      flex-grow: 1;
+      max-width: 600px;
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    .grid-item {
+      aspect-ratio: 1 / 1;
+      border: 2px solid #ccc;
+      position: relative;
+      background-color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      user-select: none;
+    }
+    .grid-item img {
+      width: 80%;
+      height: 80%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+    .grid-item.matched::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('assets/correct.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      pointer-events: none;
+      border-radius: 6px;
+    }
+    #message {
+      margin: 20px 0 10px 0;
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: green;
+      min-height: 24px;
+    }
+    /* Bottom buttons container */
+    #buttonsContainer {
+      margin-top: 15px;
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-image {
+      cursor: pointer;
+      width: 120px;
+      height: 50px;
+      object-fit: contain;
+      user-select: none;
+      border-radius: 8px;
+      transition: transform 0.2s ease;
+    }
+    .btn-image:hover {
+      transform: scale(1.05);
+    }
+    /* Scrollbar styling for draggable columns */
+    .draggable-column::-webkit-scrollbar {
+      width: 8px;
+    }
+    .draggable-column::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    .draggable-column::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 4px;
+    }
+    .draggable-column::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+    @media (max-width: 768px) {
+      .game-wrapper {
+        flex-direction: column;
+        align-items: center;
+      }
+      .draggable-column {
+        flex-direction: row;
+        width: 100%;
+        max-height: none;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+      }
+      .draggable {
+        margin-right: 10px;
+      }
+      #gameBoard {
+        max-width: 100%;
+        margin: 20px 0;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="container">
+    <h1 id="levelTitle">Level 1: Match the Sign to the Letter</h1>
+    <p id="studentInfo"></p>
+    <div class="game-wrapper">
+      <div class="draggable-column" id="leftDraggables"></div>
+      <div id="gameBoard"></div>
+      <div class="draggable-column" id="rightDraggables"></div>
+    </div>
+    <div id="message"></div>
+    <div id="buttonsContainer" style="display:none;">
+      <img id="btnAgain" class="btn-image" src="assets/again.png" alt="Play Again" title="Play Again" />
+      <img id="btnHome" class="btn-image" src="assets/home.png" alt="Home" title="Home" />
+    </div>
+  </div>
 
-<!-- Left and right draggable letters columns -->
-<div id="draggables-container">
-  <div id="draggables-left" class="draggables-column"></div>
-  <div id="grid-container"></div>
-  <div id="draggables-right" class="draggables-column"></div>
-</div>
-
-<!-- Feedback images -->
-<img id="correct-feedback" src="assets/correct.png" alt="Correct" />
-<img id="wrong-feedback" src="assets/wrong.png" alt="Wrong" />
-
-<script>
-  // Example cliparts & words for the grid and draggable letters
-  // Replace these with your real clipart file names and matching letters
-  const levelsData = {
-    1: [
-      { word: "A", img: "assets/cliparts/apple.png" },
-      { word: "B", img: "assets/cliparts/ball.png" },
-      { word: "C", img: "assets/cliparts/cat.png" },
-      { word: "D", img: "assets/cliparts/dog.png" },
-      { word: "E", img: "assets/cliparts/egg.png" },
-      { word: "F", img: "assets/cliparts/fish.png" },
-      { word: "G", img: "assets/cliparts/gift.png" },
-      { word: "H", img: "assets/cliparts/hat.png" },
-      { word: "I", img: "assets/cliparts/icecream.png" }
-    ]
-    // Add more levels if needed...
-  };
-
-  // Globals
-  let level = 1;
-  const maxLevel = Object.keys(levelsData).length;
-  let matchedCount = 0;
-
-  const draggablesLeft = document.getElementById("draggables-left");
-  const draggablesRight = document.getElementById("draggables-right");
-  const gridContainer = document.getElementById("grid-container");
-  const correctFeedback = document.getElementById("correct-feedback");
-  const wrongFeedback = document.getElementById("wrong-feedback");
-
-  // Drag & Drop Handlers
-  function onDragStart(e) {
-    e.dataTransfer.setData("text/plain", e.target.dataset.letter);
-    e.dataTransfer.effectAllowed = "move";
-    // Optional: style drag image
-  }
-
-  function onDragOver(e) {
-    e.preventDefault(); // allow drop
-    e.dataTransfer.dropEffect = "move";
-  }
-
-  function onDrop(e) {
-    e.preventDefault();
-    const draggedLetter = e.dataTransfer.getData("text/plain");
-    const targetLetter = e.currentTarget.dataset.expectedLetter;
-
-    const dropX = e.clientX;
-    const dropY = e.clientY;
-
-    if (draggedLetter === targetLetter) {
-      // Correct match
-      if (!e.currentTarget.classList.contains("correct")) {
-        matchedCount++;
-      }
-      e.currentTarget.classList.add("correct");
-      e.currentTarget.textContent = draggedLetter;
-
-      // Remove draggable letter from either column
-      const draggedElem = document.querySelector(`.draggable-letter[data-letter="${draggedLetter}"]`);
-      if (draggedElem) draggedElem.remove();
-
-      showFeedback(correctFeedback, dropX, dropY);
-
-      if (matchedCount === 9) {
-        setTimeout(() => {
-          if (level === maxLevel) {
-            alert("🎉 Congratulations! You have completed all levels.");
-            // Optionally redirect or reset
-            location.reload();
-          } else {
-            level++;
-            alert(`Level ${level} starting now!`);
-            initGame();
-          }
-        }, 1000);
-      }
+  <script>
+    // Get stored student info or redirect to home if missing
+    const studentName = localStorage.getItem("studentName") || "";
+    const studentClass = localStorage.getItem("studentClass") || "";
+    if (!studentName || !studentClass) {
+      window.location.href = "index.html";
     } else {
-      // Wrong match
-      showFeedback(wrongFeedback, dropX, dropY);
+      document.getElementById("studentInfo").textContent = `Signed in as: ${studentName} (${studentClass})`;
     }
-  }
 
-  function showFeedback(img, x, y) {
-    img.style.left = `${x - 40}px`;
-    img.style.top = `${y - 40}px`;
-    img.style.display = "block";
-    setTimeout(() => {
-      img.style.display = "none";
-    }, 700);
-  }
+    const urlParams = new URLSearchParams(window.location.search);
+    const topic = localStorage.getItem("selectedTopic") || "alphabet";
+    let level = parseInt(urlParams.get("level") || "1");
+    const maxLevel = 3;
 
-  // Initialize game
-  function initGame() {
-    matchedCount = 0;
-    draggablesLeft.innerHTML = "";
-    draggablesRight.innerHTML = "";
-    gridContainer.innerHTML = "";
+    const levelTitle = document.getElementById("levelTitle");
+    const gameBoard = document.getElementById("gameBoard");
+    const leftDraggables = document.getElementById("leftDraggables");
+    const rightDraggables = document.getElementById("rightDraggables");
+    const message = document.getElementById("message");
+    const buttonsContainer = document.getElementById("buttonsContainer");
+    const btnAgain = document.getElementById("btnAgain");
+    const btnHome = document.getElementById("btnHome");
 
-    // Prepare the level data
-    const levelWords = levelsData[level];
+    let correctMatches = 0;
+    let totalAttempts = 0;
 
-    // Shuffle the letters for draggable list (12 total)
-    // We'll take the 9 correct letters + 3 random extra letters
-    const correctLetters = levelWords.map(item => item.word);
+    // Full alphabet
+    const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
 
-    // Generate some random extra letters for distractors (e.g. from alphabet)
-    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-    let extras = [];
-    while (extras.length < 3) {
-      let randLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
-      if (!correctLetters.includes(randLetter) && !extras.includes(randLetter)) {
-        extras.push(randLetter);
+    // Letters per level:
+    function getLevelLetters(lvl) {
+      if (lvl === 1) return allLetters.slice(0, 9);      // a-i (9 letters)
+      if (lvl === 2) return allLetters.slice(9, 18);     // j-r (9 letters)
+      if (lvl === 3) return allLetters.slice(18, 26);    // s-z (8 letters)
+      return [];
+    }
+
+    // Initialize game board and draggable signs
+    function initGame() {
+      const matchItems = getLevelLetters(level);
+
+      // Pick 3 extras from letters NOT in matchItems, random order
+      const extras = allLetters.filter(l => !matchItems.includes(l)).sort(() => 0.5 - Math.random()).slice(0, 3);
+
+      // Reset UI
+      gameBoard.innerHTML = "";
+      leftDraggables.innerHTML = "";
+      rightDraggables.innerHTML = "";
+      buttonsContainer.style.display = "none";
+      message.textContent = "";
+      correctMatches = 0;
+      totalAttempts = 0;
+
+      levelTitle.textContent = `Level ${level}: Match the Sign to the Letter`;
+
+      // Create grid items for clipart letters
+      matchItems.forEach(letter => {
+        const div = document.createElement("div");
+        div.className = "grid-item";
+        div.dataset.word = letter;
+
+        const img = document.createElement("img");
+        img.src = `assets/alphabet/clipart/${letter}.png`;
+        img.alt = letter;
+        div.appendChild(img);
+
+        div.addEventListener("dragover", e => e.preventDefault());
+        div.addEventListener("drop", handleDrop);
+
+        gameBoard.appendChild(div);
+      });
+
+      // Combine matchItems + extras for draggable signs, shuffle
+      const allSigns = [...matchItems, ...extras].sort(() => 0.5 - Math.random());
+
+      // Split draggable signs roughly in half for left/right columns
+      const midpoint = Math.ceil(allSigns.length / 2);
+      const leftSigns = allSigns.slice(0, midpoint);
+      const rightSigns = allSigns.slice(midpoint);
+
+      function createDraggable(imgLetter, container) {
+        const img = document.createElement("img");
+        img.src = `assets/alphabet/signs/sign-${imgLetter}.png`;
+        img.alt = imgLetter;
+        img.className = "draggable";
+        img.setAttribute("draggable", "true");
+        img.dataset.word = imgLetter;
+
+        img.addEventListener("dragstart", e => {
+          e.dataTransfer.setData("text/plain", imgLetter);
+        });
+        container.appendChild(img);
       }
+
+      leftSigns.forEach(l => createDraggable(l, leftDraggables));
+      rightSigns.forEach(l => createDraggable(l, rightDraggables));
     }
 
-    // Combine and shuffle
-    let draggableLetters = [...correctLetters, ...extras];
-    draggableLetters = shuffleArray(draggableLetters);
+    function handleDrop(e) {
+      e.preventDefault();
+      const draggedLetter = e.dataTransfer.getData("text/plain");
+      const dropTarget = e.currentTarget;
 
-    // Create grid cells with cliparts
-    levelWords.forEach(item => {
-      const cell = document.createElement("div");
-      cell.className = "grid-cell";
-      cell.dataset.expectedLetter = item.word;
+      if (dropTarget.classList.contains("matched")) {
+        // Already matched
+        return;
+      }
 
-      // Create and add clipart image
-      const img = document.createElement("img");
-      img.src = item.img;
-      img.alt = item.word;
-      img.className = "clipart";
-      cell.appendChild(img);
+      const targetLetter = dropTarget.dataset.word;
 
-      // Setup drop listeners
-      cell.addEventListener("dragover", onDragOver);
-      cell.addEventListener("drop", onDrop);
+      totalAttempts++;
 
-      gridContainer.appendChild(cell);
-    });
+      if (draggedLetter === targetLetter) {
+        // Mark as matched
+        dropTarget.classList.add("matched");
+        message.style.color = "green";
+        message.textContent = `Correct! You matched ${draggedLetter.toUpperCase()}.`;
 
-    // Clear draggable columns
-    draggablesLeft.innerHTML = "";
-    draggablesRight.innerHTML = "";
+        // Remove draggable from UI
+        removeDraggable(draggedLetter);
 
-    // Add draggable letters split evenly (6 left, 6 right)
-    draggableLetters.forEach((letter, idx) => {
-      const div = document.createElement("div");
-      div.className = "draggable-letter";
-      div.textContent = letter;
-      div.dataset.letter = letter;
-      div.setAttribute("draggable", "true");
+        correctMatches++;
 
-      div.addEventListener("dragstart", onDragStart);
-
-      if (idx < 6) {
-        draggablesLeft.appendChild(div);
+        if (correctMatches === getLevelLetters(level).length) {
+          // Level complete
+          setTimeout(() => {
+            if (level < maxLevel) {
+              message.style.color = "blue";
+              message.textContent = `Well done! Level ${level} complete. Loading next level...`;
+              level++;
+              setTimeout(() => {
+                initGame();
+              }, 1500);
+            } else {
+              // Game complete, show buttons
+              message.style.color = "green";
+              message.textContent = "Congratulations! You've completed all levels.";
+              buttonsContainer.style.display = "flex";
+            }
+          }, 800);
+        }
       } else {
-        draggablesRight.appendChild(div);
+        message.style.color = "red";
+        message.textContent = `Try again! That sign is for ${draggedLetter.toUpperCase()}, not ${targetLetter.toUpperCase()}.`;
       }
-    });
-  }
-
-  // Utility: shuffle an array
-  function shuffleArray(arr) {
-    let array = arr.slice();
-    for (let i = array.length -1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i+1));
-      [array[i], array[j]] = [array[j], array[i]];
     }
-    return array;
-  }
 
-  // Start game on page load
-  window.addEventListener("DOMContentLoaded", () => {
-    initGame();
-  });
-</script>
+    function removeDraggable(letter) {
+      // Remove from left column if present
+      let img = leftDraggables.querySelector(`img[data-word="${letter}"]`);
+      if (img) {
+        img.classList.add("hidden");
+        return;
+      }
+      // Otherwise remove from right column
+      img = rightDraggables.querySelector(`img[data-word="${letter}"]`);
+      if (img) {
+        img.classList.add("hidden");
+      }
+    }
+
+    // Button event listeners
+    btnAgain.addEventListener("click", () => {
+      buttonsContainer.style.display = "none";
+      message.textContent = "";
+      level = 1;
+      initGame();
+    });
+
+    btnHome.addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+
+    // Initialize on load
+    window.addEventListener("load", () => {
+      initGame();
+    });
+  </script>
 </body>
 </html>
