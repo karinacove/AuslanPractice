@@ -22,6 +22,39 @@
       margin-top: 40px;
     }
 
+  .bottom-row-links {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: #222; /* or whatever background */
+      display: flex;
+      justify-content: center; /* center them horizontally */
+      gap: 20px; /* spacing between links */
+      padding: 10px 0;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.3);
+      z-index: 1000;
+    }    
+
+    .bottom-row-links a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      background-color: #444;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    .bottom-row-links a:hover {
+      background-color: #28a745; /* highlight on hover */
+    }
+
+    .matching-game {
+      background-color: #28a745;
+      color: white;
+    }
+
     .corner-link {
       position: fixed;
       padding: 15px 30px;
@@ -63,12 +96,12 @@
 
   <h1>Auslan Practice Activities</h1>
 
-  <a class="corner-link top-left" href="wordle/">Auslan Wordle</a>
-  <a class="corner-link top-right" href="BalloonPop/index.html">🎈 Balloon Pop</a>
-  <a class="corner-link bottom-left" href="transport/">Transport Map Activity</a>
-  <a class="corner-link bottom-right" href="FingerspellingChallenge/index.html">Fingerspelling Challenge</a>
-<div style="margin-top: 20px;">
-  <a href="MatchingGame/hub.html" style="display: inline-block; padding: 15px 30px; background-color: #28a745; color: white; font-weight: bold; border-radius: 10px; text-decoration: none;">🧩 Matching Game</a>
+<div class="bottom-row-links">
+  <a href="wordle/">Auslan Wordle</a>
+  <a href="BalloonPop/index.html">🎈 Balloon Pop</a>
+  <a href="transport/">🚗Transport Map Activity</a>
+  <a href="FingerspellingChallenge/index.html">🔡Fingerspelling Challenge</a>
+  <a href="MatchingGame/hub.html" class="matching-game">🧩 Matching Game</a>
 </div>
 </body>
 </html>
