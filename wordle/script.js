@@ -12,6 +12,10 @@ let attempts = 0;
 const maxAttempts = 6;
 const rows = document.querySelectorAll(".row");
 let currentRow = 0;
+let guessesList = [];
+
+const studentName = localStorage.getItem("studentName") || "";
+const studentClass = localStorage.getItem("studentClass") || "";
 
 // Load playable words
 fetch('wordle_words.json')
@@ -23,7 +27,7 @@ fetch('wordle_words.json')
     })
     .catch(error => console.error("Error loading word list:", error));
 
-// Load valid words for checking
+// Load valid words
 fetch("valid_words.json")
   .then(response => response.json())
   .then(data => {
@@ -31,8 +35,6 @@ fetch("valid_words.json")
     console.log("✅ Valid words loaded:", validWords.length);
   })
   .catch(error => console.error("Error loading valid words:", error));
-
-// Handle key presses
 
 document.addEventListener("keydown", (event) => {
     console.log("🔑 Key pressed:", event.key);
@@ -62,6 +64,7 @@ function updateGrid() {
 }
 
 function checkGuess() {
+    guessesList.push(currentGuess);
     const guessArray = currentGuess.split("");
     const correctArray = correctWord.split("");
     const cells = rows[currentRow].querySelectorAll(".cell");
@@ -90,12 +93,14 @@ function checkGuess() {
     });
 
     if (currentGuess === correctWord) {
+        submitWordleResult(correctWord, guessesList);
         showAuslanClap();
         setTimeout(showPlayAgainButton, 3000);
     } else {
         attempts++;
         if (attempts >= maxAttempts) {
             alert(`The correct word was: ${correctWord}`);
+            submitWordleResult(correctWord, guessesList);
             showPlayAgainButton();
         } else {
             setTimeout(() => {
@@ -157,4 +162,30 @@ function showInvalidWordMessage(word) {
     setTimeout(() => {
         message.remove();
     }, 2000);
+}
+
+function submitWordleResult(targetWord, guessesArray) {
+    const guessList = guessesArray.join(', ');
+    const numGuesses = guessesArray.length;
+    const timestamp = new Date().toLocaleString("en-AU", { timeZone: "Australia/Melbourne" });
+
+    const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdrm9k5H4JSyqI8COPHubPXeHLTKMrsQTMeV_uCmSZwn3o_kA/formResponse";
+
+    const formData = new FormData();
+    formData.append("entry.1997091015", studentName);        // Name
+    formData.append("entry.1671097169", studentClass);       // Class
+    formData.append("entry.884909677", targetWord);          // Target Word
+    formData.append("entry.1040569311", guessList);          // Guesses
+    formData.append("entry.1916112455", numGuesses);         // Number of Attempts
+    formData.append("entry.1856222712", timestamp);          // Timestamp (new field – must match Google Form)
+
+    fetch(formURL, {
+        method: "POST",
+        mode: "no-cors",
+        body: formData
+    }).then(() => {
+        console.log("✅ Form submitted");
+    }).catch((err) => {
+        console.error("❌ Form error:", err);
+    });
 }
