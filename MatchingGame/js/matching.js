@@ -1,133 +1,309 @@
-const studentName = localStorage.getItem("studentName") || "";
-const studentClass = localStorage.getItem("studentClass") || "";
-if (!studentName || !studentClass) {
-  window.location.href = "index.html";
-} else {
-  document.getElementById("studentInfo").textContent = `Signed in as: ${studentName} (${studentClass})`;
-}
+(() => {
+  // Get URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  let level = parseInt(urlParams.get("level")) || 1;
+  if (![1,2,3].includes(level)) level = 1;
 
-let level = 1;
-let topic = localStorage.getItem("selectedTopic") || "alphabet"; // default to alphabet
-let correctCount = 0;
-let incorrectCount = 0;
-let matched = 0;
+  // Get student info and topic from localStorage (or redirect if missing)
+  const studentName = localStorage.getItem("studentName") || "";
+  const studentClass = localStorage.getItem("studentClass") || "";
+  const topic = localStorage.getItem("selectedTopic") || "alphabet";
 
-document.getElementById("nextLevel").addEventListener("click", () => {
-  level++;
-  if (level <= 3) {
-    loadLevel(level);
-  } else {
-    submitResults();
+  if (!studentName || !studentClass) {
+    alert("Please sign in first.");
+    window.location.href = "index.html";
   }
-});
 
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
+  // HTML Elements
+  const levelTitle = document.getElementById("levelTitle");
+  const studentInfo = document.getElementById("studentInfo");
+  const gameBoard = document.getElementById("gameBoard");
+  const draggablesLeft = document.getElementById("draggablesLeft");
+  const draggablesRight = document.getElementById("draggablesRight");
+  const finishButton = document.getElementById("finishButton");
+
+  // Constants
+  const MAX_MATCHES = 9;
+
+  // Letters a-i for simplicity; adjust as needed
+  // For example for alphabet 26 letters, slice by levels or randomly select
+  const alphabetLetters = "abcdefghijklmnopqrstuvwxyz".split("");
+
+  // Prepare vocabulary for alphabet — clipart and signs are named by letter (e.g. a.png)
+  // For testing: pick first 9 letters for each level (you can randomize later)
+  // Level 3 will mix them
+
+  // Helper to shuffle array
+  function shuffle(arr) {
+    return arr.sort(() => 0.5 - Math.random());
   }
-  return array;
-}
 
-function loadLevel(currentLevel) {
-  const board = document.getElementById("gameBoard");
-  const tray = document.getElementById("signTray");
-  board.innerHTML = "";
-  tray.innerHTML = "";
-  matched = 0;
+  // Current matches tracking
+  let correctMatches = 0;
+  let matchedWords = new Set();
 
-  document.getElementById("levelTitle").textContent =
-    currentLevel === 1 ? "Level 1: Match the Sign to the Picture"
-    : currentLevel === 2 ? "Level 2: Match the Picture to the Sign"
-    : "Level 3: Mixed Matching";
-  document.getElementById("nextLevel").style.display = "none";
+  // Set info text
+  studentInfo.textContent = `Signed in as: ${studentName} (${studentClass})`;
 
-  if (topic === "alphabet") {
-    const letters = shuffle("abcdefghijklmnopqrstuvwxyz".split(""));
-    const selected = letters.slice(0, 9);
-    const distractors = letters.slice(9, 12);
-    const allSigns = shuffle([...selected, ...distractors]);
+  // Set level title
+  const levelTitles = {
+    1: "Level 1: Match the Sign to the Picture",
+    2: "Level 2: Match the Picture to the Sign",
+    3: "Level 3: Mixed Challenge",
+  };
+  levelTitle.textContent = levelTitles[level];
 
-    selected.forEach(letter => {
-      const gridItem = document.createElement("div");
-      gridItem.className = "grid-item";
-      gridItem.dataset.letter = letter;
+  // For level 1 & 2, fixed first 9 letters; level 3 mix of signs & clipart
+  let levelVocab = alphabetLetters.slice(0, MAX_MATCHES);
 
-      const img = document.createElement("img");
-      img.src = `assets/alphabet/clipart/${letter}.png`;
-      img.alt = letter;
-      img.style.maxWidth = "100%";
-      img.style.maxHeight = "100%";
+  // Build game data based on level
+  // Each item: { word: letter, gridType: 'clipart' | 'sign', draggableType: 'sign' | 'clipart' }
+  // level 1: grid=clipart, draggable=sign
+  // level 2: grid=sign, draggable=clipart
+  // level 3: mix half grid clipart & half grid signs; draggable is opposite
+  let gameItems = [];
 
-      gridItem.appendChild(img);
-      board.appendChild(gridItem);
+  if (level === 1) {
+    // grid: clipart, draggable: sign
+    gameItems = levelVocab.map(letter => ({
+      word: letter,
+      gridType: "clipart",
+      draggableType: "sign",
+    }));
+  } else if (level === 2) {
+    // grid: sign, draggable: clipart
+    gameItems = levelVocab.map(letter => ({
+      word: letter,
+      gridType: "sign",
+      draggableType: "clipart",
+    }));
+  } else if (level === 3) {
+    // mix half & half in grid (4 clipart, 5 signs or vice versa)
+    const half = Math.floor(MAX_MATCHES / 2);
+    const shuffled = shuffle(levelVocab);
+
+    // first half clipart in grid, rest signs
+    const firstHalf = shuffled.slice(0, half).map(letter => ({
+      word: letter,
+      gridType: "clipart",
+      draggableType: "sign",
+    }));
+    const secondHalf = shuffled.slice(half).map(letter => ({
+      word: letter,
+      gridType: "sign",
+      draggableType: "clipart",
+    }));
+
+    gameItems = [...firstHalf, ...secondHalf];
+    gameItems = shuffle(gameItems);
+  }
+
+  // Prepare draggable items collection (words)
+  // Draggables are the opposite type of the grid
+  // Gather all draggable words
+  let draggableWords = gameItems.map(i => i.word);
+
+  // Shuffle draggable words for random order
+  draggableWords = shuffle(draggableWords);
+
+  // Clear containers
+  gameBoard.innerHTML = "";
+  draggablesLeft.innerHTML = "";
+  draggablesRight.innerHTML = "";
+
+  // Build grid items
+  gameItems.forEach((item, index) => {
+    const div = document.createElement("div");
+    div.className = "grid-item";
+    div.dataset.word = item.word;
+    div.dataset.gridType = item.gridType;
+    div.style.position = "relative";
+
+    // Create image for grid item based on gridType
+    const img = document.createElement("img");
+    if (item.gridType === "clipart") {
+      img.src = `assets/${topic}/clipart/${item.word}.png`;
+      img.alt = item.word;
+    } else if (item.gridType === "sign") {
+      img.src = `assets/${topic}/signs/sign-${item.word}.png`;
+      img.alt = item.word;
+    }
+    img.draggable = false;
+    img.style.width = "100%";
+    img.style.height = "100%";
+    img.style.objectFit = "contain";
+
+    div.appendChild(img);
+
+    // Allow drop on grid item
+    div.addEventListener("dragover", e => e.preventDefault());
+    div.addEventListener("drop", handleDrop);
+
+    gameBoard.appendChild(div);
+  });
+
+  // Split draggable words roughly half left, half right
+  const half = Math.ceil(draggableWords.length / 2);
+  const leftDraggables = draggableWords.slice(0, half);
+  const rightDraggables = draggableWords.slice(half);
+
+  // Create draggable images on left and right columns
+  function createDraggable(word) {
+    const img = document.createElement("img");
+    img.className = "draggable";
+    img.dataset.word = word;
+    img.draggable = true;
+
+    // Draggable image depends on level & word type in gameItems
+    // Find item to get draggableType for this word
+    const item = gameItems.find(i => i.word === word);
+    if (!item) return null;
+
+    if (item.draggableType === "sign") {
+      img.src = `assets/${topic}/signs/sign-${word}.png`;
+      img.alt = word;
+    } else if (item.draggableType === "clipart") {
+      img.src = `assets/${topic}/clipart/${word}.png`;
+      img.alt = word;
+    }
+
+    img.style.width = "80px";
+    img.style.height = "80px";
+    img.style.margin = "10px";
+    img.style.cursor = "grab";
+    img.style.userSelect = "none";
+
+    img.addEventListener("dragstart", e => {
+      e.dataTransfer.setData("text/plain", word);
     });
 
-    allSigns.forEach(sign => {
-      const signImg = document.createElement("img");
-      signImg.className = "sign-img";
-      signImg.src = `assets/alphabet/signs/sign-${sign}.png`;
-      signImg.alt = sign;
-      signImg.draggable = true;
+    return img;
+  }
 
-      signImg.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("text/plain", sign);
-      });
+  leftDraggables.forEach(word => {
+    const d = createDraggable(word);
+    if (d) draggablesLeft.appendChild(d);
+  });
+  rightDraggables.forEach(word => {
+    const d = createDraggable(word);
+    if (d) draggablesRight.appendChild(d);
+  });
 
-      tray.appendChild(signImg);
-    });
+  // Track matched words
+  matchedWords = new Set();
 
-    document.querySelectorAll(".grid-item").forEach(slot => {
-      slot.addEventListener("dragover", e => e.preventDefault());
-      slot.addEventListener("drop", e => {
-        e.preventDefault();
-        const dragged = e.dataTransfer.getData("text/plain");
-        const correct = slot.dataset.letter;
-        if (dragged === correct) {
-          const label = document.createElement("div");
-          label.className = "label";
-          label.textContent = dragged.toUpperCase();
-          slot.appendChild(label);
-          matched++;
-          correctCount++;
-          const draggedImg = document.querySelector(`img[alt='${dragged}']`);
-          if (draggedImg) draggedImg.remove();
-          if (matched === 9) {
-            document.getElementById("nextLevel").style.display = "inline-block";
+  // Handle drop event
+  function handleDrop(e) {
+    e.preventDefault();
+    const dropTarget = e.currentTarget;
+    const targetWord = dropTarget.dataset.word;
+    const draggedWord = e.dataTransfer.getData("text/plain");
+
+    // Only accept if target not matched yet
+    if (matchedWords.has(targetWord)) {
+      return;
+    }
+
+    if (draggedWord === targetWord) {
+      // Correct match!
+      matchedWords.add(targetWord);
+      correctMatches++;
+
+      // Mark grid item with overlay "correct.png"
+      showOverlay(dropTarget, "assets/correct.png");
+
+      // Hide draggable image that matched
+      const draggedImg = [...draggablesLeft.children, ...draggablesRight.children]
+        .find(img => img.dataset.word === draggedWord);
+      if (draggedImg) draggedImg.style.display = "none";
+
+      // Check if all matched
+      if (correctMatches === MAX_MATCHES) {
+        setTimeout(() => {
+          if (level === 3) {
+            // End of cycle, submit results or restart level 1
+            alert("Game complete! Restarting Level 1.");
+            goToLevel(1);
+          } else {
+            goToLevel(level + 1);
           }
-        } else {
-          incorrectCount++;
-        }
-      });
-    });
+        }, 1000);
+      }
+    } else {
+      // Wrong match - show wrong.png overlay, bounce draggable back
+      const draggedImg = [...draggablesLeft.children, ...draggablesRight.children]
+        .find(img => img.dataset.word === draggedWord);
+
+      if (draggedImg) {
+        showOverlay(draggedImg.parentElement || draggedImg, "assets/wrong.png", true);
+        // Add bounce animation
+        draggedImg.classList.add("bounce");
+        setTimeout(() => {
+          draggedImg.classList.remove("bounce");
+        }, 600);
+      }
+    }
   }
-}
 
-function submitResults() {
-  const form = document.createElement("form");
-  form.action = "https://docs.google.com/forms/d/e/YOUR_GOOGLE_FORM_ID/formResponse";
-  form.method = "POST";
-  form.target = "_self";
+  // Show overlay image on target for 1s (or bounce on dragged img if bounce true)
+  function showOverlay(target, imageUrl, bounce = false) {
+    if (bounce) {
+      // For bounce effect on draggable, target is draggable img element
+      // Already handled class toggle in handleDrop
+      return;
+    }
+    const overlay = document.createElement("img");
+    overlay.src = imageUrl;
+    overlay.style.position = "absolute";
+    overlay.style.top = "50%";
+    overlay.style.left = "50%";
+    overlay.style.width = "80px";
+    overlay.style.height = "80px";
+    overlay.style.transform = "translate(-50%, -50%)";
+    overlay.style.pointerEvents = "none";
+    overlay.style.zIndex = "10";
+    target.style.position = "relative";
+    target.appendChild(overlay);
 
-  const nameField = document.createElement("input");
-  nameField.name = "entry.YOUR_NAME_ENTRY_ID";
-  nameField.value = studentName;
+    setTimeout(() => {
+      overlay.remove();
+    }, 1000);
+  }
 
-  const classField = document.createElement("input");
-  classField.name = "entry.YOUR_CLASS_ENTRY_ID";
-  classField.value = studentClass;
+  // Navigate to next level with persisted localStorage and query string
+  function goToLevel(nextLevel) {
+    localStorage.setItem("selectedTopic", topic);
+    // Keep student info too
+    window.location.href = `game.html?level=${nextLevel}`;
+  }
 
-  const correctField = document.createElement("input");
-  correctField.name = "entry.YOUR_CORRECT_ENTRY_ID";
-  correctField.value = correctCount;
+  // Submit results to Google Form (adjust URL & entry IDs to your form)
+  function submitResults() {
+    const correctCount = correctMatches;
+    const incorrectCount = MAX_MATCHES - correctCount;
+    const percentCorrect = Math.round((correctCount / MAX_MATCHES) * 100);
 
-  const incorrectField = document.createElement("input");
-  incorrectField.name = "entry.YOUR_INCORRECT_ENTRY_ID";
-  incorrectField.value = incorrectCount;
+    const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
 
-  [nameField, classField, correctField, incorrectField].forEach(field => form.appendChild(field));
-  document.body.appendChild(form);
-  form.submit();
-}
+    const formData = new FormData();
+    formData.append("entry.1387461004", studentName); // Name
+    formData.append("entry.1309291707", studentClass); // Class
+    formData.append("entry.477642881", topic.charAt(0).toUpperCase() + topic.slice(1)); // Topic
+    formData.append("entry.1897227570", [...matchedWords].join(", ")); // Correct matches
+    formData.append("entry.1249394203", [...gameItems.filter(i => !matchedWords.has(i.word)).map(i => i.word)].join(", ")); // Incorrect matches
+    formData.append("entry.1996137354", `${percentCorrect}%`); // Percentage correct
 
-loadLevel(level);
+    fetch(formUrl, {
+      method: "POST",
+      mode: "no-cors",
+      body: formData,
+    }).catch(e => console.warn("Google Form submit error", e));
+  }
+
+  // Finish button click handler
+  finishButton.addEventListener("click", () => {
+    submitResults();
+    alert("Your results have been submitted. Returning to home.");
+    window.location.href = "index.html";
+  });
+})();
