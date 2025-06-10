@@ -96,84 +96,119 @@
 
     let correctMatches = 0;
 
+   let level = 1;
+    let topic = localStorage.getItem("selectedTopic") || "alphabet";
+    let correctCount = 0;
+    let incorrectCount = 0;
+    let usedItems = new Set();
+
     const letters = "abcdefghijklmnopqrstuvwxyz".split("").slice(0, 12);
 
-    function initGame() {
-      gameBoard.innerHTML = "";
-      draggables.innerHTML = "";
-      correctMatches = 0;
+    function loadLevel(currentLevel) {
+      document.getElementById("gameBoard").innerHTML = "";
+      document.getElementById("draggables").innerHTML = "";
+      document.getElementById("levelTitle").textContent =
+        currentLevel === 1 ? "Level 1: Match the Sign to the Letter"
+        : currentLevel === 2 ? "Level 2: Match the Letter to the Sign"
+        : "Level 3: Mixed Matching";
+      document.getElementById("nextLevel").style.display = "none";
 
-      matchItems.forEach(word => {
+      // Generate grid items
+      const selected = letters.slice(0, 9);
+      selected.forEach(letter => {
         const div = document.createElement("div");
         div.className = "grid-item";
-        div.dataset.word = word;
-
+        div.dataset.letter = letter;
         const img = document.createElement("img");
-        img.src = `assets/${topic}/clipart/${word}.png`;
-        img.alt = word;
+        img.src = `assets/${topic}/clipart/${letter}.png`;
+        img.style.width = "100%";
         div.appendChild(img);
+
+        const feedback = document.createElement("img");
+        feedback.className = "feedback";
+        div.appendChild(feedback);
 
         div.addEventListener("dragover", e => e.preventDefault());
         div.addEventListener("drop", handleDrop);
-
-        gameBoard.appendChild(div);
+        document.getElementById("gameBoard").appendChild(div);
       });
 
-      const allSigns = [...matchItems, ...extras].sort(() => 0.5 - Math.random());
-
-      allSigns.forEach(word => {
+      // Add draggable signs
+      letters.slice(0, 12).forEach(letter => {
         const img = document.createElement("img");
-        img.src = `assets/${topic}/signs/sign-${word}.png`;
-        img.alt = word;
+        img.src = `assets/${topic}/signs/sign-${letter}.png`;
         img.className = "draggable";
-        img.setAttribute("draggable", true);
-        img.dataset.word = word;
-
+        img.draggable = true;
+        img.id = `drag-${letter}`;
+        img.dataset.letter = letter;
         img.addEventListener("dragstart", e => {
-          e.dataTransfer.setData("text/plain", word);
+          e.dataTransfer.setData("text/plain", letter);
         });
-
-        draggables.appendChild(img);
+        document.getElementById("draggables").appendChild(img);
       });
     }
 
     function handleDrop(e) {
-      e.preventDefault();
-      const dropTarget = e.currentTarget;
-      const targetWord = dropTarget.dataset.word;
-      const draggedWord = e.dataTransfer.getData("text/plain");
-      const draggedImg = document.querySelector(`[data-word='${draggedWord}']`);
+      const dropZone = e.currentTarget;
+      const targetLetter = dropZone.dataset.letter;
+      const draggedLetter = e.dataTransfer.getData("text/plain");
 
-      if (draggedWord === targetWord && !dropTarget.classList.contains("matched")) {
-        dropTarget.classList.add("matched");
-        if (draggedImg) draggedImg.classList.add("hidden");
-        correctMatches++;
-
-        if (correctMatches === 9) {
-          nextButton.style.display = "block";
-        }
+      const draggedImg = document.getElementById(`drag-${draggedLetter}`);
+      if (targetLetter === draggedLetter) {
+        dropZone.querySelector(".feedback").src = "assets/correct.png";
+        correctCount++;
+        draggedImg.remove();
       } else {
-        // show incorrect overlay briefly then reset
-        if (draggedImg) {
-          const originalPos = draggedImg.parentElement;
-          const wrongIndicator = document.createElement("img");
-          wrongIndicator.src = "assets/wrong.png";
-          wrongIndicator.style.position = "absolute";
-          wrongIndicator.style.width = "100px";
-          wrongIndicator.style.zIndex = "10";
-          wrongIndicator.style.top = "0";
-          wrongIndicator.style.left = "0";
-          document.body.appendChild(wrongIndicator);
-          setTimeout(() => wrongIndicator.remove(), 500);
-        }
+        dropZone.querySelector(".feedback").src = "assets/wrong.png";
+        incorrectCount++;
+        // Bounce back effect
+        draggedImg.style.transition = "transform 0.2s";
+        draggedImg.style.transform = "scale(1.2)";
+        setTimeout(() => draggedImg.style.transform = "scale(1)", 200);
       }
+
+      // Check if all 9 grid spots are correctly matched
+      const allMatched = Array.from(document.querySelectorAll(".grid-item .feedback")).filter(img => img.src.includes("correct.png")).length === 9;
+      if (allMatched) document.getElementById("nextLevel").style.display = "inline-block";
     }
 
-    initGame();
-
-    nextButton.addEventListener("click", () => {
-      alert("Proceeding to Level 2: functionality coming soon.");
+    document.getElementById("nextLevel").addEventListener("click", () => {
+      level++;
+      if (level <= 3) {
+        loadLevel(level);
+      } else {
+        submitResults();
+      }
     });
+
+    function submitResults() {
+      const form = document.createElement("form");
+      form.action = "https://docs.google.com/forms/d/e/YOUR_GOOGLE_FORM_ID/formResponse";
+      form.method = "POST";
+      form.target = "_self";
+
+      const nameField = document.createElement("input");
+      nameField.name = "entry.YOUR_NAME_ENTRY_ID";
+      nameField.value = studentName;
+
+      const classField = document.createElement("input");
+      classField.name = "entry.YOUR_CLASS_ENTRY_ID";
+      classField.value = studentClass;
+
+      const correctField = document.createElement("input");
+      correctField.name = "entry.YOUR_CORRECT_ENTRY_ID";
+      correctField.value = correctCount;
+
+      const incorrectField = document.createElement("input");
+      incorrectField.name = "entry.YOUR_INCORRECT_ENTRY_ID";
+      incorrectField.value = incorrectCount;
+
+      [nameField, classField, correctField, incorrectField].forEach(field => form.appendChild(field));
+      document.body.appendChild(form);
+      form.submit();
+    }
+
+    loadLevel(level);
   </script>
 </body>
 </html>
