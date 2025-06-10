@@ -1,10 +1,10 @@
 // Balloon Pop Game - Full Game Script with Login Integration
 
 const urlParams = new URLSearchParams(window.location.search);
-const playerName = urlParams.get("name");
-const playerClass = urlParams.get("class");
+const savedName = urlParams.get("studentname");
+const savedClass = urlParams.get("studentclass");
 
-if (!playerName || !playerClass) {
+if (!savedName || !savedClass) {
   window.location.href = "../index.html"; // Redirect to root login if missing
 }
 
@@ -85,9 +85,9 @@ document.addEventListener('DOMContentLoaded', () => {
   startForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const inputs = startForm.querySelectorAll('input');
-    playerName = inputs[0].value.trim();
-    playerClass = inputs[1].value.trim();
-    if (playerName && playerClass) {
+    studentName = inputs[0].value.trim();
+    studentClass = inputs[1].value.trim();
+    if (studentName && studentClass) {
       startScreen.style.display = 'none';
       gameContainer.style.display = 'block';
       updateBackground();
@@ -303,8 +303,8 @@ document.addEventListener('DOMContentLoaded', () => {
     form.style.display = 'none';
 
     const entries = {
-      'entry.1609572894': playerName,
-      'entry.1168342531': playerClass,
+      'entry.1609572894': studentName,
+      'entry.1168342531': studentClass,
       'entry.91913727': score,
       'entry.63569940': totalClicks,
       'entry.1746910343': correctList,
