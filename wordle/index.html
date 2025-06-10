@@ -87,44 +87,8 @@
 
   <div id="incorrectWordMessage"></div>
   <div id="leaderboard"></div>
-
-  <!-- LocalStorage check + form submission support -->
-  <script>
-    const studentName = localStorage.getItem('studentName');
-    const studentClass = localStorage.getItem('studentClass');
-
-    if (!studentName || !studentClass) {
-      alert("Please return to the home page and sign in first.");
-      window.location.href = "../index.html";
-    }
-
-    // Example submit function: call this when a word is guessed
-    function submitWordleResult(targetWord, guessesArray) {
-      const guessList = guessesArray.join(', ');
-      const numGuesses = guessesArray.length;
-
-      const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdrm9k5H4JSyqI8COPHubPXeHLTKMrsQTMeV_uCmSZwn3o_kA/formResponse";
-
-      const formData = new FormData();
-      formData.append("entry.1997091015", studentName);        // Name
-      formData.append("entry.1671097169", studentClass);       // Class
-      formData.append("entry.884909677", targetWord);          // Target Word
-      formData.append("entry.1040569311", guessList);          // Guesses
-      formData.append("entry.1916112455", numGuesses);         // Number of Attempts
-
-      fetch(formURL, {
-        method: "POST",
-        mode: "no-cors",
-        body: formData
-      }).then(() => {
-        console.log("Form submitted");
-      }).catch((err) => {
-        console.error("Form error:", err);
-      });
-    }
+  
   </script>
-
-  <!-- Your existing game logic -->
   <script src="script.js"></script>
 </body>
 </html>
