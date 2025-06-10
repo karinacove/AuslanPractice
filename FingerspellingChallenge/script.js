@@ -7,11 +7,6 @@ if (!studentName || !studentClass) {
   window.location.href = "../index.html"; // Redirect to login page
 } else {
   console.log(`Welcome ${studentName} from class ${studentClass}`);
-  // Start your game logic here
-  document.getElementById('start-screen').style.display = 'none';
-  document.getElementById('game-container').style.display = 'block';
-  // ... rest of your game initialization
-}
 
 let wordLists = {};
 let currentWord = "";
@@ -29,7 +24,8 @@ let letterGap = 50;
 let isSpelling = false; // Prevent overlapping replay
 
 // DOM Elements
-const modeSelect = document.getElementById("game-mode");
+document.getElementById('start-screen').style.display = 'none';
+document.getElementById('game-container').style.display = 'block';const modeSelect = document.getElementById("game-mode");
 const wordLengthSelect = document.getElementById("word-length");
 const lengthContainer = document.getElementById("length-container");
 const gameScreen = document.getElementById("game-screen");
