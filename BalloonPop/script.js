@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
   finishButton.style.zIndex = '20';
   finishButton.style.padding = '10px 20px';
   finishButton.style.cursor = 'pointer';
-    <img src="assets/finish.png">;
 
   let playerName = '';
   let playerClass = '';
