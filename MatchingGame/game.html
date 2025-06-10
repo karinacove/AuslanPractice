@@ -225,18 +225,23 @@
         method: "POST",
         mode: "no-cors",
         body: form
+      }).then(() => {
+        setTimeout(() => {
+          if (level < 3) {
+            window.location.href = `game.html?level=${level + 1}&topic=${topic}`;
+          } else {
+            alert("Well done! You've finished all levels.");
+            window.location.href = "index.html";
+          }
+        }, 500);
       });
     }
 
     initGame();
 
     nextButton.addEventListener("click", () => {
-      if (level < 3) {
-        window.location.href = `game.html?level=${level + 1}&topic=${topic}`;
-      } else {
-        alert("Well done! You've finished all levels.");
-        window.location.href = "index.html";
-      }
+      nextButton.disabled = true;
+      nextButton.textContent = "Loading...";
     });
   </script>
 </body>
