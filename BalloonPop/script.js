@@ -18,16 +18,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const thoughtBubble = document.getElementById('thought-bubble');
   const background = document.getElementById('background');
   const mrsC = document.getElementById('mrs-c');
-  const endButton = document.createElement('button');
-  endButton.textContent = 'End Game';
-  endButton.style.position = 'absolute';
-  endButton.style.top = '10px';
+  const finishButton = document.getElementById('finishButton');
+  finishButton.style.position = 'fixed';
+  endButton.style.top = '40px';
   endButton.style.right = '10px';
-  endButton.style.zIndex = '6';
+  endButton.style.zIndex = '20';
   endButton.style.padding = '10px 20px';
-  endButton.style.fontSize = '16px';
   endButton.style.cursor = 'pointer';
-  gameContainer.appendChild(endButton);
+    <img src="assets/finish.png">;
 
   let playerName = '';
   let playerClass = '';
