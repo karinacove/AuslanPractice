@@ -1,3 +1,18 @@
+// Get stored student info
+const studentName = localStorage.getItem('studentName');
+const studentClass = localStorage.getItem('studentClass');
+
+if (!studentName || !studentClass) {
+  alert('Please log in first.');
+  window.location.href = "../index.html"; // Redirect to login page
+} else {
+  console.log(`Welcome ${studentName} from class ${studentClass}`);
+  // Start your game logic here
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('game-container').style.display = 'block';
+  // ... rest of your game initialization
+}
+
 let wordLists = {};
 let currentWord = "";
 let currentIndex = 0;
@@ -14,8 +29,6 @@ let letterGap = 50;
 let isSpelling = false; // Prevent overlapping replay
 
 // DOM Elements
-const nameInput = document.getElementById("student-name");
-const classInput = document.getElementById("student-class");
 const modeSelect = document.getElementById("game-mode");
 const wordLengthSelect = document.getElementById("word-length");
 const lengthContainer = document.getElementById("length-container");
