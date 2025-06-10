@@ -12,12 +12,6 @@
       font-family: sans-serif;
       background-color: #f7f7f7;
     }
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 10px;
-    }
     #studentInfo {
       position: absolute;
       top: 5px;
@@ -25,13 +19,34 @@
       font-size: 0.9rem;
       color: #555;
     }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px;
+      overflow-x: hidden;
+    }
+    .layout {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: 1200px;
+    }
+    .left-signs, .right-signs {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+    }
     .game-board {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-      grid-gap: 15px;
-      margin: 10px 0;
-      width: 100%;
-      max-width: 600px;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 15px;
+      margin: 20px;
     }
     .grid-item {
       aspect-ratio: 1 / 1;
@@ -60,17 +75,9 @@
       background-position: center;
       pointer-events: none;
     }
-    .draggable-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      max-width: 1000px;
-      margin-bottom: 10px;
-    }
     .draggable {
       width: 70px;
       height: 70px;
-      margin: 5px;
       cursor: grab;
     }
     .draggable.hidden {
@@ -84,6 +91,7 @@
       color: white;
       border-radius: 5px;
       cursor: pointer;
+      margin-top: 10px;
     }
     #nextLevel:hover {
       background-color: #0056b3;
@@ -94,8 +102,11 @@
   <p id="studentInfo"></p>
   <div class="container">
     <h1 id="levelTitle">Level 1: Match the Sign to the Picture</h1>
-    <div class="draggable-container" id="draggables"></div>
-    <div id="gameBoard" class="game-board"></div>
+    <div class="layout">
+      <div class="left-signs" id="leftSigns"></div>
+      <div id="gameBoard" class="game-board"></div>
+      <div class="right-signs" id="rightSigns"></div>
+    </div>
     <button id="nextLevel" style="display:none">Next Level</button>
   </div>
 
@@ -113,7 +124,8 @@
     const level = parseInt(urlParams.get("level") || "1");
     const levelTitle = document.getElementById("levelTitle");
     const gameBoard = document.getElementById("gameBoard");
-    const draggables = document.getElementById("draggables");
+    const leftSigns = document.getElementById("leftSigns");
+    const rightSigns = document.getElementById("rightSigns");
     const nextButton = document.getElementById("nextLevel");
 
     let correctMatches = 0;
@@ -133,7 +145,8 @@
       const extras = allLetters.filter(l => !matchItems.includes(l)).sort(() => 0.5 - Math.random()).slice(0, 3);
 
       gameBoard.innerHTML = "";
-      draggables.innerHTML = "";
+      leftSigns.innerHTML = "";
+      rightSigns.innerHTML = "";
       correctMatches = 0;
       totalAttempts = 0;
 
@@ -156,10 +169,11 @@
       });
 
       const allSigns = [...matchItems, ...extras].sort(() => 0.5 - Math.random());
+      const mid = Math.ceil(allSigns.length / 2);
 
-      allSigns.forEach(letter => {
+      allSigns.forEach((letter, index) => {
         const img = document.createElement("img");
-        img.src = `assets/${topic}/signs/sign-${letter}.png`;
+        img.src = `assets/${topic}/signs/${letter}.png`;
         img.alt = letter;
         img.className = "draggable";
         img.setAttribute("draggable", true);
@@ -169,7 +183,11 @@
           e.dataTransfer.setData("text/plain", letter);
         });
 
-        draggables.appendChild(img);
+        if (index < mid) {
+          leftSigns.appendChild(img);
+        } else {
+          rightSigns.appendChild(img);
+        }
       });
     }
 
@@ -198,6 +216,7 @@
           wrongIndicator.style.position = "absolute";
           wrongIndicator.style.width = "60px";
           wrongIndicator.style.zIndex = "10";
+          wrongIndicator.style.transition = "transform 0.2s";
           const rect = draggedImg.getBoundingClientRect();
           wrongIndicator.style.top = `${rect.top + window.scrollY}px`;
           wrongIndicator.style.left = `${rect.left + window.scrollX}px`;
@@ -228,6 +247,9 @@
       }).then(() => {
         setTimeout(() => {
           if (level < 3) {
+            nextButton.style.display = "none";
+            nextButton.disabled = false;
+            nextButton.textContent = "Next Level";
             window.location.href = `game.html?level=${level + 1}&topic=${topic}`;
           } else {
             alert("Well done! You've finished all levels.");
