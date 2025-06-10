@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  endButton.addEventListener('click', () => {
+  finishButton.addEventListener('click', () => {
     endGame(true);
   });
 
@@ -286,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
     background.style.backgroundImage = `url('assets/background/background_${bgIndex}.png')`;
   }
 
-  function finishButton(early = false) {
+  function endGame(early = false) {
     clearInterval(balloonInterval);
     clearInterval(correctBalloonInterval);
     clearBalloons();
