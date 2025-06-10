@@ -1,0 +1,78 @@
+/* style.css */
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f5f7fa;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  background: white;
+  padding: 2rem 3rem;
+  border-radius: 10px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  text-align: center;
+  width: 320px;
+}
+
+h1 {
+  margin-bottom: 1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+#studentInfo {
+  font-style: italic;
+  margin-bottom: 2rem;
+  color: #555;
+}
+
+.topics {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.topics button {
+  flex: 1 1 45%;
+  min-width: 120px;
+  background: #4a90e2;
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 12px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 3px 8px rgba(74, 144, 226, 0.4);
+  user-select: none;
+}
+
+.topics button:hover,
+.topics button:focus {
+  background: #357ABD;
+  outline: none;
+  box-shadow: 0 0 8px #357ABD;
+}
+
+.topics button:active {
+  background: #2a5d8f;
+  box-shadow: none;
+}
+
+@media (max-width: 400px) {
+  .container {
+    width: 90%;
+    padding: 1.5rem 1rem;
+  }
+  .topics button {
+    flex-basis: 100%;
+  }
+}
