@@ -1,3 +1,4 @@
+<!-- game.html (Matching Game Page) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,57 +10,32 @@
     body {
       margin: 0;
       padding: 0;
+      overflow: hidden;
       font-family: sans-serif;
-      background-color: #f7f7f7;
-    }
-    #studentInfo {
-      position: absolute;
-      top: 5px;
-      left: 10px;
-      font-size: 0.9rem;
-      color: #555;
     }
     .container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 10px;
-      overflow-x: hidden;
-    }
-    .layout {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      width: 100%;
-      max-width: 1200px;
-    }
-    .left-signs, .right-signs {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      padding: 10px;
     }
     .game-board {
       display: grid;
-      grid-template-columns: repeat(3, 100px);
-      grid-template-rows: repeat(3, 100px);
-      gap: 15px;
-      margin: 20px;
+      grid-template-columns: repeat(3, 1fr);
+      grid-gap: 20px;
+      margin: 20px auto;
+      width: 90vw;
+      max-width: 600px;
     }
     .grid-item {
-      aspect-ratio: 1 / 1;
+      width: 120px;
+      height: 120px;
       border: 2px solid #ccc;
       position: relative;
       background-color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
     .grid-item img {
-      width: 90%;
-      height: 90%;
+      width: 100%;
+      height: 100%;
       object-fit: contain;
     }
     .grid-item.matched::after {
@@ -75,87 +51,129 @@
       background-position: center;
       pointer-events: none;
     }
+    .draggable-container {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      width: 100vw;
+      max-width: 1000px;
+      margin-bottom: 20px;
+    }
     .draggable {
-      width: 70px;
-      height: 70px;
+      width: 80px;
+      height: 80px;
+      margin: 10px;
       cursor: grab;
     }
     .draggable.hidden {
       display: none;
     }
-    .draggable.shake {
-      animation: shake 0.3s;
-    }
-    @keyframes shake {
-      0% { transform: translate(0px, 0px); }
-      25% { transform: translate(3px, 0px); }
-      50% { transform: translate(-3px, 0px); }
-      75% { transform: translate(3px, 0px); }
-      100% { transform: translate(0px, 0px); }
-    }
-    #nextLevel {
-      padding: 10px 20px;
-      font-size: 1.1rem;
-      border: none;
-      background-color: #007BFF;
-      color: white;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    #nextLevel:hover {
-      background-color: #0056b3;
-    }
   </style>
 </head>
 <body>
-  <p id="studentInfo"></p>
   <div class="container">
     <h1 id="levelTitle">Level 1: Match the Sign to the Picture</h1>
-    <div class="layout">
-      <div class="left-signs" id="leftSigns"></div>
-      <div id="gameBoard" class="game-board"></div>
-      <div class="right-signs" id="rightSigns"></div>
-    </div>
+    <p id="studentInfo"></p>
+    <div class="draggable-container" id="draggables"></div>
+    <div id="gameBoard" class="game-board"></div>
     <button id="nextLevel" style="display:none">Next Level</button>
-    <div id="studentInfo" style="position: fixed; top: 10px; left: 10px; font-weight: bold; z-index: 20;"></div>
-    <div id="draggablesLeft" style="position: fixed; top: 80px; left: 10px; width: 100px; height: 80vh; overflow-y: auto; display: flex; flex-direction: column; align-items: center;"></div>
-    <div id="draggablesRight" style="position: fixed; top: 80px; right: 10px; width: 100px; height: 80vh; overflow-y: auto; display: flex; flex-direction: column; align-items: center;"></div>
-    <div id="gameBoard" style="margin: 80px 120px; display: grid; grid-template-columns: repeat(3, 1fr); grid-gap: 15px; max-width: 600px;"></div>
-    <button id="finishButton" style="position: fixed; top: 10px; right: 10px; background: transparent; border: none; cursor: pointer; z-index: 20;">
-      <img src="assets/finish.png" alt="Finish" style="width: 50px; height: 50px;">
-    </button>
   </div>
 
   <script>
-    const levelData = {
-      1: 'Match the Sign to the Picture',
-      2: 'Match the Picture to the Sign',
-      3: 'Mixed Challenge: Match Signs and Pictures'
-    };
+    const studentName = localStorage.getItem("studentName") || "";
+    const studentClass = localStorage.getItem("studentClass") || "";
+    if (!studentName || !studentClass) {
+      window.location.href = "index.html";
+    } else {
+      document.getElementById("studentInfo").textContent = `Signed in as: ${studentName} (${studentClass})`;
+    }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const level = parseInt(urlParams.get('level') || '1');
+    const topic = localStorage.getItem("selectedTopic") || "alphabet";
+    const levelTitle = document.getElementById("levelTitle");
+    const gameBoard = document.getElementById("gameBoard");
+    const draggables = document.getElementById("draggables");
+    const nextButton = document.getElementById("nextLevel");
 
-    document.getElementById('levelTitle').innerText = `Level ${level}: ${levelData[level]}`;
+    let correctMatches = 0;
 
-    // This setup depends on how your script.js generates the board. It needs:
-    // - gameBoard with 9 targets (either signs or images depending on level)
-    // - 12 draggable items (inverse of the targets)
+    const letters = "abcdefghijklmnopqrstuvwxyz".split("").slice(0, 12);
 
-    // These elements will be dynamically filled in script.js based on level
-    // You should now adapt script.js to read the 'level' variable and build accordingly
+    function initGame() {
+      gameBoard.innerHTML = "";
+      draggables.innerHTML = "";
+      correctMatches = 0;
 
-    document.getElementById("studentInfo").innerText = `Name: ${urlParams.get('name') || ''}, Class: ${urlParams.get('class') || ''}`;
+      matchItems.forEach(word => {
+        const div = document.createElement("div");
+        div.className = "grid-item";
+        div.dataset.word = word;
 
-    // Next level button handler
-    document.getElementById("nextLevel").addEventListener("click", () => {
-      const next = level < 3 ? level + 1 : 1;
-      const params = new URLSearchParams(window.location.search);
-      params.set("level", next);
-      window.location.search = params.toString();
+        const img = document.createElement("img");
+        img.src = `assets/${topic}/clipart/${word}.png`;
+        img.alt = word;
+        div.appendChild(img);
+
+        div.addEventListener("dragover", e => e.preventDefault());
+        div.addEventListener("drop", handleDrop);
+
+        gameBoard.appendChild(div);
+      });
+
+      const allSigns = [...matchItems, ...extras].sort(() => 0.5 - Math.random());
+
+      allSigns.forEach(word => {
+        const img = document.createElement("img");
+        img.src = `assets/${topic}/signs/sign-${word}.png`;
+        img.alt = word;
+        img.className = "draggable";
+        img.setAttribute("draggable", true);
+        img.dataset.word = word;
+
+        img.addEventListener("dragstart", e => {
+          e.dataTransfer.setData("text/plain", word);
+        });
+
+        draggables.appendChild(img);
+      });
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      const dropTarget = e.currentTarget;
+      const targetWord = dropTarget.dataset.word;
+      const draggedWord = e.dataTransfer.getData("text/plain");
+      const draggedImg = document.querySelector(`[data-word='${draggedWord}']`);
+
+      if (draggedWord === targetWord && !dropTarget.classList.contains("matched")) {
+        dropTarget.classList.add("matched");
+        if (draggedImg) draggedImg.classList.add("hidden");
+        correctMatches++;
+
+        if (correctMatches === 9) {
+          nextButton.style.display = "block";
+        }
+      } else {
+        // show incorrect overlay briefly then reset
+        if (draggedImg) {
+          const originalPos = draggedImg.parentElement;
+          const wrongIndicator = document.createElement("img");
+          wrongIndicator.src = "assets/wrong.png";
+          wrongIndicator.style.position = "absolute";
+          wrongIndicator.style.width = "100px";
+          wrongIndicator.style.zIndex = "10";
+          wrongIndicator.style.top = "0";
+          wrongIndicator.style.left = "0";
+          document.body.appendChild(wrongIndicator);
+          setTimeout(() => wrongIndicator.remove(), 500);
+        }
+      }
+    }
+
+    initGame();
+
+    nextButton.addEventListener("click", () => {
+      alert("Proceeding to Level 2: functionality coming soon.");
     });
   </script>
-  <script src="js/script.js"></script>
 </body>
 </html>
