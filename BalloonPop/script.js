@@ -20,11 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const mrsC = document.getElementById('mrs-c');
   const finishButton = document.getElementById('finishButton');
   finishButton.style.position = 'fixed';
-  endButton.style.top = '40px';
-  endButton.style.right = '10px';
-  endButton.style.zIndex = '20';
-  endButton.style.padding = '10px 20px';
-  endButton.style.cursor = 'pointer';
+  finishButton.style.top = '40px';
+  finishButton.style.right = '10px';
+  finishButton.style.zIndex = '20';
+  finishButton.style.padding = '10px 20px';
+  finishButton.style.cursor = 'pointer';
     <img src="assets/finish.png">;
 
   let playerName = '';
@@ -286,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
     background.style.backgroundImage = `url('assets/background/background_${bgIndex}.png')`;
   }
 
-  function endGame(early = false) {
+  function finishButton(early = false) {
     clearInterval(balloonInterval);
     clearInterval(correctBalloonInterval);
     clearBalloons();
