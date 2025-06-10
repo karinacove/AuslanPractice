@@ -121,151 +121,34 @@
   </div>
 
   <script>
-    const studentName = localStorage.getItem("studentName") || "";
-    const studentClass = localStorage.getItem("studentClass") || "";
-    if (!studentName || !studentClass) {
-      window.location.href = "index.html";
-    } else {
-      document.getElementById("studentInfo").textContent = `Signed in as: ${studentName} (${studentClass})`;
-    }
+    const levelData = {
+      1: 'Match the Sign to the Picture',
+      2: 'Match the Picture to the Sign',
+      3: 'Mixed Challenge: Match Signs and Pictures'
+    };
 
     const urlParams = new URLSearchParams(window.location.search);
-    const topic = localStorage.getItem("selectedTopic") || "alphabet";
-    const level = parseInt(urlParams.get("level") || "1");
-    const levelTitle = document.getElementById("levelTitle");
-    const gameBoard = document.getElementById("gameBoard");
-    const leftSigns = document.getElementById("leftSigns");
-    const rightSigns = document.getElementById("rightSigns");
-    const nextButton = document.getElementById("nextLevel");
+    const level = parseInt(urlParams.get('level') || '1');
 
-    let correctMatches = 0;
-    let totalAttempts = 0;
+    document.getElementById('levelTitle').innerText = `Level ${level}: ${levelData[level]}`;
 
-    const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
+    // This setup depends on how your script.js generates the board. It needs:
+    // - gameBoard with 9 targets (either signs or images depending on level)
+    // - 12 draggable items (inverse of the targets)
 
-    function getLevelLetters(level) {
-      if (level === 1) return allLetters.slice(0, 9);
-      if (level === 2) return allLetters.slice(9, 18);
-      if (level === 3) return allLetters.slice(18, 26).concat(allLetters.slice(0, 1));
-      return [];
-    }
+    // These elements will be dynamically filled in script.js based on level
+    // You should now adapt script.js to read the 'level' variable and build accordingly
 
-    function initGame() {
-      const matchItems = getLevelLetters(level);
-      const extras = allLetters.filter(l => !matchItems.includes(l)).sort(() => 0.5 - Math.random()).slice(0, 3);
+    document.getElementById("studentInfo").innerText = `Name: ${urlParams.get('name') || ''}, Class: ${urlParams.get('class') || ''}`;
 
-      gameBoard.innerHTML = "";
-      leftSigns.innerHTML = "";
-      rightSigns.innerHTML = "";
-      correctMatches = 0;
-      totalAttempts = 0;
-
-      levelTitle.textContent = `Level ${level}: Match the Sign to the Letter`;
-
-      matchItems.forEach(letter => {
-        const div = document.createElement("div");
-        div.className = "grid-item";
-        div.dataset.word = letter;
-
-        const img = document.createElement("img");
-        img.src = `assets/${topic}/clipart/${letter}.png`;
-        img.alt = letter;
-        div.appendChild(img);
-
-        div.addEventListener("dragover", e => e.preventDefault());
-        div.addEventListener("drop", handleDrop);
-
-        gameBoard.appendChild(div);
-      });
-
-      const allSigns = [...matchItems, ...extras].sort(() => 0.5 - Math.random());
-      const mid = Math.ceil(allSigns.length / 2);
-
-      allSigns.forEach((letter, index) => {
-        const img = document.createElement("img");
-        img.src = `assets/${topic}/signs/sign-${letter}.png`;
-        img.alt = letter;
-        img.className = "draggable";
-        img.setAttribute("draggable", true);
-        img.dataset.word = letter;
-
-        img.addEventListener("dragstart", e => {
-          e.dataTransfer.setData("text/plain", letter);
-        });
-
-        if (index < mid) {
-          leftSigns.appendChild(img);
-        } else {
-          rightSigns.appendChild(img);
-        }
-      });
-    }
-
-    function handleDrop(e) {
-      e.preventDefault();
-      const dropTarget = e.currentTarget;
-      const targetWord = dropTarget.dataset.word;
-      const draggedWord = e.dataTransfer.getData("text/plain");
-      const draggedImg = document.querySelector(`.draggable[data-word='${draggedWord}']:not(.hidden)`);
-
-      totalAttempts++;
-
-      if (draggedWord === targetWord && !dropTarget.classList.contains("matched")) {
-        dropTarget.classList.add("matched");
-        if (draggedImg) draggedImg.classList.add("hidden");
-        correctMatches++;
-
-        if (correctMatches === 9) {
-          nextButton.style.display = "block";
-        }
-      } else {
-        if (draggedImg) {
-          draggedImg.classList.add("shake");
-          setTimeout(() => draggedImg.classList.remove("shake"), 300);
-        }
-      }
-    }
-
-    function sendResultsAndProceed() {
-      const incorrect = totalAttempts - correctMatches;
-      const percent = Math.round((correctMatches / totalAttempts) * 100);
-
-      const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
-      const form = new FormData();
-      form.append("entry.1387461004", studentName);
-      form.append("entry.1309291707", studentClass);
-      form.append("entry.477642881", topic);
-      form.append("entry.1897227570", getLevelLetters(level).join(", "));
-      form.append("entry.1249394203", incorrect);
-      form.append("entry.1996137354", `${percent}%`);
-      form.append("entry.2044657092", level);
-
-      fetch(formURL, {
-        method: "POST",
-        mode: "no-cors",
-        body: form
-      }).finally(() => {
-        setTimeout(() => {
-          if (level < 3) {
-            nextButton.style.display = "none";
-            nextButton.disabled = false;
-            nextButton.textContent = "Next Level";
-            window.location.href = `game.html?level=${level + 1}&topic=${topic}`;
-          } else {
-            alert("Well done! You've finished all levels.");
-            window.location.href = "index.html";
-          }
-        }, 500);
-      });
-    }
-
-    initGame();
-
-    nextButton.addEventListener("click", () => {
-      nextButton.disabled = true;
-      nextButton.textContent = "Submitting...";
-      sendResultsAndProceed();
+    // Next level button handler
+    document.getElementById("nextLevel").addEventListener("click", () => {
+      const next = level < 3 ? level + 1 : 1;
+      const params = new URLSearchParams(window.location.search);
+      params.set("level", next);
+      window.location.search = params.toString();
     });
   </script>
+  <script src="script.js"></script>
 </body>
 </html>
