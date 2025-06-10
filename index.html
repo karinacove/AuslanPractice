@@ -22,7 +22,7 @@
       margin-top: 40px;
     }
 
-  .bottom-row-links {
+    .bottom-row-links {
       position: fixed;
       bottom: 0;
       left: 0;
@@ -90,18 +90,215 @@
       bottom: 20px;
       right: 20px;
     }
+
+    /* LOGIN POPUP MODAL STYLES */
+    #loginModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0,0,0,0.6);
+      z-index: 2000;
+      font-family: 'Auslan Finger Spelling', sans-serif;
+    }
+
+    #modalContent {
+      background: white; 
+      padding: 20px; 
+      border-radius: 12px; 
+      max-width: 320px; 
+      margin: 10vh auto; 
+      box-shadow: 0 0 15px rgba(0,0,0,0.4);
+      text-align: left;
+    }
+
+    #modalContent h2, #modalContent h3 {
+      text-align: center;
+      margin-top: 0;
+    }
+
+    #modalContent label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    #modalContent input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 12px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    #modalContent button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    #modalLoginForm button {
+      background-color: #28a745;
+    }
+
+    #modalGuestForm button {
+      background-color: #007acc;
+    }
+
+    #modalContent hr {
+      margin: 20px 0;
+    }
+
+    /* LOGOUT BUTTON */
+    #logoutBtn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #dc3545; /* red */
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: 'Auslan Finger Spelling', sans-serif;
+      display: none; /* hidden initially */
+      z-index: 1500;
+      transition: background-color 0.3s;
+    }
+    #logoutBtn:hover {
+      background-color: #a71d2a;
+    }
+
+    /* GREETING TEXT */
+    #greeting {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background-color: #28a745;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      font-family: 'Auslan Finger Spelling', sans-serif;
+      z-index: 1500;
+      display: none; /* hidden initially */
+    }
+
   </style>
 </head>
 <body>
 
   <h1>Auslan Practice Activities</h1>
 
-<div class="bottom-row-links">
-  <a href="wordle/">Auslan Wordle</a>
-  <a href="BalloonPop/index.html">🎈 Balloon Pop</a>
-  <a href="transport/">🚗Transport Map Activity</a>
-  <a href="FingerspellingChallenge/index.html">🔡Fingerspelling Challenge</a>
-  <a href="MatchingGame/hub.html" class="matching-game">🧩 Matching Game</a>
-</div>
+  <div id="greeting"></div>
+  <button id="logoutBtn" title="Logout">Logout</button>
+
+  <div class="bottom-row-links">
+    <a href="wordle/">Auslan Wordle</a>
+    <a href="BalloonPop/index.html">🎈 Balloon Pop</a>
+    <a href="transport/">🚗Transport Map Activity</a>
+    <a href="FingerspellingChallenge/index.html">🔡Fingerspelling Challenge</a>
+    <a href="MatchingGame/hub.html" class="matching-game">🧩 Matching Game</a>
+  </div>
+
+  <!-- LOGIN POPUP MODAL -->
+  <div id="loginModal">
+    <div id="modalContent">
+      <h2>Please Log In</h2>
+      <form id="modalLoginForm">
+        <label for="modalName">Name:</label>
+        <input type="text" id="modalName" name="modalName" required autocomplete="off" />
+        <label for="modalClass">Class:</label>
+        <input type="text" id="modalClass" name="modalClass" placeholder="e.g. Year 5" required autocomplete="off" />
+        <button type="submit">Login</button>
+      </form>
+      <hr />
+      <h3>Or Play as Home Guest</h3>
+      <form id="modalGuestForm">
+        <label for="modalGuestName">Guest Name:</label>
+        <input type="text" id="modalGuestName" name="modalGuestName" required placeholder="Enter your name" autocomplete="off" />
+        <button type="submit">Play as Guest</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const modal = document.getElementById('loginModal');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const greeting = document.getElementById('greeting');
+
+    function showModal() {
+      modal.style.display = 'block';
+      logoutBtn.style.display = 'none';
+      greeting.style.display = 'none';
+    }
+
+    function hideModal() {
+      modal.style.display = 'none';
+      logoutBtn.style.display = 'inline-block';
+      greeting.style.display = 'block';
+    }
+
+    function updateGreeting(name, studentClass) {
+      greeting.textContent = `Welcome, ${name} (${studentClass})`;
+    }
+
+    function checkLogin() {
+      const savedName = localStorage.getItem('studentName');
+      const savedClass = localStorage.getItem('studentClass');
+      if (savedName && savedClass) {
+        updateGreeting(savedName, savedClass);
+        hideModal();
+      } else {
+        showModal();
+      }
+    }
+
+    checkLogin();
+
+    // Handle login form submit
+    document.getElementById('modalLoginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const name = document.getElementById('modalName').value.trim();
+      const studentClass = document.getElementById('modalClass').value.trim();
+      if (name && studentClass) {
+        localStorage.setItem('studentName', name);
+        localStorage.setItem('studentClass', studentClass);
+        updateGreeting(name, studentClass);
+        hideModal();
+        alert(`Welcome, ${name} from ${studentClass}!`);
+      }
+    });
+
+    // Handle guest form submit
+    document.getElementById('modalGuestForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const guestName = document.getElementById('modalGuestName').value.trim();
+      if (guestName) {
+        localStorage.setItem('studentName', guestName);
+        localStorage.setItem('studentClass', 'Home Guest');
+        updateGreeting(guestName, 'Home Guest');
+        hideModal();
+        alert(`Welcome, ${guestName} (Home Guest)!`);
+      }
+    });
+
+    // Logout button click
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('studentName');
+      localStorage.removeItem('studentClass');
+      showModal();
+    });
+  </script>
+
 </body>
 </html>
