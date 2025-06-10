@@ -5,20 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Auslan Balloon Game</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    #logout-btn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      padding: 6px 12px;
+      background-color: #c0392b;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      z-index: 1000;
+    }
+    #student-info {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: #28a745;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      z-index: 1000;
+    }
+  </style>
 </head>
 <body>
+
+  <button id="logout-btn">Logout</button>
+  <div id="student-info"></div>
+
   <!-- Background Layer -->
   <div id="background"></div>
-
-  <!-- Start Screen -->
-  <div id="start-screen">
-    <form id="start-form">
-      <h2>Enter Your Details</h2>
-      <input type="text" placeholder="Name" required />
-      <input type="text" placeholder="Class" required />
-      <button type="submit">Start</button>
-    </form>
-  </div>
 
   <!-- Game Container -->
   <div id="game-container" style="display: none;">
@@ -34,5 +54,28 @@
   </div>
 
   <script src="script.js"></script>
+  <script>
+    // Check login on page load
+    const studentName = localStorage.getItem('studentName');
+    const studentClass = localStorage.getItem('studentClass');
+
+    const logoutBtn = document.getElementById('logout-btn');
+    const studentInfoDiv = document.getElementById('student-info');
+    const gameContainer = document.getElementById('game-container');
+
+    if (!studentName || !studentClass) {
+      alert('Please log in first.');
+      window.location.href = "../index.html";  // Adjust path if needed
+    } else {
+      studentInfoDiv.textContent = `Logged in as: ${studentName} (${studentClass})`;
+      gameContainer.style.display = 'block';
+    }
+
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('studentName');
+      localStorage.removeItem('studentClass');
+      window.location.href = "../index.html";  // Go back to home page login
+    });
+  </script>
 </body>
 </html>
