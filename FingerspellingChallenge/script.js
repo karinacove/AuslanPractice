@@ -1,12 +1,25 @@
-// Get stored student info
-const studentName = localStorage.getItem('studentName');
-const studentClass = localStorage.getItem('studentClass');
+let studentName = localStorage.getItem("studentName") || "";
+let studentClass = localStorage.getItem("studentClass") || "";
 
+const logoutBtn = document.getElementById("logout-btn");
+const studentInfoDiv = document.getElementById("student-info");
+const gameContainer = document.getElementById("game-container");
+
+// Redirect if not signed in
 if (!studentName || !studentClass) {
-  alert('Please log in first.');
-  window.location.href = "../index.html"; // Redirect to login page
+  alert("Please log in first.");
+  window.location.href = "../index.html"; // Adjust path as needed
 } else {
-  console.log(`Welcome ${studentName} from class ${studentClass}`);
+  studentInfoDiv.textContent = `Logged in as: ${studentName} (${studentClass})`;
+  gameContainer.style.display = "block";
+}
+
+// Logout clears localStorage and redirects
+logoutBtn.addEventListener("click", () => {
+  localStorage.removeItem("studentName");
+  localStorage.removeItem("studentClass");
+  window.location.href = "../index.html";
+});
 
 let wordLists = {};
 let currentWord = "";
