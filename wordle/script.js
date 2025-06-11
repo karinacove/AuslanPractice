@@ -10,7 +10,7 @@ if (!studentName || !studentClass) {
   alert("Please log in first.");
   window.location.href = "../index.html"; // Adjust path as needed
 } else {
-  studentInfoDiv.textContent = `Logged in as: ${studentName} (${studentClass})`;
+  studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
   gameContainer.style.display = "block";
 }
 
