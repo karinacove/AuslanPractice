@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Auslan Balloon Game</title>
-  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="style.css" />
   <style>
     #logout-btn {
@@ -52,34 +51,8 @@
       <img src="assets/character/MrsC.png" alt="Mrs C" id="mrs-c" />
       <div id="thought-bubble"></div>
     </div>
-    <button id="finishButton" style="position: fixed; top: 40px; right: 10px; background: transparent; border: none; cursor: pointer; z-index: 20;">
-     <img src="assets/finish.png" alt="Finish" style="width: auto; height: 50px;">
-    </button>
   </div>
 
   <script src="script.js"></script>
-  <script>
-    // Check login on page load
-    const studentName = localStorage.getItem('studentName');
-    const studentClass = localStorage.getItem('studentClass');
-
-    const logoutBtn = document.getElementById('logout-btn');
-    const studentInfoDiv = document.getElementById('student-info');
-    const gameContainer = document.getElementById('game-container');
-
-    if (!studentName || !studentClass) {
-      alert('Please log in first.');
-      window.location.href = "../index.html";  // Adjust path if needed
-    } else {
-      studentInfoDiv.textContent = `Logged in as: ${studentName} (${studentClass})`;
-      gameContainer.style.display = 'block';
-    }
-
-    logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('studentName');
-      localStorage.removeItem('studentClass');
-      window.location.href = "../index.html";  // Go back to home page login
-    });
-  </script>
 </body>
 </html>
