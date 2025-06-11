@@ -116,9 +116,10 @@ body, html {
   position: fixed;
   top: 40px;
   right: 10px;
-  zIndex: 20;
-  padding: 10px 20px;
+  width: auto;
+  height: 50px;
   cursor: pointer;
+  background: url('assets/finish.png') no-repeat center center;
 }
 
 @keyframes bounce {
