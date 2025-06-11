@@ -112,6 +112,15 @@ body, html {
   z-index: 2;
 }
 
+#finishButton {
+  position: fixed;
+  top: 40px;
+  right: 10px;
+  zIndex: 20;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-20px); }
