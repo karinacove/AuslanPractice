@@ -1,12 +1,26 @@
-// Balloon Pop Game - Full Game Script with Login Integration
+// Retrieve login info
+const studentName = localStorage.getItem("studentName") || "";
+const studentClass = localStorage.getItem("studentClass") || "";
 
-const urlParams = new URLSearchParams(window.location.search);
-const savedName = urlParams.get("studentname");
-const savedClass = urlParams.get("studentclass");
+const logoutBtn = document.getElementById("logout-btn");
+const studentInfoDiv = document.getElementById("student-info");
+const gameContainer = document.getElementById("game-container");
 
-if (!savedName || !savedClass) {
-  window.location.href = "../index.html"; // Redirect to root login if missing
+// Redirect if not signed in
+if (!studentName || !studentClass) {
+  alert("Please log in first.");
+  window.location.href = "../index.html"; // Adjust path as needed
+} else {
+  studentInfoDiv.textContent = `Logged in as: ${studentName} (${studentClass})`;
+  gameContainer.style.display = "block";
 }
+
+// Logout clears localStorage and redirects
+logoutBtn.addEventListener("click", () => {
+  localStorage.removeItem("studentName");
+  localStorage.removeItem("studentClass");
+  window.location.href = "../index.html";
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   const startForm = document.getElementById('start-form');
