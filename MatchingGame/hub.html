@@ -6,6 +6,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Auslan Game Hub</title>
   <style>
+     #logoutBtn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #dc3545; /* red */
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: sans-serif;
+      z-index: 1500;
+      transition: background-color 0.3s;
+    }
+    #logoutBtn:hover {
+      background-color: #a71d2a;
+    }
+    
+     #student-info {
+      position: absolute;
+      top: 10px;
+      left: 20px;
+      z-index: 11;
+      background: rgba(255,255,255,0.9);
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: bold;
+      max-width: 300px;
+    }
     body {
       font-family: sans-serif;
       padding: 2rem;
@@ -29,12 +59,11 @@
   </style>
 </head>
 <body>
-  <h1>Welcome to Auslan Games</h1>
-  <label for="studentName">Your Name:</label>
-  <input type="text" id="studentName" required>
-
-  <label for="studentClass">Your Class:</label>
-  <input type="text" id="studentClass" required>
+  <div id="student-info"></div>
+  <button id="logoutBtn" title="Logout">Logout</button>
+  </div>
+  
+  <h1>Matching</h1>
 
   <label for="selectedTopic">Choose a Topic:</label>
   <select id="selectedTopic">
