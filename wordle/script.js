@@ -8,18 +8,24 @@ const gameContainer = document.getElementById("game-container");
 // Redirect if not signed in
 if (!studentName || !studentClass) {
   alert("Please log in first.");
-  window.location.href = "../index.html"; // Adjust path as needed
+  window.location.href = "../index.html"; // Adjust path if needed
 } else {
-  studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
-  gameContainer.style.display = "block";
+  if (studentInfoDiv) {
+    studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
+  }
+  if (gameContainer) {
+    gameContainer.style.display = "block";
+  }
 }
 
 // Logout clears localStorage and redirects
-logoutBtn.addEventListener("click", () => {
-  localStorage.removeItem("studentName");
-  localStorage.removeItem("studentClass");
-  window.location.href = "../index.html";
-});
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("studentName");
+    localStorage.removeItem("studentClass");
+    window.location.href = "../index.html";
+  });
+}
 
 function adjustZoom() {
     let scale = window.innerWidth / document.documentElement.clientWidth;
