@@ -148,8 +148,8 @@ document.addEventListener('DOMContentLoaded', () => {
     balloon.dataset.clicked = 'false';
 
     const gameWidth = window.innerWidth;
-    const minX = gameWidth * 0.1;
-    const maxX = gameWidth * 0.7 - 120;
+    const minX = gameWidth * 0.15;
+    const maxX = gameWidth * 0.75 - 120;
     const x = Math.random() * (maxX - minX) + minX;
 
     balloon.style.left = `${x}px`;
