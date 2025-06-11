@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const thoughtBubble = document.getElementById('thought-bubble');
   const background = document.getElementById('background');
   const mrsC = document.getElementById('mrs-c');
-  const finishButton = document.getElementById('finishButton');
 
   let score = 0;
   let totalClicks = 0;
@@ -254,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
     background.style.backgroundImage = `url('assets/background/background_${bgIndex}.png')`;
   }
 
-  function finishEarly(early = false) {
+  function finishButton(early = false) {
     clearInterval(balloonInterval);
     clearInterval(correctBalloonInterval);
     clearBalloons();
