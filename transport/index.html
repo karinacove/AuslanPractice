@@ -7,7 +7,6 @@
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="style.css">
   <style>
-     <style>
     #logoutBtn {
       position: fixed;
       top: 20px;
@@ -176,7 +175,7 @@
     const studentInfo = document.getElementById('student-info');
 
     let studentName = '';
-    let className = '';
+    let studentClass = '';
     let jobDescription = '';
     let partnerName = '';
     let dragged;
@@ -185,7 +184,7 @@
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       studentName = form.elements['studentName'].value;
-      className = form.elements['className'].value;
+      studentClass = form.elements['className'].value;
       jobDescription = form.elements['jobDescription'].value;
       partnerName = form.elements['partnerName'].value;
       form.style.display = 'none';
@@ -237,7 +236,7 @@
 
     const formData = new FormData();
       formData.append('entry.1202364028', studentName);
-      formData.append('entry.1957249768', className);
+      formData.append('entry.1957249768', studentClass);
       formData.append('entry.436910009', jobDescription);
       formData.append('entry.169376211', partnerName);
       formData.append('entry.1017965571', '1');
