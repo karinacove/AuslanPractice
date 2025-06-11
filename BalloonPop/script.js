@@ -253,8 +253,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const bgIndex = Math.min(level, 12);
     background.style.backgroundImage = `url('assets/background/background_${bgIndex}.png')`;
   }
-
+  
   finishButton.addEventListener('click', () => {
+    const early = true;
     endGame(true);
     clearInterval(balloonInterval);
     clearInterval(correctBalloonInterval);
