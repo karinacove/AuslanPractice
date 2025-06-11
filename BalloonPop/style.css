@@ -21,6 +21,21 @@ body, html {
   z-index: -1;
 }
 
+#score {
+  margin-top: 30px;
+}
+
+#finishButton {
+  position: fixed;
+  top: 40px;
+  right: 10px;
+  width: auto;
+  height: 50px;
+  cursor: pointer;
+  pointer-events: auto;
+  background: url('assets/finish.png') no-repeat center center;
+}
+
 #start-screen {
   position: absolute;
   width: 100%;
