@@ -33,12 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const background = document.getElementById('background');
   const mrsC = document.getElementById('mrs-c');
   const finishButton = document.getElementById('finishButton');
-  finishButton.style.position = 'fixed';
-  finishButton.style.top = '40px';
-  finishButton.style.right = '10px';
-  finishButton.style.zIndex = '20';
-  finishButton.style.padding = '10px 20px';
-  finishButton.style.cursor = 'pointer';
 
   let playerName = '';
   let playerClass = '';
