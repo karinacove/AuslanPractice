@@ -86,10 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return baseNumbers.concat(extendedNumbers);
   }
 
-  finishButton.addEventListener('click', () => {
-    endGame(true);
-  });
-
   function startGame() {
     updateFloatSpeed();
     updateThoughtBubble();
@@ -258,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
     background.style.backgroundImage = `url('assets/background/background_${bgIndex}.png')`;
   }
 
-  function endGame(early = false) {
+  function finishButton(early = false) {
     clearInterval(balloonInterval);
     clearInterval(correctBalloonInterval);
     clearBalloons();
