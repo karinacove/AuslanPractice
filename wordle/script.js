@@ -1,3 +1,26 @@
+let studentName = localStorage.getItem("studentName") || "";
+let studentClass = localStorage.getItem("studentClass") || "";
+
+const logoutBtn = document.getElementById("logout-btn");
+const studentInfoDiv = document.getElementById("student-info");
+const gameContainer = document.getElementById("game-container");
+
+// Redirect if not signed in
+if (!studentName || !studentClass) {
+  alert("Please log in first.");
+  window.location.href = "../index.html"; // Adjust path as needed
+} else {
+  studentInfoDiv.textContent = `Logged in as: ${studentName} (${studentClass})`;
+  gameContainer.style.display = "block";
+}
+
+// Logout clears localStorage and redirects
+logoutBtn.addEventListener("click", () => {
+  localStorage.removeItem("studentName");
+  localStorage.removeItem("studentClass");
+  window.location.href = "../index.html";
+});
+
 function adjustZoom() {
     let scale = window.innerWidth / document.documentElement.clientWidth;
     document.body.style.transformOrigin = "top center";
@@ -13,9 +36,6 @@ const maxAttempts = 6;
 const rows = document.querySelectorAll(".row");
 let currentRow = 0;
 let guessesList = [];
-
-const studentName = localStorage.getItem("studentName") || "";
-const studentClass = localStorage.getItem("studentClass") || "";
 
 // Load playable words
 fetch('wordle_words.json')
