@@ -126,24 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
     thoughtBubble.appendChild(numberImg);
   }
 
-  function playSignVideo(value, type) {
-    const video = document.createElement('video');
-    video.src = `assets/${type}/${value}.mp4`;
-    video.style.position = 'absolute';
-    video.style.top = '50%';
-    video.style.left = '50%';
-    video.style.transform = 'translate(-50%, -50%)';
-    video.style.zIndex = '1000';
-    video.autoplay = true;
-    video.controls = false;
-
-    video.addEventListener('ended', () => {
-      video.remove();
-    });
-
-    document.body.appendChild(video);
-  }
-
   function spawnBalloon() {
     const colour = colours[Math.floor(Math.random() * colours.length)];
     const validNumbers = getValidNumbersForColour(colour)
