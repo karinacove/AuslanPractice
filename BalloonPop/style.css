@@ -119,6 +119,7 @@ body, html {
   width: auto;
   height: 50px;
   cursor: pointer;
+  pointer-events: auto;
   background: url('assets/finish.png') no-repeat center center;
 }
 
