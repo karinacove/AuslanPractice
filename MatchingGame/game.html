@@ -7,30 +7,39 @@
   <title>Auslan Matching Game</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    #logout-btn {
+    <style>
+    #logoutBtn {
       position: fixed;
-      top: 10px;
-      right: 10px;
-      padding: 6px 12px;
-      background-color: #c0392b;
+      top: 20px;
+      right: 20px;
+      background-color: #dc3545; /* red */
       color: white;
       border: none;
-      border-radius: 6px;
-      cursor: pointer;
+      padding: 10px 20px;
+      border-radius: 10px;
       font-weight: bold;
-      z-index: 1000;
+      cursor: pointer;
+      font-family: sans-serif;
+      z-index: 1500;
+      transition: background-color 0.3s;
     }
+    #logoutBtn:hover {
+      background-color: #a71d2a;
+    }
+    
     #student-info {
       position: fixed;
-      top: 10px;
-      left: 10px;
+      top: 20px;
+      left: 20px;
       background: #28a745;
       color: white;
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 10px 20px;
+      border-radius: 10px;
+      max-width: 320px;
+      font-family: sans-serif;
       font-weight: bold;
       z-index: 1000;
-    }
+    }  
 
     body {
       margin: 0;
@@ -96,9 +105,8 @@
   </style>
 </head>
 <body>
-  <div style="position: absolute; top: 20px; left: 20px; z-index: 20; font-family: sans-serif; font-size: 1.5rem;">
-  <span id="student-info"></span>
-  <button id="logout-btn" style="margin-left: 20px;">Logout</button>
+  <div id="student-info"></div>
+  <button id="logoutBtn" title="Logout">Logout</button>
   </div>
   <div class="container">
     <h1 id="levelTitle">Level 1: Match the Sign to the Picture</h1>
