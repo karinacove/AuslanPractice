@@ -27,7 +27,7 @@ let studentData = null;
 // Store coordinates
 const answerData = {
   studentName: '',
-  className: '',
+  studentClass: '',
   question: '1', // You can adjust for each question if needed
   vehicleType: '',
   x: null,
