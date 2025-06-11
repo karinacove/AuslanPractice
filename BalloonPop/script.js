@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
     form.submit();
 
     showPlayAgainButton();
-  }
+  });
 
   function showPlayAgainButton() {
     const playAgainButton = document.createElement('img');
