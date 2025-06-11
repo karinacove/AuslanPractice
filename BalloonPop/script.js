@@ -1,6 +1,6 @@
 // Retrieve login info
-const studentName = localStorage.getItem("studentName") || "";
-const studentClass = localStorage.getItem("studentClass") || "";
+let studentName = localStorage.getItem("studentName") || "";
+let studentClass = localStorage.getItem("studentClass") || "";
 
 const logoutBtn = document.getElementById("logout-btn");
 const studentInfoDiv = document.getElementById("student-info");
@@ -23,8 +23,6 @@ logoutBtn.addEventListener("click", () => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-  const startForm = document.getElementById('start-form');
-  const startScreen = document.getElementById('start-screen');
   const gameContainer = document.getElementById('game-container');
   const balloonArea = document.getElementById('balloon-area');
   const scoreDisplay = document.getElementById('score');
@@ -34,8 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const mrsC = document.getElementById('mrs-c');
   const finishButton = document.getElementById('finishButton');
 
-  let playerName = '';
-  let playerClass = '';
   let score = 0;
   let totalClicks = 0;
   let correctAnswers = 0;
@@ -89,19 +85,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return baseNumbers.concat(extendedNumbers);
   }
-
-  startForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const inputs = startForm.querySelectorAll('input');
-    studentName = inputs[0].value.trim();
-    studentClass = inputs[1].value.trim();
-    if (studentName && studentClass) {
-      startScreen.style.display = 'none';
-      gameContainer.style.display = 'block';
-      updateBackground();
-      startGame();
-    }
-  });
 
   finishButton.addEventListener('click', () => {
     endGame(true);
@@ -299,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
     clearBalloons();
     const message = early ? 'Game ended early.' : 'Congratulations! You completed the game!';
     const percentage = totalClicks > 0 ? Math.round((correctAnswers / totalClicks) * 100) : 0;
-    alert(`${message}\n\n${playerName} from ${playerClass},\nScore: ${score}\nQuestions Answered: ${totalClicks}\nCorrect Answers: ${correctAnswers}\nPercentage: ${percentage}%`);
+    alert(`${message}\n\n${studentName} from ${studentClass},\nScore: ${score}\nQuestions Answered: ${totalClicks}\nCorrect Answers: ${correctAnswers}\nPercentage: ${percentage}%`);
 
     const correctList = [...correctAnswersList].sort().join(', ');
     const incorrectList = [...incorrectAnswersList].sort().join(', ');
@@ -373,4 +356,10 @@ document.addEventListener('DOMContentLoaded', () => {
     gameContainer.style.display = 'block';
     startGame();
   }
+
+  // Start automatically
+  levelDisplay.textContent = `Level: ${level}`;
+  scoreDisplay.textContent = `Score: ${score}`;
+  updateBackground();
+  startGame();
 });
