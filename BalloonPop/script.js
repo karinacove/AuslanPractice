@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const levelDisplay = document.getElementById('level');
   const thoughtBubble = document.getElementById('thought-bubble');
   const background = document.getElementById('background');
+  const finishButton = document.getElementById('finishButton');
   const mrsC = document.getElementById('mrs-c');
 
   let score = 0;
@@ -253,7 +254,8 @@ document.addEventListener('DOMContentLoaded', () => {
     background.style.backgroundImage = `url('assets/background/background_${bgIndex}.png')`;
   }
 
-  function finishButton(early = false) {
+  finishButton.addEventListener('click', () => {
+    endGame(true);
     clearInterval(balloonInterval);
     clearInterval(correctBalloonInterval);
     clearBalloons();
