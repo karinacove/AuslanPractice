@@ -20,6 +20,31 @@ logoutBtn.addEventListener("click", () => {
   localStorage.removeItem("studentClass");
   window.location.href = "../index.html";
 });
+const logoutBtn = document.getElementById("logout-btn");
+const studentInfoDiv = document.getElementById("student-info");
+const gameContainer = document.getElementById("game-container");
+
+// Redirect if not signed in
+if (!studentName || !studentClass) {
+  alert("Please log in first.");
+  window.location.href = "../index.html"; // Adjust path if needed
+} else {
+  if (studentInfoDiv) {
+    studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
+  }
+  if (gameContainer) {
+    gameContainer.style.display = "block";
+  }
+}
+
+// Logout clears localStorage and redirects
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("studentName");
+    localStorage.removeItem("studentClass");
+    window.location.href = "../index.html";
+  });
+}
 
 let selectedVehicle = null;
 let studentData = null;
