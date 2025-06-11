@@ -7,30 +7,39 @@
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="style.css">
   <style>
-    #logout-btn {
+     <style>
+    #logoutBtn {
       position: fixed;
-      top: 10px;
-      right: 10px;
-      padding: 6px 12px;
-      background-color: #c0392b;
+      top: 20px;
+      right: 20px;
+      background-color: #dc3545; /* red */
       color: white;
       border: none;
-      border-radius: 6px;
-      cursor: pointer;
+      padding: 10px 20px;
+      border-radius: 10px;
       font-weight: bold;
-      z-index: 1000;
+      cursor: pointer;
+      font-family: sans-serif;
+      z-index: 1500;
+      transition: background-color 0.3s;
     }
+    #logoutBtn:hover {
+      background-color: #a71d2a;
+    }
+    
     #student-info {
       position: fixed;
-      top: 10px;
-      left: 10px;
+      top: 20px;
+      left: 20px;
       background: #28a745;
       color: white;
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 10px 20px;
+      border-radius: 10px;
+      max-width: 320px;
+      font-family: sans-serif;
       font-weight: bold;
       z-index: 1000;
-    }
+    }  
 
     html, body {
       height: 100%;
@@ -115,9 +124,10 @@
   </style>
 </head>
 <body>
+  <div id="student-info"></div>
+  <button id="logoutBtn" title="Logout">Logout</button>
+  </div>
   <form id="student-form">
-    <input type="text" name="studentName" placeholder="Name" required>
-    <input type="text" name="className" placeholder="Class" required>
     <input type="text" name="jobDescription" placeholder="Give or Follow (instructions)" required>
     <input type="text" name="partnerName" placeholder="Partner Name" required>
     <button type="submit">Start Activity</button>
