@@ -112,17 +112,6 @@ body, html {
   z-index: 2;
 }
 
-#finishButton {
-  position: fixed;
-  top: 40px;
-  right: 10px;
-  width: auto;
-  height: 50px;
-  cursor: pointer;
-  pointer-events: auto;
-  background: url('assets/finish.png') no-repeat center center;
-}
-
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-20px); }
