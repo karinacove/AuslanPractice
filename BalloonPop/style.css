@@ -12,16 +12,17 @@ body, html {
 #score {
   margin-top: 30px;
 }
-
-#finishButton {
-  position: fixed;
-  top: 60px;
-  right: 10px;
-  width: auto;
-  height: 50px;
-  cursor: pointer;
-  pointer-events: auto;
-  background: url('assets/finish.png') no-repeat center center;
+ 
+#background {
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   background-size: cover;
+   background-position: center;
+   background-repeat: no-repeat;
+   z-index: -1;
 }
 
 #start-screen {
