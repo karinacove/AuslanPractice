@@ -92,11 +92,14 @@ document.getElementById("submit-button").addEventListener("click", () => {
     });
   });
 
-  const vehicleSummary = vehicleData.map(v => 
+  // ✅ Sort vehicle data alphabetically by name
+  vehicleData.sort((a, b) => a.name.localeCompare(b.name));
+
+  const vehicleSummary = vehicleData.map(v =>
     `${v.name} at (${v.x}, ${v.y})${v.flipped ? " [flipped]" : ""}`
   ).join("; ");
 
-  // ✅ Your actual Google Form URL
+  // ✅ Google Form submission
   const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse";
 
   const formData = new FormData();
