@@ -35,8 +35,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const levelDisplay = document.getElementById('level');
   const thoughtBubble = document.getElementById('thought-bubble');
   const background = document.getElementById('background');
-  const finishButton = document.getElementById('finishButton');
   const mrsC = document.getElementById('mrs-c');
+  const finishButton = document.getElementById('finishButton');
+  if (finishButton) {
+    finishButton.addEventListener('click', () => {
+      finishButtonHandler(true);
+    });
+  }
 
   let score = 0;
   let totalClicks = 0;
@@ -260,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
     background.style.backgroundImage = `url('assets/background/background_${bgIndex}.png')`;
   }
   
-  function finishButton(early = false) {
+  function finishButtonHandler(early = false) {
     clearInterval(balloonInterval);
     clearInterval(correctBalloonInterval);
     clearBalloons();
