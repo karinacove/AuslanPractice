@@ -81,6 +81,16 @@ body, html {
   z-index: 5;
 }
 
+#finishButton {
+  position: absolute;
+  top: 60px;
+  left: 20px;
+  width: 80px; /* Adjust as needed */
+  height: auto;
+  cursor: pointer;
+  z-index: 10;
+}
+
 #balloon-area {
   position: absolute;
   width: 100%;
