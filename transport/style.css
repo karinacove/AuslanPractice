@@ -94,3 +94,27 @@ body {
 #submit-button:hover {
   background-color: #218838;
 }
+
+.flip-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: none;
+  cursor: pointer;
+  background: rgba(255,255,255,0.8);
+  border: none;
+  border-radius: 3px;
+  font-size: 16px;
+  padding: 2px 5px;
+  user-select: none;
+  z-index: 1001;
+}
+
+.draggable-wrapper:hover .flip-btn {
+  display: block;
+}
+
+.flipped-horizontal {
+  transform: scaleX(-1);
+  transition: transform 0.3s ease;
+}
