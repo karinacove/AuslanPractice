@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     finishButtonHandler(true); // Call the game-ending function
   });
 }
-
+ 
   let score = 0;
   let totalClicks = 0;
   let correctAnswers = 0;
