@@ -38,10 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const mrsC = document.getElementById('mrs-c');
   const finishButton = document.getElementById('finishButton');
   if (finishButton) {
-    finishButton.addEventListener('click', () => {
-      finishButtonHandler(true);
-    });
-  }
+  finishButton.addEventListener('click', () => {
+    finishButton.style.display = 'none'; // Hide the button
+    finishButtonHandler(true); // Call the game-ending function
+  });
+}
 
   let score = 0;
   let totalClicks = 0;
