@@ -118,6 +118,7 @@ body, html {
 }
 
 #finishButton {
+  position: absolute;
   background: transparent;
   border: none;
   padding: 0;
