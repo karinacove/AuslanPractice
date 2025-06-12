@@ -72,7 +72,7 @@ body, html {
   top: 60px;
   left: 20px;
   background: white;
-  padding: 10px 20px;
+  padding: 10px 10px;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0,0,0,0.2);
   display: flex;
@@ -85,7 +85,7 @@ body, html {
   position: absolute;
   top: 60px;
   left: 20px;
-  width: 80px; /* Adjust as needed */
+  width: 250px; /* Adjust as needed */
   height: auto;
   cursor: pointer;
   z-index: 10;
