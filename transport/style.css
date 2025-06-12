@@ -112,6 +112,10 @@ body {
   display: block;
 }
 
+.draggable-wrapper img.flipped-horizontal {
+  transform: scaleX(-1);
+}
+
 .flipped-horizontal {
   transform: scaleX(-1);
   transition: transform 0.3s ease;
