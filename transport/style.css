@@ -31,9 +31,9 @@ body {
 }
 
 #vehicle-palette {
-  margin: 0px;
+  margin: 5px;
   display: flex;
-  justify-content: center;
+  justify-content: center center;
   gap: 8px;
 }
 
