@@ -260,9 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
     background.style.backgroundImage = `url('assets/background/background_${bgIndex}.png')`;
   }
   
-  finishButton.addEventListener('click', () => {
-    const early = true;
-    endGame(true);
+  function finishButton(early = false) {
     clearInterval(balloonInterval);
     clearInterval(correctBalloonInterval);
     clearBalloons();
@@ -304,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
     form.submit();
 
     showPlayAgainButton();
-  });
+  }
 
   function showPlayAgainButton() {
     const playAgainButton = document.createElement('img');
