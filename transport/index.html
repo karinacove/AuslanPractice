@@ -127,9 +127,13 @@
   <button id="logoutBtn" title="Logout">Logout</button>
   </div>
 <form id="student-form">
-  <input type="text" name="jobDescription" placeholder="Give or Follow (instructions)" required>
-  <input type="text" name="partnerName" placeholder="Partner Name" required>
-  <button type="submit">Start Activity</button>
+  <label for="jobDescription">Job Description:</label>
+  <input type="text" id="jobDescription" name="jobDescription" required>
+
+  <label for="partnerName">Partner Name:</label>
+  <input type="text" id="partnerName" name="partnerName" required>
+
+  <button type="submit">Start</button>
 </form>
 
   <div id="vehicle-palette" style="display: none;">
