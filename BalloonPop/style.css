@@ -124,15 +124,20 @@ body, html {
   margin: 0;
   left: 20px;
   bottom: 20px;
+  width: 150px;
+  height: 150px;
   box-shadow: none;
   outline: none;
   cursor: pointer;
+  pointer-events: auto;
+  z-index:999;
 }
 
 #finishButton img {
   display: block;
-  width: auto; /* or a fixed px value if needed */
-  height: auto; /* or a fixed px value if needed */
+  width: auto; /* or set a specific size if needed */
+  height: 150px; /* example */
+  pointer-events: none; /* only if clicks should register on the button, not image */
 }
 
 @keyframes bounce {
