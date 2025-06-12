@@ -61,17 +61,67 @@
     dragged.offsetY = e.offsetY;
   });
 
-  document.body.addEventListener('mousemove', (e) => {
-    if (dragged) {
-      dragged.style.left = (e.pageX - dragged.offsetX) + 'px';
-      dragged.style.top = (e.pageY - dragged.offsetY) + 'px';
-    }
+ document.body.addEventListener('mousedown', (e) => {
+  if (!e.target.classList.contains('draggable') || e.target.parentElement !== palette) return;
+  const existingCount = document.querySelectorAll('body > .draggable-wrapper').length;
+  if (existingCount >= MAX_VEHICLES) return;
+
+  // Create a wrapper div for dragging
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('draggable-wrapper');
+  wrapper.style.position = 'absolute';
+  wrapper.style.left = (e.pageX - 40) + 'px';
+  wrapper.style.top = (e.pageY - 40) + 'px';
+  wrapper.style.width = '80px';  // match your draggable width
+  wrapper.style.height = 'auto';
+  wrapper.style.cursor = 'grab';
+  wrapper.style.zIndex = 1000;
+
+  // Clone the image
+  const dragged = e.target.cloneNode(true);
+  dragged.classList.remove('draggable'); // prevent interference
+  dragged.style.width = '100%';
+  dragged.style.height = 'auto';
+  dragged.style.userSelect = 'none';
+  dragged.draggable = false;
+
+  // Create the flip button
+  const flipBtn = document.createElement('button');
+  flipBtn.classList.add('flip-btn');
+  flipBtn.title = 'Flip horizontally';
+  flipBtn.innerText = '⇆';
+
+  // Add flip functionality
+  flipBtn.addEventListener('click', (evt) => {
+    evt.stopPropagation();
+    dragged.classList.toggle('flipped-horizontal');
   });
 
-  document.body.addEventListener('mouseup', () => {
-    if (dragged) dragged.style.zIndex = '';
-    dragged = null;
-  });
+  // Add image and button to wrapper
+  wrapper.appendChild(dragged);
+  wrapper.appendChild(flipBtn);
+
+  // Add the wrapper to body
+  document.body.appendChild(wrapper);
+
+  // Start dragging
+  let offsetX = e.offsetX;
+  let offsetY = e.offsetY;
+
+  function onMouseMove(moveEvent) {
+    wrapper.style.left = (moveEvent.pageX - offsetX) + 'px';
+    wrapper.style.top = (moveEvent.pageY - offsetY) + 'px';
+  }
+
+  function onMouseUp() {
+    wrapper.style.zIndex = '';
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('mouseup', onMouseUp);
+  }
+
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup', onMouseUp);
+});
 
   // Double-click to remove vehicle
   document.body.addEventListener('dblclick', (e) => {
