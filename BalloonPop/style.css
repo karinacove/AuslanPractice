@@ -117,6 +117,24 @@ body, html {
   z-index: 2;
 }
 
+#finishButton {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  left: 20px;
+  bottom: 20px;
+  box-shadow: none;
+  outline: none;
+  cursor: pointer;
+}
+
+#finishButton img {
+  display: block;
+  width: auto; /* or a fixed px value if needed */
+  height: auto; /* or a fixed px value if needed */
+}
+
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-20px); }
