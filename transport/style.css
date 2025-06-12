@@ -37,7 +37,7 @@ body {
 }
 
 #vehicle-palette {
-  margin: 20px auto;
+  margin: 0px;
   display: flex;
   justify-content: center;
   gap: 15px;
@@ -45,7 +45,7 @@ body {
 
 #vehicle-palette img {
   width: 80px;
-  height: auto;
+  height: 100hv;
   cursor: grab;
   transition: transform 0.2s;
 }
