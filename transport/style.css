@@ -34,11 +34,11 @@ body {
   margin: 0px;
   display: flex;
   justify-content: center;
-  gap: 15px;
+  gap: 8px;
 }
 
 #vehicle-palette img {
-  width: 80px;
+  width: 75px;
   height: 100hv;
   cursor: grab;
   transition: transform 0.2s;
