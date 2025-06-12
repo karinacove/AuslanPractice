@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const interval = setInterval(() => {
       pos += 2;
       balloon.style.bottom = `${pos}px`;
-      if (pos > window.innerHeight - balloon.offsetHeight) {
+      if (pos > window.innerHeight + balloon.offsetHeight) {
         balloon.remove();
         clearInterval(interval);
       }
