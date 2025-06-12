@@ -1,169 +1,119 @@
-/* General Page Styling */
 body {
-  font-family: sans-serif;
+  font-family: Arial, sans-serif;
   margin: 0;
-  padding: 20px;
-  background-color: #c8f5c8;
-  background: url('assets/Map.png') no-repeat left center fixed;
-  background-size: contain;
-  box-sizing: border-box;
+  background: #f4f4f4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#overlay {
+  width: 100%;
+  max-width: 800px;
+  margin-top: 20px;
+}
+
+#map-container {
+  position: relative;
+  margin: 20px auto;
+  width: 800px;
+  height: 600px;
+  background: #ccc;
+  border: 2px solid #444;
   overflow: hidden;
+  border-radius: 12px;
+}
+
+#map-container img#map {
+  width: 100%;
   height: 100%;
+  object-fit: cover;
 }
 
-/* Student Info Box */
-#student-info {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  background: #28a745;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 10px;
-  font-weight: bold;
-  max-width: 320px;
-  z-index: 1000;
-}
-
-/* Logout Button */
-#logoutBtn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  font-weight: bold;
-  cursor: pointer;
-  z-index: 1500;
-  transition: background-color 0.3s;
-}
-
-#logoutBtn:hover {
-  background-color: #a71d2a;
-}
-
-/* Vehicle Palette Styling */
 #vehicle-palette {
-  position: absolute;
-  top: 0;
-  right: 5px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
-  background: rgba(255, 255, 255, 0.8);
-  padding: 2px;
-  border-radius: 2px;
-  height: 100vh;
-  width: 280px;
-  overflow-y: auto;
-  justify-items: center;
-  align-content: start;
+  margin: 5px;
+  display: flex;
+  justify-content: center center;
+  gap: 8px;
 }
 
-.draggable {
-  width: 80px;
-  height: auto;
+#vehicle-palette img {
+  width: 75px;
+  height: 100hv;
   cursor: grab;
-  filter: drop-shadow(0 0 2px white);
-  user-select: none;
+  transition: transform 0.2s;
+}
+
+#vehicle-palette img:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+}
+
+.dropped-vehicle {
+  position: absolute;
+  width: 40px;
   pointer-events: none;
 }
 
-/* Draggable Copy Styling */
-body > .draggable {
-  position: absolute;
-  z-index: 1000;
-  pointer-events: auto;
-  cursor: grab;
-}
-
-/* Student Form Styling */
 #student-form {
-  position: absolute;
-  top: 20%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255,255,255,0.9);
-  padding: 30px;
-  border-radius: 12px;
-  z-index: 10;
   display: flex;
-  flex-direction: column;
   gap: 10px;
+  margin: 20px auto;
 }
 
 #student-form input {
   padding: 10px;
+  border: 1px solid #999;
   border-radius: 6px;
-  border: 1px solid #ccc;
 }
 
 #student-form button {
+  padding: 10px 20px;
   background-color: #28a745;
   color: white;
   border: none;
   border-radius: 6px;
-  padding: 10px 20px;
   cursor: pointer;
 }
 
 #student-form button:hover {
-  background-color: #218838;
+  background-color: #005fa3;
 }
 
-/* Submit Button */
 #submit-button {
-  display: none;
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  padding: 10px 20px;
-  background: #007acc;
+  margin-bottom: 20px;
+  padding: 12px 24px;
+  background-color: #28a745;
   color: white;
+  font-size: 1rem;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  z-index: 10;
 }
 
 #submit-button:hover {
-  background: #005fa3;
+  background-color: #218838;
 }
 
-/* Play Again Button */
-#playAgain {
-  position: fixed;
-  bottom: 5vh;
-  left: 50%;
-  transform: translateX(-50%);
-  cursor: pointer;
-  width: 200px;
-  z-index: 1000;
-  display: none;
-}
-
-/* Flip Button Styling (Optional) */
 .flip-btn {
   position: absolute;
-  bottom: 5px;
+  bottom: 50%;
   left: 50%;
-  transform: translateX(-50%);
   font-size: 18px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.7);
   border: none;
   border-radius: 4px;
   cursor: pointer;
   padding: 2px 6px;
   z-index: 1001;
-  display: none;
 }
 
-.draggable:hover + .flip-btn,
 .draggable-wrapper:hover .flip-btn {
   display: block;
+}
+
+.draggable-wrapper img.flipped-horizontal {
+  transform: scaleX(-1);
 }
 
 .flipped-horizontal {
