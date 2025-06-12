@@ -70,13 +70,13 @@ body, html {
 #scoreboard {
   position: absolute;
   top: 60px;
-  left: 10px;
+  left: 20px;
   background: white;
   padding: 10px 20px;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0,0,0,0.2);
   display: flex;
-  gap: 20px;
+  gap: 15px;
   font-size: 18px;
   z-index: 5;
 }
