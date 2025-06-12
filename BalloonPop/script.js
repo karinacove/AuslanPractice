@@ -332,6 +332,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function resetGame() {
+    finishButton.style.display = 'block';
+
     score = 0;
     totalClicks = 0;
     correctAnswers = 0;
