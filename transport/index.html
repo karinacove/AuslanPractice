@@ -160,7 +160,7 @@
   <img id="playAgain" src="assets/Again.png" alt="Play Again" style="display: none; position: fixed; top: 70%; left: 50%; transform: translate(-50%, -50%); cursor: pointer; width: 20vw; max-width: 300px; z-index: 1001;">
 
 
-  <script>
+ <script>
   const form = document.getElementById('student-form');
   const palette = document.getElementById('vehicle-palette');
   const submitButton = document.getElementById('submit-button');
@@ -193,16 +193,36 @@
 
   document.body.addEventListener('mousedown', (e) => {
     if (!e.target.classList.contains('draggable') || e.target.parentElement !== palette) return;
-    const existingCount = document.querySelectorAll('body > .draggable').length;
+    const existingCount = document.querySelectorAll('body > .draggable-wrapper').length;
     if (existingCount >= MAX_VEHICLES) return;
 
-    dragged = e.target.cloneNode(true);
-    dragged.style.position = 'absolute';
-    dragged.style.left = e.pageX - 40 + 'px';
-    dragged.style.top = e.pageY - 40 + 'px';
-    dragged.style.zIndex = 1000;
-    document.body.appendChild(dragged);
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('draggable-wrapper');
+    wrapper.style.position = 'absolute';
+    wrapper.style.left = e.pageX - 40 + 'px';
+    wrapper.style.top = e.pageY - 40 + 'px';
+    wrapper.style.zIndex = 1000;
 
+    const clone = e.target.cloneNode(true);
+    clone.style.pointerEvents = 'none';
+    wrapper.appendChild(clone);
+
+    const flipBtn = document.createElement('button');
+    flipBtn.className = 'flip-btn';
+    flipBtn.innerHTML = '↔';
+    flipBtn.style.display = 'none';
+    flipBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      clone.classList.toggle('flipped-horizontal');
+    };
+    wrapper.appendChild(flipBtn);
+
+    wrapper.addEventListener('mouseenter', () => flipBtn.style.display = 'block');
+    wrapper.addEventListener('mouseleave', () => flipBtn.style.display = 'none');
+
+    document.body.appendChild(wrapper);
+
+    dragged = wrapper;
     dragged.offsetX = e.offsetX;
     dragged.offsetY = e.offsetY;
   });
@@ -220,15 +240,24 @@
   });
 
   document.body.addEventListener('dblclick', (e) => {
-    if (e.target.classList.contains('draggable') && e.target.parentElement === document.body) {
-      e.target.remove();
-    }
+    const wrapper = e.target.closest('.draggable-wrapper');
+    if (wrapper) wrapper.remove();
   });
 
   submitButton.addEventListener('click', () => {
-    const vehicleData = [...document.querySelectorAll('body > .draggable')]
-      .map(el => `${el.alt} at (${el.style.left}, ${el.style.top})`)
-      .sort((a, b) => a.localeCompare(b))
+    const vehicleWrappers = [...document.querySelectorAll('.draggable-wrapper')];
+    const vehicleData = vehicleWrappers
+      .map(wrapper => {
+        const img = wrapper.querySelector('img');
+        const alt = img?.alt || "Unknown";
+        const flipped = img?.classList.contains('flipped-horizontal') ? ' (flipped)' : '';
+        return {
+          name: alt,
+          position: `${alt}${flipped} at (${wrapper.style.left}, ${wrapper.style.top})`
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map(entry => entry.position)
       .join('; ');
 
     const formData = new FormData();
@@ -274,7 +303,6 @@
     button.addEventListener("click", () => location.reload());
   }
 
-  // Logout button
   const logoutBtn = document.getElementById("logoutBtn");
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
