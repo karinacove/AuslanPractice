@@ -108,6 +108,10 @@ body {
   z-index: 1001;
 }
 
+.draggable-wrapper {
+  position: absolute;
+}
+
 .draggable-wrapper:hover .flip-btn {
   display: block;
 }
