@@ -4,22 +4,125 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Auslan Transport Activity</title>
-  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="style.css">
+  <style>
+    #logoutBtn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #dc3545; /* red */
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: sans-serif;
+      z-index: 1500;
+      transition: background-color 0.3s;
+    }
+    #logoutBtn:hover {
+      background-color: #a71d2a;
+    }
+    
+    #student-info {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #28a745;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      max-width: 320px;
+      font-family: sans-serif;
+      font-weight: bold;
+      z-index: 1000;
+    }  
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    body {
+      background: url('assets/Map.png') no-repeat left center fixed;
+      background-size: contain;
+      background-color: #c8f5c8;
+      font-family: sans-serif;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    #vehicle-palette {
+      position: absolute;
+      top: 0;
+      right: 5px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 2px;
+      border-radius: 2px;
+      height: 100vh;
+      width: 280px;
+      overflow-y: auto;
+      justify-items: center;
+      align-content: start;
+    }
+
+    .draggable {
+      width: 80px;
+      height: auto;
+      cursor: grab;
+      filter: drop-shadow(0 0 2px white);
+    }
+
+    #student-form {
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,0.9);
+      padding: 30px;
+      border-radius: 12px;
+      z-index: 10;
+    }
+
+    #submit-button {
+      display: none;
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      padding: 10px 20px;
+      background: #007acc;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    #submit-button:hover {
+      background: #005fa3;
+    }
+  </style>
 </head>
 <body>
   <div id="student-info"></div>
   <button id="logoutBtn" title="Logout">Logout</button>
+  </div>
+<form id="student-form">
+  <label for="jobDescription">Job Description:</label>
+  <input type="text" id="jobDescription" name="jobDescription" required>
 
-  <form id="student-form">
-    <label for="jobDescription">Job Description:</label>
-    <input type="text" id="jobDescription" name="jobDescription" required>
+  <label for="partnerName">Partner Name:</label>
+  <input type="text" id="partnerName" name="partnerName" required>
 
-    <label for="partnerName">Partner Name:</label>
-    <input type="text" id="partnerName" name="partnerName" required>
-
-    <button type="submit">Start</button>
-  </form>
+  <button type="submit">Start</button>
+</form>
 
   <div id="vehicle-palette" style="display: none;">
     <img src="assets/Blue Car.png" alt="BlueCar" class="draggable" draggable="false">
@@ -29,18 +132,18 @@
     <img src="assets/White Van.png" alt="WhiteVan" class="draggable" draggable="false">
     <img src="assets/Blue Van.png" alt="BlueVan" class="draggable" draggable="false">
     <img src="assets/Green Boat.png" alt="GreenBoat" class="draggable" draggable="false">
-    <img src="assets/Yellow Boat.png" alt="YellowBoat" class="draggable" draggable="false">
+    <img src="assets/Yellow Boat.png" alt="YellowBoat" class="draggable" draggable="false">   
     <img src="assets/Purple Train.png" alt="PurpleTrain" class="draggable" draggable="false">
     <img src="assets/Red Train.png" alt="RedTrain" class="draggable" draggable="false">
     <img src="assets/Green Tram.png" alt="GreenTram" class="draggable" draggable="false">
     <img src="assets/Yellow Tram.png" alt="YellowTram" class="draggable" draggable="false">
     <img src="assets/Blue Bus.png" alt="BlueBus" class="draggable" draggable="false">
-    <img src="assets/Yellow Bus.png" alt="YellowBus" class="draggable" draggable="false">
+    <img src="assets/Yellow Bus.png" alt="YellowBus" class="draggable" draggable="false">   
     <img src="assets/Pink Plane.png" alt="PinkPlane" class="draggable" draggable="false">
     <img src="assets/Blue Plane.png" alt="BluePlane" class="draggable" draggable="false">
     <img src="assets/Red Truck.png" alt="RedTruck" class="draggable" draggable="false">
     <img src="assets/Blue Truck.png" alt="BlueTruck" class="draggable" draggable="false">
-    <img src="assets/Green Bike.png" alt="GreenBike" class="draggable" draggable="false">
+    <img src="assets/Green Bike.png" alt="GreenBike" class="draggable" draggable="false">  
     <img src="assets/Purple Bike.png" alt="PurpleBike" class="draggable" draggable="false">
     <img src="assets/Girl and Dog.png" alt="GirlDog" class="draggable" draggable="false">
     <img src="assets/Red Helicopter.png" alt="RedHelicopter" class="draggable" draggable="false">
@@ -48,13 +151,138 @@
     <img src="assets/Green Motorbike.png" alt="GreenMotorbike" class="draggable" draggable="false">
     <img src="assets/Red Motorbike.png" alt="RedMotorbike" class="draggable" draggable="false">
     <img src="assets/Man and Dog.png" alt="ManDog" class="draggable" draggable="false">
-    <img src="assets/Two People Walking.png" alt="TwoPeopleWalking" class="draggable" draggable="false">
+    <img src="assets/Two People Walking.png" alt="TwoPeopleWalking" class="draggable" draggable="false">   
     <img src="assets/Pink Caravan.png" alt="PinkCaravan" class="draggable" draggable="false">
   </div>
 
   <button id="submit-button">Submit</button>
-  <img id="playAgain" src="assets/Again.png" alt="Play Again">
 
-  <script src="script.js"></script>
+  <img id="playAgain" src="assets/Again.png" alt="Play Again" style="display: none; position: fixed; top: 70%; left: 50%; transform: translate(-50%, -50%); cursor: pointer; width: 20vw; max-width: 300px; z-index: 1001;">
+
+
+  <script>
+  const form = document.getElementById('student-form');
+  const palette = document.getElementById('vehicle-palette');
+  const submitButton = document.getElementById('submit-button');
+  const studentInfo = document.getElementById('student-info');
+
+  const studentName = localStorage.getItem('studentName') || '';
+  const studentClass = localStorage.getItem('studentClass') || '';
+
+  // Redirect if not signed in
+  if (!studentName || !studentClass) {
+    alert("Please log in first.");
+    window.location.href = "../index.html"; // adjust as needed
+  }
+
+  let jobDescription = '';
+  let partnerName = '';
+  let dragged;
+  const MAX_VEHICLES = 10;
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    jobDescription = form.elements['jobDescription'].value;
+    partnerName = form.elements['partnerName'].value;
+    form.style.display = 'none';
+    palette.style.display = 'grid';
+    submitButton.style.display = 'inline-block';
+    studentInfo.style.display = 'block';
+    studentInfo.innerText = `${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
+  });
+
+  document.body.addEventListener('mousedown', (e) => {
+    if (!e.target.classList.contains('draggable') || e.target.parentElement !== palette) return;
+    const existingCount = document.querySelectorAll('body > .draggable').length;
+    if (existingCount >= MAX_VEHICLES) return;
+
+    dragged = e.target.cloneNode(true);
+    dragged.style.position = 'absolute';
+    dragged.style.left = e.pageX - 40 + 'px';
+    dragged.style.top = e.pageY - 40 + 'px';
+    dragged.style.zIndex = 1000;
+    document.body.appendChild(dragged);
+
+    dragged.offsetX = e.offsetX;
+    dragged.offsetY = e.offsetY;
+  });
+
+  document.body.addEventListener('mousemove', (e) => {
+    if (dragged) {
+      dragged.style.left = (e.pageX - dragged.offsetX) + 'px';
+      dragged.style.top = (e.pageY - dragged.offsetY) + 'px';
+    }
+  });
+
+  document.body.addEventListener('mouseup', () => {
+    if (dragged) dragged.style.zIndex = '';
+    dragged = null;
+  });
+
+  document.body.addEventListener('dblclick', (e) => {
+    if (e.target.classList.contains('draggable') && e.target.parentElement === document.body) {
+      e.target.remove();
+    }
+  });
+
+  submitButton.addEventListener('click', () => {
+    const vehicleData = [...document.querySelectorAll('body > .draggable')]
+      .map(el => `${el.alt} at (${el.style.left}, ${el.style.top})`)
+      .sort((a, b) => a.localeCompare(b))
+      .join('; ');
+
+    const formData = new FormData();
+    formData.append('entry.1202364028', studentName);
+    formData.append('entry.1957249768', studentClass);
+    formData.append('entry.436910009', jobDescription);
+    formData.append('entry.169376211', partnerName);
+    formData.append('entry.1017965571', '1');
+    formData.append('entry.1568301781', vehicleData);
+
+    fetch('https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse', {
+      method: 'POST',
+      mode: 'no-cors',
+      body: formData
+    });
+
+    alert("How many vehicles did you get right?");
+    submitButton.disabled = true;
+    submitButton.innerText = 'Submitted';
+
+    setTimeout(() => {
+      showPlayAgainButton();
+    }, 3000);
+  });
+
+  function showPlayAgainButton() {
+    let button = document.getElementById("playAgain");
+    if (!button) {
+      button = document.createElement("img");
+      button.id = "playAgain";
+      button.src = "assets/Again.png";
+      button.alt = "Play Again";
+      button.style.position = "fixed";
+      button.style.bottom = "5vh";
+      button.style.left = "50%";
+      button.style.transform = "translateX(-50%)";
+      button.style.cursor = "pointer";
+      button.style.width = "200px";
+      button.style.zIndex = "1000";
+      document.body.appendChild(button);
+    }
+    button.style.display = "block";
+    button.addEventListener("click", () => location.reload());
+  }
+
+  // Logout button
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("studentName");
+      localStorage.removeItem("studentClass");
+      window.location.href = "../index.html";
+    });
+  }
+</script>
 </body>
 </html>
