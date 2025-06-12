@@ -27,7 +27,6 @@ if (logoutBtn) {
   });
 }
 
-
 document.addEventListener('DOMContentLoaded', () => {
   const gameContainer = document.getElementById('game-container');
   const balloonArea = document.getElementById('balloon-area');
@@ -333,7 +332,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function resetGame() {
     finishButton.style.display = 'block';
-
+    
+    finishButton.onclick = () => {
+    finishButton.style.display = 'none';
+    finishButtonHandler(true);
+  };
+    
     score = 0;
     totalClicks = 0;
     correctAnswers = 0;
