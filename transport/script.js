@@ -75,29 +75,45 @@ function dropVehicle(src, x, y) {
 }
 
 // -------------------------
-// Submit Button Handling
+// Submit to Google Form
 // -------------------------
 document.getElementById("submit-button").addEventListener("click", () => {
   const placedVehicles = document.querySelectorAll(".draggable-wrapper");
-  const results = [];
+  const vehicleData = [];
 
   placedVehicles.forEach(wrapper => {
     const img = wrapper.querySelector("img");
     const isFlipped = img.classList.contains("flipped-horizontal");
-    results.push({
-      vehicle: img.src.split("/").pop(),
-      x: parseInt(wrapper.style.left),
-      y: parseInt(wrapper.style.top),
+    vehicleData.push({
+      name: img.src.split("/").pop().split(".")[0],
+      x: wrapper.style.left,
+      y: wrapper.style.top,
       flipped: isFlipped
     });
   });
 
-  console.log("Submitting data:", {
-    studentName,
-    studentClass,
-    vehicles: results
-  });
+  const vehicleSummary = vehicleData.map(v => 
+    `${v.name} at (${v.x}, ${v.y})${v.flipped ? " [flipped]" : ""}`
+  ).join("; ");
 
-  // Send to Google Form or backend if needed
-  alert("Submission complete!");
+  // ✅ Your actual Google Form URL
+  const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse";
+
+  const formData = new FormData();
+  formData.append("entry.1202364028", "Mrs Cove");             // Teacher
+  formData.append("entry.1957249768", studentClass);           // Class
+  formData.append("entry.436910009", studentName);             // Name
+  formData.append("entry.169376211", "Give");                  // Task type
+  formData.append("entry.1017965571", "1");                    // Task number
+  formData.append("entry.1568301781", vehicleSummary);         // Vehicle positions
+
+  fetch(formURL, {
+    method: "POST",
+    mode: "no-cors",
+    body: formData
+  }).then(() => {
+    alert("✅ Submission successful!");
+  }).catch(() => {
+    alert("❌ Submission failed. Please try again.");
+  });
 });
