@@ -44,8 +44,12 @@ let letterGap = 50;
 let isSpelling = false; // Prevent overlapping replay
 
 // DOM Elements
-document.getElementById('start-screen').style.display = 'none';
-document.getElementById('game-container').style.display = 'block';const modeSelect = document.getElementById("game-mode");
+const startScreen = document.getElementById('start-screen');
+if (startScreen) startScreen.style.display = 'none';
+
+const gameContainerEl = document.getElementById('game-container');
+if (gameContainerEl) gameContainerEl.style.display = 'block';
+
 const wordLengthSelect = document.getElementById("word-length");
 const lengthContainer = document.getElementById("length-container");
 const gameScreen = document.getElementById("game-screen");
