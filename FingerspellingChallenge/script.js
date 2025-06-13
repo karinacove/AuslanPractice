@@ -56,6 +56,7 @@ const scoreDisplay = document.getElementById("score");
 const timerDisplay = document.getElementById("timer");
 const clapDisplay = document.getElementById("clap-display");
 const finishButton = document.getElementById("finishButton");
+const startGame = document.getElementById("start-button");
 const endButton = document.getElementById("end-button");
 
 // -------------------------
