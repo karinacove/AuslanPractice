@@ -103,6 +103,29 @@ button {
   background-color: #a71d2a;
 }
     
+#finishButton {
+  position: absolute;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  left: 20px;
+  bottom: 20px;
+  width: 150px;
+  height: 150px;
+  box-shadow: none;
+  outline: none;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index:999;
+}
+
+#finishButton img {
+  display: block;
+  width: auto; /* or set a specific size if needed */
+  height: 150px; /* example */
+  pointer-events: none; /* only if clicks should register on the button, not image */
+}
 
 .breathe {
   animation: breathe 0.8s ease-in-out;
