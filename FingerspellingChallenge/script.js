@@ -56,8 +56,6 @@ const scoreDisplay = document.getElementById("score");
 const timerDisplay = document.getElementById("timer");
 const clapDisplay = document.getElementById("clap-display");
 const finishButton = document.getElementById("finishButton");
-const nameInput = document.getElementById("student-name");
-const classInput = document.getElementById("student-class");
 const endButton = document.getElementById("end-button");
 
 // -------------------------
@@ -81,8 +79,8 @@ modeSelect.addEventListener("change", () => {
 });
 
 document.getElementById("start-button").addEventListener("click", () => {
-  if (!nameInput.value.trim() || !classInput.value.trim()) {
-    alert("Please enter name and class.");
+  if (!studentName || !studentClass) {
+    alert("Please log in first.");
     return;
   }
 
@@ -105,6 +103,8 @@ document.getElementById("start-button").addEventListener("click", () => {
 
   endButton.disabled = false;
   endButton.style.display = mode === "levelup" ? "inline-block" : "none";
+
+  document.getElementById("start-button").style.display = "none";
 
   if (mode === "timed") {
     startTimedMode();
