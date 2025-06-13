@@ -94,7 +94,7 @@ button {
   position: fixed;
   top: 20px;
   right: 20px;
-  background-color: #dc3545; /* red */
+  background-color: #dc3545;
   color: white;    
   border: none;
   padding: 10px 20px;
@@ -129,9 +129,9 @@ button {
 
 #finishButton img {
   display: block;
-  width: auto; /* or set a specific size if needed */
-  height: 150px; /* example */
-  pointer-events: none; /* only if clicks should register on the button, not image */
+  width: auto;
+  height: 150px;
+  pointer-events: none;
 }
 
 .breathe {
