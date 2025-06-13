@@ -158,7 +158,7 @@ const wordList8 = [
 const wordList9 = [
      "vegetable", "skeleton", "beginning", "celebrate", "following", "necessary", "orchestra", "receiving", "tailoring", "umbrellas", "yearnings",    
      "adventure", "breakfast", "kindergarten", "watermelon", "storytime", "snowflake", "trebuchet", "chocolate", "crocodile", "paintbrush", "discovery", 
-     "dandelion", "slideshow", "blackboard", "snowstorm', "paperwork", "spaceship", "treasurey"
+     "dandelion", "slideshow", "blackboard", "snowstorm", "paperwork", "spaceship", "treasurey"
   ]
 };
 
