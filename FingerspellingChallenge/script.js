@@ -5,10 +5,9 @@ const logoutBtn = document.getElementById("logout-btn");
 const studentInfoDiv = document.getElementById("student-info");
 const gameContainer = document.getElementById("game-container");
 
-// Redirect if not signed in
 if (!studentName || !studentClass) {
   alert("Please log in first.");
-  window.location.href = "../index.html"; // Adjust path if needed
+  window.location.href = "../index.html";
 } else {
   if (studentInfoDiv) {
     studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
@@ -18,7 +17,6 @@ if (!studentName || !studentClass) {
   }
 }
 
-// Logout clears localStorage and redirects
 if (logoutBtn) {
   logoutBtn.addEventListener("click", () => {
     localStorage.removeItem("studentName");
@@ -26,7 +24,6 @@ if (logoutBtn) {
     window.location.href = "../index.html";
   });
 }
-
 
 let wordLists = {};
 let currentWord = "";
@@ -41,9 +38,8 @@ let score = 0;
 let correctCount = 0;
 let delayBeforeStart = 500;
 let letterGap = 50;
-let isSpelling = false; // Prevent overlapping replay
+let isSpelling = false;
 
-// DOM Elements
 const startScreen = document.getElementById('start-screen');
 if (startScreen) startScreen.style.display = 'none';
 
@@ -62,12 +58,18 @@ const scoreDisplay = document.getElementById("score");
 const timerDisplay = document.getElementById("timer");
 const clapDisplay = document.getElementById("clap-display");
 const finishButton = document.getElementById('finishButton');
-  if (finishButton) {
-  finishButton.addEventListener('click', () => {
-    finishButton.style.display = 'none'; // Hide the button
-    finishButtonHandler(true); // Call the game-ending function
+const nameInput = document.getElementById("name");
+const classInput = document.getElementById("class");
+const modeSelect = document.getElementById("mode");
+const endButton = document.getElementById("finishButton");
 
-// Load word list
+if (finishButton) {
+  finishButton.addEventListener('click', () => {
+    finishButton.style.display = 'none';
+    finishButtonHandler(true);
+  });
+}
+
 fetch("data/wordlist.json")
   .then(response => response.json())
   .then(data => {
@@ -165,7 +167,7 @@ function showNextWord() {
   currentIndex = 0;
   wordInput.value = "";
   letterDisplay.textContent = "";
-  setTimeout(displayLetters, 500); // 0.5 second delay before fingerspelling
+  setTimeout(displayLetters, 500);
 }
 
 function displayLetters() {
@@ -229,11 +231,6 @@ function checkWord() {
 
   showNextWord();
 }
-
-finishButton.addEventListener("click", () => {
-  finishButton.disabled = true;
-  finishGame();
-});
 
 function finishButtonHandler(early = false) {
   clearInterval(timerInterval);
