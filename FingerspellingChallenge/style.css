@@ -128,19 +128,27 @@ button:hover {
 }
 
 #start-button {
-  position: fixed center center;
-  display: none;
-  cursor: pointer;
-  width: 150px;
-  height: auto;
-  margin: 20px auto;
+  position: absolute;
   background: transparent;
   border: none;
+  padding: 0;
+  margin: 0;
+  left: 50vw;
+  bottom: 50vh;
+  width: 150px;
+  height: 150px;
+  box-shadow: none;
+  outline: none;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 999;
 }
 
 #start-button img {
-  width: 150px;
-  height: auto;
+  display: block;
+  width: auto;
+  height: 150px;
+  pointer-events: none;
 }
 
 #logoutBtn {
