@@ -35,6 +35,15 @@ body {
   text-align: center;
 }
 
+#game-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  min-height: 500px;
+  position: relative;
+}
+
 #student-info 
   position: fixed;
   top: 20px;
