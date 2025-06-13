@@ -1,10 +1,11 @@
 body {
   font-family: sans-serif;
   margin: 0;
-  background: url('Assets/fingerspelling-background.png') no-repeat center center;
   padding: 2px;
-  background-size: contain;
-  background-attachment:fixed;
+  
+  background: url('Assets/fingerspelling-background.png') no-repeat bottom center;
+  background-size: cover;
+  background-attachment: fixed;
   background-color: #fff;
 }
     
