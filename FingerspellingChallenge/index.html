@@ -1,33 +1,62 @@
-
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fingerspelling Challenge</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div id="student-info"></div>
-  <div id="logout-btn"></div>
-  <div id="game-container" style="display:none;">
-    <div id="signin-screen"></div>
-    <div id="game-screen">
-      <div id="score-timer-row">
-        <div id="score">Score: 0</div>
-        <div id="timer">Time: 0</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fingerspelling Challenge</title>
+    <link rel="icon" href="Assets/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+     <div id="student-info"></div>
+    <button id="logoutBtn" title="Logout">Logout</button>
+    <button id="finishButton" title="Finish Game">
+      <img src="Assets/Icons/finish.png" alt="Finish Game" />
+    <button>
+    <div id="signin-screen">
+      <h1>Fingerspelling Challenge</h1>
+      <label>
+        Game Mode:
+        <select id="game-mode">
+          <option value="timed">Timed Challenge</option>
+          <option value="levelup">Level Up Challenge</option>
+        </select>
+      </label>
+      <div id="length-container">
+        <label>
+          Word Length:
+          <select id="word-length">
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+          </select>
+        </label>
       </div>
-      <div id="letter-display"></div>
-      <input id="word-input" type="text" placeholder="Type the word" />
-      <input id="speed-slider" type="range" min="100" max="900" value="500" />
-      <div class="buttons">
-        <button id="again-button">Again</button>
-        <button id="start-button">Start</button>
-      </div>
-      <div id="clap-display"></div>
-      <button id="finishButton"><img src="Assets/Icons/finish.png" alt="Finish" /></button>
+      <button id="start-button" class="button">
+        <img src="Assets/Icons/startbtn.png" alt="Start" />
+      </button>
     </div>
-  </div>
-  <script src="script.js"></script>
-</body>
+
+    <div id="game-screen" style="display: none; flex-direction: column; align-items: center">
+      <div id="timer"></div>
+      <div id="score">Score: 0</div>
+      <div id="letter-display" class="auslan-font"></div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <input type="text" id="word-input" />
+        <button id="submit-word">Enter</button>
+      </div>
+      <input type="range" id="speed-slider" min="0" max="200" value="100" />
+      <button id="again-button" class="button">
+        <img src="Assets/Icons/Again.png" alt="Again" />
+      </button>
+      <div id="clap-display"></div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
 </html>
