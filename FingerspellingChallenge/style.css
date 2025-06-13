@@ -14,6 +14,12 @@ body {
   src: url('Assets/Font/Auslan%20Finger%20Spelling.otf') format('opentype');
 }
 
+.auslan-font {
+  font-family: "Auslan", sans-serif;
+  font-size: 6rem;
+  text-align: center;
+}
+
 #letter-display {
   font-family: 'AuslanFingerspelling', sans-serif;
   font-size: 5rem;
@@ -28,6 +34,20 @@ body {
   margin: auto;
   text-align: center;
 }
+
+#student-info 
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: #28a745;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+  max-width: 320px;
+  font-family: sans-serif;
+  font-weight: bold;
+  z-index: 1000;
+} 
 
 #game-screen {
   display: flex;
@@ -80,14 +100,21 @@ button {
   display: none;
   cursor: pointer;
   max-width: 200px;
-  margin: 20px auto;
+  height: auto;
+  background: transparent;
+  border: none;
 }
 
 #start-button {
+  position: fixed;
+  top: 50vh;
+  left: 50vw;
   display: none;
   cursor: pointer;
   max-width: 200px;
-  margin: 20px auto;
+  height: auto;
+  background: transparent;
+  border: none;
 }
 
 #logoutBtn {
