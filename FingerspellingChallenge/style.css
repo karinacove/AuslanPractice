@@ -26,6 +26,7 @@ body {
   text-align: center;
   min-height: 6rem;
   margin: 20px 0;
+  transition: all 0.3s ease-in-out;
 }
 
 #signin-screen,
@@ -66,6 +67,7 @@ body {
   gap: 1rem;
   margin-bottom: 1rem;
 }
+
 #word-input {
   font-size: 1.5rem;
   padding: 10px;
@@ -102,6 +104,14 @@ button {
   padding: 10px 20px;
   font-size: 1rem;
   cursor: pointer;
+}
+
+#timer,
+#score {
+  font-family: 'Auslan Finger Spelling', sans-serif;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 10px;
 }
 
 #again-button {
