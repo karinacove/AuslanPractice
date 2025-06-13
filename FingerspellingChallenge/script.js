@@ -265,4 +265,4 @@ function finishButtonHandler(early = false) {
       againButton.style.display = "block";
     }, 3000);
   });
-});
+};
