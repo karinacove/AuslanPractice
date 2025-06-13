@@ -43,12 +43,20 @@
 
     <div id="game-screen" style="display: none; flex-direction: column; align-items: center;">
       <div id="top-bar">
-        <label>Speed: </label><input type="range" id="speed-slider" min="0" max="200" value="100" /> 
+        <label>Speed: </label>
+        <input type="range" id="speed-slider" min="0" max="200" value="100" />
         <div>
-          <div id="timer">Time: 120</div>
-          <div id="score">Score: 0</div>
+          <div id="timer">
+            <span class="label">Time:</span>
+            <span class="value">120</span>
+          </div>
+          <div id="score">
+            <span class="label">Score:</span>
+            <span class="value">0</span>
+          </div>
         </div>
       </div>
+    </div>
       
       <div id="letter-display" class="auslan-font"></div>
       <div style="display: flex; align-items: center; gap: 10px;">
