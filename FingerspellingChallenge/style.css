@@ -32,6 +32,8 @@ body {
 #game-screen {
   max-width: 600px;
   margin: auto;
+  top: 40%;
+  left: 50%;
   text-align: center;
 }
 
@@ -121,7 +123,7 @@ button:hover {
 #again-button {
   display: none;
   cursor: pointer;
-  max-width: 200px;
+  width: 100px;
   height: auto;
   background: transparent;
   border: none;
