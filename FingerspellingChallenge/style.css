@@ -115,9 +115,8 @@ button {
 }
 
 #start-button {
-  position: fixed;
-  top: 50vh;
-  left: 50vw;
+  max-height: 500px;
+  position: relative;
   display: none;
   cursor: pointer;
   max-width: 200px;
