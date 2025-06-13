@@ -131,11 +131,16 @@ button:hover {
   position: fixed center center;
   display: none;
   cursor: pointer;
-  width: 50px;
+  width: 150px;
   height: auto;
   margin: 20px auto;
   background: transparent;
   border: none;
+}
+
+#start-button img {
+  width: 150px;
+  height: auto;
 }
 
 #logoutBtn {
