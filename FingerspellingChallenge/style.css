@@ -58,6 +58,14 @@ body {
   z-index: 1000;
 } 
 
+#top-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
 #word-input {
   font-size: 1.5rem;
   padding: 10px;
