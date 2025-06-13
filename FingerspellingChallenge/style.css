@@ -83,6 +83,13 @@ button {
   margin: 20px auto;
 }
 
+#start-button {
+  display: none;
+  cursor: pointer;
+  max-width: 200px;
+  margin: 20px auto;
+}
+
 #logoutBtn {
   position: fixed;
   top: 20px;
