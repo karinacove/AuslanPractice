@@ -58,15 +58,6 @@ body {
   z-index: 1000;
 } 
 
-#game-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-around;
-  min-height: 500px;
-  position: relative;
-}
-
 #word-input {
   font-size: 1.5rem;
   padding: 10px;
