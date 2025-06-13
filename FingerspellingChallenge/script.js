@@ -61,18 +61,11 @@ const againButton = document.getElementById("again-button");
 const scoreDisplay = document.getElementById("score");
 const timerDisplay = document.getElementById("timer");
 const clapDisplay = document.getElementById("clap-display");
-const endButton = document.createElement("button");
-endButton.id = "end-button";
-endButton.textContent = "End Game";
-endButton.style.position = "absolute";
-endButton.style.top = "10px";
-endButton.style.right = "10px";
-endButton.style.zIndex = "6";
-endButton.style.padding = "10px 20px";
-endButton.style.fontSize = "16px";
-endButton.style.cursor = "pointer";
-endButton.style.display = "none";
-document.body.appendChild(endButton);
+const finishButton = document.getElementById('finishButton');
+  if (finishButton) {
+  finishButton.addEventListener('click', () => {
+    finishButton.style.display = 'none'; // Hide the button
+    finishButtonHandler(true); // Call the game-ending function
 
 // Load word list
 fetch("data/wordlist.json")
@@ -237,14 +230,14 @@ function checkWord() {
   showNextWord();
 }
 
-endButton.addEventListener("click", () => {
-  endButton.disabled = true;
-  endGame();
+finishButton.addEventListener("click", () => {
+  finishButton.disabled = true;
+  finishGame();
 });
 
-function endGame() {
+function finishButtonHandler(early = false) {
   clearInterval(timerInterval);
-  endButton.style.display = "none";
+  finishButton.style.display = "none";
 
   const correct = Array.from(guessedWords).join(", ");
   const wrong = incorrectWords.join(", ");
@@ -264,7 +257,7 @@ function endGame() {
     letterDisplay.textContent = "";
     clapDisplay.innerHTML = `<img src='Assets/Icons/auslan-clap.gif' alt='Clap' style='max-width:150px;' />`;
     againButton.style.display = "none";
-    endButton.style.display = "none";
+    finishButton.style.display = "none";
 
     setTimeout(() => {
       clapDisplay.innerHTML = "";
