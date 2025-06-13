@@ -2,20 +2,19 @@ body {
   font-family: sans-serif;
   margin: 0;
   padding: 2px;
-  
   background: url('Assets/fingerspelling-background.png') no-repeat bottom center;
   background-size: cover;
   background-attachment: fixed;
   background-color: #fff;
 }
-    
+
 @font-face {
   font-family: 'AuslanFingerspelling';
   src: url('Assets/Font/Auslan%20Finger%20Spelling.otf') format('opentype');
 }
 
 .auslan-font {
-  font-family: "Auslan", sans-serif;
+  font-family: 'AuslanFingerspelling', sans-serif;
   font-size: 6rem;
   text-align: center;
 }
@@ -45,7 +44,7 @@ body {
   position: relative;
 }
 
-#student-info 
+#student-info {
   position: fixed;
   top: 20px;
   left: 20px;
@@ -104,11 +103,16 @@ button {
   padding: 10px 20px;
   font-size: 1rem;
   cursor: pointer;
+  transition: opacity 0.3s;
+}
+
+button:hover {
+  opacity: 0.8;
 }
 
 #timer,
 #score {
-  font-family: 'Auslan Finger Spelling', sans-serif;
+  font-family: 'AuslanFingerspelling', sans-serif;
   font-size: 1.5rem;
   font-weight: bold;
   margin: 0 10px;
@@ -124,21 +128,12 @@ button {
 }
 
 #start-button {
-  max-height: 500px;
-  position: relative;
-  display: none;
-  cursor: pointer;
-  max-width: 200px;
-  height: auto;
-  background: transparent;
-  border: none;
-}
-
-#start-button {
   display: none;
   cursor: pointer;
   max-width: 200px;
   margin: 20px auto;
+  background: transparent;
+  border: none;
 }
 
 #logoutBtn {
@@ -156,11 +151,11 @@ button {
   z-index: 1500;
   transition: background-color 0.3s;
 }
-    
+
 #logoutBtn:hover {
   background-color: #a71d2a;
 }
-    
+
 #finishButton {
   position: absolute;
   background: transparent;
@@ -175,7 +170,7 @@ button {
   outline: none;
   cursor: pointer;
   pointer-events: auto;
-  z-index:999;
+  z-index: 999;
 }
 
 #finishButton img {
@@ -190,13 +185,7 @@ button {
 }
 
 @keyframes breathe {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.2);
-  }
-  100% {
-    transform: scale(1);
-  }
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
