@@ -3,7 +3,7 @@ body {
   margin: 0;
   padding: 2px;
   background: url('Assets/fingerspelling-background.png') no-repeat center center;
-  background-size: coontain;
+  background-size: contain;
   background-attachment: fixed;
   background-color: #fff;
 }
