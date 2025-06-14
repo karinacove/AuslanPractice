@@ -80,7 +80,7 @@ body {
 }
 
 #speed-container {
-  width: 80%;
+  width: 50%;
   margin-top: 0;
   text-align: center;
   transition: margin-top 0.6s ease;
