@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="Assets/favicon.ico" type="image/x-icon" />
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div id="student-info"></div>
-    <button id="logoutBtn">Logout</button>
-    <button id="finishButton">
-      <img src="Assets/Icons/finish.png" alt="Finish Game" />
-    </button>
-    
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="Assets/favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="style.css" />
+  <title>Fingerspelling Challenge</title>
+</head>
+<body>
+  <div id="student-info"></div>
+  <button id="logoutBtn">Logout</button>
+  <button id="finishButton">
+    <img src="Assets/Icons/finish.png" alt="Finish Game" />
+  </button>
+
+  <div id="game-container">
     <div id="signin-screen">
+      <h2>Choose Game Mode</h2>
       <label>
         Game Mode:
         <select id="game-mode">
@@ -21,7 +24,8 @@
           <option value="levelup">Level Up Challenge</option>
         </select>
       </label>
-      <div id="length-container">
+
+      <div id="length-container" style="display: block;">
         <label>
           Word Length:
           <select id="word-length">
@@ -36,29 +40,30 @@
           </select>
         </label>
       </div>
-    <button id="start-button">
-      <img src="Assets/Icons/startbtn.png" alt="Start" />
-    </button>
+
+      <button id="start-button">
+        <img src="Assets/Icons/startbtn.png" alt="Start" />
+      </button>
     </div>
 
     <div id="game-screen" style="display: none; flex-direction: column; align-items: center;">
       <div id="top-bar">
         <label>Speed: </label>
         <input type="range" id="speed-slider" min="0" max="200" value="100" />
-        <div>
-          <div id="timer">
-            <span class="label">Time:</span>
-            <span class="value">120</span>
-          </div>
-          <div id="score">
-            <span class="label">Score:</span>
-            <span class="value">0</span>
-          </div>
+
+        <div id="timer">
+          <span class="label">Time:</span>
+          <span class="value">120</span>
+        </div>
+
+        <div id="score">
+          <span class="label">Score:</span>
+          <span class="value">0</span>
         </div>
       </div>
-    </div>
-      
+
       <div id="letter-display" class="auslan-font"></div>
+
       <div style="display: flex; align-items: center; gap: 10px;">
         <div id="controls">
           <input type="text" id="word-input" placeholder="Type the word" autocomplete="off" />
@@ -71,7 +76,8 @@
 
       <div id="clap-display"></div>
     </div>
+  </div>
 
-    <script src="script.js"></script>
-  </body>
+  <script src="script.js"></script>
+</body>
 </html>
