@@ -140,7 +140,7 @@ button:hover {
   margin: 0;
   left: 50%;
   top: 55%;
-  transform: translate(-50%, -50%); /* Properly centers horizontally and vertically */
+  transform: translate(-75%, -60%); /* Properly centers horizontally and vertically */
   width: 150px;
   height: 150px;
   box-shadow: none;
