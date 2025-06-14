@@ -32,7 +32,7 @@ body {
 #game-screen {
   max-width: 600px;
   margin: auto;
-  top: 50%;
+  bottom: 50%;
   left: 50%;
   text-align: center;
 }
@@ -42,7 +42,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: space-around;
-  min-height: 500px;
+  min-height: 200px;
   position: relative;
 }
 
@@ -65,7 +65,7 @@ body {
   flex-wrap: wrap;
   justify-content: space-around;
   align-items: center;
-  top: 40%;
+  top: -40%;
   gap: 1rem;
   margin-bottom: 1rem;
 }
