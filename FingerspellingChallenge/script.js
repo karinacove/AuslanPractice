@@ -96,6 +96,8 @@ document.getElementById("start-button").addEventListener("click", () => {
   letterDisplay.textContent = "";
   wordInput.focus();
   selectedWordLength = parseInt(wordLengthSelect?.value || "3");
+  document.getElementById("speed-container").style.marginTop = "30vh";
+
 
   signinScreen.style.display = "none";
   gameScreen.style.display = "flex";
