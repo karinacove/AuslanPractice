@@ -91,6 +91,17 @@ body {
   margin: 10px 0;
 }
 
+.label {
+  font-family: sans-serif;
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.value {
+  font-family: 'AuslanFingerspelling', sans-serif;
+  font-weight: bold;
+}
+
 
 #clap-display img {
   max-width: 150px;
