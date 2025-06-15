@@ -72,16 +72,22 @@ body {
   margin-bottom: 1rem;
 }
 
+.input-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 #word-input {
   font-size: 1.5rem;
   padding: 10px;
   width: 80%;
+  max-width: 400px;
   margin: 20px auto 10px auto;
   text-align: center;
   display: block;
   visibility: hidden;
 }
-
 
 #speed-container {
   width: 40%;
@@ -105,7 +111,6 @@ body {
   font-family: 'AuslanFingerspelling', sans-serif;
   font-weight: bold;
 }
-
 
 #clap-display img {
   max-width: 150px;
@@ -138,8 +143,14 @@ button:hover {
   opacity: 0.8;
 }
 
-#timer,
 #score {
+  font-family: 'AuslanFingerspelling', sans-serif;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 10px;
+}
+
+#timer {
   font-family: 'AuslanFingerspelling', sans-serif;
   font-size: 1.5rem;
   font-weight: bold;
@@ -163,7 +174,7 @@ button:hover {
   margin: 0;
   left: 50%;
   top: 55%;
-  transform: translate(-75%, -60%); /* Properly centers horizontally and vertically */
+  transform: translate(-75%, -60%);
   width: 150px;
   height: 150px;
   box-shadow: none;
@@ -172,7 +183,6 @@ button:hover {
   pointer-events: auto;
   z-index: 999;
 }
-
 
 #start-button img {
   display: block;
