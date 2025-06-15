@@ -1,19 +1,14 @@
-// -------------------------
-// Student Sign-in Handling
-// -------------------------
 let studentName = localStorage.getItem("studentName") || "";
 let studentClass = localStorage.getItem("studentClass") || "";
 
-const logoutBtn = document.getElementById("logoutBtn");
+const logoutBtn = document.getElementById("logout-btn");
 const studentInfoDiv = document.getElementById("student-info");
 const gameContainer = document.getElementById("game-container");
-const signinScreen = document.getElementById("signin-screen");
-const gameScreen = document.getElementById("game-screen");
 
 // Redirect if not signed in
 if (!studentName || !studentClass) {
   alert("Please log in first.");
-  window.location.href = "../index.html"; 
+  window.location.href = "../index.html"; // Adjust path if needed
 } else {
   if (studentInfoDiv) {
     studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
@@ -24,205 +19,177 @@ if (!studentName || !studentClass) {
 }
 
 // Logout clears localStorage and redirects
-logoutBtn?.addEventListener("click", () => {
-  localStorage.removeItem("studentName");
-  localStorage.removeItem("studentClass");
-  window.location.href = "../index.html";
-});
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("studentName");
+    localStorage.removeItem("studentClass");
+    window.location.href = "../index.html";
+  });
+}
 
-// -------------------------
-// Game Variables
-// -------------------------
-let wordLists = {};
-let currentWord = "";
-let guessedWords = new Set();
-let incorrectWords = [];
-let mode = "";
-let level = 3;
-let timerInterval;
-let selectedWordLength = 3;
-let score = 0;
-let correctCount = 0;
-let isSpelling = false;
-
-// DOM Elements
-const modeSelect = document.getElementById("game-mode");
-const wordLengthSelect = document.getElementById("word-length");
-const letterDisplay = document.getElementById("letter-display");
+// Elements
+const signinScreen = document.getElementById("signin-screen");
+const gameScreen = document.getElementById("game-screen");
+const startButton = document.getElementById("start-button");
 const wordInput = document.getElementById("word-input");
 const speedSlider = document.getElementById("speed-slider");
+const timerDisplay = document.querySelector("#timer .value");
+const scoreDisplay = document.querySelector("#score .value");
+const letterDisplay = document.getElementById("letter-display");
 const againButton = document.getElementById("again-button");
-const scoreDisplay = document.getElementById("score");
-const timerDisplay = document.getElementById("timer");
-const clapDisplay = document.getElementById("clap-display");
 const finishButton = document.getElementById("finishButton");
-const startGame = document.getElementById("start-button");
-const endButton = document.getElementById("end-button");
 
-// -------------------------
-// Load Word List
-// -------------------------
-fetch("data/wordlist.json")
-  .then(response => response.json())
-  .then(data => {
-    wordLists = data;
+// State
+let timer;
+let timeLeft = 120;
+let score = 0;
+let currentWord = "";
+let currentLetterIndex = 0;
+let letterTimeouts = [];
+let speed = 100;
+let correctWords = 0;
+let gameMode = "timed"; // or "levelup"
+let wordLength = 3;
+
+let wordBank = {};
+
+// Load word bank from JSON
+fetch("FingerspellingChallenge/data/wordlist.json")
+  .then((response) => response.json())
+  .then((data) => {
+    wordBank = data;
   })
-  .catch(error => {
-    console.error("Error loading word list:", error);
-    alert("Failed to load word list. Try refreshing the page.");
-  });
+  .catch((error) => console.error("Error loading word list:", error));
 
-// -------------------------
-// Game Setup & Start
-// -------------------------
-modeSelect.addEventListener("change", () => {
-  document.getElementById("length-container").style.display = modeSelect.value === "timed" ? "block" : "none";
-});
-
-document.getElementById("start-button").addEventListener("click", () => {
-  if (!studentName || !studentClass) {
-    alert("Please log in first.");
-    return;
-  }
-
-  mode = modeSelect.value;
-  guessedWords.clear();
-  incorrectWords = [];
-  level = 3;
-  score = 0;
-  correctCount = 0;
-  scoreDisplay.textContent = "Score: 0";
-  wordInput.value = "";
+function showLetterByLetter(word) {
+  clearLetters();
+  currentLetterIndex = 0;
   letterDisplay.textContent = "";
-  wordInput.focus();
-  selectedWordLength = parseInt(wordLengthSelect?.value || "3");
-  document.getElementById("speed-container").style.marginTop = "30vh";
+  let delay = 400;
 
+  word.split("").forEach((letter, index) => {
+    const timeout = setTimeout(() => {
+      letterDisplay.textContent = letter.toUpperCase();
+    }, delay + index * (300 - speed));
+    letterTimeouts.push(timeout);
+  });
+}
 
+function clearLetters() {
+  letterTimeouts.forEach(clearTimeout);
+  letterTimeouts = [];
+  letterDisplay.textContent = "";
+}
+
+function startGame() {
   signinScreen.style.display = "none";
   gameScreen.style.display = "flex";
-  clapDisplay.innerHTML = "";
-  againButton.style.display = "block";
+  score = 0;
+  timeLeft = 120;
+  correctWords = 0;
+  updateScore();
+  updateTimer();
 
-  endButton.disabled = true;
-  endButton.style.display = mode === "levelup" ? "inline-block" : "none";
+  wordInput.value = "";
+  wordInput.style.display = "block";
+  wordInput.focus();
 
-  document.getElementById("start-button").style.display = "none";
+  againButton.style.display = "none";
+  startTimer();
+  setTimeout(nextWord, 400); // Initial delay
+}
 
-  if (mode === "timed") {
-    startTimedMode();
-  } else {
-    setTimeout(showNextWord, 500);
+function nextWord() {
+  if (gameMode === "levelup" && correctWords > 0 && correctWords % 10 === 0 && wordLength < 10) {
+    wordLength++;
   }
-});
 
-// -------------------------
-// Timer Mode
-// -------------------------
-function startTimedMode() {
-  let timeLeft = 120;
-  timerDisplay.textContent = `Time: ${timeLeft}`;
+  const words = wordBank[wordLength] || wordBank[3];
+  currentWord = words[Math.floor(Math.random() * words.length)];
+  showLetterByLetter(currentWord);
+}
 
-  timerInterval = setInterval(() => {
+function updateScore() {
+  scoreDisplay.textContent = score;
+}
+
+function updateTimer() {
+  timerDisplay.textContent = timeLeft;
+}
+
+function startTimer() {
+  timer = setInterval(() => {
     timeLeft--;
-    timerDisplay.textContent = `Time: ${timeLeft}`;
+    updateTimer();
     if (timeLeft <= 0) {
-      clearInterval(timerInterval);
       endGame();
     }
   }, 1000);
-
-  setTimeout(showNextWord, 500);
 }
-
-// -------------------------
-// Show Word for Spelling
-// -------------------------
-function showNextWord() {
-  let pool = mode === "levelup" ? wordLists[level.toString()] || [] : wordLists[selectedWordLength.toString()] || [];
-  let filtered = pool.filter(w => !guessedWords.has(w));
-
-  if (!filtered.length && !incorrectWords.length) {
-    if (mode === "levelup" && level < 10) {
-      level++;
-      correctCount = 0;
-      showNextWord();
-      return;
-    } else {
-      endGame();
-      return;
-    }
-  }
-
-  currentWord = incorrectWords.length ? incorrectWords.shift() : filtered[Math.floor(Math.random() * filtered.length)];
-  letterDisplay.textContent = "";
-  setTimeout(displayLetters, 500);
-}
-
-// -------------------------
-// Display Letters Sequentially
-// -------------------------
-function displayLetters() {
-  if (isSpelling) return;
-  isSpelling = true;
-
-  let speed = parseInt(speedSlider.value);
-  let letterDuration = 1200 - speed * 5;
-  let index = 0;
-
-  function showLetter() {
-    if (index < currentWord.length) {
-      letterDisplay.textContent = currentWord[index].toUpperCase();
-      setTimeout(() => {
-        letterDisplay.textContent = "";
-        setTimeout(showLetter, 50);
-      }, letterDuration);
-      index++;
-    } else {
-      isSpelling = false;
-    }
-  }
-
-  showLetter();
-}
-
-// -------------------------
-// Word Checking Logic
-// -------------------------
-wordInput.addEventListener("input", () => {
-  if (wordInput.value.trim().length === currentWord.length) {
-    checkWord();
-  }
-});
-
-function checkWord() {
-  let input = wordInput.value.trim().toLowerCase();
-  if (!input) return;
-
-  if (input === currentWord.toLowerCase()) {
-    guessedWords.add(currentWord);
-    score++;
-    scoreDisplay.textContent = `Score: ${score}`;
-  } else {
-    incorrectWords.push(currentWord);
-    againButton.classList.add("breathe");
-    setTimeout(() => againButton.classList.remove("breathe"), 1000);
-  }
-
-  showNextWord();
-}
-
-// -------------------------
-// End Game Logic
-// -------------------------
-finishButton.addEventListener("click", () => {
-  finishButton.disabled = true;
-  endGame();
-});
 
 function endGame() {
-  clearInterval(timerInterval);
-  letterDisplay.textContent = "";
-  clapDisplay.innerHTML = `<img src='Assets/Icons/auslan-clap.gif' alt='Clap' style='max-width:150px;' />`;
-  againButton.style.display = "none";
+  clearInterval(timer);
+  clearLetters();
+  wordInput.style.display = "none";
+  againButton.style.display = "block";
+  letterDisplay.textContent = "Great work!";
+  submitResults();
 }
+
+function submitResults() {
+  const correct = Array.from(guessedWords).join(", ");
+  const wrong = incorrectWords.join(", ");
+  const formURL = `https://docs.google.com/forms/d/e/1FAIpQLSfOFWu8FcUR3bOwg0mo_3Kb2O7p4m0TLvfUpZjx0zdzqKac4Q/formResponse?entry.423692452=${encodeURIComponent(
+    nameInput.value
+  )}&entry.1307864012=${encodeURIComponent(
+    classInput.value
+  )}&entry.468778567=${encodeURIComponent(
+    mode
+  )}&entry.1083699348=${score}&entry.746947164=${encodeURIComponent(
+    correct
+  )}&entry.1534005804=${encodeURIComponent(
+    wrong
+  )}&entry.1974555000=${encodeURIComponent(speedSlider.value)}`;
+  console.log("Score submitted: ", score);
+}
+
+// Event Listeners
+startButton.addEventListener("click", () => {
+  const selectedMode = document.querySelector('input[name="game-mode"]:checked');
+  const selectedLength = document.querySelector('input[name="word-length"]:checked');
+  gameMode = selectedMode ? selectedMode.value : "timed";
+  wordLength = selectedLength ? parseInt(selectedLength.value) : 3;
+  startGame();
+});
+
+wordInput.addEventListener("input", () => {
+  const typed = wordInput.value.trim().toLowerCase();
+  if (typed.length === currentWord.length) {
+    if (typed === currentWord) {
+      score++;
+      correctWords++;
+      updateScore();
+      wordInput.value = "";
+      setTimeout(nextWord, 400);
+    } else {
+      wordInput.classList.add("breathe");
+      setTimeout(() => wordInput.classList.remove("breathe"), 300);
+      wordInput.value = "";
+    }
+  }
+});
+
+speedSlider.addEventListener("input", () => {
+  speed = parseInt(speedSlider.value);
+});
+
+againButton.addEventListener("click", () => {
+  againButton.style.display = "none";
+  signinScreen.style.display = "flex";
+  gameScreen.style.display = "none";
+});
+
+// Initial Setup
+wordInput.style.display = "none";
+againButton.style.display = "none";
+speed = parseInt(speedSlider.value);
