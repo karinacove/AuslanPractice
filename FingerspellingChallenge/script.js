@@ -104,7 +104,7 @@ document.getElementById("start-button").addEventListener("click", () => {
   clapDisplay.innerHTML = "";
   againButton.style.display = "block";
 
-  endButton.disabled = false;
+  endButton.disabled = true;
   endButton.style.display = mode === "levelup" ? "inline-block" : "none";
 
   document.getElementById("start-button").style.display = "none";
