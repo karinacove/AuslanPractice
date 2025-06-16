@@ -1,61 +1,27 @@
-/* style.css */
+/* Reset and base */
+* {
+  box-sizing: border-box;
+}
 
 body {
-  font-family: sans-serif, "Auslan Finger Spelling.otf";
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, "Auslan Finger Spelling.otf";
   background-color: #5b65a9;
   color: #333;
   margin: 0;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
-.container {
-  background: white;
-  padding: 2rem 3rem;
-  border-radius: 10px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  text-align: center;
-  width: 320px;
+  padding: 1rem;
+  /* Removed flex centering for better scrolling */
+  min-height: 100vh;
 }
 
 h1 {
+  text-align: center;
+  color: #1a1a1a;
   margin-bottom: 1rem;
   font-weight: 700;
-  color: #1a1a1a;
 }
 
-.topics {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-}
-
-.topics button {
-  flex: 1 1 45%;
-  min-width: 120px;
-  background: #4a90e2;
-  border: none;
-  color: white;
-  font-weight: 600;
-  padding: 12px 0;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  box-shadow: 0 3px 8px rgba(74, 144, 226, 0.4);
-  user-select: none;
-}
-
-img.draggable {
-  touch-action: none;
-}
-
+/* Logout and student info */
 #logoutBtn {
-  width: auto;
-  max-width: 200px;
   position: fixed;
   top: 20px;
   right: 20px;
@@ -87,55 +53,161 @@ img.draggable {
   font-family: sans-serif;
   font-weight: bold;
   z-index: 1000;
-
-.topics button:hover,
-.topics button:focus {
-  background: #357ABD;
-  outline: none;
-  box-shadow: 0 0 8px #357ABD;
 }
 
-.topics button:active {
-  background: #2a5d8f;
-  box-shadow: none;
+/* Main game wrapper: flex container */
+.game-wrapper {
+  max-width: 900px;
+  margin: 2rem auto;
+  background: white;
+  padding: 2rem 3rem;
+  border-radius: 10px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 30px;
+}
+
+/* Columns for draggable signs */
+.draggables-column {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-width: 140px;
+  min-width: 140px;
+  align-items: center;
+}
+
+/* The 3x3 game board grid */
+.grid-board {
+  display: grid;
+  grid-template-columns: repeat(3, 120px);
+  grid-template-rows: repeat(3, 120px);
+  gap: 15px;
+  justify-content: center;
+  align-content: center;
+}
+
+/* Each tile in the grid */
+.grid-item {
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  background: #f9f9f9;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: default;
+  user-select: none;
+  transition: background-color 0.3s, border-color 0.3s;
+  min-width: 120px;
+  min-height: 120px;
 }
 
 .grid-item.drag-over {
   border-color: #28a745;
   background-color: #eaffea;
 }
-  
-#start-button {
-  position: absolute;
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-  left: 50%;
-  top: 55%;
-  transform: translate(-75%, -60%);
-  width: 150px;
-  height: 150px;
-  box-shadow: none;
-  outline: none;
-  cursor: pointer;
-  pointer-events: auto;
-  z-index: 999;
-}
 
-#start-button img {
-  display: block;
-  width: auto;
-  height: 150px;
+.grid-item img {
+  max-width: 90px;
+  max-height: 90px;
+  user-select: none;
   pointer-events: none;
 }
-  
-@media (max-width: 400px) {
-  .container {
-    width: 90%;
-    padding: 1.5rem 1rem;
+
+/* Draggable sign images */
+img.draggable {
+  max-width: 100px;
+  max-height: 100px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none; /* for iPad touch */
+}
+
+img.draggable:active {
+  cursor: grabbing;
+}
+
+/* Label showing matched letter */
+.label {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background-color: #28a745;
+  color: white;
+  font-weight: bold;
+  padding: 3px 7px;
+  border-radius: 5px;
+  font-size: 1.1rem;
+  user-select: none;
+}
+
+/* Finish button styling */
+#finishButton,
+#nextLevel {
+  display: block;
+  margin: 2rem auto;
+  padding: 12px 30px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(74, 144, 226, 0.4);
+  transition: background-color 0.3s ease;
+  max-width: 200px;
+  width: 100%;
+  max-width: 300px;
+}
+
+#finishButton:hover,
+#nextLevel:hover {
+  background-color: #357abd;
+}
+
+/* Responsive tweaks */
+@media (max-width: 900px) {
+  .game-wrapper {
+    flex-direction: column;
+    max-width: 90%;
+    padding: 1.5rem 2rem;
+    gap: 20px;
   }
-  .topics button {
-    flex-basis: 100%;
+
+  .draggables-column {
+    flex-direction: row;
+    max-width: 100%;
+    min-width: unset;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .grid-board {
+    grid-template-columns: repeat(3, 90px);
+    grid-template-rows: repeat(3, 90px);
+    gap: 10px;
+  }
+
+  .grid-item {
+    min-width: 90px;
+    min-height: 90px;
+  }
+
+  img.draggable {
+    max-width: 70px;
+    max-height: 70px;
+  }
+}
+
+@media (max-width: 400px) {
+  #finishButton,
+  #nextLevel {
+    font-size: 1rem;
+    padding: 10px 20px;
   }
 }
