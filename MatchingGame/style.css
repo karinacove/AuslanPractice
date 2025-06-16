@@ -96,6 +96,11 @@ h1 {
   box-shadow: none;
 }
 
+.grid-item.drag-over {
+  border-color: #28a745;
+  background-color: #eaffea;
+}
+  
 #start-button {
   position: absolute;
   background: transparent;
