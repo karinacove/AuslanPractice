@@ -6,6 +6,68 @@
   <link rel="icon" href="Assets/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="style.css" />
   <title>Fingerspelling Challenge</title>
+  <style>
+    @font-face {
+      font-family: "Auslan";
+      src: url("Assets/Fonts/AuslanFont.ttf") format("truetype");
+    }
+
+    .auslan-font {
+      font-family: "Auslan", sans-serif;
+    }
+
+    #letter-display {
+      font-size: 6rem;
+      text-align: center;
+      margin: 20px;
+    }
+
+    .value.auslan-font {
+      font-size: 2rem;
+    }
+
+    #again-button img {
+      height: 100px;
+    }
+
+    #word-input {
+      font-size: 1.5rem;
+      padding: 5px;
+      width: 200px;
+    }
+
+    #speed-container {
+      margin-bottom: 10px;
+    }
+
+    #logoutBtn,
+    #finishButton {
+      position: absolute;
+      top: 10px;
+      padding: 10px;
+      z-index: 10;
+    }
+
+    #logoutBtn {
+      left: 10px;
+    }
+
+    #finishButton {
+      right: 10px;
+      background: none;
+      border: none;
+    }
+
+    #game-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #signin-screen {
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
   <div id="student-info"></div>
@@ -15,8 +77,9 @@
   </button>
 
   <div id="game-container">
+    <!-- Signin Screen -->
     <div id="signin-screen">
-      <h2>Choose Game Mode</h2>
+      <h2>Fingerspelling Challenge</h2>
       <label>
         Game Mode:
         <select id="game-mode">
@@ -46,36 +109,38 @@
       </button>
     </div>
 
-<div id="game-screen" style="display: none; flex-direction: column; align-items: center;">
-  <div id="speed-container">
-    <label for="speed-slider">Speed:</label>
-    <input type="range" id="speed-slider" min="0" max="200" value="100" />
-  </div>
+    <!-- Game Screen -->
+    <div id="game-screen">
+      <div id="speed-container">
+        <label for="speed-slider">Speed:</label>
+        <input type="range" id="speed-slider" min="0" max="200" value="100" />
+      </div>
 
-  <div id="top-bar">
-    <div id="timer">
-      <span class="label">Time:</span>
-      <span class="value">120</span>
-    </div>
+      <div id="top-bar" style="display: flex; gap: 40px; justify-content: center;">
+        <div id="timer">
+          <span class="label">Time:</span>
+          <span class="value auslan-font">120</span>
+        </div>
 
-    <div id="score">
-      <span class="label">Score:</span>
-      <span class="value">0</span>
-    </div>
-  </div>
-</div>
-
+        <div id="score">
+          <span class="label">Score:</span>
+          <span class="value auslan-font">0</span>
+        </div>
+      </div>
 
       <div id="letter-display" class="auslan-font"></div>
 
       <div style="display: flex; align-items: center; gap: 10px;">
-        <div id="controls">
-          <input type="text" id="word-input" placeholder="Type the word" autocomplete="off" />
-          <button id="submit-word">Enter</button>
-          <button id="again-button">
-            <img src="Assets/Icons/Again.png" alt="Again" style="height: 80px;" />
-          </button>
-        </div>
+        <input
+          type="text"
+          id="word-input"
+          placeholder="Type the word"
+          autocomplete="off"
+          inputmode="text"
+        />
+        <button id="again-button">
+          <img src="Assets/Icons/Again.png" alt="Again" />
+        </button>
       </div>
 
       <div id="clap-display"></div>
