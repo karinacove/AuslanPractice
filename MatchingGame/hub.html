@@ -75,7 +75,10 @@
     <option value="numbers">Numbers</option>
   </select>
 
-  <button id="startGame">Start Game</button>
+  <button id="start-button">
+        <img src="assets/start.png" alt="Start" />
+      </button>
+    </div>
 
   <script>
   window.addEventListener("DOMContentLoaded", () => {
@@ -104,8 +107,8 @@
     }
 
     // Start game logic
-    if (startGameBtn) {
-      startGameBtn.addEventListener("click", () => {
+    if (start-button) {
+      start-button.addEventListener("click", () => {
         const topic = document.getElementById("selectedTopic").value;
         localStorage.setItem("selectedTopic", topic);
         window.location.href = "game.html";
