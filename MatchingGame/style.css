@@ -45,6 +45,7 @@ h1 {
   font-weight: bold;
   cursor: pointer;
   font-family: sans-serif;
+  text-align: center;
   z-index: 1500;
   transition: background-color 0.3s;
 }
