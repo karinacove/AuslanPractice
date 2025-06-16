@@ -5,6 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="Assets/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="style.css" />
+  <title>Fingerspelling Challenge</title>
+  <style>
+    #speed-container {
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+
+    .center-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+  </style>
 </head>
 <body>
   <div id="student-info"></div>
@@ -45,29 +59,28 @@
       </button>
     </div>
 
-<div id="game-screen" style="display: none; flex-direction: column; align-items: center;">
-  <div id="speed-container">
-    <label for="speed-slider">Speed:</label>
-    <input type="range" id="speed-slider" min="0" max="200" value="100" />
-  </div>
+    <div id="game-screen" style="display: none; flex-direction: column; align-items: center;">
+      <div id="speed-container">
+        <label for="speed-slider">Speed:</label>
+        <input type="range" id="speed-slider" min="0" max="200" value="100" />
+      </div>
 
-  <div id="top-bar">
-    <div id="timer">
-      <span class="label">Time:</span>
-      <span class="value">120</span>
-    </div>
+      <div id="top-bar">
+        <div id="timer">
+          <span class="label">Time:</span>
+          <span class="value">120</span>
+        </div>
 
-    <div id="score">
-      <span class="label">Score:</span>
-      <span class="value">0</span>
-    </div>
-  </div>
-</div>
+        <div id="score">
+          <span class="label">Score:</span>
+          <span class="value">0</span>
+        </div>
+      </div>
 
-
+      <!-- Letter display moved inside game-screen -->
       <div id="letter-display" class="auslan-font"></div>
 
-      <div style="display: flex; align-items: center; gap: 10px;">
+      <div class="center-row">
         <div id="controls">
           <input type="text" id="word-input" placeholder="Type the word" autocomplete="off" />
           <button id="submit-word">Enter</button>
