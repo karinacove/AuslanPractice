@@ -190,7 +190,7 @@ function showResultsAndRedirect() {
   submitResults()
     .catch(() => {})
     .finally(() => {
-      window.location.href = "../game.hub.html";
+      window.location.href = "../hub.html";
     });
 }
 
