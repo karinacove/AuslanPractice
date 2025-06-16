@@ -79,22 +79,42 @@
 
   <script>
     document.getElementById("startGame").addEventListener("click", () => {
-      const name = document.getElementById("studentName").value.trim();
-      const studentClass = document.getElementById("studentClass").value.trim();
-      const topic = document.getElementById("selectedTopic").value;
+    let studentName = localStorage.getItem("studentName") || "";
+    let studentClass = localStorage.getItem("studentClass") || "";
 
-      if (!name || !studentClass) {
-        alert("Please enter both your name and class.");
-        return;
+    const logoutBtn = document.getElementById("logout-btn");
+    const studentInfoDiv = document.getElementById("student-info");
+    const topic = document.getElementById("selectedTopic").value;
+
+// Redirect if not signed in
+    if (!studentName || !studentClass) {
+      alert("Please log in first.");
+      window.location.href = "../index.html"; // Adjust path if needed
+    } else {
+      if (studentInfoDiv) {
+        studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
+    }
+      if (gameContainer) {
+        gameContainer.style.display = "block";
       }
+    }
+
+// Logout clears localStorage and redirects
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("studentName");
+      localStorage.removeItem("studentClass");
+       window.location.href = "../index.html";
+    });
+  }
 
       localStorage.setItem("studentName", name);
       localStorage.setItem("studentClass", studentClass);
       localStorage.setItem("selectedTopic", topic);
 
       window.location.href = "game.html";
-    });
-  </script>
+});
+</script>
 </body>
 </html>
 
