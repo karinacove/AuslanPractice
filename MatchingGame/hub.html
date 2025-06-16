@@ -1,4 +1,3 @@
-<!-- hub.html (Universal Sign-In and Topic Selector) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,65 +6,89 @@
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
   <title>Auslan Game Hub</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+    .topic-item {
+      cursor: pointer;
+      text-align: center;
+    }
+    .topic-item img {
+      width: 100px;
+      height: 100px;
+    }
+  </style>
 </head>
 <body>
   <div id="student-info"></div>
   <button id="logoutBtn" title="Logout">Logout</button>
-  
-  <h1>Matching</h1>
 
-  <label for="selectedTopic">Choose a Topic:</label>
-  <select id="selectedTopic">
-    <option value="alphabet">Alphabet</option>
-    <option value="animals">Animals</option>
-    <option value="colours">Colours</option>
-    <option value="food">Food</option>
-    <option value="transport">Transport</option>
-    <option value="numbers">Numbers</option>
-  </select>
-
-  <button id="start-button">
-    <img src="assets/start.png" alt="Start" />
-    </button>
+  <h1>Choose a Game</h1>
+  <div class="topic-grid">
+    <div class="topic-item" data-topic="alphabet">
+      <img src="assets/topics/alphabet.png" alt="Alphabet">
+      <p>Alphabet</p>
+    </div>
+    <div class="topic-item" data-topic="animals">
+      <img src="assets/topics/animals.png" alt="Animals">
+      <p>Animals</p>
+    </div>
+    <div class="topic-item" data-topic="colours">
+      <img src="assets/topics/colours.png" alt="Colours">
+      <p>Colours</p>
+    </div>
+    <div class="topic-item" data-topic="food">
+      <img src="assets/topics/food.png" alt="Food">
+      <p>Food</p>
+    </div>
+    <div class="topic-item" data-topic="transport">
+      <img src="assets/topics/transport.png" alt="Transport">
+      <p>Transport</p>
+    </div>
+    <div class="topic-item" data-topic="numbers">
+      <img src="assets/topics/numbers.png" alt="Numbers">
+      <p>Numbers</p>
+    </div>
   </div>
 
   <script>
-  window.addEventListener("DOMContentLoaded", () => {
-    const logoutBtn = document.getElementById("logoutBtn");
-    const studentInfoDiv = document.getElementById("student-info");
-    const startButton = document.getElementById("start-button");
+    window.addEventListener("DOMContentLoaded", () => {
+      const logoutBtn = document.getElementById("logoutBtn");
+      const studentInfoDiv = document.getElementById("student-info");
 
-    const studentName = localStorage.getItem("studentName") || "";
-    const studentClass = localStorage.getItem("studentClass") || "";
+      const studentName = localStorage.getItem("studentName") || "";
+      const studentClass = localStorage.getItem("studentClass") || "";
 
-    // Show student info if signed in
-    if (studentName && studentClass) {
-      studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
-    } else {
-      alert("Please log in first.");
-      window.location.href = "../index.html";
-    }
+      if (studentName && studentClass) {
+        studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
+      } else {
+        alert("Please log in first.");
+        window.location.href = "../index.html";
+      }
 
-    // Logout button logic
-    if (logoutBtn) {
       logoutBtn.addEventListener("click", () => {
         localStorage.removeItem("studentName");
         localStorage.removeItem("studentClass");
         window.location.href = "../index.html";
       });
-    }
 
-    // Start game logic
-    if (start-button) {
-      startButton.addEventListener("click", () => {
-        const topic = document.getElementById("selectedTopic").value;
-        localStorage.setItem("selectedTopic", topic);
-        window.location.href = "game.html";
+      document.querySelectorAll(".topic-item").forEach(item => {
+        item.addEventListener("click", () => {
+          const topic = item.dataset.topic;
+          localStorage.setItem("selectedTopic", topic);
+          if (topic === "alphabet") {
+            window.location.href = "game.html";
+          } else {
+            item.querySelector("p").textContent = "Loading...";
+            setTimeout(() => window.location.href = "game.html", 1000);
+          }
+        });
       });
-    }
-  });
-</script>
-
+    });
+  </script>
 </body>
 </html>
-
