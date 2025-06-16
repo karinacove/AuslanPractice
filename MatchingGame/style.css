@@ -49,6 +49,10 @@ h1 {
   user-select: none;
 }
 
+img.draggable {
+  touch-action: none;
+}
+
 #logoutBtn {
   width: auto;
   max-width: 200px;
