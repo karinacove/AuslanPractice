@@ -9,11 +9,12 @@
   <style>
     .topic-grid {
       display: grid;
-      grid-template-columns: 25%;
-      grid-template-rows: flex wrap;
-      gap: 10px;
-      padding: 10px;
-      vertical align: middle;
+      grid-template-columns: repeat(3, 1fr);
+      grid-gap: 10px;
+      margin: 10px auto;
+      width: 90vw;
+      max-width: 600px;
+}
     }
     .topic-item {
       cursor: pointer;
