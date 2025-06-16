@@ -2,138 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
   <title>Auslan Matching Game</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    #logoutBtn {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background-color: #dc3545;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 10px;
-      font-weight: bold;
-      cursor: pointer;
-      font-family: sans-serif;
-      z-index: 1500;
-      transition: background-color 0.3s;
-    }
-    #logoutBtn:hover {
-      background-color: #a71d2a;
-    }
-
-    #finishButton {
-      position: fixed;
-      top: 80px;
-      right: 20px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      z-index: 1500;
-    }
-
-    #student-info {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background: #28a745;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 10px;
-      max-width: 320px;
-      font-family: sans-serif;
-      font-weight: bold;
-      z-index: 1000;
-    }
-
-    body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      font-family: sans-serif;
-    }
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .game-board {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-gap: 10px;
-      margin: 10px auto;
-      width: 90vw;
-      max-width: 600px;
-    }
-    .grid-item {
-      width: 120px;
-      height: 120px;
-      border: 2px solid #ccc;
-      position: relative;
-      background-color: white;
-    }
-    .grid-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-    .grid-item.matched::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: url('assets/correct.png') no-repeat center/contain;
-      pointer-events: none;
-    }
-    .draggable-container {
-      display: flex;
-      justify-content: space-around;
-      flex-wrap: wrap;
-      width: 100vw;
-      max-width: 1000px;
-      margin-bottom: 20px;
-    }
-    .draggable {
-      width: 80px;
-      height: 80px;
-      margin: 10px;
-      cursor: grab;
-    }
-    .draggable.hidden {
-      display: none;
-    }
-    .feedback {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      pointer-events: none;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
   <script src="js/matching.js" defer></script>
 </head>
 <body>
-  <div id="student-info"></div>
-  <button id="logoutBtn" title="Logout">Logout</button>
-  <button id="finishButton" title="Finish Game">
+  <div id="student-info" aria-live="polite"></div>
+
+  <button id="logoutBtn" title="Logout" aria-label="Logout">Logout</button>
+
+  <button id="finishButton" title="Finish Game" aria-label="Finish Game">
     <img src="assets/finish.png" alt="Finish Game" />
   </button>
-  <div class="container">
-    <h1 id="levelTitle">Level 1: Match the Sign to the Picture</h1>
-    <p id="studentInfo"></p>
-    <div class="draggable-container" id="draggables"></div>
-    <div id="gameBoard" class="game-board"></div>
-    <button id="nextLevel" style="display:none">Next Level</button>
-  </div>
 
-  <script src="/js/matching.js"></script>
+  <main class="container" role="main" aria-labelledby="levelTitle">
+    <h1 id="levelTitle">Level 1: Match the Sign to the Picture</h1>
+
+    <p id="studentInfo" aria-live="polite"></p>
+
+    <section class="draggable-container" id="draggables" aria-label="Signs to match" role="list"></section>
+
+    <section id="gameBoard" class="game-board" aria-label="Game board" role="grid"></section>
+
+    <button id="nextLevel" aria-label="Next Level">Next Level</button>
+  </main>
 </body>
 </html>
