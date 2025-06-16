@@ -69,6 +69,30 @@ h1 {
   width: 80px;
   height: 80px;
 }
+.layout {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.left-signs, .right-signs {
+  width: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+}
+
+.game-board {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  grid-template-rows: repeat(3, 100px);
+  gap: 15px;
+  margin: 0 20px;
+}
 
 /* Student Info Box */
 #student-info {
