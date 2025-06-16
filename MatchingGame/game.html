@@ -105,6 +105,9 @@
 <body>
   <div id="student-info"></div>
   <button id="logoutBtn" title="Logout">Logout</button>
+  <button id="finishButton" title="Finish Game">
+    <img src="assets/finish.png" alt="Finish Game" />
+  </button>
   </div>
   <div class="container">
     <h1 id="levelTitle">Level 1: Match the Sign to the Picture</h1>
@@ -131,7 +134,7 @@
 
     let correctMatches = 0;
 
-   let level = 1;
+    let level = 1;
     let topic = localStorage.getItem("selectedTopic") || "alphabet";
     let correctCount = 0;
     let incorrectCount = 0;
