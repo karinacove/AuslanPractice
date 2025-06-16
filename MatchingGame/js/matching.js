@@ -1,39 +1,39 @@
+// --- Student Info & Session Control ---
 let studentName = localStorage.getItem("studentName") || "";
 let studentClass = localStorage.getItem("studentClass") || "";
 
-const logoutBtn = document.getElementById("logout-btn");
+const logoutBtn = document.getElementById("logoutBtn");
 const studentInfoDiv = document.getElementById("student-info");
-const gameContainer = document.getElementById("game-container");
+const gameContainer = document.querySelector(".container");
 
-// Redirect if not signed in
 if (!studentName || !studentClass) {
   alert("Please log in first.");
-  window.location.href = "../index.html"; // Adjust path if needed
+  window.location.href = "../index.html"; // Adjust as needed
 } else {
-  if (studentInfoDiv) {
-    studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
-  }
-  if (gameContainer) {
-    gameContainer.style.display = "block";
-  }
+  studentInfoDiv.textContent = `Logged in as: ${studentName} (${studentClass})`;
+  gameContainer.style.display = "block";
 }
 
-// Logout clears localStorage and redirects
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", () => {
-    localStorage.removeItem("studentName");
-    localStorage.removeItem("studentClass");
-    window.location.href = "../index.html";
-  });
-}
+logoutBtn.addEventListener("click", () => {
+  localStorage.removeItem("studentName");
+  localStorage.removeItem("studentClass");
+  window.location.href = "../index.html";
+});
 
+const finishButton = document.getElementById("finishButton");
+finishButton.addEventListener("click", () => {
+  submitResults();
+});
+
+// --- Game Logic ---
 let level = 1;
-let topic = localStorage.getItem("selectedTopic") || "alphabet"; // default to alphabet
+let topic = localStorage.getItem("selectedTopic") || "alphabet";
 let correctCount = 0;
 let incorrectCount = 0;
 let matched = 0;
 
-document.getElementById("nextLevel").addEventListener("click", () => {
+const nextLevelBtn = document.getElementById("nextLevel");
+nextLevelBtn.addEventListener("click", () => {
   level++;
   if (level <= 3) {
     loadLevel(level);
@@ -52,7 +52,7 @@ function shuffle(array) {
 
 function loadLevel(currentLevel) {
   const board = document.getElementById("gameBoard");
-  const tray = document.getElementById("signTray");
+  const tray = document.getElementById("draggables");
   board.innerHTML = "";
   tray.innerHTML = "";
   matched = 0;
@@ -61,7 +61,7 @@ function loadLevel(currentLevel) {
     currentLevel === 1 ? "Level 1: Match the Sign to the Picture"
     : currentLevel === 2 ? "Level 2: Match the Picture to the Sign"
     : "Level 3: Mixed Matching";
-  document.getElementById("nextLevel").style.display = "none";
+  nextLevelBtn.style.display = "none";
 
   if (topic === "alphabet") {
     const letters = shuffle("abcdefghijklmnopqrstuvwxyz".split(""));
@@ -77,21 +77,19 @@ function loadLevel(currentLevel) {
       const img = document.createElement("img");
       img.src = `assets/alphabet/clipart/${letter}.png`;
       img.alt = letter;
-      img.style.maxWidth = "100%";
-      img.style.maxHeight = "100%";
-
       gridItem.appendChild(img);
+
       board.appendChild(gridItem);
     });
 
     allSigns.forEach(sign => {
       const signImg = document.createElement("img");
-      signImg.className = "sign-img";
+      signImg.className = "draggable";
       signImg.src = `assets/alphabet/signs/sign-${sign}.png`;
       signImg.alt = sign;
       signImg.draggable = true;
 
-      signImg.addEventListener("dragstart", (e) => {
+      signImg.addEventListener("dragstart", e => {
         e.dataTransfer.setData("text/plain", sign);
       });
 
@@ -100,8 +98,13 @@ function loadLevel(currentLevel) {
 
     document.querySelectorAll(".grid-item").forEach(slot => {
       slot.addEventListener("dragover", e => e.preventDefault());
+      slot.addEventListener("dragenter", () => slot.classList.add("drag-over"));
+      slot.addEventListener("dragleave", () => slot.classList.remove("drag-over"));
+
       slot.addEventListener("drop", e => {
         e.preventDefault();
+        slot.classList.remove("drag-over");
+
         const dragged = e.dataTransfer.getData("text/plain");
         const correct = slot.dataset.letter;
         if (dragged === correct) {
@@ -111,10 +114,12 @@ function loadLevel(currentLevel) {
           slot.appendChild(label);
           matched++;
           correctCount++;
+
           const draggedImg = document.querySelector(`img[alt='${dragged}']`);
           if (draggedImg) draggedImg.remove();
+
           if (matched === 9) {
-            document.getElementById("nextLevel").style.display = "inline-block";
+            nextLevelBtn.style.display = "inline-block";
           }
         } else {
           incorrectCount++;
@@ -133,18 +138,22 @@ function submitResults() {
   const nameField = document.createElement("input");
   nameField.name = "entry.YOUR_NAME_ENTRY_ID";
   nameField.value = studentName;
+  nameField.type = "hidden";
 
   const classField = document.createElement("input");
   classField.name = "entry.YOUR_CLASS_ENTRY_ID";
   classField.value = studentClass;
+  classField.type = "hidden";
 
   const correctField = document.createElement("input");
   correctField.name = "entry.YOUR_CORRECT_ENTRY_ID";
   correctField.value = correctCount;
+  correctField.type = "hidden";
 
   const incorrectField = document.createElement("input");
   incorrectField.name = "entry.YOUR_INCORRECT_ENTRY_ID";
   incorrectField.value = incorrectCount;
+  incorrectField.type = "hidden";
 
   [nameField, classField, correctField, incorrectField].forEach(field => form.appendChild(field));
   document.body.appendChild(form);
