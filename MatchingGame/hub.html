@@ -78,43 +78,42 @@
   <button id="startGame">Start Game</button>
 
   <script>
-    document.getElementById("startGame").addEventListener("click", () => {
-    let studentName = localStorage.getItem("studentName") || "";
-    let studentClass = localStorage.getItem("studentClass") || "";
-
-    const logoutBtn = document.getElementById("logout-btn");
+  window.addEventListener("DOMContentLoaded", () => {
+    const logoutBtn = document.getElementById("logoutBtn");
     const studentInfoDiv = document.getElementById("student-info");
-    const topic = document.getElementById("selectedTopic").value;
+    const startGameBtn = document.getElementById("startGame");
 
-// Redirect if not signed in
-    if (!studentName || !studentClass) {
-      alert("Please log in first.");
-      window.location.href = "../index.html"; // Adjust path if needed
+    const studentName = localStorage.getItem("studentName") || "";
+    const studentClass = localStorage.getItem("studentClass") || "";
+
+    // Show student info if signed in
+    if (studentName && studentClass) {
+      studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
     } else {
-      if (studentInfoDiv) {
-        studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
-    }
-      if (gameContainer) {
-        gameContainer.style.display = "block";
-      }
+      alert("Please log in first.");
+      window.location.href = "../index.html";
     }
 
-// Logout clears localStorage and redirects
+    // Logout button logic
     if (logoutBtn) {
       logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("studentName");
-      localStorage.removeItem("studentClass");
-       window.location.href = "../index.html";
-    });
-  }
+        localStorage.removeItem("studentName");
+        localStorage.removeItem("studentClass");
+        window.location.href = "../index.html";
+      });
+    }
 
-      localStorage.setItem("studentName", name);
-      localStorage.setItem("studentClass", studentClass);
-      localStorage.setItem("selectedTopic", topic);
-
-      window.location.href = "game.html";
-});
+    // Start game logic
+    if (startGameBtn) {
+      startGameBtn.addEventListener("click", () => {
+        const topic = document.getElementById("selectedTopic").value;
+        localStorage.setItem("selectedTopic", topic);
+        window.location.href = "game.html";
+      });
+    }
+  });
 </script>
+
 </body>
 </html>
 
