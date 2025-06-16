@@ -1,4 +1,3 @@
-<!-- game.html (Matching Game Page) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,12 +6,11 @@
   <title>Auslan Matching Game</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    <style>
     #logoutBtn {
       position: fixed;
       top: 20px;
       right: 20px;
-      background-color: #dc3545; /* red */
+      background-color: #dc3545;
       color: white;
       border: none;
       padding: 10px 20px;
@@ -26,7 +24,17 @@
     #logoutBtn:hover {
       background-color: #a71d2a;
     }
-    
+
+    #finishButton {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      z-index: 1500;
+    }
+
     #student-info {
       position: fixed;
       top: 20px;
@@ -39,7 +47,7 @@
       font-family: sans-serif;
       font-weight: bold;
       z-index: 1000;
-    }  
+    }
 
     body {
       margin: 0;
@@ -79,8 +87,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      image: url('assets/correct.png');
-      size: contain no-repeat center;
+      background: url('assets/correct.png') no-repeat center/contain;
       pointer-events: none;
     }
     .draggable-container {
@@ -100,6 +107,15 @@
     .draggable.hidden {
       display: none;
     }
+    .feedback {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -108,7 +124,6 @@
   <button id="finishButton" title="Finish Game">
     <img src="assets/finish.png" alt="Finish Game" />
   </button>
-  </div>
   <div class="container">
     <h1 id="levelTitle">Level 1: Match the Sign to the Picture</h1>
     <p id="studentInfo"></p>
@@ -117,136 +132,6 @@
     <button id="nextLevel" style="display:none">Next Level</button>
   </div>
 
-  <script>
-    const studentName = localStorage.getItem("studentName") || "";
-    const studentClass = localStorage.getItem("studentClass") || "";
-    if (!studentName || !studentClass) {
-      window.location.href = "index.html";
-    } else {
-      document.getElementById("studentInfo").textContent = `Signed in as: ${studentName} (${studentClass})`;
-    }
-
-    const topic = localStorage.getItem("selectedTopic") || "alphabet";
-    const levelTitle = document.getElementById("levelTitle");
-    const gameBoard = document.getElementById("gameBoard");
-    const draggables = document.getElementById("draggables");
-    const nextButton = document.getElementById("nextLevel");
-
-    let correctMatches = 0;
-
-    let level = 1;
-    let topic = localStorage.getItem("selectedTopic") || "alphabet";
-    let correctCount = 0;
-    let incorrectCount = 0;
-    let usedItems = new Set();
-
-    const letters = "abcdefghijklmnopqrstuvwxyz".split("").slice(0, 12);
-
-    function loadLevel(currentLevel) {
-      document.getElementById("gameBoard").innerHTML = "";
-      document.getElementById("draggables").innerHTML = "";
-      document.getElementById("levelTitle").textContent =
-        currentLevel === 1 ? "Level 1: Match the Sign to the Letter"
-        : currentLevel === 2 ? "Level 2: Match the Letter to the Sign"
-        : "Level 3: Mixed Matching";
-      document.getElementById("nextLevel").style.display = "none";
-
-      // Generate grid items
-      const selected = letters.slice(0, 9);
-      selected.forEach(letter => {
-        const div = document.createElement("div");
-        div.className = "grid-item";
-        div.dataset.letter = letter;
-        const img = document.createElement("img");
-        img.src = `assets/${topic}/clipart/${letter}.png`;
-        img.style.width = "100%";
-        div.appendChild(img);
-
-        const feedback = document.createElement("img");
-        feedback.className = "feedback";
-        div.appendChild(feedback);
-
-        div.addEventListener("dragover", e => e.preventDefault());
-        div.addEventListener("drop", handleDrop);
-        document.getElementById("gameBoard").appendChild(div);
-      });
-
-      // Add draggable signs
-      letters.slice(0, 12).forEach(letter => {
-        const img = document.createElement("img");
-        img.src = `assets/${topic}/signs/sign-${letter}.png`;
-        img.className = "draggable";
-        img.draggable = true;
-        img.id = `drag-${letter}`;
-        img.dataset.letter = letter;
-        img.addEventListener("dragstart", e => {
-          e.dataTransfer.setData("text/plain", letter);
-        });
-        document.getElementById("draggables").appendChild(img);
-      });
-    }
-
-    function handleDrop(e) {
-      const dropZone = e.currentTarget;
-      const targetLetter = dropZone.dataset.letter;
-      const draggedLetter = e.dataTransfer.getData("text/plain");
-
-      const draggedImg = document.getElementById(`drag-${draggedLetter}`);
-      if (targetLetter === draggedLetter) {
-        dropZone.querySelector(".feedback").src = "assets/correct.png";
-        correctCount++;
-        draggedImg.remove();
-      } else {
-        dropZone.querySelector(".feedback").src = "assets/wrong.png";
-        incorrectCount++;
-        // Bounce back effect
-        draggedImg.style.transition = "transform 0.2s";
-        draggedImg.style.transform = "scale(1.2)";
-        setTimeout(() => draggedImg.style.transform = "scale(1)", 200);
-      }
-
-      // Check if all 9 grid spots are correctly matched
-      const allMatched = Array.from(document.querySelectorAll(".grid-item .feedback")).filter(img => img.src.includes("correct.png")).length === 9;
-      if (allMatched) document.getElementById("nextLevel").style.display = "inline-block";
-    }
-
-    document.getElementById("nextLevel").addEventListener("click", () => {
-      level++;
-      if (level <= 3) {
-        loadLevel(level);
-      } else {
-        submitResults();
-      }
-    });
-
-    function submitResults() {
-      const form = document.createElement("form");
-      form.action = "https://docs.google.com/forms/d/e/YOUR_GOOGLE_FORM_ID/formResponse";
-      form.method = "POST";
-      form.target = "_self";
-
-      const nameField = document.createElement("input");
-      nameField.name = "entry.YOUR_NAME_ENTRY_ID";
-      nameField.value = studentName;
-
-      const classField = document.createElement("input");
-      classField.name = "entry.YOUR_CLASS_ENTRY_ID";
-      classField.value = studentClass;
-
-      const correctField = document.createElement("input");
-      correctField.name = "entry.YOUR_CORRECT_ENTRY_ID";
-      correctField.value = correctCount;
-
-      const incorrectField = document.createElement("input");
-      incorrectField.name = "entry.YOUR_INCORRECT_ENTRY_ID";
-      incorrectField.value = incorrectCount;
-
-      [nameField, classField, correctField, incorrectField].forEach(field => form.appendChild(field));
-      document.body.appendChild(form);
-      form.submit();
-    }
-
-    loadLevel(level);
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
