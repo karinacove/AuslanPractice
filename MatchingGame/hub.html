@@ -85,7 +85,7 @@
   window.addEventListener("DOMContentLoaded", () => {
     const logoutBtn = document.getElementById("logoutBtn");
     const studentInfoDiv = document.getElementById("student-info");
-    const startGameBtn = document.getElementById("startGame");
+    const startButton = document.getElementById("start-button");
 
     const studentName = localStorage.getItem("studentName") || "";
     const studentClass = localStorage.getItem("studentClass") || "";
@@ -109,7 +109,7 @@
 
     // Start game logic
     if (start-button) {
-      start-button.addEventListener("click", () => {
+      startButton.addEventListener("click", () => {
         const topic = document.getElementById("selectedTopic").value;
         localStorage.setItem("selectedTopic", topic);
         window.location.href = "game.html";
