@@ -51,7 +51,7 @@ h1 {
 
 #logoutBtn {
   width: auto;
-  max-width: 200px; /* Optional for visual neatness */
+  max-width: 200px;
   position: fixed;
   top: 20px;
   right: 20px;
@@ -84,7 +84,7 @@ h1 {
   font-weight: bold;
   z-index: 1000;
 
-  .topics button:hover,
+.topics button:hover,
 .topics button:focus {
   background: #357ABD;
   outline: none;
