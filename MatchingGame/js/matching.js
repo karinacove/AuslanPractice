@@ -131,31 +131,41 @@ function loadLevel(currentLevel) {
 
 function submitResults() {
   const form = document.createElement("form");
-  form.action = "https://docs.google.com/forms/d/e/YOUR_GOOGLE_FORM_ID/formResponse";
+  form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
   form.method = "POST";
   form.target = "_self";
 
   const nameField = document.createElement("input");
-  nameField.name = "entry.YOUR_NAME_ENTRY_ID";
+  nameField.name = "entry.1387461004";
   nameField.value = studentName;
   nameField.type = "hidden";
 
   const classField = document.createElement("input");
-  classField.name = "entry.YOUR_CLASS_ENTRY_ID";
+  classField.name = "entry.1309291707";
   classField.value = studentClass;
   classField.type = "hidden";
 
+  const topicField = document.createElement("input");
+  topicField.name = "entry.477642881";
+  topicField.value = topic.charAt(0).toUpperCase() + topic.slice(1);
+  topicField.type = "hidden";
+
   const correctField = document.createElement("input");
-  correctField.name = "entry.YOUR_CORRECT_ENTRY_ID";
+  correctField.name = "entry.1897227570";
   correctField.value = correctCount;
   correctField.type = "hidden";
 
   const incorrectField = document.createElement("input");
-  incorrectField.name = "entry.YOUR_INCORRECT_ENTRY_ID";
+  incorrectField.name = "entry.1249394203";
   incorrectField.value = incorrectCount;
   incorrectField.type = "hidden";
 
-  [nameField, classField, correctField, incorrectField].forEach(field => form.appendChild(field));
+  const percentField = document.createElement("input");
+  percentField.name = "entry.1996137354";
+  percentField.value = `${Math.round((correctCount / (correctCount + incorrectCount || 1)) * 100)}%`;
+  percentField.type = "hidden";
+
+  [nameField, classField, topicField, correctField, incorrectField, percentField].forEach(field => form.appendChild(field));
   document.body.appendChild(form);
   form.submit();
 }
