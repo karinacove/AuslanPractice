@@ -183,6 +183,13 @@ h1 {
   background-color: #357ABD;
 }
 
+input, select, button {
+  width: 80px;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 1rem;
+}
+
 /* Responsive tweaks */
 @media (max-width: 600px) {
   .game-board {
