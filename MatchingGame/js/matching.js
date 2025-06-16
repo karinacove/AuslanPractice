@@ -61,106 +61,188 @@ function loadLevel(currentLevel) {
     currentLevel === 1 ? "Level 1: Match the Sign to the Picture"
     : currentLevel === 2 ? "Level 2: Match the Picture to the Sign"
     : "Level 3: Mixed Matching";
+
   nextLevelBtn.style.display = "none";
 
   if (topic === "alphabet") {
     const letters = shuffle("abcdefghijklmnopqrstuvwxyz".split(""));
-    const selected = letters.slice(0, 9);
-    const distractors = letters.slice(9, 12);
-    const allSigns = shuffle([...selected, ...distractors]);
+    const selected = letters.slice(0, 9);  // 9 pairs
+    const distractors = letters.slice(9, 12); // 3 distractors
 
-    selected.forEach(letter => {
-      const gridItem = document.createElement("div");
-      gridItem.className = "grid-item";
-      gridItem.dataset.letter = letter;
+    if (currentLevel === 1) {
+      // Level 1: Grid = pictures, Tray = signs
+      const allSigns = shuffle([...selected, ...distractors]);
 
-      const img = document.createElement("img");
-      img.src = `assets/alphabet/clipart/${letter}.png`;
-      img.alt = letter;
-      gridItem.appendChild(img);
+      selected.forEach(letter => {
+        const gridItem = document.createElement("div");
+        gridItem.className = "grid-item";
+        gridItem.dataset.letter = letter;
 
-      board.appendChild(gridItem);
-    });
+        const img = document.createElement("img");
+        img.src = `assets/alphabet/clipart/${letter}.png`;
+        img.alt = letter;
+        gridItem.appendChild(img);
 
-    allSigns.forEach(sign => {
-      const signImg = document.createElement("img");
-      signImg.className = "draggable";
-      signImg.src = `assets/alphabet/signs/sign-${sign}.png`;
-      signImg.alt = sign;
-      signImg.draggable = true;
-
-      // Mouse drag
-      signImg.addEventListener("dragstart", e => {
-        e.dataTransfer.setData("text/plain", sign);
+        board.appendChild(gridItem);
       });
 
-      // Touch drag
-      signImg.addEventListener("touchstart", e => {
-        signImg.classList.add("dragging");
-        e.preventDefault();
+      allSigns.forEach(sign => {
+        const signImg = document.createElement("img");
+        signImg.className = "draggable";
+        signImg.src = `assets/alphabet/signs/sign-${sign}.png`;
+        signImg.alt = sign;
+        signImg.draggable = true;
+
+        signImg.addEventListener("dragstart", e => {
+          e.dataTransfer.setData("text/plain", sign);
+        });
+
+        tray.appendChild(signImg);
       });
 
-      signImg.addEventListener("touchend", e => {
-        const touch = e.changedTouches[0];
-        const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+      setupDropTargets();
 
-        if (dropTarget && dropTarget.closest(".grid-item")) {
-          const slot = dropTarget.closest(".grid-item");
-          const dragged = signImg.alt;
-          const correct = slot.dataset.letter;
+    } else if (currentLevel === 2) {
+      // Level 2: Grid = signs, Tray = pictures
+      const allPictures = shuffle([...selected, ...distractors]);
 
-          if (dragged === correct) {
-            const label = document.createElement("div");
+      selected.forEach(letter => {
+        const gridItem = document.createElement("div");
+        gridItem.className = "grid-item";
+        gridItem.dataset.letter = letter;
+
+        const img = document.createElement("img");
+        img.src = `assets/alphabet/signs/sign-${letter}.png`;
+        img.alt = letter;
+        gridItem.appendChild(img);
+
+        board.appendChild(gridItem);
+      });
+
+      allPictures.forEach(letter => {
+        const picImg = document.createElement("img");
+        picImg.className = "draggable";
+        picImg.src = `assets/alphabet/clipart/${letter}.png`;
+        picImg.alt = letter;
+        picImg.draggable = true;
+
+        picImg.addEventListener("dragstart", e => {
+          e.dataTransfer.setData("text/plain", letter);
+        });
+
+        tray.appendChild(picImg);
+      });
+
+      setupDropTargets();
+
+    } else if (currentLevel === 3) {
+      // Level 3: Mixed matching
+
+      // split selected letters into two groups for grid and tray
+      const mixedGridSigns = selected.slice(0, 5);
+      const mixedGridPics = selected.slice(5, 9);
+
+      // tray has the opposite type + distractors
+      const mixedTrayPics = mixedGridSigns;
+      const mixedTraySigns = mixedGridPics;
+      const mixedDistractors = distractors;
+
+      // Create grid items (mixed signs and pictures)
+      mixedGridSigns.forEach(letter => {
+        const gridItem = document.createElement("div");
+        gridItem.className = "grid-item";
+        gridItem.dataset.letter = letter;
+
+        const img = document.createElement("img");
+        img.src = `assets/alphabet/signs/sign-${letter}.png`;
+        img.alt = letter;
+        gridItem.appendChild(img);
+
+        board.appendChild(gridItem);
+      });
+
+      mixedGridPics.forEach(letter => {
+        const gridItem = document.createElement("div");
+        gridItem.className = "grid-item";
+        gridItem.dataset.letter = letter;
+
+        const img = document.createElement("img");
+        img.src = `assets/alphabet/clipart/${letter}.png`;
+        img.alt = letter;
+        gridItem.appendChild(img);
+
+        board.appendChild(gridItem);
+      });
+
+      // Prepare tray letters and shuffle
+      const trayLetters = shuffle([...mixedTrayPics, ...mixedTraySigns, ...mixedDistractors]);
+
+      trayLetters.forEach(letter => {
+        const isSign = mixedTraySigns.includes(letter) || mixedDistractors.includes(letter);
+        const img = document.createElement("img");
+        img.className = "draggable";
+        if (isSign) {
+          img.src = `assets/alphabet/signs/sign-${letter}.png`;
+        } else {
+          img.src = `assets/alphabet/clipart/${letter}.png`;
+        }
+        img.alt = letter;
+        img.draggable = true;
+
+        img.addEventListener("dragstart", e => {
+          e.dataTransfer.setData("text/plain", letter);
+        });
+
+        tray.appendChild(img);
+      });
+
+      setupDropTargets();
+    }
+  }
+}
+
+// Helper to add drag/drop event listeners to grid items
+function setupDropTargets() {
+  document.querySelectorAll(".grid-item").forEach(slot => {
+    slot.addEventListener("dragover", e => e.preventDefault());
+    slot.addEventListener("dragenter", () => slot.classList.add("drag-over"));
+    slot.addEventListener("dragleave", () => slot.classList.remove("drag-over"));
+
+    slot.addEventListener("drop", e => {
+      e.preventDefault();
+      slot.classList.remove("drag-over");
+
+      const dragged = e.dataTransfer.getData("text/plain");
+      const correct = slot.dataset.letter;
+
+      if (dragged === correct) {
+        if (!slot.classList.contains("matched")) {
+          slot.classList.add("matched");
+
+          let label = slot.querySelector(".label");
+          if (!label) {
+            label = document.createElement("div");
             label.className = "label";
             label.textContent = dragged.toUpperCase();
             slot.appendChild(label);
-            matched++;
-            correctCount++;
-            signImg.remove();
-
-            if (matched === 9) {
-              nextLevelBtn.style.display = "inline-block";
-            }
-          } else {
-            incorrectCount++;
           }
-        }
-      });
 
-      tray.appendChild(signImg);
-    });
-
-    document.querySelectorAll(".grid-item").forEach(slot => {
-      slot.addEventListener("dragover", e => e.preventDefault());
-      slot.addEventListener("dragenter", () => slot.classList.add("drag-over"));
-      slot.addEventListener("dragleave", () => slot.classList.remove("drag-over"));
-
-      slot.addEventListener("drop", e => {
-        e.preventDefault();
-        slot.classList.remove("drag-over");
-
-        const dragged = e.dataTransfer.getData("text/plain");
-        const correct = slot.dataset.letter;
-        if (dragged === correct) {
-          const label = document.createElement("div");
-          label.className = "label";
-          label.textContent = dragged.toUpperCase();
-          slot.appendChild(label);
           matched++;
           correctCount++;
 
-          const draggedImg = document.querySelector(`img[alt='${dragged}']`);
+          // Remove dragged item from tray
+          const draggedImg = document.querySelector(`.draggable[alt='${dragged}']`);
           if (draggedImg) draggedImg.remove();
 
           if (matched === 9) {
             nextLevelBtn.style.display = "inline-block";
           }
-        } else {
-          incorrectCount++;
         }
-      });
+      } else {
+        incorrectCount++;
+      }
     });
-  }
+  });
 }
 
 function submitResults() {
