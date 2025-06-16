@@ -84,6 +84,31 @@ h1 {
   z-index: 1000;
 }
 
+#start-button {
+  position: absolute;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  left: 50%;
+  top: 55%;
+  transform: translate(-75%, -60%);
+  width: 150px;
+  height: 150px;
+  box-shadow: none;
+  outline: none;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 999;
+}
+
+#start-button img {
+  display: block;
+  width: auto;
+  height: 150px;
+  pointer-events: none;
+}
+
 /* Game Board - 3x3 Grid */
 .game-board {
   display: grid;
