@@ -50,6 +50,8 @@ let speed = 100;
 let correctWords = 0;
 let gameMode = "timed"; // or "levelup"
 let wordLength = 3;
+let guessedWords = new Set();
+let incorrectWords = [];
 
 let wordBank = {};
 
@@ -87,6 +89,8 @@ function startGame() {
   score = 0;
   timeLeft = 120;
   correctWords = 0;
+  guessedWords.clear();
+  incorrectWords = [];
   updateScore();
   updateTimer();
 
@@ -127,7 +131,16 @@ function startTimer() {
   }, 1000);
 }
 
-function finishButton() {
+function endGame() {
+  clearInterval(timer);
+  clearLetters();
+  wordInput.style.display = "none";
+  againButton.style.display = "block";
+  letterDisplay.textContent = "Great work!";
+  submitResults();
+}
+
+function endGameManually() {
   clearInterval(timer);
   clearLetters();
   wordInput.style.display = "none";
@@ -140,23 +153,24 @@ function submitResults() {
   const correct = Array.from(guessedWords).join(", ");
   const wrong = incorrectWords.join(", ");
   const formURL = `https://docs.google.com/forms/d/e/1FAIpQLSfOFWu8FcUR3bOwg0mo_3Kb2O7p4m0TLvfUpZjx0zdzqKac4Q/formResponse?entry.423692452=${encodeURIComponent(
-    nameInput.value
+    studentName
   )}&entry.1307864012=${encodeURIComponent(
-    classInput.value
+    studentClass
   )}&entry.468778567=${encodeURIComponent(
-    mode
+    gameMode
   )}&entry.1083699348=${score}&entry.746947164=${encodeURIComponent(
     correct
   )}&entry.1534005804=${encodeURIComponent(
     wrong
   )}&entry.1974555000=${encodeURIComponent(speedSlider.value)}`;
   console.log("Score submitted: ", score);
+  // Optional: actually submit using fetch() if needed
 }
 
 // Event Listeners
 startButton.addEventListener("click", () => {
-  const selectedMode = document.querySelector('input[name="game-mode"]:checked');
-  const selectedLength = document.querySelector('input[name="word-length"]:checked');
+  const selectedMode = document.getElementById("game-mode");
+  const selectedLength = document.getElementById("word-length");
   gameMode = selectedMode ? selectedMode.value : "timed";
   wordLength = selectedLength ? parseInt(selectedLength.value) : 3;
   startGame();
@@ -168,10 +182,12 @@ wordInput.addEventListener("input", () => {
     if (typed === currentWord) {
       score++;
       correctWords++;
+      guessedWords.add(currentWord);
       updateScore();
       wordInput.value = "";
       setTimeout(nextWord, 400);
     } else {
+      incorrectWords.push(typed);
       wordInput.classList.add("breathe");
       setTimeout(() => wordInput.classList.remove("breathe"), 300);
       wordInput.value = "";
@@ -190,6 +206,10 @@ againButton.addEventListener("click", () => {
   wordInput.value = "";
   wordInput.focus();
 });
+
+if (finishButton) {
+  finishButton.addEventListener("click", endGameManually);
+}
 
 // Initial Setup
 wordInput.style.display = "none";
