@@ -17,22 +17,21 @@
     <img src="assets/finish.png" alt="Finish Game" />
   </button>
 
-  <main class="container" role="main" aria-labelledby="levelTitle">
+  <main role="main" aria-labelledby="levelTitle">
     <h2 id="levelTitle">Level 1: Match the Sign to the Picture</h2>
 
     <p id="studentInfo" aria-live="polite"></p>
 
-    <div class="layout">
-      <div class="container">
+    <div class="container layout">
       <div id="leftSigns" class="sign-column"></div>
 
-      <div id="gameBoard"></div>
+      <div id="gameBoard" class="game-board"></div>
 
       <div id="rightSigns" class="sign-column"></div>
-</div>
-
+    </div>
 
     <button id="nextLevel" aria-label="Next Level">Next Level</button>
   </main>
 </body>
+
 </html>
