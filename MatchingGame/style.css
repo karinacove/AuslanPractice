@@ -1,7 +1,7 @@
 /* General Body & Font */
 body {
   font-family: sans-serif;
-  background-color: transparent;
+  background-color: #5b65a9;
   color: #333;
   margin: 0;
   padding: 0;
@@ -237,7 +237,7 @@ h2#levelTitle {
   align-items: center;
   width: 60%;
   min-height: 360px;
-  background-color: #e0f7fa;
+  background-color: transparent;
   border-radius: 10px;
   padding: 10px;
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -369,8 +369,8 @@ input, select, button {
 .slot {
   width: 120px;
   height: 120px;
-  border: 2px dashed #ccc;
-  background-color: #f8f9fa;
+  border: none;
+  background-color: transparent;
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
