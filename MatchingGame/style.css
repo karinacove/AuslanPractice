@@ -86,14 +86,6 @@ h1 {
   padding: 10px;
 }
 
-.game-board {
-  display: grid;
-  grid-template-columns: repeat(3, 100px);
-  grid-template-rows: repeat(3, 100px);
-  gap: 15px;
-  margin: 0 20px;
-}
-
 /* Student Info Box */
 #student-info {
   position: fixed;
@@ -138,6 +130,7 @@ h1 {
 .game-board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat (3, 1fr);
   grid-gap: 10px;
   margin: 10px auto;
   width: 90vw;
