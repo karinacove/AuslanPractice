@@ -38,6 +38,28 @@ body {
   background: transparent;
 }
 
+.topic-item {
+  background: white;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.topic-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+.topic-item img {
+  max-width: 100px;
+  max-height: 100px;
+}
+
 /* Container for the game and UI */
 .container {
   display: flex;
