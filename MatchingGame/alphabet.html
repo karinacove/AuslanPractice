@@ -2,35 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Auslan Matching Game</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="js/matching.js" defer></script>
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
 </head>
 <body>
-  <div id="student-info" aria-live="polite"></div>
+  <div id="header">
+    <div id="student-info"></div>
+    <button id="logoutBtn">Logout</button>
+  </div>
 
-  <button id="logoutBtn" title="Logout" aria-label="Logout">Logout</button>
+  <h1 id="levelTitle">Level 1</h1>
 
-  <button id="finishButton" title="Finish Game" aria-label="Finish Game">
-    <img src="assets/finish.png" alt="Finish Game" />
-  </button>
+  <div id="game-container">
+    <div id="leftSigns" class="side-column"></div>
+    <div id="gameBoard"></div>
+    <div id="rightSigns" class="side-column"></div>
+  </div>
 
-  <main role="main" aria-labelledby="levelTitle">
-    <h2 id="levelTitle">Level 1: Match the Sign to the Picture</h2>
+  <button id="nextLevel" style="display:none;">Next Level</button>
+  <button id="finishButton">Finish</button>
 
-    <p id="studentInfo" aria-live="polite"></p>
-
-    <div class="container">
-      <div id="leftSigns" class="sign-column"></div>
-      <div id="gameBoard" class="game-board"></div>
-      <div id="rightSigns" class="sign-column"></div>
-    </div>
-
-    <img id="feedbackImage" src="" alt="" style="display:none;" />
-
-    <button id="nextLevel" aria-label="Next Level" style="display:none;">Next Level</button>
-  </main>
+  <script src="script.js"></script>
 </body>
 </html>
