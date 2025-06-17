@@ -1,5 +1,3 @@
-
-<!-- index.html (Sign-in Page) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,20 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Auslan Games - Sign In</title>
   <link rel="stylesheet" href="style.css" />
-  <span id="student-info"></span>
-  <button id="logout-btn" style="margin-left: 20px;">Logout</button>
-  </div>
-  <div class="container">
-    <h1>Welcome to Auslan Games</h1>
-    <form id="signinForm">
-      <label for="name">Name:</label>
-      <input type="text" id="name" name="name" required />
+</head>
+<body>
+  <div class="hub-wrapper">
+    <div id="student-info"></div>
+    <button id="logout-btn" style="margin-left: 20px;">Logout</button>
 
-      <label for="class">Class:</label>
-      <input type="text" id="class" name="class" required />
+    <div class="container">
+      <h1>Welcome to Auslan Games</h1>
+      <form id="signinForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required />
 
-      <button type="submit">Start</button>
-    </form>
+        <label for="class">Class:</label>
+        <input type="text" id="class" name="class" required />
+
+        <button type="submit">Start</button>
+      </form>
+    </div>
   </div>
 
   <script>
