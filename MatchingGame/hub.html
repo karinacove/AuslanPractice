@@ -37,39 +37,34 @@
   </div>
 
   <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      const logoutBtn = document.getElementById("logoutBtn");
-      const studentInfoDiv = document.getElementById("student-info");
+    let studentName = localStorage.getItem("studentName") || "";
+    let studentClass = localStorage.getItem("studentClass") || "";
 
-      const studentName = localStorage.getItem("studentName") || "";
-      const studentClass = localStorage.getItem("studentClass") || "";
+    const logoutBtn = document.getElementById("logout-btn");
+    const studentInfoDiv = document.getElementById("student-info");
+    const gameContainer = document.getElementById("game-container");
 
-      if (studentName && studentClass) {
+    // Redirect if not signed in
+    if (!studentName || !studentClass) {
+      alert("Please log in first.");
+      window.location.href = "../index.html"; // Adjust path if needed
+    } else {
+      if (studentInfoDiv) {
         studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
-      } else {
-        alert("Please log in first.");
-        window.location.href = "../index.html";
       }
+      if (gameContainer) {
+        gameContainer.style.display = "block";
+      }
+    }
 
+    // Logout clears localStorage and redirects
+    if (logoutBtn) {
       logoutBtn.addEventListener("click", () => {
         localStorage.removeItem("studentName");
         localStorage.removeItem("studentClass");
         window.location.href = "../index.html";
       });
-
-      document.querySelectorAll(".topic-item").forEach(item => {
-        item.addEventListener("click", () => {
-          const topic = item.dataset.topic;
-          localStorage.setItem("selectedTopic", topic);
-          if (topic === "alphabet") {
-            window.location.href = "game.html";
-          } else {
-            item.querySelector("p").textContent = "Loading...";
-            setTimeout(() => window.location.href = "game.html", 1000);
-          }
-        });
-      });
-    });
+    }
   </script>
 </body>
 </html>
