@@ -113,6 +113,8 @@ h2#levelTitle {
   cursor: pointer;
   font-family: sans-serif;
   z-index: 1000;
+  padding: 8px 16px;
+  font-size: 0.9rem;
 }
 
 #logoutBtn:hover {
@@ -135,6 +137,7 @@ h2#levelTitle {
   height: 80px;
 }
 
+/* Layout Columns */
 .layout {
   display: flex;
   justify-content: center;
@@ -144,21 +147,23 @@ h2#levelTitle {
   flex-wrap: nowrap;
 }
 
+/* Two-Column Sign Sections */
 .left-signs,
 .right-signs {
-  width: 20%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  padding: 10px;
-}
-
-.sign-column {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  max-width: 200px;
+  gap: 15px;
+  padding: 10px;
+  width: 180px;
+  justify-items: center;
+}
+
+.left-signs img,
+.right-signs img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  cursor: grab;
 }
 
 /* Student Info Box */
@@ -168,13 +173,15 @@ h2#levelTitle {
   left: 20px;
   background: #28a745;
   color: white;
-  padding: 10px 20px;
+  padding: 8px 16px;
   border-radius: 10px;
   font-weight: bold;
   font-family: sans-serif;
   z-index: 1000;
+  font-size: 0.9rem;
 }
 
+/* Start Button */
 #start-button {
   position: absolute;
   background: transparent;
@@ -200,6 +207,7 @@ h2#levelTitle {
   pointer-events: none;
 }
 
+/* Game Container */
 #game-container {
   display: flex;
   justify-content: space-between;
@@ -213,24 +221,14 @@ h2#levelTitle {
 }
 
 .side-column {
-  width: 20vw%;
+  width: 20vw;
   display: flex;
   flex-direction: column;
   gap: 15px;
   align-items: center;
 }
 
-.game-board {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
-  justify-content: center;
-  align-content: center;
-  margin: 0 auto;
-  width: 55%;
-  background: transparent;
-}
-
+/* Game Board Grid */
 #gameBoard {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -246,7 +244,7 @@ h2#levelTitle {
   box-sizing: border-box;
 }
 
-/* Individual Grid Item */
+/* Grid Items */
 .grid-item {
   width: 120px;
   height: 120px;
@@ -275,7 +273,7 @@ h2#levelTitle {
   pointer-events: none;
 }
 
-/* Container for Draggable Signs */
+/* Dragged Sign Container */
 .draggable-container {
   display: flex;
   justify-content: space-around;
@@ -291,20 +289,20 @@ h2#levelTitle {
   height: 80px;
   margin: 10px;
   cursor: grab;
-  touch-action: none; /* improve drag on touch devices */
+  touch-action: none;
 }
 
 .draggable.hidden {
   display: none;
 }
 
-/* Drag Over State for Grid Items */
+/* Highlight on Drag Over */
 .grid-item.drag-over {
   border-color: #28a745;
   background-color: #eaffea;
 }
 
-/* Label inside matched grid item */
+/* Matched Label */
 .label {
   position: absolute;
   bottom: 5px;
@@ -344,17 +342,7 @@ input, select, button {
   font-size: 1rem;
 }
 
-  #logoutBtn {
-    padding: 8px 16px;
-    font-size: 0.9rem;
-  }
-
-  #student-info {
-    font-size: 0.9rem;
-    padding: 8px 16px;
-  }
-
-  /* Overlay on successful drop */
+/* Overlay for Drop */
 .overlay {
   width: 100%;
   height: 100%;
@@ -363,7 +351,6 @@ input, select, button {
   pointer-events: none;
 }
 
-/* Drag wrapper to align left/right draggable items */
 .drag-wrapper {
   display: flex;
   justify-content: center;
@@ -371,14 +358,14 @@ input, select, button {
   margin: 5px;
   padding: 4px;
 }
-  
-/* Feedback image (correct or wrong) */
+
+/* Feedback Image */
 #feedbackImage {
   z-index: 2000;
   pointer-events: none;
 }
 
-/* Slot placeholder styling */
+/* Slot Styling */
 .slot {
   width: 120px;
   height: 120px;
@@ -398,12 +385,8 @@ input, select, button {
   top: 0;
   left: 0;
 }
-  
-.topic-item img {
-  max-width: 100px;
-}
-  
-/* Shake animation for incorrect drag */
+
+/* Shake Animation */
 @keyframes shake {
   0% { transform: translate(1px, 0px) rotate(0deg); }
   20% { transform: translate(-1px, 0px) rotate(0deg); }
