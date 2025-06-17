@@ -1,15 +1,15 @@
 /* General Body & Font */
 body {
-  font-family: sans-serif, "Auslan Finger Spelling.otf";
+  font-family: sans-serif;
   background-color: #5b65a9;
   color: #333;
   margin: 0;
   padding: 0;
-  overflow: hidden;
   display: flex;
-  justify-content: center;
-  height: 100vh;
-  width: 100vw;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+  min-height: 100vh;
 }
 
 .signin-container {
@@ -29,26 +29,23 @@ body {
   width: 200px;
 }
 
-.topic-grid {
+#topic-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  flex-wrap: wrap;
-  gap: 15px;
-  background: transparent;
-  margin-top: 20vh;  
-  max-width: 90vw;
-  max-height: 70vh;
-  padding: 10px;
-  justify-items: center;
-  align-items: center;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 20px;
+  padding: 20px;
+  max-width: 800px;
+  width: 90vw;
+  margin: 40px auto;
+  box-sizing: border-box;
 }
 
 .topic-item {
-  padding: 10px;
-  cursor: pointer;
-  display: flexi;
+  display: flex;
   justify-content: center;
   align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
 }
 
 .topic-item:hover {
@@ -56,9 +53,12 @@ body {
 }
 
 .topic-item img {
-  width: 20vw;
+  width: 100%;
+  max-width: 150px;
   height: auto;
   object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
 
@@ -85,11 +85,10 @@ main {
 
 /* Headings */
 h1 {
-  font-size: 1.8rem;
-  margin: 10px 0;
+  font-size: 2rem;
+  color: white;
+  margin-top: 40px;
   text-align: center;
-  margin-top: 20px;
-  color: #1a1a1a;
 }
 
 h2#levelTitle {
@@ -113,9 +112,7 @@ h2#levelTitle {
   font-weight: bold;
   cursor: pointer;
   font-family: sans-serif;
-  text-align: center;
-  z-index: 1500;
-  transition: background-color 0.3s;
+  z-index: 1000;
 }
 
 #logoutBtn:hover {
@@ -172,9 +169,8 @@ h2#levelTitle {
   color: white;
   padding: 10px 20px;
   border-radius: 10px;
-  max-width: 320px;
-  font-family: sans-serif;
   font-weight: bold;
+  font-family: sans-serif;
   z-index: 1000;
 }
 
@@ -317,23 +313,22 @@ input, select, button {
   font-size: 1rem;
 }
 
-/* Responsive tweaks */
 @media (max-width: 600px) {
-  .game-board {
-    width: 100vw;
-    grid-gap: 6px;
+  h1 {
+    font-size: 1.5rem;
   }
-  .grid-item {
-    width: 90px;
-    height: 90px;
+
+  #logoutBtn {
+    padding: 8px 16px;
+    font-size: 0.9rem;
   }
-  .draggable {
-    width: 60px;
-    height: 60px;
-    margin: 6px;
+
+  #student-info {
+    font-size: 0.9rem;
+    padding: 8px 16px;
   }
-  .container {
-    width: 90%;
-    padding: 1.5rem 1rem;
+
+  .topic-item img {
+    max-width: 100px;
   }
 }
