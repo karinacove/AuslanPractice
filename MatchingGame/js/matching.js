@@ -220,13 +220,14 @@ function loadPage() {
       document.querySelectorAll(`img.draggable[data-letter='${draggedLetter}']`).forEach((el) => el.remove());
 
       if (correctMatches >= 9) {
-        currentPage++;
-        correctMatches = 0;
-        if (usedLetters.length < allLetters.length) {
-          setTimeout(loadPage, 1000);
-        } else {
-          if (nextLevelBtn) nextLevelBtn.style.display = "block";
-        }
+        setTimeout(() => {
+          currentLevel++;
+          if (currentLevel < levels.length) {
+            loadPage();
+          } else {
+            endGame();
+          }
+        }, 1000);
       }
     } else {
       incorrectMatches++;
