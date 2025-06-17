@@ -275,61 +275,38 @@ function loadPage() {
     );
   }
 
-  function endGame() {
-    const endTime = Date.now();
-    const totalTime = Math.round((endTime - startTime) / 1000);
-    const minutes = Math.floor(totalTime / 60);
-    const seconds = totalTime % 60;
-    const timeFormatted = `${minutes} mins ${seconds} sec`;
+ function endGame() {
+  const endTime = Date.now();
+  const totalTime = Math.round((endTime - startTime) / 1000);
+  const minutes = Math.floor(totalTime / 60);
+  const seconds = totalTime % 60;
+  const timeFormatted = `${minutes} mins ${seconds} sec`;
 
-    const accuracy =
-      totalCorrect + totalIncorrect > 0
-        ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) + "%"
-        : "N/A";
+  const accuracy = Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) + "%";
 
-    const correctLetters = allLetters
-      .map((letter) => {
-        const count = letterCorrectMap[letter] || 0;
-        return count ? letter.repeat(count) : "";
-      })
-      .filter(Boolean)
-      .join(", ");
+  const correctLetters = allLetters.map(letter => {
+    const count = letterCorrectMap[letter] || 0;
+    return count ? letter.repeat(count) : "";
+  }).filter(Boolean).join(", ");
 
-    const incorrectLetters = [...new Set(letterIncorrectList)].sort().join(", ");
+  const incorrectLetters = letterIncorrectList.sort().join(", ");
 
-    // Prepare form to submit results to Google Forms
-    const form = document.createElement("form");
-    form.action =
-      "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
-    form.method = "POST";
-    form.target = "_blank";
-    form.style.display = "none";
+  const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
 
-    const entries = {
-      "entry.1387461004": studentName,
-      "entry.1309291707": studentClass,
-      "entry.477642881": "Alphabet",
-      "entry.1897227570": incorrectLetters,
-      "entry.1249394203": correctLetters,
-      "entry.1996137354": accuracy,
-      "entry.1374858042": timeFormatted,
-    };
+  const formData = new FormData();
+  formData.append("entry.1387461004", studentName);
+  formData.append("entry.1309291707", studentClass);
+  formData.append("entry.477642881", "Alphabet");
+  formData.append("entry.1897227570", incorrectLetters);
+  formData.append("entry.1249394203", correctLetters);
+  formData.append("entry.1996137354", accuracy);
+  formData.append("entry.1374858042", timeFormatted);
 
-    for (const key in entries) {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = key;
-      input.value = entries[key];
-      form.appendChild(input);
-    }
-
-  document.body.appendChild(form);
-  form.submit();
-  setTimeout(() => {
+  fetch(formUrl, {
+    method: "POST",
+    mode: "no-cors",
+    body: formData,
+  }).finally(() => {
     window.location.href = "hub.html";
-  }, 1000);
+  });
 }
-
-  // Start game with first page
-  loadPage();
-});
