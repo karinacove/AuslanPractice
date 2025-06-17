@@ -79,7 +79,7 @@ function loadLevel(currentLevel) {
       gridItem.dataset.letter = letter;
 
       const img = document.createElement("img");
-      img.src = `.../assets/alphabet/clipart/${letter}.png`;
+      img.src = `assets/alphabet/clipart/${letter}.png`;
       img.alt = letter;
       gridItem.appendChild(img);
 
@@ -90,7 +90,7 @@ function loadLevel(currentLevel) {
     allSigns.forEach((sign, index) => {
       const signImg = document.createElement("img");
       signImg.className = "draggable";
-      signImg.src = `.../assets/alphabet/signs/sign-${sign}.png`;
+      signImg.src = `assets/alphabet/signs/sign-${sign}.png`;
       signImg.alt = sign;
       signImg.draggable = true;
 
