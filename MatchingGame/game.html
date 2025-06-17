@@ -18,16 +18,17 @@
   </button>
 
   <main class="container" role="main" aria-labelledby="levelTitle">
-    <h1 id="levelTitle">Level 1: Match the Sign to the Picture</h1>
+    <h2 id="levelTitle">Level 1: Match the Sign to the Picture</h2>
 
     <p id="studentInfo" aria-live="polite"></p>
 
     <div class="layout">
-    <div class="left-signs" id="leftSigns" aria-label="Left signs" role="list"></div>
+      <div class="container">
+      <div id="leftSigns" class="sign-column"></div>
 
-    <section id="gameBoard" class="game-board" aria-label="Game board" role="grid"></section>
+      <div id="gameBoard"></div>
 
-  <div class="right-signs" id="rightSigns" aria-label="Right signs" role="list"></div>
+      <div id="rightSigns" class="sign-column"></div>
 </div>
 
 
