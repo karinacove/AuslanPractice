@@ -301,13 +301,12 @@ function loadPage() {
       form.appendChild(input);
     }
 
-    document.body.appendChild(form);
-    form.submit();
-
-    setTimeout(() => {
-      window.location.href = "hub.html";
-    }, 1000);
-  }
+  document.body.appendChild(form);
+  form.submit();
+  setTimeout(() => {
+    window.location.href = "hub.html";
+  }, 1000);
+}
 
   // Start game with first page
   loadPage();
