@@ -52,15 +52,18 @@ function shuffle(array) {
 
 function loadLevel(currentLevel) {
   const board = document.getElementById("gameBoard");
-  const tray = document.getElementById("draggables");
+  const leftSigns = document.getElementById("leftSigns");
+  const rightSigns = document.getElementById("rightSigns");
   board.innerHTML = "";
-  tray.innerHTML = "";
+  leftSigns.innerHTML = "";
+  rightSigns.innerHTML = "";
   matched = 0;
 
   document.getElementById("levelTitle").textContent =
     currentLevel === 1 ? "Level 1: Match the Sign to the Picture"
     : currentLevel === 2 ? "Level 2: Match the Picture to the Sign"
     : "Level 3: Mixed Matching";
+
   nextLevelBtn.style.display = "none";
 
   if (topic === "alphabet") {
@@ -69,6 +72,7 @@ function loadLevel(currentLevel) {
     const distractors = letters.slice(9, 12);
     const allSigns = shuffle([...selected, ...distractors]);
 
+    // Create grid items
     selected.forEach(letter => {
       const gridItem = document.createElement("div");
       gridItem.className = "grid-item";
@@ -82,7 +86,8 @@ function loadLevel(currentLevel) {
       board.appendChild(gridItem);
     });
 
-    allSigns.forEach(sign => {
+    // Create draggable signs and alternate placement
+    allSigns.forEach((sign, index) => {
       const signImg = document.createElement("img");
       signImg.className = "draggable";
       signImg.src = `assets/alphabet/signs/sign-${sign}.png`;
@@ -127,7 +132,12 @@ function loadLevel(currentLevel) {
         }
       });
 
-      tray.appendChild(signImg);
+      // Alternate between left and right
+      if (index % 2 === 0) {
+        leftSigns.appendChild(signImg);
+      } else {
+        rightSigns.appendChild(signImg);
+      }
     });
 
     document.querySelectorAll(".grid-item").forEach(slot => {
