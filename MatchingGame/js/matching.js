@@ -35,6 +35,9 @@ let totalCorrect = 0;
 let totalIncorrect = 0;
 let startTime = Date.now();
 
+const letterCorrectMap = {};
+const letterIncorrectList = [];
+
 const gameBoard = document.getElementById("gameBoard");
 const leftSigns = document.getElementById("leftSigns");
 const rightSigns = document.getElementById("rightSigns");
@@ -142,6 +145,7 @@ function handleDrop(targetSlot, draggedLetter, draggedSrc) {
   if (targetSlot.dataset.letter === draggedLetter) {
     correctMatches++;
     totalCorrect++;
+    letterCorrectMap[draggedLetter] = (letterCorrectMap[draggedLetter] || 0) + 1;
     showFeedback(true);
     targetSlot.innerHTML = "";
     const overlay = document.createElement("img");
@@ -165,6 +169,7 @@ function handleDrop(targetSlot, draggedLetter, draggedSrc) {
   } else {
     incorrectMatches++;
     totalIncorrect++;
+    letterIncorrectList.push(draggedLetter);
     showFeedback(false);
     const dragged = document.querySelector(`img[data-letter='${draggedLetter}']`);
     dragged.classList.add("shake");
@@ -199,20 +204,34 @@ function touchStart(e) {
 
 function endGame() {
   const endTime = Date.now();
-  const timeTaken = Math.round((endTime - startTime) / 1000);
+  const totalTime = Math.round((endTime - startTime) / 1000);
+  const minutes = Math.floor(totalTime / 60);
+  const seconds = totalTime % 60;
+  const timeFormatted = `${minutes} mins ${seconds} sec`;
+
+  const accuracy = Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) + "%";
+
+  const correctLetters = allLetters.map(letter => {
+    const count = letterCorrectMap[letter] || 0;
+    return count ? letter.repeat(count) : "";
+  }).filter(Boolean).join(", ");
+
+  const incorrectLetters = letterIncorrectList.sort().join(", ");
 
   const form = document.createElement("form");
-  form.action = "https://docs.google.com/forms/d/e/1FAIpQLSeLhBoMRLoCK2wyyh2o9Ue0HiOus--yR6XqRvmz9SRbRPyGNg/formResponse";
+  form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
   form.method = "POST";
   form.target = "_blank";
   form.style.display = "none";
 
   const entries = {
-    "entry.1234567890": studentName,
-    "entry.0987654321": studentClass,
-    "entry.1111111111": totalCorrect,
-    "entry.2222222222": totalIncorrect,
-    "entry.3333333333": timeTaken,
+    "entry.1387461004": studentName,
+    "entry.1309291707": studentClass,
+    "entry.477642881": "Alphabet",
+    "entry.1897227570": incorrectLetters,
+    "entry.1249394203": correctLetters,
+    "entry.1996137354": accuracy,
+    "entry.1374858042": timeFormatted
   };
 
   for (const key in entries) {
