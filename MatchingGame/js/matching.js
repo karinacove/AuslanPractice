@@ -309,5 +309,3 @@ function loadPage() {
   }).finally(() => {
     window.location.href = "hub.html";
   });
- }
-}
