@@ -73,7 +73,7 @@ body {
   padding: 20px;
   flex-wrap: wrap;
   gap: 10px;
-  width: 100%;
+  width: 55%;
   max-width: 1200px;
 }
 
@@ -106,6 +106,7 @@ h2#levelTitle {
   position: fixed;
   top: 20px;
   right: 20px;
+  text-align: center;
   background-color: #dc3545;
   color: white;
   border: none;
@@ -147,7 +148,7 @@ h2#levelTitle {
 }
 
 .left-signs, .right-signs {
-  width: 120px;
+  width: 20%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -159,7 +160,7 @@ h2#levelTitle {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
-  max-width: 160px;
+  max-width: 200px;
 }
 
 /* Student Info Box */
@@ -209,6 +210,7 @@ h2#levelTitle {
   justify-content: center;
   align-content: center;
   margin: 0 auto;
+  width: 55%;
   background: transparent;
 }
 
@@ -216,7 +218,7 @@ h2#levelTitle {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  width: 360px;
+  width: 55%;
 }
 
 /* Individual Grid Item */
