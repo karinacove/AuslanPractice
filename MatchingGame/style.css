@@ -15,15 +15,23 @@ body {
 
 /* Container for the game and UI */
 .container {
-  background: white;
-  padding: 2rem 3rem;
-  border-radius: 10px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  text-align: center;
-  width: 320px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  max-width: 1200px;
+}
+
+main {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 /* Headings */
@@ -34,20 +42,11 @@ h1 {
 }
 
 h2#levelTitle {
-  margin-top: 20px;
-  margin-bottom: 10px;
+  margin-top: 100px;
+  margin-bottom: 20px;
   font-size: 24px;
   text-align: center;
-}
-
-.container {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  flex-wrap: wrap;
-  gap: 10px;
+  color: white;
 }
 
 /* Logout Button */
@@ -155,13 +154,13 @@ h2#levelTitle {
 .game-board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat (3, 1fr);
-  grid-gap: 10px;
-  margin: 0 40px;
-  width: 90vw;
-  max-width: 600px;
+  gap: 15px;
+  justify-content: center;
+  align-content: center;
+  margin: 0 auto;
   background: transparent;
 }
+
 
 /* Individual Grid Item */
 .grid-item {
