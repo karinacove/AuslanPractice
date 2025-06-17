@@ -10,34 +10,33 @@
 <body>
   <div id="student-info"></div>
   <button id="logoutBtn" title="Logout">Logout</button>
-  <div class="hub-wrapper">
     <div class="signin-container">
-      <h1>Welcome to Auslan Games</h1>
-      <h1>Choose a Game</h1>
-      <div class="topic-grid">
-        <div class="topic-item" data-topic="alphabet">
-          <img src="assets/topics/alphabet.png" alt="Alphabet">
-        </div>
-        <div class="topic-item" data-topic="animals">
-          <img src="assets/topics/animals.png" alt="Animals">
-        </div>
-        <div class="topic-item" data-topic="colours">
-          <img src="assets/topics/colours.png" alt="Colours">
-        </div>
-        <div class="topic-item" data-topic="food">
-          <img src="assets/topics/food.png" alt="Food">
-        </div>
-        <div class="topic-item" data-topic="transport">
-          <img src="assets/topics/transport.png" alt="Transport">
-        </div>
-        <div class="topic-item" data-topic="numbers">
-          <img src="assets/topics/numbers.png" alt="Numbers">
-        </div>
+    <h1>Welcome to Auslan Games</h1>
+    <h1>Choose a Game</h1>
+    <div class="topic-grid">
+      <div class="topic-item" data-topic="alphabet">
+        <img src="assets/topics/alphabet.png" alt="Alphabet">
+      </div>
+      <div class="topic-item" data-topic="animals">
+        <img src="assets/topics/animals.png" alt="Animals">
+      </div>
+      <div class="topic-item" data-topic="colours">
+        <img src="assets/topics/colours.png" alt="Colours">
+      </div>
+      <div class="topic-item" data-topic="food">
+        <img src="assets/topics/food.png" alt="Food">
+      </div>
+      <div class="topic-item" data-topic="transport">
+        <img src="assets/topics/transport.png" alt="Transport">
+      </div>
+      <div class="topic-item" data-topic="numbers">
+        <img src="assets/topics/numbers.png" alt="Numbers">
       </div>
     </div>
-  </div>
+ </div>
 
-  <script>
+
+ <script>
     let studentName = localStorage.getItem("studentName") || "";
     let studentClass = localStorage.getItem("studentClass") || "";
 
@@ -66,6 +65,6 @@
         window.location.href = "../index.html";
       });
     }
-  </script>
+ </script>
 </body>
 </html>
