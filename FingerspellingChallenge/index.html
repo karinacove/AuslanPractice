@@ -6,27 +6,6 @@
   <link rel="icon" href="Assets/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="style.css" />
   <title>Fingerspelling Challenge</title>
-  <style>
-    .center-row {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
-    #speed-container {
-      margin-top: 20px;
-      margin-bottom: 20px;
-    }
-
-    .auslan-font {
-      font-family: "Auslan", sans-serif;
-      font-size: 6rem;
-      text-align: center;
-      margin: 20px 0;
-    }
-  </style>
 </head>
 <body>
   <div id="student-info"></div>
@@ -36,6 +15,7 @@
   </button>
 
   <div id="game-container">
+    <!-- Sign-in screen -->
     <div id="signin-screen">
       <h2>Choose Game Mode</h2>
       <label>
@@ -67,8 +47,10 @@
       </button>
     </div>
 
-    <div id="game-screen" style="display: none; flex-direction: column; align-items: center;">
-      <div id="speed-container">
+    <!-- Game screen -->
+    <div id="game-screen" style="display: none; flex-direction: column; align-items: center; gap: 20px;">
+
+      <div id="speed-container" style="margin-top: 30px;">
         <label for="speed-slider">Speed:</label>
         <input type="range" id="speed-slider" min="0" max="200" value="100" />
       </div>
@@ -78,23 +60,19 @@
           <span class="label">Time:</span>
           <span class="value">120</span>
         </div>
-
         <div id="score">
           <span class="label">Score:</span>
           <span class="value">0</span>
         </div>
       </div>
 
-      <div id="letter-display" class="auslan-font"></div>
+      <div id="letter-display" class="auslan-font" style="font-size: 60px; text-align: center;"></div>
 
-      <div class="center-row">
-        <div id="controls">
-          <input type="text" id="word-input" placeholder="Type the word" autocomplete="off" />
-          <button id="submit-word">Enter</button>
-          <button id="again-button">
-            <img src="Assets/Icons/Again.png" alt="Again" style="height: 80px;" />
-          </button>
-        </div>
+      <div id="controls" style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+        <input type="text" id="word-input" placeholder="Type the word" autocomplete="off" />
+        <button id="again-button" style="display: none;">
+          <img src="Assets/Icons/Again.png" alt="Again" style="height: 80px;" />
+        </button>
       </div>
 
       <div id="clap-display"></div>
