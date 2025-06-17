@@ -127,7 +127,7 @@ function startTimer() {
   }, 1000);
 }
 
-function endGame() {
+function finishButton() {
   clearInterval(timer);
   clearLetters();
   wordInput.style.display = "none";
