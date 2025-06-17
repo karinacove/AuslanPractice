@@ -21,6 +21,16 @@ body {
   min-height: 100vh;
 }
 
+.signin-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  text-align: center;
+}
+
 /* Container for the game and UI */
 .container {
   display: flex;
