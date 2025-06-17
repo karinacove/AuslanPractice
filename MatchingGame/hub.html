@@ -8,62 +8,55 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="student-info"></div>
-  <button id="logoutBtn" title="Logout">Logout</button>
-    <h1>Welcome to Auslan Games</h1>
-    <h1>Choose a Game</h1>
-    <div class="topic-grid">
-      <div class="topic-item" data-topic="alphabet">
-        <img src="assets/topics/alphabet.png" alt="Alphabet">
-      </div>
-      <div class="topic-item" data-topic="animals">
-        <img src="assets/topics/animals.png" alt="Animals">
-      </div>
-      <div class="topic-item" data-topic="colours">
-        <img src="assets/topics/colours.png" alt="Colours">
-      </div>
-      <div class="topic-item" data-topic="food">
-        <img src="assets/topics/food.png" alt="Food">
-      </div>
-      <div class="topic-item" data-topic="transport">
-        <img src="assets/topics/transport.png" alt="Transport">
-      </div>
-      <div class="topic-item" data-topic="numbers">
-        <img src="assets/topics/numbers.png" alt="Numbers">
-      </div>
+  <div id="student-info" aria-live="polite"></div>
+
+  <button id="logoutBtn" title="Logout" aria-label="Logout">Logout</button>
+
+  <h1>Welcome to Auslan Games</h1>
+  <h1>Choose a Game</h1>
+
+  <div id="topic-grid">
+    <div class="topic-item" data-topic="alphabet">
+      <img src="assets/topics/alphabet.png" alt="Alphabet">
     </div>
- </div>
+    <div class="topic-item" data-topic="animals">
+      <img src="assets/topics/animals.png" alt="Animals">
+    </div>
+    <div class="topic-item" data-topic="colours">
+      <img src="assets/topics/colours.png" alt="Colours">
+    </div>
+    <div class="topic-item" data-topic="food">
+      <img src="assets/topics/food.png" alt="Food">
+    </div>
+    <div class="topic-item" data-topic="transport">
+      <img src="assets/topics/transport.png" alt="Transport">
+    </div>
+    <div class="topic-item" data-topic="numbers">
+      <img src="assets/topics/numbers.png" alt="Numbers">
+    </div>
+  </div>
 
-
- <script>
+  <script>
     let studentName = localStorage.getItem("studentName") || "";
     let studentClass = localStorage.getItem("studentClass") || "";
 
-    const logoutBtn = document.getElementById("logout-btn");
+    const logoutBtn = document.getElementById("logoutBtn");
     const studentInfoDiv = document.getElementById("student-info");
-    const gameContainer = document.getElementById("game-container");
 
     // Redirect if not signed in
     if (!studentName || !studentClass) {
       alert("Please log in first.");
-      window.location.href = "../index.html"; // Adjust path if needed
+      window.location.href = "../index.html"; // Adjust if needed
     } else {
-      if (studentInfoDiv) {
-        studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
-      }
-      if (gameContainer) {
-        gameContainer.style.display = "block";
-      }
+      studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
     }
 
     // Logout clears localStorage and redirects
-    if (logoutBtn) {
-      logoutBtn.addEventListener("click", () => {
-        localStorage.removeItem("studentName");
-        localStorage.removeItem("studentClass");
-        window.location.href = "../index.html";
-      });
-    }
- </script>
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("studentName");
+      localStorage.removeItem("studentClass");
+      window.location.href = "../index.html";
+    });
+  </script>
 </body>
 </html>
