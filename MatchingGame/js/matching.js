@@ -1,207 +1,233 @@
-// --- Student Info & Session Control ---
+// Get student info
 let studentName = localStorage.getItem("studentName") || "";
 let studentClass = localStorage.getItem("studentClass") || "";
 
-const logoutBtn = document.getElementById("logoutBtn");
-const studentInfoDiv = document.getElementById("student-info");
-const gameContainer = document.querySelector(".container");
-
 if (!studentName || !studentClass) {
-  alert("Please log in first.");
-  window.location.href = "../index.html"; // Adjust as needed
-} else {
-  studentInfoDiv.textContent = `Logged in as: ${studentName} (${studentClass})`;
-  gameContainer.style.display = "block";
+  window.location.href = "../index.html";
 }
 
+document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
+
+const logoutBtn = document.getElementById("logoutBtn");
 logoutBtn.addEventListener("click", () => {
-  localStorage.removeItem("studentName");
-  localStorage.removeItem("studentClass");
+  localStorage.clear();
   window.location.href = "../index.html";
 });
 
 const finishButton = document.getElementById("finishButton");
 finishButton.addEventListener("click", () => {
-  showResultsAndRedirect();
+  endGame();
 });
 
-// --- Game Logic ---
-let level = 1;
-let topic = localStorage.getItem("selectedTopic") || "alphabet";
-let correctCount = 0;
-let incorrectCount = 0;
-let matched = 0;
+const levels = [
+  { type: "signToImage" },
+  { type: "imageToSign" },
+  { type: "mixed" },
+];
+let currentLevel = 0;
+let currentPage = 0;
 
+const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
+let usedLetters = [];
+let correctMatches = 0;
+let incorrectMatches = 0;
+let totalCorrect = 0;
+let totalIncorrect = 0;
+let startTime = Date.now();
+
+const gameBoard = document.getElementById("gameBoard");
+const leftSigns = document.getElementById("leftSigns");
+const rightSigns = document.getElementById("rightSigns");
 const nextLevelBtn = document.getElementById("nextLevel");
+const levelTitle = document.getElementById("levelTitle");
+
+const feedbackImage = document.createElement("img");
+feedbackImage.id = "feedbackImage";
+feedbackImage.style.position = "fixed";
+feedbackImage.style.top = "50%";
+feedbackImage.style.left = "50%";
+feedbackImage.style.transform = "translate(-50%, -50%)";
+feedbackImage.style.width = "200px";
+feedbackImage.style.display = "none";
+document.body.appendChild(feedbackImage);
+
 nextLevelBtn.addEventListener("click", () => {
-  level++;
-  if (level <= 3) {
-    loadLevel(level);
+  currentLevel++;
+  currentPage = 0;
+  usedLetters = [];
+  if (currentLevel < levels.length) {
+    loadPage();
   } else {
-    showResultsAndRedirect();
+    endGame();
   }
 });
 
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
+function getRandomLetters(count) {
+  let available = allLetters.filter((l) => !usedLetters.includes(l));
+  let selected = [];
+  while (selected.length < count && available.length > 0) {
+    const index = Math.floor(Math.random() * available.length);
+    selected.push(available.splice(index, 1)[0]);
   }
-  return array;
+  usedLetters.push(...selected);
+  return selected;
 }
 
-function loadLevel(currentLevel) {
-  const board = document.getElementById("gameBoard");
-  const leftSigns = document.getElementById("leftSigns");
-  const rightSigns = document.getElementById("rightSigns");
-  board.innerHTML = "";
+function loadPage() {
+  const mode = levels[currentLevel].type;
+  const currentLetters = getRandomLetters(Math.min(9, allLetters.length - usedLetters.length));
+  gameBoard.innerHTML = "";
   leftSigns.innerHTML = "";
   rightSigns.innerHTML = "";
-  matched = 0;
 
-  document.getElementById("levelTitle").textContent =
-    currentLevel === 1 ? "Level 1: Match the Sign to the Picture"
-    : currentLevel === 2 ? "Level 2: Match the Picture to the Sign"
-    : "Level 3: Mixed Matching";
+  levelTitle.innerText = `Level ${currentLevel + 1}: ` +
+    (mode === "signToImage" ? "Match the Sign to the Picture" :
+     mode === "imageToSign" ? "Match the Picture to the Sign" :
+     "Match Signs and Pictures (Mixed)");
 
-  nextLevelBtn.style.display = "none";
+  currentLetters.forEach((letter) => {
+    const slot = document.createElement("div");
+    slot.className = "slot";
+    slot.dataset.letter = letter;
+    slot.style.backgroundImage = mode === "signToImage" || (mode === "mixed" && Math.random() < 0.5)
+      ? `url('assets/alphabet/clipart/${letter}.png')`
+      : `url('assets/alphabet/signs/sign-${letter}.png')`;
+    gameBoard.appendChild(slot);
+  });
 
-  if (topic === "alphabet") {
-    const letters = shuffle("abcdefghijklmnopqrstuvwxyz".split(""));
-    const selected = letters.slice(0, 9);
-    const distractors = letters.slice(9, 12);
-    const allSigns = shuffle([...selected, ...distractors]);
+  let options = [...currentLetters];
+  options.sort(() => Math.random() - 0.5);
+  options.forEach((letter, i) => {
+    const draggable = document.createElement("img");
+    draggable.src = (mode === "signToImage" || (mode === "mixed" && Math.random() < 0.5))
+      ? `assets/alphabet/signs/sign-${letter}.png`
+      : `assets/alphabet/clipart/${letter}.png`;
+    draggable.className = "draggable";
+    draggable.draggable = true;
+    draggable.dataset.letter = letter;
+    draggable.addEventListener("dragstart", dragStart);
+    draggable.addEventListener("touchstart", touchStart);
+    const container = document.createElement("div");
+    container.className = "drag-wrapper";
+    container.appendChild(draggable);
+    (i % 2 === 0 ? leftSigns : rightSigns).appendChild(container);
+  });
 
-    // Create grid items
-    selected.forEach(letter => {
-      const gridItem = document.createElement("div");
-      gridItem.className = "grid-item";
-      gridItem.dataset.letter = letter;
-
-      const img = document.createElement("img");
-      img.src = `assets/alphabet/clipart/${letter}.png`;
-      img.alt = letter;
-      gridItem.appendChild(img);
-
-      board.appendChild(gridItem);
-    });
-
-    // Create draggable signs and alternate placement
-    allSigns.forEach((sign, index) => {
-      const signImg = document.createElement("img");
-      signImg.className = "draggable";
-      signImg.src = `assets/alphabet/signs/sign-${sign}.png`;
-      signImg.alt = sign;
-      signImg.draggable = true;
-
-      // Mouse drag
-      signImg.addEventListener("dragstart", e => {
-        e.dataTransfer.setData("text/plain", sign);
-      });
-
-      // Touch drag
-      signImg.addEventListener("touchstart", e => {
-        signImg.classList.add("dragging");
-        e.preventDefault();
-      });
-
-      signImg.addEventListener("touchend", e => {
-        const touch = e.changedTouches[0];
-        const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-
-        if (dropTarget && dropTarget.closest(".grid-item")) {
-          const slot = dropTarget.closest(".grid-item");
-          const dragged = signImg.alt;
-          const correct = slot.dataset.letter;
-
-          if (dragged === correct) {
-            const label = document.createElement("div");
-            label.className = "label";
-            label.textContent = dragged.toUpperCase();
-            slot.appendChild(label);
-            matched++;
-            correctCount++;
-            signImg.remove();
-
-            if (matched === 9) {
-              nextLevelBtn.style.display = "inline-block";
-            }
-          } else {
-            incorrectCount++;
-          }
-        }
-      });
-
-      // Alternate between left and right
-      if (index % 2 === 0) {
-        leftSigns.appendChild(signImg);
-      } else {
-        rightSigns.appendChild(signImg);
-      }
-    });
-
-    document.querySelectorAll(".grid-item").forEach(slot => {
-      slot.addEventListener("dragover", e => e.preventDefault());
-      slot.addEventListener("dragenter", () => slot.classList.add("drag-over"));
-      slot.addEventListener("dragleave", () => slot.classList.remove("drag-over"));
-
-      slot.addEventListener("drop", e => {
-        e.preventDefault();
-        slot.classList.remove("drag-over");
-
-        const dragged = e.dataTransfer.getData("text/plain");
-        const correct = slot.dataset.letter;
-        if (dragged === correct) {
-          const label = document.createElement("div");
-          label.className = "label";
-          label.textContent = dragged.toUpperCase();
-          slot.appendChild(label);
-          matched++;
-          correctCount++;
-
-          const draggedImg = document.querySelector(`img[alt='${dragged}']`);
-          if (draggedImg) draggedImg.remove();
-
-          if (matched === 9) {
-            nextLevelBtn.style.display = "inline-block";
-          }
-        } else {
-          incorrectCount++;
-        }
-      });
-    });
-  }
-}
-
-function submitResults() {
-  const url = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
-  const formData = new URLSearchParams();
-  formData.append("entry.1387461004", studentName);
-  formData.append("entry.1309291707", studentClass);
-  formData.append("entry.477642881", topic.charAt(0).toUpperCase() + topic.slice(1));
-  formData.append("entry.1897227570", correctCount);
-  formData.append("entry.1249394203", incorrectCount);
-  formData.append("entry.1996137354", `${Math.round((correctCount / (correctCount + incorrectCount || 1)) * 100)}%`);
-
-  return fetch(url, {
-    method: "POST",
-    body: formData,
-    mode: "no-cors"
+  document.querySelectorAll(".slot").forEach((slot) => {
+    slot.addEventListener("dragover", dragOver);
+    slot.addEventListener("drop", drop);
   });
 }
 
-function showResultsAndRedirect() {
-  const totalAttempts = correctCount + incorrectCount || 1;
-  const percent = Math.round((correctCount / totalAttempts) * 100);
-  const message = `Level: ${level}\nCorrect: ${correctCount}\nIncorrect: ${incorrectCount}\nAccuracy: ${percent}%\n\nYou will now be returned to the game hub.`;
-
-  alert(message);
-
-  submitResults()
-    .catch(() => {})
-    .finally(() => {
-      window.location.href = "../hub.html";
-    });
+function dragStart(e) {
+  e.dataTransfer.setData("text/plain", e.target.dataset.letter);
+  e.dataTransfer.setData("src", e.target.src);
+  e.target.classList.add("dragging");
 }
 
-loadLevel(level);
+function dragOver(e) {
+  e.preventDefault();
+}
+
+function drop(e) {
+  e.preventDefault();
+  const draggedLetter = e.dataTransfer.getData("text/plain");
+  const draggedSrc = e.dataTransfer.getData("src");
+  const targetSlot = e.currentTarget;
+
+  handleDrop(targetSlot, draggedLetter, draggedSrc);
+}
+
+function handleDrop(targetSlot, draggedLetter, draggedSrc) {
+  if (targetSlot.dataset.letter === draggedLetter) {
+    correctMatches++;
+    totalCorrect++;
+    showFeedback(true);
+    targetSlot.innerHTML = "";
+    const overlay = document.createElement("img");
+    overlay.src = draggedSrc;
+    overlay.className = "overlay";
+    targetSlot.appendChild(overlay);
+
+    document.querySelectorAll(`[data-letter='${draggedLetter}']`).forEach((el) => {
+      if (el.classList.contains("draggable")) el.remove();
+    });
+
+    if (correctMatches >= 9) {
+      currentPage++;
+      correctMatches = 0;
+      if (usedLetters.length < allLetters.length) {
+        setTimeout(loadPage, 1000);
+      } else {
+        nextLevelBtn.style.display = "block";
+      }
+    }
+  } else {
+    incorrectMatches++;
+    totalIncorrect++;
+    showFeedback(false);
+    const dragged = document.querySelector(`img[data-letter='${draggedLetter}']`);
+    dragged.classList.add("shake");
+    setTimeout(() => dragged.classList.remove("shake"), 500);
+  }
+}
+
+function showFeedback(correct) {
+  feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
+  feedbackImage.style.display = "block";
+  setTimeout(() => {
+    feedbackImage.style.display = "none";
+  }, 2000);
+}
+
+function touchStart(e) {
+  const touch = e.touches[0];
+  const target = e.target;
+  const letter = target.dataset.letter;
+  const src = target.src;
+
+  const touchMove = (ev) => {
+    const touchLocation = ev.touches[0];
+    const element = document.elementFromPoint(touchLocation.clientX, touchLocation.clientY);
+    if (element && element.classList.contains("slot")) {
+      handleDrop(element, letter, src);
+      document.removeEventListener("touchmove", touchMove);
+    }
+  };
+  document.addEventListener("touchmove", touchMove);
+}
+
+function endGame() {
+  const endTime = Date.now();
+  const timeTaken = Math.round((endTime - startTime) / 1000);
+
+  const form = document.createElement("form");
+  form.action = "https://docs.google.com/forms/d/e/1FAIpQLSeLhBoMRLoCK2wyyh2o9Ue0HiOus--yR6XqRvmz9SRbRPyGNg/formResponse";
+  form.method = "POST";
+  form.target = "_blank";
+  form.style.display = "none";
+
+  const entries = {
+    "entry.1234567890": studentName,
+    "entry.0987654321": studentClass,
+    "entry.1111111111": totalCorrect,
+    "entry.2222222222": totalIncorrect,
+    "entry.3333333333": timeTaken,
+  };
+
+  for (const key in entries) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = key;
+    input.value = entries[key];
+    form.appendChild(input);
+  }
+
+  document.body.appendChild(form);
+  form.submit();
+  setTimeout(() => {
+    window.location.href = "hub.html";
+  }, 1000);
+}
+
+loadPage();
