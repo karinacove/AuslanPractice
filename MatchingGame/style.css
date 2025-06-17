@@ -42,6 +42,8 @@ body {
 
 .topic-item {
   display: flex;
+  width: 20vw;
+  height: auto;
   justify-content: center;
   align-items: center;
   cursor: pointer;
