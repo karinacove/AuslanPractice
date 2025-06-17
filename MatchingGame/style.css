@@ -8,6 +8,7 @@ body {
   overflow: hidden;
   display: flex;
   justify-content: center;
+  flex-direction: column;
   align-items: center;
   height: 100vh;
 }
@@ -30,6 +31,23 @@ h1 {
   margin-bottom: 1rem;
   font-weight: 700;
   color: #1a1a1a;
+}
+
+h2#levelTitle {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-size: 24px;
+  text-align: center;
+}
+
+.container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 /* Logout Button */
@@ -86,6 +104,13 @@ h1 {
   padding: 10px;
 }
 
+.sign-column {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  max-width: 160px;
+}
+
 /* Student Info Box */
 #student-info {
   position: fixed;
@@ -132,9 +157,10 @@ h1 {
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat (3, 1fr);
   grid-gap: 10px;
-  margin: 10px auto;
+  margin: 0 40px;
   width: 90vw;
   max-width: 600px;
+  background: transparent;
 }
 
 /* Individual Grid Item */
@@ -143,7 +169,7 @@ h1 {
   height: 120px;
   border: 2px solid #ccc;
   position: relative;
-  background-color: white;
+  background-color: transparent;
 }
 
 .grid-item img {
