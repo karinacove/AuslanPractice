@@ -30,7 +30,7 @@ body {
   width: 200px;
 }
 
-#topic-grid {
+.topic-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 15px;
