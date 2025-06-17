@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Auslan Matching Game</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="js/matching.js" defer></script>
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
 </head>
 <body>
@@ -22,8 +23,9 @@
   </div>
 
   <button id="nextLevel" style="display:none;">Next Level</button>
-  <button id="finishButton">Finish</button>
+  <button id="finishButton" title="Finish Game" aria-label="Finish Game">
+    <img src="assets/finish.png" alt="Finish Game" />
+  </button>
 
-  <script src="js/matching.js"></script>
 </body>
 </html>
