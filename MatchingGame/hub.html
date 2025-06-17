@@ -56,6 +56,18 @@
       localStorage.removeItem("studentClass");
       window.location.href = "../index.html";
     });
+
+    // Handle topic clicks
+    document.querySelectorAll('.topic-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const topic = item.dataset.topic;
+        if (topic === 'alphabet') {
+          window.location.href = 'game.html';
+        } else {
+          alert(`${topic.charAt(0).toUpperCase() + topic.slice(1)} is coming soon!`);
+        }
+      });
+    });
   </script>
 </body>
 </html>
