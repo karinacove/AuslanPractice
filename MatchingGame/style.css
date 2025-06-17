@@ -86,12 +86,14 @@ h2#levelTitle {
   width: 80px;
   height: 80px;
 }
+
 .layout {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: flex-start;
   width: 100%;
-  max-width: 1200px;
+  gap: 10px;
+  flex-wrap: nowrap;
 }
 
 .left-signs, .right-signs {
@@ -161,6 +163,12 @@ h2#levelTitle {
   background: transparent;
 }
 
+#gameBoard {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 360px;
+}
 
 /* Individual Grid Item */
 .grid-item {
