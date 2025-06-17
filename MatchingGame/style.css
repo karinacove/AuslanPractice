@@ -54,7 +54,7 @@ body {
 
 .topic-item img {
   width: 100%;
-  max-width: 150px;
+  max-width: 20vw;
   height: auto;
   object-fit: contain;
   border-radius: 12px;
