@@ -97,7 +97,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function loadPage() {
   const mode = levels[currentLevel].type;
-  const currentLetters = getRandomLetters(Math.min(12, allLetters.length - usedLetters.length));
+
+  // Get 9 letters for slots
+  const slotLetters = getRandomLetters(Math.min(9, allLetters.length - usedLetters.length));
+
+  // Get 3 decoy letters not in slots
+  const remainingLetters = allLetters.filter(l => !slotLetters.includes(l) && !usedLetters.includes(l));
+  let decoys = [];
+  while (decoys.length < 3 && remainingLetters.length > 0) {
+    const idx = Math.floor(Math.random() * remainingLetters.length);
+    decoys.push(remainingLetters.splice(idx,1)[0]);
+  }
+
+  const draggableLetters = [...slotLetters, ...decoys];
+  // Shuffle draggableLetters
+  draggableLetters.sort(() => Math.random() - 0.5);
+
   gameBoard.innerHTML = "";
   leftSigns.innerHTML = "";
   rightSigns.innerHTML = "";
@@ -107,7 +122,8 @@ function loadPage() {
       mode === "imageToSign" ? "Match the Picture to the Sign" :
         "Match Signs and Pictures (Mixed)");
 
-  currentLetters.forEach((letter) => {
+  // Create 9 slots for slotLetters
+  slotLetters.forEach((letter) => {
     const slot = document.createElement("div");
     slot.className = "slot";
     slot.dataset.letter = letter;
@@ -117,10 +133,8 @@ function loadPage() {
     gameBoard.appendChild(slot);
   });
 
-  let options = [...currentLetters];
-  options.sort(() => Math.random() - 0.5);
-
-  options.forEach((letter, i) => {
+  // Create 12 draggables: first 6 left, next 6 right
+  draggableLetters.forEach((letter, i) => {
     const draggable = document.createElement("img");
     draggable.src = (mode === "signToImage" || (mode === "mixed" && Math.random() < 0.5))
       ? `assets/alphabet/signs/sign-${letter}.png`
@@ -141,12 +155,12 @@ function loadPage() {
     }
   });
 
+  // Add event listeners to slots
   document.querySelectorAll(".slot").forEach((slot) => {
     slot.addEventListener("dragover", dragOver);
     slot.addEventListener("drop", drop);
   });
 }
-
 
   function dragStart(e) {
     e.dataTransfer.setData("text/plain", e.target.dataset.letter);
