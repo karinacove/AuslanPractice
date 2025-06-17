@@ -31,6 +31,13 @@ body {
   text-align: center;
 }
 
+.signin-container input {
+  display: block;
+  margin: 10px auto;
+  padding: 8px;
+  width: 200px;
+}
+
 /* Container for the game and UI */
 .container {
   display: flex;
