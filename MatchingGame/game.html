@@ -2,36 +2,72 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auslan Games - Sign In</title>
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
-  <title>Auslan Matching Game</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="js/matching.js" defer></script>
 </head>
 <body>
   <div id="student-info" aria-live="polite"></div>
 
   <button id="logoutBtn" title="Logout" aria-label="Logout">Logout</button>
 
-  <button id="finishButton" title="Finish Game" aria-label="Finish Game">
-    <img src="assets/finish.png" alt="Finish Game" />
-  </button>
+  <h1>Choose a Game</h1>
 
-  <main role="main" aria-labelledby="levelTitle">
-    <h2 id="levelTitle">Level 1: Match the Sign to the Picture</h2>
-
-    <p id="studentInfo" aria-live="polite"></p>
-
-    <div class="container layout">
-      <div id="leftSigns" class="sign-column"></div>
-
-      <div id="gameBoard" class="game-board"></div>
-
-      <div id="rightSigns" class="sign-column"></div>
+  <div id="topic-grid">
+    <div class="topic-item" data-topic="alphabet">
+      <img src="assets/topics/alphabet.png" alt="Alphabet">
     </div>
+    <div class="topic-item" data-topic="animals">
+      <img src="assets/topics/animals.png" alt="Animals">
+    </div>
+    <div class="topic-item" data-topic="colours">
+      <img src="assets/topics/colours.png" alt="Colours">
+    </div>
+    <div class="topic-item" data-topic="food">
+      <img src="assets/topics/food.png" alt="Food">
+    </div>
+    <div class="topic-item" data-topic="transport">
+      <img src="assets/topics/transport.png" alt="Transport">
+    </div>
+    <div class="topic-item" data-topic="numbers">
+      <img src="assets/topics/numbers.png" alt="Numbers">
+    </div>
+  </div>
 
-    <button id="nextLevel" aria-label="Next Level">Next Level</button>
-  </main>
+  <script>
+    let studentName = localStorage.getItem("studentName") || "";
+    let studentClass = localStorage.getItem("studentClass") || "";
+
+    const logoutBtn = document.getElementById("logoutBtn");
+    const studentInfoDiv = document.getElementById("student-info");
+
+    // Redirect if not signed in
+    if (!studentName || !studentClass) {
+      alert("Please log in first.");
+      window.location.href = "../index.html"; // Adjust if needed
+    } else {
+      studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
+    }
+
+    // Logout clears localStorage and redirects
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("studentName");
+      localStorage.removeItem("studentClass");
+      window.location.href = "../index.html";
+    });
+
+    // Handle topic clicks
+    document.querySelectorAll('.topic-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const topic = item.dataset.topic;
+        if (topic === 'alphabet') {
+          window.location.href = 'game.html';
+        } else {
+          alert(`${topic.charAt(0).toUpperCase() + topic.slice(1)} is coming soon!`);
+        }
+      });
+    });
+  </script>
 </body>
-
 </html>
