@@ -30,6 +30,14 @@ body {
   width: 200px;
 }
 
+#topic-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin: 0 40px;
+  background: transparent;
+}
+
 /* Container for the game and UI */
 .container {
   display: flex;
