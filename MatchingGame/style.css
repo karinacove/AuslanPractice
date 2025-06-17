@@ -8,9 +8,8 @@ body {
   overflow: hidden;
   display: flex;
   justify-content: center;
-  flex-direction: column;
-  align-items: center;
   height: 100vh;
+  width: 100vw;
 }
 
 .signin-container {
@@ -34,15 +33,19 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 15px;
-  margin: 0 40px;
   background: transparent;
+  margin-top: 20px;  
+  max-width: 90vw;
+  max-height: 60vh;
+  padding: 10px;
+  justify-items: center;
+  align-items: center;
 }
 
 .topic-item {
   background: white;
   border-radius: 12px;
   padding: 10px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
   display: flex;
@@ -52,13 +55,14 @@ body {
 
 .topic-item:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
 }
 
 .topic-item img {
-  max-width: 100px;
-  max-height: 100px;
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
 }
+
 
 /* Container for the game and UI */
 .container {
@@ -83,9 +87,9 @@ main {
 
 /* Headings */
 h1 {
-  margin-bottom: 1rem;
+  font-size: 1.8rem;
+  margin: 10px 0;
   text-align: center;
-  font-weight: 700;
   margin-top: 20px;
   color: #1a1a1a;
 }
