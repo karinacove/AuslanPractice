@@ -185,8 +185,10 @@ speedSlider.addEventListener("input", () => {
 
 againButton.addEventListener("click", () => {
   againButton.style.display = "none";
-  signinScreen.style.display = "flex";
-  gameScreen.style.display = "none";
+  showLetterByLetter(currentWord);
+  wordInput.style.display = "block";
+  wordInput.value = "";
+  wordInput.focus();
 });
 
 // Initial Setup
