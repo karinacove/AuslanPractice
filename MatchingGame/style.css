@@ -344,11 +344,6 @@ input, select, button {
   font-size: 1rem;
 }
 
-@media (max-width: 600px) {
-  h1 {
-    font-size: 1.5rem;
-  }
-
   #logoutBtn {
     padding: 8px 16px;
     font-size: 0.9rem;
@@ -376,21 +371,7 @@ input, select, button {
   margin: 5px;
   padding: 4px;
 }
-
-/* Shake animation for incorrect drag */
-@keyframes shake {
-  0% { transform: translate(1px, 0px) rotate(0deg); }
-  20% { transform: translate(-1px, 0px) rotate(0deg); }
-  40% { transform: translate(1px, 0px) rotate(0deg); }
-  60% { transform: translate(-1px, 0px) rotate(0deg); }
-  80% { transform: translate(1px, 0px) rotate(0deg); }
-  100% { transform: translate(0px, 0px) rotate(0deg); }
-}
-
-.shake {
-  animation: shake 0.5s;
-}
-
+  
 /* Feedback image (correct or wrong) */
 #feedbackImage {
   z-index: 2000;
@@ -417,7 +398,27 @@ input, select, button {
   top: 0;
   left: 0;
 }
-  .topic-item img {
-    max-width: 100px;
+  
+.topic-item img {
+  max-width: 100px;
+}
+  
+/* Shake animation for incorrect drag */
+@keyframes shake {
+  0% { transform: translate(1px, 0px) rotate(0deg); }
+  20% { transform: translate(-1px, 0px) rotate(0deg); }
+  40% { transform: translate(1px, 0px) rotate(0deg); }
+  60% { transform: translate(-1px, 0px) rotate(0deg); }
+  80% { transform: translate(1px, 0px) rotate(0deg); }
+  100% { transform: translate(0px, 0px) rotate(0deg); }
+}
+
+.shake {
+  animation: shake 0.5s;
+}
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 1.5rem;
   }
 }
