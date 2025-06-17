@@ -32,6 +32,7 @@ body {
 .topic-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  flex-wrap: wrap;
   gap: 15px;
   background: transparent;
   margin-top: 20vh;  
@@ -45,7 +46,7 @@ body {
 .topic-item {
   padding: 10px;
   cursor: pointer;
-  display: grid;
+  display: flexi;
   justify-content: center;
   align-items: center;
 }
