@@ -13,14 +13,6 @@ body {
   height: 100vh;
 }
 
-.hub-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  max-height: 100vh;
-}
-
 .signin-container {
   display: flex;
   flex-direction: column;
