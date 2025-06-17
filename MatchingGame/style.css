@@ -37,7 +37,9 @@ main {
 /* Headings */
 h1 {
   margin-bottom: 1rem;
+  text-align: center;
   font-weight: 700;
+  margin-top: 20px;
   color: #1a1a1a;
 }
 
