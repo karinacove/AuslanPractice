@@ -98,20 +98,21 @@ document.addEventListener("DOMContentLoaded", function () {
 function loadPage() {
   const mode = levels[currentLevel].type;
 
-  // Get 9 letters for slots
-  const slotLetters = getRandomLetters(Math.min(9, allLetters.length - usedLetters.length));
+  correctMatches = 0;
+  usedLetters = [];
 
-  // Get 3 decoy letters not in slots
-  const remainingLetters = allLetters.filter(l => !slotLetters.includes(l) && !usedLetters.includes(l));
-  let decoys = [];
-  while (decoys.length < 3 && remainingLetters.length > 0) {
-    const idx = Math.floor(Math.random() * remainingLetters.length);
-    decoys.push(remainingLetters.splice(idx,1)[0]);
+  // Pick 9 correct letters
+  const slotLetters = getRandomLetters(9);
+
+  // Add 3 decoys not in slotLetters
+  const remaining = allLetters.filter((l) => !slotLetters.includes(l));
+  const decoys = [];
+  while (decoys.length < 3 && remaining.length > 0) {
+    const index = Math.floor(Math.random() * remaining.length);
+    decoys.push(remaining.splice(index, 1)[0]);
   }
 
-  const draggableLetters = [...slotLetters, ...decoys];
-  // Shuffle draggableLetters
-  draggableLetters.sort(() => Math.random() - 0.5);
+  const draggableLetters = [...slotLetters, ...decoys].sort(() => Math.random() - 0.5);
 
   gameBoard.innerHTML = "";
   leftSigns.innerHTML = "";
@@ -119,43 +120,63 @@ function loadPage() {
 
   levelTitle.innerText = `Level ${currentLevel + 1}: ` +
     (mode === "signToImage" ? "Match the Sign to the Picture" :
-      mode === "imageToSign" ? "Match the Picture to the Sign" :
-        "Match Signs and Pictures (Mixed)");
+     mode === "imageToSign" ? "Match the Picture to the Sign" :
+     "Mixed: Match Signs and Pictures");
 
-  // Create 9 slots for slotLetters
+  // Create slots with background images
   slotLetters.forEach((letter) => {
     const slot = document.createElement("div");
     slot.className = "slot";
     slot.dataset.letter = letter;
-    slot.style.backgroundImage = mode === "signToImage" || (mode === "mixed" && Math.random() < 0.5)
-      ? `url('assets/alphabet/clipart/${letter}.png')`
-      : `url('assets/alphabet/signs/sign-${letter}.png')`;
+
+    let showSignInside;
+    if (mode === "signToImage") {
+      showSignInside = false;
+    } else if (mode === "imageToSign") {
+      showSignInside = true;
+    } else {
+      showSignInside = Math.random() < 0.5; // Mixed mode
+    }
+
+    slot.style.backgroundImage = showSignInside
+      ? `url('assets/alphabet/signs/sign-${letter}.png')`
+      : `url('assets/alphabet/clipart/${letter}.png')`;
+
+    // Store how the match was rendered
+    slot.dataset.showsSignInside = showSignInside;
     gameBoard.appendChild(slot);
   });
 
-  // Create 12 draggables: first 6 left, next 6 right
+  // Create 12 draggable items
   draggableLetters.forEach((letter, i) => {
     const draggable = document.createElement("img");
-    draggable.src = (mode === "signToImage" || (mode === "mixed" && Math.random() < 0.5))
+
+    // Decide what image type to show for this letter
+    let isSign;
+    const slot = document.querySelector(`.slot[data-letter='${letter}']`);
+    if (slot) {
+      isSign = slot.dataset.showsSignInside === "false";
+    } else {
+      isSign = Math.random() < 0.5;
+    }
+
+    draggable.src = isSign
       ? `assets/alphabet/signs/sign-${letter}.png`
       : `assets/alphabet/clipart/${letter}.png`;
+
     draggable.className = "draggable";
     draggable.draggable = true;
     draggable.dataset.letter = letter;
     draggable.addEventListener("dragstart", dragStart);
     draggable.addEventListener("touchstart", touchStart);
+
     const container = document.createElement("div");
     container.className = "drag-wrapper";
     container.appendChild(draggable);
 
-    if (i < 6) {
-      leftSigns.appendChild(container);
-    } else {
-      rightSigns.appendChild(container);
-    }
+    (i < 6 ? leftSigns : rightSigns).appendChild(container);
   });
 
-  // Add event listeners to slots
   document.querySelectorAll(".slot").forEach((slot) => {
     slot.addEventListener("dragover", dragOver);
     slot.addEventListener("drop", drop);
