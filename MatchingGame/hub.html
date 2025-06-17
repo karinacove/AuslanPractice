@@ -2,90 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
-  <title>Auslan Game Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auslan Games - Sign In</title>
   <link rel="stylesheet" href="style.css" />
-  <style>
-    .topic-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      width: 90vw;
-      max-width: 600px;
-      margin: 20px auto;
-      justify-items: center;
-    }
-    .topic-item {
-      cursor: pointer;
-      text-align: center;
-    }
-    .topic-item img {
-      width: 20vw;
-      height: auto;
-      display: block;
-    }
-  </style>
 </head>
 <body>
-  <div id="student-info"></div>
-  <button id="logoutBtn" title="Logout">Logout</button>
+  <div class="hub-wrapper">
+    <div class="signin-container">
+      <h1>Welcome to Auslan Games</h1>
+      <form id="signinForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required />
 
-  <h1>Choose a Game</h1>
-  <div class="topic-grid">
-    <div class="topic-item" data-topic="alphabet">
-      <img src="assets/topics/alphabet.png" alt="Alphabet">
-    </div>
-    <div class="topic-item" data-topic="animals">
-      <img src="assets/topics/animals.png" alt="Animals">
-    </div>
-    <div class="topic-item" data-topic="colours">
-      <img src="assets/topics/colours.png" alt="Colours">
-    </div>
-    <div class="topic-item" data-topic="food">
-      <img src="assets/topics/food.png" alt="Food">
-    </div>
-    <div class="topic-item" data-topic="transport">
-      <img src="assets/topics/transport.png" alt="Transport">
-    </div>
-    <div class="topic-item" data-topic="numbers">
-      <img src="assets/topics/numbers.png" alt="Numbers">
+        <label for="class">Class:</label>
+        <input type="text" id="class" name="class" required />
+
+        <button type="submit">Start</button>
+      </form>
     </div>
   </div>
 
   <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      const logoutBtn = document.getElementById("logoutBtn");
-      const studentInfoDiv = document.getElementById("student-info");
-
-      const studentName = localStorage.getItem("studentName") || "";
-      const studentClass = localStorage.getItem("studentClass") || "";
-
-      if (studentName && studentClass) {
-        studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
-      } else {
-        alert("Please log in first.");
-        window.location.href = "../index.html";
+    document.getElementById("signinForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const name = document.getElementById("name").value.trim();
+      const studentClass = document.getElementById("class").value.trim();
+      if (name && studentClass) {
+        localStorage.setItem("studentName", name);
+        localStorage.setItem("studentClass", studentClass);
+        window.location.href = "hub.html";
       }
-
-      logoutBtn.addEventListener("click", () => {
-        localStorage.removeItem("studentName");
-        localStorage.removeItem("studentClass");
-        window.location.href = "../index.html";
-      });
-
-      document.querySelectorAll(".topic-item").forEach(item => {
-        item.addEventListener("click", () => {
-          const topic = item.dataset.topic;
-          localStorage.setItem("selectedTopic", topic);
-          if (topic === "alphabet") {
-            window.location.href = "game.html";
-          } else {
-            item.querySelector("p").textContent = "Loading...";
-            setTimeout(() => window.location.href = "game.html", 1000);
-          }
-        });
-      });
     });
   </script>
 </body>
