@@ -1,7 +1,6 @@
 let studentName = localStorage.getItem("studentName") || "";
 let studentClass = localStorage.getItem("studentClass") || "";
 
-const logoutBtn = document.getElementById("logout-btn");
 const studentInfoDiv = document.getElementById("student-info");
 const gameContainer = document.getElementById("game-container");
 
@@ -16,15 +15,6 @@ if (!studentName || !studentClass) {
   if (gameContainer) {
     gameContainer.style.display = "block";
   }
-}
-
-// Logout clears localStorage and redirects
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", () => {
-    localStorage.removeItem("studentName");
-    localStorage.removeItem("studentClass");
-    window.location.href = "../index.html";
-  });
 }
 
 // Elements
@@ -215,3 +205,9 @@ if (finishButton) {
 wordInput.style.display = "none";
 againButton.style.display = "none";
 speed = parseInt(speedSlider.value);
+
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  localStorage.removeItem("studentName");
+  localStorage.removeItem("studentClass");
+  window.location.href = "../index.html";
+});
