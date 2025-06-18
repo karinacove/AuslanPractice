@@ -289,6 +289,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.body.appendChild(form);
     form.submit();
+    
+    const modal = document.createElement("div");
+    modal.id = "congratsModal";
+    modal.innerHTML = `
+      <div class="modal-content">
+        <h2>🎉 Congratulations, ${studentName}!</h2>
+        <p>You’ve finished the Alphabet Matching Game.</p>
+        <p><strong>✅ Accuracy:</strong> ${accuracy}</p>
+        <p><strong>⏱️ Time:</strong> ${timeFormatted}</p>
+        <button id="backToHub">Back to Hub</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    document.getElementById("backToHub").addEventListener("click", () => {
+      window.location.href = "hub.html";
+    });
 
     setTimeout(() => {
       alert(`Finished!\nCorrect: ${totalCorrect}\nIncorrect: ${totalIncorrect}\nTime: ${timeFormatted}`);
