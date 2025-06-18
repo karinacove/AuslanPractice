@@ -10,6 +10,7 @@ if (!studentName || !studentClass) {
 }
 
 document.getElementById("student-info").textContent = `👤 ${studentName} (${studentClass})`;
+document.getElementById("vehicle-palette").style.display = "block";
 
 // -------------------------
 // Drag & Drop Vehicle Logic with Touch Support
