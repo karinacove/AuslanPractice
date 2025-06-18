@@ -307,3 +307,4 @@ document.addEventListener("DOMContentLoaded", function () {
 setTimeout(() => {
   window.location.href = "hub.html";
 }, 5000);
+});
