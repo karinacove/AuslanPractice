@@ -261,7 +261,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const form = document.createElement("form");
     form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
     form.method = "POST";
-    form.target = "_blank";
+    form.target = "hidden_iframe";
+    const iframe = document.createElement("iframe");
+    iframe.name = "hidden_iframe";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+
     form.style.display = "none";
 
     const entries = {
