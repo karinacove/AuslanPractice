@@ -91,7 +91,6 @@ body {
 
 #speed-container {
   width: 40%;
-  margin-top: 0;
   text-align: center;
   transition: margin-top 0.6s ease;
 }
