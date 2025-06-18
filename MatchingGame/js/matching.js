@@ -247,71 +247,76 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("touchend", handleTouchEnd, { passive: false });
   }
 
-  function endGame() {
-    const endTime = Date.now();
-    const totalTime = Math.round((endTime - startTime) / 1000);
-    const minutes = Math.floor(totalTime / 60);
-    const seconds = totalTime % 60;
-    const timeFormatted = `${minutes} mins ${seconds} sec`;
-    const accuracy = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) + "%" : "N/A";
+function endGame() {
+  const endTime = Date.now();
+  const totalTime = Math.round((endTime - startTime) / 1000);
+  const minutes = Math.floor(totalTime / 60);
+  const seconds = totalTime % 60;
+  const timeFormatted = `${minutes} mins ${seconds} sec`;
+  const accuracy = totalCorrect + totalIncorrect > 0
+    ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) + "%"
+    : "N/A";
 
-    const formattedCorrect = Object.entries(letterTracking)
-      .map(([letter, val]) => val.replace(/\*/g, ""))
-      .filter(Boolean)
-      .join(", ");
-    const formattedIncorrect = Object.entries(letterTracking)
-      .map(([letter, val]) => val.includes("*") ? val : "")
-      .filter(Boolean)
-      .join(", ");
+  // Format correct letters with * to show incorrect attempts
+  const correctLetters = Object.keys(letterAttemptLog)
+    .sort()
+    .map(letter => {
+      let attempts = letterAttemptLog[letter];
+      return attempts.map(a => a ? letter : `*${letter}*`).join('');
+    })
+    .map(str => str.replace(/(.{3})/g, '$1, ').trim()) // format groups
+    .join(', ')
+    .replace(/,\s*$/, '');
 
-    const form = document.createElement("form");
-    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
-    form.method = "POST";
-    form.target = "hidden_iframe";
-    const iframe = document.createElement("iframe");
-    iframe.name = "hidden_iframe";
-    iframe.style.display = "none";
-    document.body.appendChild(iframe);
+  // Unique incorrect letters only
+  const incorrectLetters = [...new Set(letterIncorrectList)].sort().join(', ');
 
-    form.style.display = "none";
+  const form = document.createElement("form");
+  form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+  form.method = "POST";
+  form.target = "hidden_iframe";
+  const iframe = document.createElement("iframe");
+  iframe.name = "hidden_iframe";
+  iframe.style.display = "none";
+  document.body.appendChild(iframe);
+  form.style.display = "none";
 
-    const entries = {
-      "entry.1387461004": studentName,
-      "entry.1309291707": studentClass,
-      "entry.477642881": "Alphabet",
-      "entry.1897227570": formattedIncorrect,
-      "entry.1249394203": formattedCorrect,
-      "entry.1996137354": accuracy,
-      "entry.1374858042": timeFormatted,
-    };
+  const entries = {
+    "entry.1387461004": studentName,
+    "entry.1309291707": studentClass,
+    "entry.477642881": "Alphabet",
+    "entry.1897227570": incorrectLetters,
+    "entry.1249394203": correctLetters,
+    "entry.1996137354": accuracy,
+    "entry.1374858042": timeFormatted,
+  };
 
-    for (const key in entries) {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = key;
-      input.value = entries[key];
-      form.appendChild(input);
-    }
-
-    document.body.appendChild(form);
-    form.submit();
-
-    const modal = document.createElement("div");
-    modal.id = "congratsModal";
-    modal.innerHTML = `
-      <div class="modal-content">
-        <h2>🎉 Congratulations, ${studentName}!</h2>
-        <p>You’ve finished the Alphabet Matching Game.</p>
-        <p><strong>✅ Accuracy:</strong> ${accuracy}</p>
-        <p><strong>⏱️ Time:</strong> ${timeFormatted}</p>
-        <button id="backToHub">Back to Hub</button>
-      </div>
-    `;
-    document.body.appendChild(modal);
-    setTimeout(() => {
-      window.location.href = "hub.html";
-    }, 5000);
+  for (const key in entries) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = key;
+    input.value = entries[key];
+    form.appendChild(input);
   }
 
-  loadPage();
-});
+  document.body.appendChild(form);
+  form.submit();
+
+  const modal = document.createElement("div");
+  modal.id = "congratsModal";
+  modal.innerHTML = `
+    <div class="modal-content">
+      <h2>🎉 Congratulations, ${studentName}!</h2>
+      <p>You’ve finished the Alphabet Matching Game.</p>
+      <p><strong>✅ Accuracy:</strong> ${accuracy}</p>
+      <p><strong>⏱️ Time:</strong> ${timeFormatted}</p>
+      <button id="backToHub">Back to Hub</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  setTimeout(() => {
+    window.location.href = "hub.html";
+  }, 5000);
+}
+
