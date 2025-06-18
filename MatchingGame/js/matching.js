@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
+  // Get student info from localStorage
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
 
@@ -9,6 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
+  // Logout button
   const logoutBtn = document.getElementById("logoutBtn");
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
@@ -17,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // Finish button
   const finishButton = document.getElementById("finishButton");
   if (finishButton) {
     finishButton.addEventListener("click", () => {
@@ -30,13 +33,17 @@ document.addEventListener("DOMContentLoaded", function () {
     { type: "mixed" },
   ];
   let currentLevel = 0;
-  let correctMatches = 0;
-  let totalCorrect = 0;
-  let totalIncorrect = 0;
-  let startTime = Date.now();
-  let usedLetters = [];
+  let currentPage = 0;
 
   const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
+  let usedLetters = [];
+  let correctMatches = 0;
+  let incorrectMatches = 0;
+  let totalCorrect = 0;
+  let totalIncorrect = 0;
+
+  let startTime = Date.now();
+
   const letterCorrectMap = {};
   const letterIncorrectList = [];
 
@@ -80,7 +87,8 @@ document.addEventListener("DOMContentLoaded", function () {
       decoys.push(remainingLetters.splice(idx, 1)[0]);
     }
 
-    const draggableLetters = [...slotLetters, ...decoys].sort(() => Math.random() - 0.5);
+    const draggableLetters = [...slotLetters, ...decoys];
+    draggableLetters.sort(() => Math.random() - 0.5);
 
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
@@ -111,13 +119,14 @@ document.addEventListener("DOMContentLoaded", function () {
       draggable.dataset.letter = letter;
       draggable.addEventListener("dragstart", dragStart);
       draggable.addEventListener("touchstart", touchStart);
-      const wrapper = document.createElement("div");
-      wrapper.className = "drag-wrapper";
-      wrapper.appendChild(draggable);
+      const container = document.createElement("div");
+      container.className = "drag-wrapper";
+      container.appendChild(draggable);
+
       if (i < 6) {
-        leftSigns.appendChild(wrapper);
+        leftSigns.appendChild(container);
       } else {
-        rightSigns.appendChild(wrapper);
+        rightSigns.appendChild(container);
       }
     });
 
@@ -158,21 +167,25 @@ document.addEventListener("DOMContentLoaded", function () {
       overlay.className = "overlay";
       targetSlot.appendChild(overlay);
 
-      document.querySelectorAll(`img.draggable[data-letter='${draggedLetter}']`).forEach(el => el.remove());
+      document.querySelectorAll(`img.draggable[data-letter='${draggedLetter}']`).forEach((el) => el.remove());
 
       if (correctMatches >= 9) {
+        currentPage++;
         correctMatches = 0;
         if (usedLetters.length < allLetters.length) {
           setTimeout(loadPage, 1000);
-        } else if (currentLevel < levels.length - 1) {
+        } else {
           currentLevel++;
           usedLetters = [];
-          setTimeout(loadPage, 1000);
-        } else {
-          endGame();
+          if (currentLevel < levels.length) {
+            setTimeout(loadPage, 1000);
+          } else {
+            endGame();
+          }
         }
       }
     } else {
+      incorrectMatches++;
       totalIncorrect++;
       letterIncorrectList.push(draggedLetter);
       showFeedback(false);
@@ -198,8 +211,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const src = target.src;
 
     const touchMove = (ev) => {
-      const touch = ev.touches[0];
-      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+      const touchLocation = ev.touches[0];
+      const element = document.elementFromPoint(touchLocation.clientX, touchLocation.clientY);
       if (element && element.classList.contains("slot")) {
         handleDrop(element, letter, src);
         document.removeEventListener("touchmove", touchMove);
@@ -207,14 +220,9 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     document.addEventListener("touchmove", touchMove, { passive: false });
-
-    target.addEventListener(
-      "touchend",
-      () => {
-        document.removeEventListener("touchmove", touchMove);
-      },
-      { once: true }
-    );
+    e.target.addEventListener("touchend", () => {
+      document.removeEventListener("touchmove", touchMove);
+    }, { once: true });
   }
 
   function endGame() {
@@ -224,20 +232,25 @@ document.addEventListener("DOMContentLoaded", function () {
     const seconds = totalTime % 60;
     const timeFormatted = `${minutes} mins ${seconds} sec`;
 
-    const accuracy = totalCorrect + totalIncorrect > 0
-      ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) + "%"
-      : "N/A";
+    const accuracy =
+      totalCorrect + totalIncorrect > 0
+        ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) + "%"
+        : "N/A";
 
     const correctLetters = allLetters
-      .map((l) => (letterCorrectMap[l] ? l.repeat(letterCorrectMap[l]) : ""))
+      .map((letter) => {
+        const count = letterCorrectMap[letter] || 0;
+        return count ? letter.repeat(count) : "";
+      })
       .filter(Boolean)
       .join(", ");
+
     const incorrectLetters = [...new Set(letterIncorrectList)].sort().join(", ");
 
     const form = document.createElement("form");
     form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
     form.method = "POST";
-    form.target = "_blank";
+    form.target = "hidden_iframe";
     form.style.display = "none";
 
     const entries = {
@@ -260,6 +273,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.body.appendChild(form);
     form.submit();
+
+    alert(`Game Over!\nCorrect: ${totalCorrect}\nIncorrect: ${totalIncorrect}\nTime: ${timeFormatted}`);
 
     setTimeout(() => {
       window.location.href = "hub.html";
