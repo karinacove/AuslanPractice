@@ -191,19 +191,22 @@ document.addEventListener("DOMContentLoaded", function () {
       document.querySelectorAll(`img.draggable[data-letter='${draggedLetter}']`).forEach((el) => el.remove());
 
       if (correctMatches >= 9) {
-        correctMatches = 0;
-        if (usedLetters.length < allLetters.length) {
-          setTimeout(loadPage, 1000);
-        } else {
-          currentLevel++;
-          usedLetters = [];
-          if (currentLevel < levels.length) {
-            setTimeout(loadPage, 1000);
-          } else {
-            endGame();
-          }
-        }
-      }
+  correctMatches = 0;
+
+  // If not enough letters left for another page, move to next level
+  const lettersLeft = allLetters.filter((l) => !usedLetters.includes(l));
+  if (lettersLeft.length < 9) {
+    currentLevel++;
+    usedLetters = [];
+  }
+
+  if (currentLevel < levels.length) {
+    setTimeout(loadPage, 1000);
+  } else {
+    endGame();
+  }
+}
+
     } else {
       incorrectMatches++;
       totalIncorrect++;
