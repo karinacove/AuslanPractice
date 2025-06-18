@@ -30,24 +30,19 @@ document.addEventListener("DOMContentLoaded", function () {
     { type: "mixed" },
   ];
   let currentLevel = 0;
-  let currentPage = 0;
-
-  const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
-  let usedLetters = [];
   let correctMatches = 0;
-  let incorrectMatches = 0;
   let totalCorrect = 0;
   let totalIncorrect = 0;
-
   let startTime = Date.now();
+  let usedLetters = [];
 
+  const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
   const letterCorrectMap = {};
   const letterIncorrectList = [];
 
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
   const rightSigns = document.getElementById("rightSigns");
-  const nextLevelBtn = document.getElementById("nextLevel");
   const levelTitle = document.getElementById("levelTitle");
 
   const feedbackImage = document.createElement("img");
@@ -62,21 +57,6 @@ document.addEventListener("DOMContentLoaded", function () {
     zIndex: "1000",
   });
   document.body.appendChild(feedbackImage);
-
-  if (nextLevelBtn) {
-    nextLevelBtn.addEventListener("click", () => {
-      currentLevel++;
-      currentPage = 0;
-      usedLetters = [];
-      nextLevelBtn.style.display = "none";
-
-      if (currentLevel < levels.length) {
-        loadPage();
-      } else {
-        endGame();
-      }
-    });
-  }
 
   function getRandomLetters(count) {
     const available = allLetters.filter((l) => !usedLetters.includes(l));
@@ -93,16 +73,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const mode = levels[currentLevel].type;
 
     const slotLetters = getRandomLetters(Math.min(9, allLetters.length - usedLetters.length));
-
     const remainingLetters = allLetters.filter(l => !slotLetters.includes(l) && !usedLetters.includes(l));
     let decoys = [];
     while (decoys.length < 3 && remainingLetters.length > 0) {
       const idx = Math.floor(Math.random() * remainingLetters.length);
-      decoys.push(remainingLetters.splice(idx,1)[0]);
+      decoys.push(remainingLetters.splice(idx, 1)[0]);
     }
 
-    const draggableLetters = [...slotLetters, ...decoys];
-    draggableLetters.sort(() => Math.random() - 0.5);
+    const draggableLetters = [...slotLetters, ...decoys].sort(() => Math.random() - 0.5);
 
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
@@ -133,14 +111,13 @@ document.addEventListener("DOMContentLoaded", function () {
       draggable.dataset.letter = letter;
       draggable.addEventListener("dragstart", dragStart);
       draggable.addEventListener("touchstart", touchStart);
-      const container = document.createElement("div");
-      container.className = "drag-wrapper";
-      container.appendChild(draggable);
-
+      const wrapper = document.createElement("div");
+      wrapper.className = "drag-wrapper";
+      wrapper.appendChild(draggable);
       if (i < 6) {
-        leftSigns.appendChild(container);
+        leftSigns.appendChild(wrapper);
       } else {
-        rightSigns.appendChild(container);
+        rightSigns.appendChild(wrapper);
       }
     });
 
@@ -165,7 +142,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const draggedLetter = e.dataTransfer.getData("text/plain");
     const draggedSrc = e.dataTransfer.getData("src");
     const targetSlot = e.currentTarget;
-
     handleDrop(targetSlot, draggedLetter, draggedSrc);
   }
 
@@ -182,19 +158,21 @@ document.addEventListener("DOMContentLoaded", function () {
       overlay.className = "overlay";
       targetSlot.appendChild(overlay);
 
-      document.querySelectorAll(`img.draggable[data-letter='${draggedLetter}']`).forEach((el) => el.remove());
+      document.querySelectorAll(`img.draggable[data-letter='${draggedLetter}']`).forEach(el => el.remove());
 
       if (correctMatches >= 9) {
-        currentPage++;
         correctMatches = 0;
         if (usedLetters.length < allLetters.length) {
           setTimeout(loadPage, 1000);
+        } else if (currentLevel < levels.length - 1) {
+          currentLevel++;
+          usedLetters = [];
+          setTimeout(loadPage, 1000);
         } else {
-          if (nextLevelBtn) nextLevelBtn.style.display = "block";
+          endGame();
         }
       }
     } else {
-      incorrectMatches++;
       totalIncorrect++;
       letterIncorrectList.push(draggedLetter);
       showFeedback(false);
@@ -219,25 +197,24 @@ document.addEventListener("DOMContentLoaded", function () {
     const letter = target.dataset.letter;
     const src = target.src;
 
-    const moveHandler = (ev) => {
-      ev.preventDefault();
-      const touchLocation = ev.touches[0];
-      const element = document.elementFromPoint(touchLocation.clientX, touchLocation.clientY);
+    const touchMove = (ev) => {
+      const touch = ev.touches[0];
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
       if (element && element.classList.contains("slot")) {
         handleDrop(element, letter, src);
-        cleanup();
+        document.removeEventListener("touchmove", touchMove);
       }
     };
 
-    const endHandler = () => cleanup();
+    document.addEventListener("touchmove", touchMove, { passive: false });
 
-    function cleanup() {
-      document.removeEventListener("touchmove", moveHandler);
-      document.removeEventListener("touchend", endHandler);
-    }
-
-    document.addEventListener("touchmove", moveHandler, { passive: false });
-    document.addEventListener("touchend", endHandler, { once: true });
+    target.addEventListener(
+      "touchend",
+      () => {
+        document.removeEventListener("touchmove", touchMove);
+      },
+      { once: true }
+    );
   }
 
   function endGame() {
@@ -247,25 +224,20 @@ document.addEventListener("DOMContentLoaded", function () {
     const seconds = totalTime % 60;
     const timeFormatted = `${minutes} mins ${seconds} sec`;
 
-    const accuracy =
-      totalCorrect + totalIncorrect > 0
-        ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) + "%"
-        : "N/A";
+    const accuracy = totalCorrect + totalIncorrect > 0
+      ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) + "%"
+      : "N/A";
 
     const correctLetters = allLetters
-      .map((letter) => {
-        const count = letterCorrectMap[letter] || 0;
-        return count ? letter.repeat(count) : "";
-      })
+      .map((l) => (letterCorrectMap[l] ? l.repeat(letterCorrectMap[l]) : ""))
       .filter(Boolean)
       .join(", ");
-
     const incorrectLetters = [...new Set(letterIncorrectList)].sort().join(", ");
 
     const form = document.createElement("form");
-    form.action =
-      "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
     form.method = "POST";
+    form.target = "_blank";
     form.style.display = "none";
 
     const entries = {
