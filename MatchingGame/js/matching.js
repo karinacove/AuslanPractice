@@ -20,7 +20,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const finishButton = document.getElementById("finishButton");
   if (finishButton) {
     finishButton.addEventListener("click", () => {
-      earlyFinish = true;
       endGame();
     });
   }
@@ -32,15 +31,12 @@ document.addEventListener("DOMContentLoaded", function () {
   ];
   let currentLevel = 0;
   let currentPage = 0;
-
   const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
   let usedLetters = [];
   let correctMatches = 0;
   let incorrectMatches = 0;
   let totalCorrect = 0;
   let totalIncorrect = 0;
-  let earlyFinish = false;
-
   let startTime = Date.now();
 
   const letterCorrectMap = {};
@@ -82,7 +78,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let decoys = [];
     while (decoys.length < 3 && remainingLetters.length > 0) {
       const idx = Math.floor(Math.random() * remainingLetters.length);
-      decoys.push(remainingLetters.splice(idx,1)[0]);
+      decoys.push(remainingLetters.splice(idx, 1)[0]);
     }
 
     const draggableLetters = [...slotLetters, ...decoys];
@@ -94,8 +90,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     levelTitle.innerText = `Level ${currentLevel + 1}: ` +
       (mode === "signToImage" ? "Match the Sign to the Picture" :
-        mode === "imageToSign" ? "Match the Picture to the Sign" :
-          "Match Signs and Pictures (Mixed)");
+       mode === "imageToSign" ? "Match the Picture to the Sign" :
+       "Match Signs and Pictures (Mixed)");
 
     slotLetters.forEach((letter) => {
       const slot = document.createElement("div");
@@ -109,7 +105,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     draggableLetters.forEach((letter, i) => {
       const draggable = document.createElement("img");
-      draggable.src = (mode === "signToImage" || (mode === "mixed" && Math.random() < 0.5))
+      draggable.src = (mode === "signToImage" || (mode === "mixed" && Math.random() >= 0.5))
         ? `assets/alphabet/signs/sign-${letter}.png`
         : `assets/alphabet/clipart/${letter}.png`;
       draggable.className = "draggable";
@@ -167,17 +163,16 @@ document.addEventListener("DOMContentLoaded", function () {
       document.querySelectorAll(`img.draggable[data-letter='${draggedLetter}']`).forEach((el) => el.remove());
 
       if (correctMatches >= 9) {
-        currentPage++;
         correctMatches = 0;
         if (usedLetters.length < allLetters.length) {
           setTimeout(loadPage, 1000);
         } else {
           currentLevel++;
+          usedLetters = [];
           if (currentLevel < levels.length) {
-            usedLetters = [];
             setTimeout(loadPage, 1000);
           } else {
-            setTimeout(endGame, 1000);
+            endGame();
           }
         }
       }
@@ -229,21 +224,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const minutes = Math.floor(totalTime / 60);
     const seconds = totalTime % 60;
     const timeFormatted = `${minutes} mins ${seconds} sec`;
-
-    const accuracy = totalCorrect + totalIncorrect > 0
-      ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) + "%"
-      : "N/A";
-
+    const accuracy = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) + "%" : "N/A";
     const correctLetters = allLetters.map((letter) => {
       const count = letterCorrectMap[letter] || 0;
       return count ? letter.repeat(count) : "";
     }).filter(Boolean).join(", ");
-
     const incorrectLetters = [...new Set(letterIncorrectList)].sort().join(", ");
 
     const form = document.createElement("form");
     form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
     form.method = "POST";
+    form.target = "_blank";
     form.style.display = "none";
 
     const entries = {
@@ -267,8 +258,10 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.appendChild(form);
     form.submit();
 
-    alert(`Well done, ${studentName}!\nAccuracy: ${accuracy}\nTime: ${timeFormatted}`);
-    window.location.href = "hub.html";
+    setTimeout(() => {
+      alert(`Finished!\nCorrect: ${totalCorrect}\nIncorrect: ${totalIncorrect}\nTime: ${timeFormatted}`);
+      window.location.href = "hub.html";
+    }, 1000);
   }
 
   loadPage();
