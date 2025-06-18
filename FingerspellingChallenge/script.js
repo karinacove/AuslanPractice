@@ -90,7 +90,7 @@ function startGame() {
   updateTimer();
 
   wordInput.value = "";
-  wordInput.style.display = "block";
+  wordInput.style.display = "visible";
   wordInput.focus();
 
   againButton.style.display = "none";
