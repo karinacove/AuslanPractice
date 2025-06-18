@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Get student info from localStorage
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
 
@@ -10,7 +9,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
-  // Logout button
   const logoutBtn = document.getElementById("logoutBtn");
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
@@ -19,10 +17,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Finish button
   const finishButton = document.getElementById("finishButton");
   if (finishButton) {
     finishButton.addEventListener("click", () => {
+      earlyFinish = true;
       endGame();
     });
   }
@@ -41,6 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let incorrectMatches = 0;
   let totalCorrect = 0;
   let totalIncorrect = 0;
+  let earlyFinish = false;
 
   let startTime = Date.now();
 
@@ -78,13 +77,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function loadPage() {
     const mode = levels[currentLevel].type;
-
     const slotLetters = getRandomLetters(Math.min(9, allLetters.length - usedLetters.length));
     const remainingLetters = allLetters.filter(l => !slotLetters.includes(l) && !usedLetters.includes(l));
     let decoys = [];
     while (decoys.length < 3 && remainingLetters.length > 0) {
       const idx = Math.floor(Math.random() * remainingLetters.length);
-      decoys.push(remainingLetters.splice(idx, 1)[0]);
+      decoys.push(remainingLetters.splice(idx,1)[0]);
     }
 
     const draggableLetters = [...slotLetters, ...decoys];
@@ -150,8 +148,7 @@ document.addEventListener("DOMContentLoaded", function () {
     e.preventDefault();
     const draggedLetter = e.dataTransfer.getData("text/plain");
     const draggedSrc = e.dataTransfer.getData("src");
-    const targetSlot = e.currentTarget;
-    handleDrop(targetSlot, draggedLetter, draggedSrc);
+    handleDrop(e.currentTarget, draggedLetter, draggedSrc);
   }
 
   function handleDrop(targetSlot, draggedLetter, draggedSrc) {
@@ -176,11 +173,11 @@ document.addEventListener("DOMContentLoaded", function () {
           setTimeout(loadPage, 1000);
         } else {
           currentLevel++;
-          usedLetters = [];
           if (currentLevel < levels.length) {
+            usedLetters = [];
             setTimeout(loadPage, 1000);
           } else {
-            endGame();
+            setTimeout(endGame, 1000);
           }
         }
       }
@@ -220,6 +217,7 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     document.addEventListener("touchmove", touchMove, { passive: false });
+
     e.target.addEventListener("touchend", () => {
       document.removeEventListener("touchmove", touchMove);
     }, { once: true });
@@ -232,25 +230,20 @@ document.addEventListener("DOMContentLoaded", function () {
     const seconds = totalTime % 60;
     const timeFormatted = `${minutes} mins ${seconds} sec`;
 
-    const accuracy =
-      totalCorrect + totalIncorrect > 0
-        ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) + "%"
-        : "N/A";
+    const accuracy = totalCorrect + totalIncorrect > 0
+      ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) + "%"
+      : "N/A";
 
-    const correctLetters = allLetters
-      .map((letter) => {
-        const count = letterCorrectMap[letter] || 0;
-        return count ? letter.repeat(count) : "";
-      })
-      .filter(Boolean)
-      .join(", ");
+    const correctLetters = allLetters.map((letter) => {
+      const count = letterCorrectMap[letter] || 0;
+      return count ? letter.repeat(count) : "";
+    }).filter(Boolean).join(", ");
 
     const incorrectLetters = [...new Set(letterIncorrectList)].sort().join(", ");
 
     const form = document.createElement("form");
     form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
     form.method = "POST";
-    form.target = "hidden_iframe";
     form.style.display = "none";
 
     const entries = {
@@ -274,11 +267,8 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.appendChild(form);
     form.submit();
 
-    alert(`Game Over!\nCorrect: ${totalCorrect}\nIncorrect: ${totalIncorrect}\nTime: ${timeFormatted}`);
-
-    setTimeout(() => {
-      window.location.href = "hub.html";
-    }, 1000);
+    alert(`Well done, ${studentName}!\nAccuracy: ${accuracy}\nTime: ${timeFormatted}`);
+    window.location.href = "hub.html";
   }
 
   loadPage();
