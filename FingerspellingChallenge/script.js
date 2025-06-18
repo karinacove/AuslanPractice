@@ -62,6 +62,11 @@ function showLetterByLetter(word) {
   word.split("").forEach((letter, index) => {
     const timeout = setTimeout(() => {
       letterDisplay.textContent = letter.toLowerCase();
+      setTimeout(() => {
+        if (letterDisplay.textContent === letter.toLowerCase()) {
+          letterDisplay.textContent = "";
+        }
+      }, 300 - speed);
     }, delay + index * (300 - speed));
     letterTimeouts.push(timeout);
   });
@@ -153,8 +158,8 @@ function submitResults() {
   )}&entry.1534005804=${encodeURIComponent(
     wrong
   )}&entry.1974555000=${encodeURIComponent(speedSlider.value)}`;
-  console.log("Score submitted: ", score);
-  // Optional: actually submit using fetch() if needed
+  fetch(formURL, { method: "POST", mode: "no-cors" });
+  setTimeout(() => window.location.href = "../index.html", 3000);
 }
 
 // Event Listeners
@@ -180,7 +185,7 @@ wordInput.addEventListener("input", () => {
       incorrectWords.push(typed);
       wordInput.classList.add("breathe");
       setTimeout(() => wordInput.classList.remove("breathe"), 300);
-      wordInput.value = "";
+      againButton.style.display = "block";
     }
   }
 });
