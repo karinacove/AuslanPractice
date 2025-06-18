@@ -304,7 +304,8 @@ document.addEventListener("DOMContentLoaded", function () {
    document.body.appendChild(modal);
 
 // Redirect to hub after 5 seconds
-setTimeout(() => {
-  window.location.href = "hub.html";
-}, 5000);
+    setTimeout(() => {
+      window.location.href = "hub.html";
+    }, 5000);
+  }
 });
