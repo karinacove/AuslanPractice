@@ -197,7 +197,7 @@ speedSlider.addEventListener("input", () => {
 againButton.addEventListener("click", () => {
   againButton.style.display = "none";
   showLetterByLetter(currentWord);
-  wordInput.style.display = "block";
+  wordInput.style.visibility = "visible";
   wordInput.value = "";
   wordInput.focus();
 });
