@@ -199,7 +199,7 @@ document.addEventListener("DOMContentLoaded", function () {
     feedbackImage.style.display = "block";
     setTimeout(() => {
       feedbackImage.style.display = "none";
-    }, 2000);
+    }, 1000);
   }
 
   function touchStart(e) {
