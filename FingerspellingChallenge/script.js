@@ -25,7 +25,7 @@ const wordInput = document.getElementById("word-input");
 const speedSlider = document.getElementById("speed-slider");
 const timerDisplay = document.querySelector("#timer .value");
 const scoreDisplay = document.querySelector("#score .value");
-const letterDisplay = document.getElementById("letter-display");
+const letterDisplay = document.getElementById("letter-display").style.border = "2px solid red";
 const againButton = document.getElementById("again-button");
 const finishButton = document.getElementById("finishButton");
 
