@@ -72,91 +72,89 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function loadPage() {
-  const mode = levels[currentLevel].type;
-  const slotLetters = getRandomLetters(Math.min(9, allLetters.length - usedLetters.length));
-  const remainingLetters = allLetters.filter(l => !slotLetters.includes(l) && !usedLetters.includes(l));
-  let decoys = [];
-  while (decoys.length < 3 && remainingLetters.length > 0) {
-    const idx = Math.floor(Math.random() * remainingLetters.length);
-    decoys.push(remainingLetters.splice(idx, 1)[0]);
+    // Reset per-page variables
+    correctMatches = 0;
+    incorrectMatches = 0;
+    
+    const mode = levels[currentLevel].type;
+    const slotLetters = getRandomLetters(Math.min(9, allLetters.length - usedLetters.length));
+    const remainingLetters = allLetters.filter(l => !slotLetters.includes(l) && !usedLetters.includes(l));
+    let decoys = [];
+    while (decoys.length < 3 && remainingLetters.length > 0) {
+      const idx = Math.floor(Math.random() * remainingLetters.length);
+      decoys.push(remainingLetters.splice(idx, 1)[0]);
+    }
+
+    const draggableLetters = [...slotLetters, ...decoys];
+    draggableLetters.sort(() => Math.random() - 0.5);
+
+    gameBoard.innerHTML = "";
+    leftSigns.innerHTML = "";
+    rightSigns.innerHTML = "";
+
+    levelTitle.innerText = `Level ${currentLevel + 1}: ` +
+      (mode === "signToImage" ? "Match the Sign to the Picture" :
+       mode === "imageToSign" ? "Match the Picture to the Sign" :
+       "Match Signs and Pictures (Mixed)");
+
+    // SLOT SIDE (GRID)
+    slotLetters.forEach((letter) => {
+      const slot = document.createElement("div");
+      slot.className = "slot";
+      slot.dataset.letter = letter;
+
+      if (mode === "signToImage") {
+        slot.style.backgroundImage = `url('assets/alphabet/clipart/${letter}.png')`;
+      } else if (mode === "imageToSign") {
+        slot.style.backgroundImage = `url('assets/alphabet/signs/sign-${letter}.png')`;
+      } else {
+        const isSign = Math.random() < 0.5;
+        slot.style.backgroundImage = isSign
+          ? `url('assets/alphabet/signs/sign-${letter}.png')`
+          : `url('assets/alphabet/clipart/${letter}.png')`;
+        slot.dataset.isSign = isSign ? "true" : "false";
+      }
+
+      gameBoard.appendChild(slot);
+    });
+
+    // DRAGGABLE SIDE (PALETTE)
+    draggableLetters.forEach((letter, i) => {
+      const draggable = document.createElement("img");
+      draggable.dataset.letter = letter;
+      draggable.className = "draggable";
+      draggable.draggable = true;
+      draggable.addEventListener("dragstart", dragStart);
+      draggable.addEventListener("touchstart", touchStart);
+
+      if (mode === "signToImage") {
+        draggable.src = `assets/alphabet/signs/sign-${letter}.png`;
+      } else if (mode === "imageToSign") {
+        draggable.src = `assets/alphabet/clipart/${letter}.png`;
+      } else {
+        const matchingSlot = [...gameBoard.children].find(s => s.dataset.letter === letter);
+        const isSignInSlot = matchingSlot?.style.backgroundImage.includes("sign");
+        draggable.src = isSignInSlot
+          ? `assets/alphabet/clipart/${letter}.png`
+          : `assets/alphabet/signs/sign-${letter}.png`;
+      }
+
+      const container = document.createElement("div");
+      container.className = "drag-wrapper";
+      container.appendChild(draggable);
+
+      if (i < 6) {
+        leftSigns.appendChild(container);
+      } else {
+        rightSigns.appendChild(container);
+      }
+    });
+
+    document.querySelectorAll(".slot").forEach((slot) => {
+      slot.addEventListener("dragover", dragOver);
+      slot.addEventListener("drop", drop);
+    });
   }
-
-  const draggableLetters = [...slotLetters, ...decoys];
-  draggableLetters.sort(() => Math.random() - 0.5);
-
-  gameBoard.innerHTML = "";
-  leftSigns.innerHTML = "";
-  rightSigns.innerHTML = "";
-
-  levelTitle.innerText = `Level ${currentLevel + 1}: ` +
-    (mode === "signToImage" ? "Match the Sign to the Picture" :
-     mode === "imageToSign" ? "Match the Picture to the Sign" :
-     "Match Signs and Pictures (Mixed)");
-
-  // SLOT SIDE (GRID)
-  slotLetters.forEach((letter) => {
-    const slot = document.createElement("div");
-    slot.className = "slot";
-    slot.dataset.letter = letter;
-
-    if (mode === "signToImage") {
-      // Show image in grid
-      slot.style.backgroundImage = `url('assets/alphabet/clipart/${letter}.png')`;
-    } else if (mode === "imageToSign") {
-      // Show sign in grid
-      slot.style.backgroundImage = `url('assets/alphabet/signs/sign-${letter}.png')`;
-    } else {
-      // Mixed: randomly choose sign or image in grid
-      const isSign = Math.random() < 0.5;
-      slot.style.backgroundImage = isSign
-        ? `url('assets/alphabet/signs/sign-${letter}.png')`
-        : `url('assets/alphabet/clipart/${letter}.png')`;
-      slot.dataset.isSign = isSign ? "true" : "false";
-    }
-
-    gameBoard.appendChild(slot);
-  });
-
-  // DRAGGABLE SIDE (PALETTE)
-  draggableLetters.forEach((letter, i) => {
-    const draggable = document.createElement("img");
-    draggable.dataset.letter = letter;
-    draggable.className = "draggable";
-    draggable.draggable = true;
-    draggable.addEventListener("dragstart", dragStart);
-    draggable.addEventListener("touchstart", touchStart);
-
-    if (mode === "signToImage") {
-      // Drag signs
-      draggable.src = `assets/alphabet/signs/sign-${letter}.png`;
-    } else if (mode === "imageToSign") {
-      // Drag images
-      draggable.src = `assets/alphabet/clipart/${letter}.png`;
-    } else {
-      // Mixed: opposite of what's in grid
-      const matchingSlot = [...gameBoard.children].find(s => s.dataset.letter === letter);
-      const isSignInSlot = matchingSlot?.style.backgroundImage.includes("sign");
-      draggable.src = isSignInSlot
-        ? `assets/alphabet/clipart/${letter}.png`
-        : `assets/alphabet/signs/sign-${letter}.png`;
-    }
-
-    const container = document.createElement("div");
-    container.className = "drag-wrapper";
-    container.appendChild(draggable);
-
-    if (i < 6) {
-      leftSigns.appendChild(container);
-    } else {
-      rightSigns.appendChild(container);
-    }
-  });
-
-  document.querySelectorAll(".slot").forEach((slot) => {
-    slot.addEventListener("dragover", dragOver);
-    slot.addEventListener("drop", drop);
-  });
-}
 
   function dragStart(e) {
     e.dataTransfer.setData("text/plain", e.target.dataset.letter);
@@ -191,22 +189,21 @@ document.addEventListener("DOMContentLoaded", function () {
       document.querySelectorAll(`img.draggable[data-letter='${draggedLetter}']`).forEach((el) => el.remove());
 
       if (correctMatches >= 9) {
-  correctMatches = 0;
+        correctMatches = 0;
 
-  // If not enough letters left for another page, move to next level
-  const lettersLeft = allLetters.filter((l) => !usedLetters.includes(l));
-  if (lettersLeft.length < 9) {
-    currentLevel++;
-    usedLetters = [];
-  }
+        // If not enough letters left for another page, move to next level
+        const lettersLeft = allLetters.filter((l) => !usedLetters.includes(l));
+        if (lettersLeft.length < 9) {
+          currentLevel++;
+          usedLetters = [];
+        }
 
-  if (currentLevel < levels.length) {
-    setTimeout(loadPage, 1000);
-  } else {
-    endGame();
-  }
-}
-
+        if (currentLevel < levels.length) {
+          setTimeout(loadPage, 1000);
+        } else {
+          endGame();
+        }
+      }
     } else {
       incorrectMatches++;
       totalIncorrect++;
@@ -228,22 +225,22 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 1000);
   }
 
- function touchStart(e) {
-  const target = e.target;
-  const letter = target.dataset.letter;
-  const src = target.src;
+  function touchStart(e) {
+    const target = e.target;
+    const letter = target.dataset.letter;
+    const src = target.src;
 
-  const handleTouchEnd = (ev) => {
-    const touch = ev.changedTouches[0];
-    const endElement = document.elementFromPoint(touch.clientX, touch.clientY);
-    if (endElement && endElement.classList.contains("slot")) {
-      handleDrop(endElement, letter, src);
-    }
-    document.removeEventListener("touchend", handleTouchEnd);
-  };
+    const handleTouchEnd = (ev) => {
+      const touch = ev.changedTouches[0];
+      const endElement = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (endElement && endElement.classList.contains("slot")) {
+        handleDrop(endElement, letter, src);
+      }
+      document.removeEventListener("touchend", handleTouchEnd);
+    };
 
-  document.addEventListener("touchend", handleTouchEnd, { passive: false });
-}
+    document.addEventListener("touchend", handleTouchEnd, { passive: false });
+  }
 
   function endGame() {
     const endTime = Date.now();
@@ -289,7 +286,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.body.appendChild(form);
     form.submit();
-    
+
     const modal = document.createElement("div");
     modal.id = "congratsModal";
     modal.innerHTML = `
@@ -301,11 +298,14 @@ document.addEventListener("DOMContentLoaded", function () {
         <button id="backToHub">Back to Hub</button>
       </div>
     `;
-   document.body.appendChild(modal);
+    document.body.appendChild(modal);
 
-// Redirect to hub after 5 seconds
+    // Redirect to hub after 5 seconds
     setTimeout(() => {
       window.location.href = "hub.html";
     }, 5000);
   }
+
+  // Call loadPage when page loads
+  loadPage();
 });
