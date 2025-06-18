@@ -46,7 +46,7 @@ let incorrectWords = [];
 let wordBank = {};
 
 // Load word bank from JSON
-fetch("FingerspellingChallenge/data/wordlist.json")
+fetch("data/wordlist.json")
   .then((response) => response.json())
   .then((data) => {
     wordBank = data;
