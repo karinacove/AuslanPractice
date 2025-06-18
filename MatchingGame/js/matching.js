@@ -29,6 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
     { type: "imageToSign" },
     { type: "mixed" },
   ];
+
   let currentLevel = 0;
   let currentPage = 0;
   const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
@@ -39,8 +40,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let totalIncorrect = 0;
   let startTime = Date.now();
 
-  const letterCorrectMap = {};
-  const letterIncorrectList = [];
+  const letterTracking = {};
 
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
@@ -67,18 +67,17 @@ document.addEventListener("DOMContentLoaded", function () {
       const index = Math.floor(Math.random() * available.length);
       selected.push(available.splice(index, 1)[0]);
     }
+    if (selected.length < count) {
+      const vowels = ["a", "e", "i", "o", "u"];
+      while (selected.length < count) {
+        const randomVowel = vowels[Math.floor(Math.random() * vowels.length)];
+        if (!selected.includes(randomVowel)) {
+          selected.push(randomVowel);
+        }
+      }
+    }
     usedLetters.push(...selected);
     return selected;
-  }
-
-  function getDecoys(exclude, count) {
-    const pool = allLetters.filter(l => !exclude.includes(l));
-    const decoys = [];
-    while (decoys.length < count && pool.length > 0) {
-      const idx = Math.floor(Math.random() * pool.length);
-      decoys.push(pool.splice(idx, 1)[0]);
-    }
-    return decoys;
   }
 
   function loadPage() {
@@ -86,23 +85,15 @@ document.addEventListener("DOMContentLoaded", function () {
     incorrectMatches = 0;
 
     const mode = levels[currentLevel].type;
-    const lettersLeft = allLetters.filter((l) => !usedLetters.includes(l));
-
-    if (lettersLeft.length === 0) {
-      currentLevel++;
-      currentPage = 0;
-      usedLetters = [];
-
-      if (currentLevel >= levels.length) {
-        endGame();
-        return;
-      }
+    const slotLetters = getRandomLetters(9);
+    const decoyPool = allLetters.filter((l) => !slotLetters.includes(l));
+    const decoys = [];
+    while (decoys.length < 3 && decoyPool.length > 0) {
+      const idx = Math.floor(Math.random() * decoyPool.length);
+      decoys.push(decoyPool.splice(idx, 1)[0]);
     }
 
-    const slotLetters = getRandomLetters(Math.min(9, lettersLeft.length));
-    const decoys = getDecoys(slotLetters, 3);
-    const draggableLetters = [...slotLetters, ...decoys];
-    draggableLetters.sort(() => Math.random() - 0.5);
+    const draggableLetters = [...slotLetters, ...decoys].sort(() => Math.random() - 0.5);
 
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
@@ -110,8 +101,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     levelTitle.innerText = `Level ${currentLevel + 1}: ` +
       (mode === "signToImage" ? "Match the Sign to the Picture" :
-       mode === "imageToSign" ? "Match the Picture to the Sign" :
-       "Match Signs and Pictures (Mixed)");
+        mode === "imageToSign" ? "Match the Picture to the Sign" :
+          "Match Signs and Pictures (Mixed)");
 
     slotLetters.forEach((letter) => {
       const slot = document.createElement("div");
@@ -188,41 +179,42 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function handleDrop(targetSlot, draggedLetter, draggedSrc) {
+    if (!letterTracking[draggedLetter]) letterTracking[draggedLetter] = "";
+
     if (targetSlot.dataset.letter === draggedLetter) {
+      if (!letterTracking[draggedLetter].includes("*")) {
+        letterTracking[draggedLetter] += draggedLetter;
+      }
       correctMatches++;
       totalCorrect++;
-      letterCorrectMap[draggedLetter] = (letterCorrectMap[draggedLetter] || 0) + 1;
-      showFeedback(true);
 
+      showFeedback(true);
       targetSlot.innerHTML = "";
       const overlay = document.createElement("img");
       overlay.src = draggedSrc;
       overlay.className = "overlay";
       targetSlot.appendChild(overlay);
-
       document.querySelectorAll(`img.draggable[data-letter='${draggedLetter}']`).forEach((el) => el.remove());
 
-       if (correctMatches >= 9) {
-    correctMatches = 0;
-    currentPage++;
-
-    if (currentPage >= 3) {
-      currentLevel++;
-      currentPage = 0;
-      usedLetters = [];
-    }
-
-    if (currentLevel < levels.length) {
-      setTimeout(loadPage, 1000);
+      if (document.querySelectorAll(".slot img.overlay").length === 9) {
+        currentPage++;
+        if (currentPage < 3) {
+          setTimeout(loadPage, 1000);
+        } else {
+          currentLevel++;
+          currentPage = 0;
+          usedLetters = [];
+          if (currentLevel < levels.length) {
+            setTimeout(loadPage, 1000);
+          } else {
+            endGame();
+          }
+        }
+      }
     } else {
-      endGame();
-    }
-  }
-
-    } else {
+      letterTracking[draggedLetter] += `*${draggedLetter}*`;
       incorrectMatches++;
       totalIncorrect++;
-      letterIncorrectList.push(draggedLetter);
       showFeedback(false);
       const dragged = document.querySelector(`img.draggable[data-letter='${draggedLetter}']`);
       if (dragged) {
@@ -244,7 +236,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const target = e.target;
     const letter = target.dataset.letter;
     const src = target.src;
-
     const handleTouchEnd = (ev) => {
       const touch = ev.changedTouches[0];
       const endElement = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -253,7 +244,6 @@ document.addEventListener("DOMContentLoaded", function () {
       }
       document.removeEventListener("touchend", handleTouchEnd);
     };
-
     document.addEventListener("touchend", handleTouchEnd, { passive: false });
   }
 
@@ -264,11 +254,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const seconds = totalTime % 60;
     const timeFormatted = `${minutes} mins ${seconds} sec`;
     const accuracy = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) + "%" : "N/A";
-    const correctLetters = allLetters.map((letter) => {
-      const count = letterCorrectMap[letter] || 0;
-      return count ? letter.repeat(count) : "";
-    }).filter(Boolean).join(", ");
-    const incorrectLetters = [...new Set(letterIncorrectList)].sort().join(", ");
+
+    const formattedCorrect = Object.entries(letterTracking)
+      .map(([letter, val]) => val.replace(/\*/g, ""))
+      .filter(Boolean)
+      .join(", ");
+    const formattedIncorrect = Object.entries(letterTracking)
+      .map(([letter, val]) => val.includes("*") ? val : "")
+      .filter(Boolean)
+      .join(", ");
 
     const form = document.createElement("form");
     form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
@@ -285,8 +279,8 @@ document.addEventListener("DOMContentLoaded", function () {
       "entry.1387461004": studentName,
       "entry.1309291707": studentClass,
       "entry.477642881": "Alphabet",
-      "entry.1897227570": incorrectLetters,
-      "entry.1249394203": correctLetters,
+      "entry.1897227570": formattedIncorrect,
+      "entry.1249394203": formattedCorrect,
       "entry.1996137354": accuracy,
       "entry.1374858042": timeFormatted,
     };
@@ -314,11 +308,6 @@ document.addEventListener("DOMContentLoaded", function () {
       </div>
     `;
     document.body.appendChild(modal);
-
-    document.getElementById("backToHub").addEventListener("click", () => {
-      window.location.href = "hub.html";
-    });
-
     setTimeout(() => {
       window.location.href = "hub.html";
     }, 5000);
