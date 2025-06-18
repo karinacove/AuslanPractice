@@ -63,18 +63,6 @@ body {
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
-.container {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  flex-wrap: wrap;
-  gap: 10px;
-  width: 55%;
-  max-width: 1200px;
-}
-
 main {
   display: flex;
   flex-direction: column;
@@ -143,20 +131,21 @@ h2#levelTitle {
   justify-content: center;
   align-items: flex-start;
   width: 100%;
-  gap: 10px;
-  top: 200px;
-  flex-wrap: nowrap;
+  padding: 20px 0;
+  gap: 20px;
+  flex-wrap: wrap;
+  box-sizing: border-box;
 }
 
 /* Two-Column Sign Sections */
 .left-signs,
 .right-signs {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   gap: 10px;
-  padding: 10px;
   width: 200px;
   justify-items: center;
+  align-content: start;
 }
 
 .left-signs img,
@@ -221,27 +210,17 @@ h2#levelTitle {
   box-sizing: border-box;
 }
 
-.side-column {
-  width: 20vw;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  align-items: center;
-}
-
-/* Game Board Grid */
 #gameBoard {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   justify-items: center;
   align-items: center;
-  width: 400px;
-  min-height: 380px;
+  width: 360px;
+  min-height: 360px;
   background-color: transparent;
   border-radius: 10px;
   padding: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
   box-sizing: border-box;
 }
 
@@ -404,5 +383,18 @@ input, select, button {
 @media (max-width: 600px) {
   h1 {
     font-size: 1.5rem;
+  }
+  .layout {
+    flex-direction: column;
+    align-items: center;
+  }
+  .left-signs,
+  .right-signs {
+    width: 100%;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  }
+  #gameBoard {
+    width: 90vw;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
