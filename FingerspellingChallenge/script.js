@@ -129,7 +129,7 @@ function startTimer() {
 function endGame() {
   clearInterval(timer);
   clearLetters();
-  wordInput.style.display = "none";
+  wordInput.style.visibility = "hidden";
   againButton.style.display = "block";
   letterDisplay.textContent = "Great work!";
   submitResults();
@@ -138,7 +138,7 @@ function endGame() {
 function endGameManually() {
   clearInterval(timer);
   clearLetters();
-  wordInput.style.display = "none";
+  wordInput.style.visibility = "hidden";
   againButton.style.display = "block";
   letterDisplay.textContent = "Great work!";
   submitResults();
