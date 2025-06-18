@@ -33,7 +33,6 @@ document.addEventListener("DOMContentLoaded", function () {
   let currentPage = 0;
   const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
   let usedLetters = [];
-  let levelUsedLetters = [];
   let correctMatches = 0;
   let incorrectMatches = 0;
   let totalCorrect = 0;
@@ -61,38 +60,47 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.body.appendChild(feedbackImage);
 
-  function getRandomUniqueLetters(count, exclusions = []) {
-    const available = allLetters.filter(
-      (l) => !usedLetters.includes(l) && !exclusions.includes(l)
-    );
+  function getRandomLetters(count) {
+    const available = allLetters.filter((l) => !usedLetters.includes(l));
     const selected = [];
     while (selected.length < count && available.length > 0) {
       const index = Math.floor(Math.random() * available.length);
       selected.push(available.splice(index, 1)[0]);
     }
+    usedLetters.push(...selected);
     return selected;
   }
 
-  function loadPage() {
-    if (currentLevel >= levels.length) {
-      endGame();
-      return;
+  function getDecoys(exclude, count) {
+    const pool = allLetters.filter(l => !exclude.includes(l));
+    const decoys = [];
+    while (decoys.length < count && pool.length > 0) {
+      const idx = Math.floor(Math.random() * pool.length);
+      decoys.push(pool.splice(idx, 1)[0]);
     }
+    return decoys;
+  }
 
+  function loadPage() {
     correctMatches = 0;
     incorrectMatches = 0;
 
     const mode = levels[currentLevel].type;
-    if (currentPage === 0) levelUsedLetters = [];
-    const slotLetters = getRandomUniqueLetters(9, levelUsedLetters);
-    levelUsedLetters.push(...slotLetters);
-    usedLetters.push(...slotLetters);
+    const lettersLeft = allLetters.filter((l) => !usedLetters.includes(l));
 
-    const remaining = allLetters.filter(
-      (l) => !slotLetters.includes(l) && !usedLetters.includes(l)
-    );
-    const decoys = getRandomUniqueLetters(3, [...slotLetters]);
+    if (lettersLeft.length === 0) {
+      currentLevel++;
+      currentPage = 0;
+      usedLetters = [];
 
+      if (currentLevel >= levels.length) {
+        endGame();
+        return;
+      }
+    }
+
+    const slotLetters = getRandomLetters(Math.min(9, lettersLeft.length));
+    const decoys = getDecoys(slotLetters, 3);
     const draggableLetters = [...slotLetters, ...decoys];
     draggableLetters.sort(() => Math.random() - 0.5);
 
@@ -100,12 +108,10 @@ document.addEventListener("DOMContentLoaded", function () {
     leftSigns.innerHTML = "";
     rightSigns.innerHTML = "";
 
-    levelTitle.innerText = `Level ${currentLevel + 1} - Page ${currentPage + 1}: ` +
-      (mode === "signToImage"
-        ? "Match the Sign to the Picture"
-        : mode === "imageToSign"
-        ? "Match the Picture to the Sign"
-        : "Match Signs and Pictures (Mixed)");
+    levelTitle.innerText = `Level ${currentLevel + 1}: ` +
+      (mode === "signToImage" ? "Match the Sign to the Picture" :
+       mode === "imageToSign" ? "Match the Picture to the Sign" :
+       "Match Signs and Pictures (Mixed)");
 
     slotLetters.forEach((letter) => {
       const slot = document.createElement("div");
@@ -140,7 +146,7 @@ document.addEventListener("DOMContentLoaded", function () {
       } else if (mode === "imageToSign") {
         draggable.src = `assets/alphabet/clipart/${letter}.png`;
       } else {
-        const matchingSlot = [...gameBoard.children].find((s) => s.dataset.letter === letter);
+        const matchingSlot = [...gameBoard.children].find(s => s.dataset.letter === letter);
         const isSignInSlot = matchingSlot?.style.backgroundImage.includes("sign");
         draggable.src = isSignInSlot
           ? `assets/alphabet/clipart/${letter}.png`
@@ -198,10 +204,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (correctMatches >= 9) {
         currentPage++;
-        if (currentPage >= 3) {
-          currentLevel++;
-          currentPage = 0;
-        }
         setTimeout(loadPage, 1000);
       }
     } else {
@@ -303,6 +305,10 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("backToHub").addEventListener("click", () => {
       window.location.href = "hub.html";
     });
+
+    setTimeout(() => {
+      window.location.href = "hub.html";
+    }, 5000);
   }
 
   loadPage();
