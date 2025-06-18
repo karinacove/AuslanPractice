@@ -61,7 +61,7 @@ function showLetterByLetter(word) {
 
   word.split("").forEach((letter, index) => {
     const timeout = setTimeout(() => {
-      letterDisplay.textContent = letter.toUpperCase();
+      letterDisplay.textContent = letter.toLowerCase();
     }, delay + index * (300 - speed));
     letterTimeouts.push(timeout);
   });
