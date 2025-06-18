@@ -168,6 +168,12 @@ startButton.addEventListener("click", () => {
   const selectedLength = document.getElementById("word-length");
   gameMode = selectedMode ? selectedMode.value : "timed";
   wordLength = selectedLength ? parseInt(selectedLength.value) : 3;
+    if (gameMode === "levelup") {
+    document.getElementById("length-container").style.display = "none";
+  } else {
+    document.getElementById("length-container").style.display = "block";
+}
+
   startGame();
 });
 
