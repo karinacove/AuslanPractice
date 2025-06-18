@@ -29,16 +29,19 @@ document.addEventListener("DOMContentLoaded", function () {
     { type: "imageToSign" },
     { type: "mixed" },
   ];
-
   let currentLevel = 0;
   let currentPage = 0;
   const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
-  let levelLetters = [];
-  let letterCorrectMap = {};
-  let letterIncorrectList = [];
+  let usedLetters = [];
+
+  let correctMatches = 0;
+  let incorrectMatches = 0;
   let totalCorrect = 0;
   let totalIncorrect = 0;
   let startTime = Date.now();
+
+  const letterCorrectMap = {};
+  const letterIncorrectList = [];
 
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
@@ -58,40 +61,28 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.body.appendChild(feedbackImage);
 
-  function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
+  function getUniqueLetters(count, exclude = []) {
+    const available = allLetters.filter(l => !exclude.includes(l));
+    const result = [];
+    while (result.length < count && available.length > 0) {
+      const index = Math.floor(Math.random() * available.length);
+      result.push(available.splice(index, 1)[0]);
     }
-    return array;
-  }
-
-  function generateLevelLetters() {
-    levelLetters = shuffleArray([...allLetters, ...allLetters, ...allLetters]);
+    return result;
   }
 
   function loadPage() {
-    if (currentPage >= 3) {
-      currentLevel++;
-      currentPage = 0;
-      if (currentLevel >= levels.length) {
-        endGame();
-        return;
-      }
-      generateLevelLetters();
-    }
+    correctMatches = 0;
+    incorrectMatches = 0;
 
     const mode = levels[currentLevel].type;
-    const pageLetters = levelLetters.slice(currentPage * 9, (currentPage + 1) * 9);
-    const remainingLetters = allLetters.filter((l) => !pageLetters.includes(l));
-    let decoys = [];
-    const remainingPool = [...remainingLetters];
-    while (decoys.length < 3 && remainingPool.length > 0) {
-      const idx = Math.floor(Math.random() * remainingPool.length);
-      decoys.push(remainingPool.splice(idx, 1)[0]);
-    }
+    const slotLetters = getUniqueLetters(9, usedLetters);
+    usedLetters.push(...slotLetters);
 
-    const draggableLetters = shuffleArray([...pageLetters, ...decoys]);
+    const decoys = getUniqueLetters(3, [...usedLetters]);
+
+    const draggableLetters = [...slotLetters, ...decoys];
+    draggableLetters.sort(() => Math.random() - 0.5);
 
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
@@ -102,7 +93,7 @@ document.addEventListener("DOMContentLoaded", function () {
        mode === "imageToSign" ? "Match the Picture to the Sign" :
        "Match Signs and Pictures (Mixed)");
 
-    pageLetters.forEach((letter) => {
+    slotLetters.forEach(letter => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
@@ -157,8 +148,6 @@ document.addEventListener("DOMContentLoaded", function () {
       slot.addEventListener("dragover", dragOver);
       slot.addEventListener("drop", drop);
     });
-
-    currentPage++;
   }
 
   function dragStart(e) {
@@ -180,6 +169,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function handleDrop(targetSlot, draggedLetter, draggedSrc) {
     if (targetSlot.dataset.letter === draggedLetter) {
+      correctMatches++;
       totalCorrect++;
       letterCorrectMap[draggedLetter] = (letterCorrectMap[draggedLetter] || 0) + 1;
       showFeedback(true);
@@ -190,12 +180,26 @@ document.addEventListener("DOMContentLoaded", function () {
       overlay.className = "overlay";
       targetSlot.appendChild(overlay);
 
-      document.querySelectorAll(`img.draggable[data-letter='${draggedLetter}']`).forEach((el) => el.remove());
+      document.querySelectorAll(`img.draggable[data-letter='${draggedLetter}']`).forEach(el => el.remove());
 
-      if ([...document.querySelectorAll(".slot")].every(s => s.querySelector(".overlay"))) {
-        setTimeout(loadPage, 1000);
+      if (correctMatches >= 9) {
+        currentPage++;
+        if (currentPage < 3) {
+          setTimeout(loadPage, 1000);
+        } else {
+          currentLevel++;
+          currentPage = 0;
+          usedLetters = [];
+
+          if (currentLevel < levels.length) {
+            setTimeout(loadPage, 1000);
+          } else {
+            endGame();
+          }
+        }
       }
     } else {
+      incorrectMatches++;
       totalIncorrect++;
       letterIncorrectList.push(draggedLetter);
       showFeedback(false);
@@ -240,13 +244,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const timeFormatted = `${minutes} mins ${seconds} sec`;
     const accuracy = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) + "%" : "N/A";
 
-    const correctLetters = allLetters.map((letter) => {
-      const count = letterCorrectMap[letter] || 0;
-      if (!count) return "";
-      if (count === 3) return letter.repeat(3);
-      if (count === 2) return `*${letter}`;
-      if (count === 1) return `*${letter}*`;
-      return "";
+    const correctLetters = allLetters.map((l) => {
+      const c = letterCorrectMap[l] || 0;
+      return c > 0 ? (c === 3 ? l.repeat(3) : `${"*".repeat(3 - c)}${l.repeat(c)}`) : "";
     }).filter(Boolean).join(", ");
 
     const incorrectLetters = [...new Set(letterIncorrectList)].sort().join(", ");
@@ -259,7 +259,6 @@ document.addEventListener("DOMContentLoaded", function () {
     iframe.name = "hidden_iframe";
     iframe.style.display = "none";
     document.body.appendChild(iframe);
-
     form.style.display = "none";
 
     const entries = {
@@ -296,15 +295,10 @@ document.addEventListener("DOMContentLoaded", function () {
     `;
     document.body.appendChild(modal);
 
-    document.getElementById("backToHub").addEventListener("click", () => {
-      window.location.href = "hub.html";
-    });
-
     setTimeout(() => {
       window.location.href = "hub.html";
     }, 5000);
   }
 
-  generateLevelLetters();
   loadPage();
 });
