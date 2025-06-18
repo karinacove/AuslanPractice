@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Get student info from localStorage
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
 
@@ -10,7 +9,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
-  // Logout button
   const logoutBtn = document.getElementById("logoutBtn");
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
@@ -19,7 +17,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Finish button
   const finishButton = document.getElementById("finishButton");
   if (finishButton) {
     finishButton.addEventListener("click", () => {
@@ -53,7 +50,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const nextLevelBtn = document.getElementById("nextLevel");
   const levelTitle = document.getElementById("levelTitle");
 
-  // Create feedback image element
   const feedbackImage = document.createElement("img");
   feedbackImage.id = "feedbackImage";
   Object.assign(feedbackImage.style, {
@@ -67,7 +63,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.body.appendChild(feedbackImage);
 
-  // Next level button click
   if (nextLevelBtn) {
     nextLevelBtn.addEventListener("click", () => {
       currentLevel++;
@@ -83,7 +78,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Get random letters for current page, avoid repeats
   function getRandomLetters(count) {
     const available = allLetters.filter((l) => !usedLetters.includes(l));
     const selected = [];
@@ -95,72 +89,66 @@ document.addEventListener("DOMContentLoaded", function () {
     return selected;
   }
 
-function loadPage() {
-  const mode = levels[currentLevel].type;
+  function loadPage() {
+    const mode = levels[currentLevel].type;
 
-  // Get 9 letters for slots
-  const slotLetters = getRandomLetters(Math.min(9, allLetters.length - usedLetters.length));
+    const slotLetters = getRandomLetters(Math.min(9, allLetters.length - usedLetters.length));
 
-  // Get 3 decoy letters not in slots
-  const remainingLetters = allLetters.filter(l => !slotLetters.includes(l) && !usedLetters.includes(l));
-  let decoys = [];
-  while (decoys.length < 3 && remainingLetters.length > 0) {
-    const idx = Math.floor(Math.random() * remainingLetters.length);
-    decoys.push(remainingLetters.splice(idx,1)[0]);
-  }
-
-  const draggableLetters = [...slotLetters, ...decoys];
-  // Shuffle draggableLetters
-  draggableLetters.sort(() => Math.random() - 0.5);
-
-  gameBoard.innerHTML = "";
-  leftSigns.innerHTML = "";
-  rightSigns.innerHTML = "";
-
-  levelTitle.innerText = `Level ${currentLevel + 1}: ` +
-    (mode === "signToImage" ? "Match the Sign to the Picture" :
-      mode === "imageToSign" ? "Match the Picture to the Sign" :
-        "Match Signs and Pictures (Mixed)");
-
-  // Create 9 slots for slotLetters
-  slotLetters.forEach((letter) => {
-    const slot = document.createElement("div");
-    slot.className = "slot";
-    slot.dataset.letter = letter;
-    slot.style.backgroundImage = mode === "signToImage" || (mode === "mixed" && Math.random() < 0.5)
-      ? `url('assets/alphabet/clipart/${letter}.png')`
-      : `url('assets/alphabet/signs/sign-${letter}.png')`;
-    gameBoard.appendChild(slot);
-  });
-
-  // Create 12 draggables: first 6 left, next 6 right
-  draggableLetters.forEach((letter, i) => {
-    const draggable = document.createElement("img");
-    draggable.src = (mode === "signToImage" || (mode === "mixed" && Math.random() < 0.5))
-      ? `assets/alphabet/signs/sign-${letter}.png`
-      : `assets/alphabet/clipart/${letter}.png`;
-    draggable.className = "draggable";
-    draggable.draggable = true;
-    draggable.dataset.letter = letter;
-    draggable.addEventListener("dragstart", dragStart);
-    draggable.addEventListener("touchstart", touchStart);
-    const container = document.createElement("div");
-    container.className = "drag-wrapper";
-    container.appendChild(draggable);
-
-    if (i < 6) {
-      leftSigns.appendChild(container);
-    } else {
-      rightSigns.appendChild(container);
+    const remainingLetters = allLetters.filter(l => !slotLetters.includes(l) && !usedLetters.includes(l));
+    let decoys = [];
+    while (decoys.length < 3 && remainingLetters.length > 0) {
+      const idx = Math.floor(Math.random() * remainingLetters.length);
+      decoys.push(remainingLetters.splice(idx,1)[0]);
     }
-  });
 
-  // Add event listeners to slots
-  document.querySelectorAll(".slot").forEach((slot) => {
-    slot.addEventListener("dragover", dragOver);
-    slot.addEventListener("drop", drop);
-  });
-}
+    const draggableLetters = [...slotLetters, ...decoys];
+    draggableLetters.sort(() => Math.random() - 0.5);
+
+    gameBoard.innerHTML = "";
+    leftSigns.innerHTML = "";
+    rightSigns.innerHTML = "";
+
+    levelTitle.innerText = `Level ${currentLevel + 1}: ` +
+      (mode === "signToImage" ? "Match the Sign to the Picture" :
+        mode === "imageToSign" ? "Match the Picture to the Sign" :
+          "Match Signs and Pictures (Mixed)");
+
+    slotLetters.forEach((letter) => {
+      const slot = document.createElement("div");
+      slot.className = "slot";
+      slot.dataset.letter = letter;
+      slot.style.backgroundImage = mode === "signToImage" || (mode === "mixed" && Math.random() < 0.5)
+        ? `url('assets/alphabet/clipart/${letter}.png')`
+        : `url('assets/alphabet/signs/sign-${letter}.png')`;
+      gameBoard.appendChild(slot);
+    });
+
+    draggableLetters.forEach((letter, i) => {
+      const draggable = document.createElement("img");
+      draggable.src = (mode === "signToImage" || (mode === "mixed" && Math.random() < 0.5))
+        ? `assets/alphabet/signs/sign-${letter}.png`
+        : `assets/alphabet/clipart/${letter}.png`;
+      draggable.className = "draggable";
+      draggable.draggable = true;
+      draggable.dataset.letter = letter;
+      draggable.addEventListener("dragstart", dragStart);
+      draggable.addEventListener("touchstart", touchStart);
+      const container = document.createElement("div");
+      container.className = "drag-wrapper";
+      container.appendChild(draggable);
+
+      if (i < 6) {
+        leftSigns.appendChild(container);
+      } else {
+        rightSigns.appendChild(container);
+      }
+    });
+
+    document.querySelectorAll(".slot").forEach((slot) => {
+      slot.addEventListener("dragover", dragOver);
+      slot.addEventListener("drop", drop);
+    });
+  }
 
   function dragStart(e) {
     e.dataTransfer.setData("text/plain", e.target.dataset.letter);
@@ -188,14 +176,12 @@ function loadPage() {
       letterCorrectMap[draggedLetter] = (letterCorrectMap[draggedLetter] || 0) + 1;
       showFeedback(true);
 
-      // Clear slot and add overlay image
       targetSlot.innerHTML = "";
       const overlay = document.createElement("img");
       overlay.src = draggedSrc;
       overlay.className = "overlay";
       targetSlot.appendChild(overlay);
 
-      // Remove all draggable images with this letter
       document.querySelectorAll(`img.draggable[data-letter='${draggedLetter}']`).forEach((el) => el.remove());
 
       if (correctMatches >= 9) {
@@ -233,24 +219,25 @@ function loadPage() {
     const letter = target.dataset.letter;
     const src = target.src;
 
-    const touchMove = (ev) => {
+    const moveHandler = (ev) => {
+      ev.preventDefault();
       const touchLocation = ev.touches[0];
       const element = document.elementFromPoint(touchLocation.clientX, touchLocation.clientY);
       if (element && element.classList.contains("slot")) {
         handleDrop(element, letter, src);
-        document.removeEventListener("touchmove", touchMove);
+        cleanup();
       }
     };
 
-    document.addEventListener("touchmove", touchMove, { passive: false });
+    const endHandler = () => cleanup();
 
-    e.target.addEventListener(
-      "touchend",
-      () => {
-        document.removeEventListener("touchmove", touchMove);
-      },
-      { once: true }
-    );
+    function cleanup() {
+      document.removeEventListener("touchmove", moveHandler);
+      document.removeEventListener("touchend", endHandler);
+    }
+
+    document.addEventListener("touchmove", moveHandler, { passive: false });
+    document.addEventListener("touchend", endHandler, { once: true });
   }
 
   function endGame() {
@@ -275,12 +262,10 @@ function loadPage() {
 
     const incorrectLetters = [...new Set(letterIncorrectList)].sort().join(", ");
 
-    // Prepare form to submit results to Google Forms
     const form = document.createElement("form");
     form.action =
       "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
     form.method = "POST";
-    form.target = "_blank";
     form.style.display = "none";
 
     const entries = {
@@ -309,6 +294,5 @@ function loadPage() {
     }, 1000);
   }
 
-  // Start game with first page
   loadPage();
 });
