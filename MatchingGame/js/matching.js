@@ -301,17 +301,9 @@ document.addEventListener("DOMContentLoaded", function () {
         <button id="backToHub">Back to Hub</button>
       </div>
     `;
-    document.body.appendChild(modal);
+   document.body.appendChild(modal);
 
-    document.getElementById("backToHub").addEventListener("click", () => {
-      window.location.href = "hub.html";
-    });
-
-    setTimeout(() => {
-      alert(`Finished!\nCorrect: ${totalCorrect}\nIncorrect: ${totalIncorrect}\nTime: ${timeFormatted}`);
-      window.location.href = "hub.html";
-    }, 1000);
-  }
-
-  loadPage();
-});
+// Redirect to hub after 5 seconds
+setTimeout(() => {
+  window.location.href = "hub.html";
+}, 5000);
