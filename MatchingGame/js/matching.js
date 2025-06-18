@@ -197,26 +197,22 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 1000);
   }
 
-  function touchStart(e) {
-    const target = e.target;
-    const letter = target.dataset.letter;
-    const src = target.src;
+ function touchStart(e) {
+  const target = e.target;
+  const letter = target.dataset.letter;
+  const src = target.src;
 
-    const touchMove = (ev) => {
-      const touchLocation = ev.touches[0];
-      const element = document.elementFromPoint(touchLocation.clientX, touchLocation.clientY);
-      if (element && element.classList.contains("slot")) {
-        handleDrop(element, letter, src);
-        document.removeEventListener("touchmove", touchMove);
-      }
-    };
+  const handleTouchEnd = (ev) => {
+    const touch = ev.changedTouches[0];
+    const endElement = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (endElement && endElement.classList.contains("slot")) {
+      handleDrop(endElement, letter, src);
+    }
+    document.removeEventListener("touchend", handleTouchEnd);
+  };
 
-    document.addEventListener("touchmove", touchMove, { passive: false });
-
-    e.target.addEventListener("touchend", () => {
-      document.removeEventListener("touchmove", touchMove);
-    }, { once: true });
-  }
+  document.addEventListener("touchend", handleTouchEnd, { passive: false });
+}
 
   function endGame() {
     const endTime = Date.now();
