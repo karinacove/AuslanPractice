@@ -216,11 +216,10 @@ h2#levelTitle {
   gap: 10px;
   justify-items: center;
   align-items: center;
-  width: 380px;
+  width: 400px;
   min-height: 360px;
   background-color: transparent;
   border-radius: 10px;
-  border: 2px solid #ccc;
   padding: 10px;
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
   box-sizing: border-box;
