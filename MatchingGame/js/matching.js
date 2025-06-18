@@ -72,63 +72,91 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function loadPage() {
-    const mode = levels[currentLevel].type;
-    const slotLetters = getRandomLetters(Math.min(9, allLetters.length - usedLetters.length));
-    const remainingLetters = allLetters.filter(l => !slotLetters.includes(l) && !usedLetters.includes(l));
-    let decoys = [];
-    while (decoys.length < 3 && remainingLetters.length > 0) {
-      const idx = Math.floor(Math.random() * remainingLetters.length);
-      decoys.push(remainingLetters.splice(idx, 1)[0]);
+  const mode = levels[currentLevel].type;
+  const slotLetters = getRandomLetters(Math.min(9, allLetters.length - usedLetters.length));
+  const remainingLetters = allLetters.filter(l => !slotLetters.includes(l) && !usedLetters.includes(l));
+  let decoys = [];
+  while (decoys.length < 3 && remainingLetters.length > 0) {
+    const idx = Math.floor(Math.random() * remainingLetters.length);
+    decoys.push(remainingLetters.splice(idx, 1)[0]);
+  }
+
+  const draggableLetters = [...slotLetters, ...decoys];
+  draggableLetters.sort(() => Math.random() - 0.5);
+
+  gameBoard.innerHTML = "";
+  leftSigns.innerHTML = "";
+  rightSigns.innerHTML = "";
+
+  levelTitle.innerText = `Level ${currentLevel + 1}: ` +
+    (mode === "signToImage" ? "Match the Sign to the Picture" :
+     mode === "imageToSign" ? "Match the Picture to the Sign" :
+     "Match Signs and Pictures (Mixed)");
+
+  // SLOT SIDE (GRID)
+  slotLetters.forEach((letter) => {
+    const slot = document.createElement("div");
+    slot.className = "slot";
+    slot.dataset.letter = letter;
+
+    if (mode === "signToImage") {
+      // Show image in grid
+      slot.style.backgroundImage = `url('assets/alphabet/clipart/${letter}.png')`;
+    } else if (mode === "imageToSign") {
+      // Show sign in grid
+      slot.style.backgroundImage = `url('assets/alphabet/signs/sign-${letter}.png')`;
+    } else {
+      // Mixed: randomly choose sign or image in grid
+      const isSign = Math.random() < 0.5;
+      slot.style.backgroundImage = isSign
+        ? `url('assets/alphabet/signs/sign-${letter}.png')`
+        : `url('assets/alphabet/clipart/${letter}.png')`;
+      slot.dataset.isSign = isSign ? "true" : "false";
     }
 
-    const draggableLetters = [...slotLetters, ...decoys];
-    draggableLetters.sort(() => Math.random() - 0.5);
+    gameBoard.appendChild(slot);
+  });
 
-    gameBoard.innerHTML = "";
-    leftSigns.innerHTML = "";
-    rightSigns.innerHTML = "";
+  // DRAGGABLE SIDE (PALETTE)
+  draggableLetters.forEach((letter, i) => {
+    const draggable = document.createElement("img");
+    draggable.dataset.letter = letter;
+    draggable.className = "draggable";
+    draggable.draggable = true;
+    draggable.addEventListener("dragstart", dragStart);
+    draggable.addEventListener("touchstart", touchStart);
 
-    levelTitle.innerText = `Level ${currentLevel + 1}: ` +
-      (mode === "signToImage" ? "Match the Sign to the Picture" :
-       mode === "imageToSign" ? "Match the Picture to the Sign" :
-       "Match Signs and Pictures (Mixed)");
+    if (mode === "signToImage") {
+      // Drag signs
+      draggable.src = `assets/alphabet/signs/sign-${letter}.png`;
+    } else if (mode === "imageToSign") {
+      // Drag images
+      draggable.src = `assets/alphabet/clipart/${letter}.png`;
+    } else {
+      // Mixed: opposite of what's in grid
+      const matchingSlot = [...gameBoard.children].find(s => s.dataset.letter === letter);
+      const isSignInSlot = matchingSlot?.style.backgroundImage.includes("sign");
+      draggable.src = isSignInSlot
+        ? `assets/alphabet/clipart/${letter}.png`
+        : `assets/alphabet/signs/sign-${letter}.png`;
+    }
 
-    slotLetters.forEach((letter) => {
-      const slot = document.createElement("div");
-      slot.className = "slot";
-      slot.dataset.letter = letter;
-      slot.style.backgroundImage = mode === "signToImage" || (mode === "mixed" && Math.random() < 0.5)
-        ? `url('assets/alphabet/clipart/${letter}.png')`
-        : `url('assets/alphabet/signs/sign-${letter}.png')`;
-      gameBoard.appendChild(slot);
-    });
+    const container = document.createElement("div");
+    container.className = "drag-wrapper";
+    container.appendChild(draggable);
 
-    draggableLetters.forEach((letter, i) => {
-      const draggable = document.createElement("img");
-      draggable.src = (mode === "signToImage" || (mode === "mixed" && Math.random() >= 0.5))
-        ? `assets/alphabet/signs/sign-${letter}.png`
-        : `assets/alphabet/clipart/${letter}.png`;
-      draggable.className = "draggable";
-      draggable.draggable = true;
-      draggable.dataset.letter = letter;
-      draggable.addEventListener("dragstart", dragStart);
-      draggable.addEventListener("touchstart", touchStart);
-      const container = document.createElement("div");
-      container.className = "drag-wrapper";
-      container.appendChild(draggable);
+    if (i < 6) {
+      leftSigns.appendChild(container);
+    } else {
+      rightSigns.appendChild(container);
+    }
+  });
 
-      if (i < 6) {
-        leftSigns.appendChild(container);
-      } else {
-        rightSigns.appendChild(container);
-      }
-    });
-
-    document.querySelectorAll(".slot").forEach((slot) => {
-      slot.addEventListener("dragover", dragOver);
-      slot.addEventListener("drop", drop);
-    });
-  }
+  document.querySelectorAll(".slot").forEach((slot) => {
+    slot.addEventListener("dragover", dragOver);
+    slot.addEventListener("drop", drop);
+  });
+}
 
   function dragStart(e) {
     e.dataTransfer.setData("text/plain", e.target.dataset.letter);
