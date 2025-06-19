@@ -29,18 +29,20 @@ document.addEventListener("DOMContentLoaded", function () {
     { type: "imageToSign" },
     { type: "mixed" },
   ];
-
   let currentLevel = 0;
   let currentPage = 0;
   const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
-  let usedLetters = [];
-  let correctMatches = 0;
-  let incorrectMatches = 0;
-  let totalCorrect = 0;
-  let totalIncorrect = 0;
-  let startTime = Date.now();
+  const letterStats = {};
 
-  const letterTracking = {};
+  allLetters.forEach((letter) => {
+    letterStats[letter] = { attempts: 0, correct: 0, firstCorrect: false };
+  });
+
+  let usedLetters = [];
+  let currentLetters = [];
+  let correctMatches = 0;
+  const pagesPerLevel = 3;
+  let startTime = Date.now();
 
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
@@ -61,39 +63,39 @@ document.addEventListener("DOMContentLoaded", function () {
   document.body.appendChild(feedbackImage);
 
   function getRandomLetters(count) {
-    const available = allLetters.filter((l) => !usedLetters.includes(l));
+    const available = allLetters.filter(l => {
+      return !currentLetters.includes(l);
+    });
     const selected = [];
     while (selected.length < count && available.length > 0) {
       const index = Math.floor(Math.random() * available.length);
       selected.push(available.splice(index, 1)[0]);
     }
-    if (selected.length < count) {
-      const vowels = ["a", "e", "i", "o", "u"];
-      while (selected.length < count) {
-        const randomVowel = vowels[Math.floor(Math.random() * vowels.length)];
-        if (!selected.includes(randomVowel)) {
-          selected.push(randomVowel);
-        }
-      }
-    }
-    usedLetters.push(...selected);
     return selected;
   }
 
   function loadPage() {
-    correctMatches = 0;
-    incorrectMatches = 0;
-
+    if (currentLevel >= levels.length) return endGame();
     const mode = levels[currentLevel].type;
-    const slotLetters = getRandomLetters(9);
-    const decoyPool = allLetters.filter((l) => !slotLetters.includes(l));
-    const decoys = [];
-    while (decoys.length < 3 && decoyPool.length > 0) {
-      const idx = Math.floor(Math.random() * decoyPool.length);
-      decoys.push(decoyPool.splice(idx, 1)[0]);
+    currentLetters = [];
+    const usedThisPage = new Set();
+
+    while (currentLetters.length < 9) {
+      const candidates = allLetters.filter(l => !usedThisPage.has(l));
+      const letter = candidates[Math.floor(Math.random() * candidates.length)];
+      if (!letter) break;
+      currentLetters.push(letter);
+      usedThisPage.add(letter);
     }
 
-    const draggableLetters = [...slotLetters, ...decoys].sort(() => Math.random() - 0.5);
+    const remaining = allLetters.filter(l => !currentLetters.includes(l));
+    const decoys = [];
+    while (decoys.length < 3 && remaining.length > 0) {
+      const idx = Math.floor(Math.random() * remaining.length);
+      decoys.push(remaining.splice(idx, 1)[0]);
+    }
+
+    const draggables = [...currentLetters, ...decoys].sort(() => Math.random() - 0.5);
 
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
@@ -101,14 +103,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     levelTitle.innerText = `Level ${currentLevel + 1}: ` +
       (mode === "signToImage" ? "Match the Sign to the Picture" :
-        mode === "imageToSign" ? "Match the Picture to the Sign" :
-          "Match Signs and Pictures (Mixed)");
+       mode === "imageToSign" ? "Match the Picture to the Sign" :
+       "Match Signs and Pictures (Mixed)");
 
-    slotLetters.forEach((letter) => {
+    currentLetters.forEach((letter) => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
-
       if (mode === "signToImage") {
         slot.style.backgroundImage = `url('assets/alphabet/clipart/${letter}.png')`;
       } else if (mode === "imageToSign") {
@@ -120,11 +121,10 @@ document.addEventListener("DOMContentLoaded", function () {
           : `url('assets/alphabet/clipart/${letter}.png')`;
         slot.dataset.isSign = isSign ? "true" : "false";
       }
-
       gameBoard.appendChild(slot);
     });
 
-    draggableLetters.forEach((letter, i) => {
+    draggables.forEach((letter, i) => {
       const draggable = document.createElement("img");
       draggable.dataset.letter = letter;
       draggable.className = "draggable";
@@ -132,17 +132,11 @@ document.addEventListener("DOMContentLoaded", function () {
       draggable.addEventListener("dragstart", dragStart);
       draggable.addEventListener("touchstart", touchStart);
 
-      if (mode === "signToImage") {
-        draggable.src = `assets/alphabet/signs/sign-${letter}.png`;
-      } else if (mode === "imageToSign") {
-        draggable.src = `assets/alphabet/clipart/${letter}.png`;
-      } else {
-        const matchingSlot = [...gameBoard.children].find(s => s.dataset.letter === letter);
-        const isSignInSlot = matchingSlot?.style.backgroundImage.includes("sign");
-        draggable.src = isSignInSlot
-          ? `assets/alphabet/clipart/${letter}.png`
-          : `assets/alphabet/signs/sign-${letter}.png`;
-      }
+      const matchingSlot = [...gameBoard.children].find(s => s.dataset.letter === letter);
+      const isSignInSlot = matchingSlot?.style.backgroundImage.includes("sign");
+      draggable.src = isSignInSlot
+        ? `assets/alphabet/clipart/${letter}.png`
+        : `assets/alphabet/signs/sign-${letter}.png`;
 
       const container = document.createElement("div");
       container.className = "drag-wrapper";
@@ -173,53 +167,47 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function drop(e) {
     e.preventDefault();
-    const draggedLetter = e.dataTransfer.getData("text/plain");
-    const draggedSrc = e.dataTransfer.getData("src");
-    handleDrop(e.currentTarget, draggedLetter, draggedSrc);
+    const letter = e.dataTransfer.getData("text/plain");
+    const src = e.dataTransfer.getData("src");
+    handleDrop(e.currentTarget, letter, src);
   }
 
-  function handleDrop(targetSlot, draggedLetter, draggedSrc) {
-    if (!letterTracking[draggedLetter]) letterTracking[draggedLetter] = "";
+  function handleDrop(slot, letter, src) {
+    letterStats[letter].attempts++;
 
-    if (targetSlot.dataset.letter === draggedLetter) {
-      if (!letterTracking[draggedLetter].includes("*")) {
-        letterTracking[draggedLetter] += draggedLetter;
-      }
+    if (slot.dataset.letter === letter) {
       correctMatches++;
-      totalCorrect++;
-
+      if (letterStats[letter].attempts === 1) {
+        letterStats[letter].firstCorrect = true;
+      }
+      letterStats[letter].correct++;
       showFeedback(true);
-      targetSlot.innerHTML = "";
-      const overlay = document.createElement("img");
-      overlay.src = draggedSrc;
-      overlay.className = "overlay";
-      targetSlot.appendChild(overlay);
-      document.querySelectorAll(`img.draggable[data-letter='${draggedLetter}']`).forEach((el) => el.remove());
 
-      if (document.querySelectorAll(".slot img.overlay").length === 9) {
+      slot.innerHTML = "";
+      const overlay = document.createElement("img");
+      overlay.src = src;
+      overlay.className = "overlay";
+      slot.appendChild(overlay);
+
+      document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
+
+      if (correctMatches >= 9) {
+        correctMatches = 0;
         currentPage++;
-        if (currentPage < 3) {
-          setTimeout(loadPage, 1000);
+        if (currentPage < pagesPerLevel) {
+          setTimeout(loadPage, 800);
         } else {
           currentLevel++;
           currentPage = 0;
-          usedLetters = [];
-          if (currentLevel < levels.length) {
-            setTimeout(loadPage, 1000);
-          } else {
-            endGame();
-          }
+          setTimeout(loadPage, 800);
         }
       }
     } else {
-      letterTracking[draggedLetter] += `*${draggedLetter}*`;
-      incorrectMatches++;
-      totalIncorrect++;
       showFeedback(false);
-      const dragged = document.querySelector(`img.draggable[data-letter='${draggedLetter}']`);
-      if (dragged) {
-        dragged.classList.add("shake");
-        setTimeout(() => dragged.classList.remove("shake"), 500);
+      const wrong = document.querySelector(`img.draggable[data-letter='${letter}']`);
+      if (wrong) {
+        wrong.classList.add("shake");
+        setTimeout(() => wrong.classList.remove("shake"), 500);
       }
     }
   }
@@ -238,9 +226,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const src = target.src;
     const handleTouchEnd = (ev) => {
       const touch = ev.changedTouches[0];
-      const endElement = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (endElement && endElement.classList.contains("slot")) {
-        handleDrop(endElement, letter, src);
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (el && el.classList.contains("slot")) {
+        handleDrop(el, letter, src);
       }
       document.removeEventListener("touchend", handleTouchEnd);
     };
@@ -249,20 +237,38 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function endGame() {
     const endTime = Date.now();
-    const totalTime = Math.round((endTime - startTime) / 1000);
-    const minutes = Math.floor(totalTime / 60);
-    const seconds = totalTime % 60;
-    const timeFormatted = `${minutes} mins ${seconds} sec`;
-    const accuracy = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) + "%" : "N/A";
+    const time = Math.round((endTime - startTime) / 1000);
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    const formatted = `${minutes} mins ${seconds} sec`;
 
-    const formattedCorrect = Object.entries(letterTracking)
-      .map(([letter, val]) => val.replace(/\*/g, ""))
-      .filter(Boolean)
-      .join(", ");
-    const formattedIncorrect = Object.entries(letterTracking)
-      .map(([letter, val]) => val.includes("*") ? val : "")
-      .filter(Boolean)
-      .join(", ");
+    const correctLetters = [];
+    const incorrectLetters = [];
+
+    allLetters.forEach((letter) => {
+      const stats = letterStats[letter];
+      if (stats.attempts > 0) {
+        let mark = "";
+        if (stats.correct === 3) mark = letter + letter + letter;
+        else if (stats.correct === 2) mark = "*" + letter + letter;
+        else if (stats.correct === 1) mark = "**" + letter;
+        if (mark) correctLetters.push(mark);
+
+        if (stats.correct < stats.attempts) {
+          incorrectLetters.push(letter.repeat(stats.attempts - stats.correct));
+        }
+      }
+    });
+
+    const entries = {
+      "entry.1387461004": studentName,
+      "entry.1309291707": studentClass,
+      "entry.477642881": "Alphabet",
+      "entry.1897227570": incorrectLetters.sort().join(", "),
+      "entry.1249394203": correctLetters.sort((a,b) => a.replace(/\*/g, "").localeCompare(b.replace(/\*/g, ""))).join(", "),
+      "entry.1996137354": `${Math.round((correctLetters.length / (correctLetters.length + incorrectLetters.length)) * 100) || 0}%`,
+      "entry.1374858042": formatted,
+    };
 
     const form = document.createElement("form");
     form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
@@ -272,18 +278,6 @@ document.addEventListener("DOMContentLoaded", function () {
     iframe.name = "hidden_iframe";
     iframe.style.display = "none";
     document.body.appendChild(iframe);
-
-    form.style.display = "none";
-
-    const entries = {
-      "entry.1387461004": studentName,
-      "entry.1309291707": studentClass,
-      "entry.477642881": "Alphabet",
-      "entry.1897227570": formattedIncorrect,
-      "entry.1249394203": formattedCorrect,
-      "entry.1996137354": accuracy,
-      "entry.1374858042": timeFormatted,
-    };
 
     for (const key in entries) {
       const input = document.createElement("input");
@@ -302,12 +296,13 @@ document.addEventListener("DOMContentLoaded", function () {
       <div class="modal-content">
         <h2>🎉 Congratulations, ${studentName}!</h2>
         <p>You’ve finished the Alphabet Matching Game.</p>
-        <p><strong>✅ Accuracy:</strong> ${accuracy}</p>
-        <p><strong>⏱️ Time:</strong> ${timeFormatted}</p>
+        <p><strong>✅ Accuracy:</strong> ${entries["entry.1996137354"]}</p>
+        <p><strong>⏱️ Time:</strong> ${formatted}</p>
         <button id="backToHub">Back to Hub</button>
       </div>
     `;
     document.body.appendChild(modal);
+
     setTimeout(() => {
       window.location.href = "hub.html";
     }, 5000);
