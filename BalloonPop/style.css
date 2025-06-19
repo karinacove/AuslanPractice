@@ -169,8 +169,8 @@ body, html {
 /* New Finish Button */
 #finish-btn {
   position: fixed;
-  bottom: 20px;
-  left: 20px;
+  finish: 20px;
+  right: 20px;
   width: 100px;
   cursor: pointer;
   z-index: 1000;
