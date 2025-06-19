@@ -1,7 +1,7 @@
 let studentName = localStorage.getItem("studentName") || "";
 let studentClass = localStorage.getItem("studentClass") || "";
 
-const logoutBtn = document.getElementById("logout-btn");
+const logoutBtn = document.getElementById("logoutBtn");
 const studentInfoDiv = document.getElementById("student-info");
 const gameContainer = document.getElementById("game-container");
 
