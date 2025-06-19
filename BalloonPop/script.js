@@ -1,9 +1,15 @@
 let studentName = localStorage.getItem("studentName") || "";
 let studentClass = localStorage.getItem("studentClass") || "";
 
-const logoutBtn = document.getElementById("logoutBtn");
 const studentInfoDiv = document.getElementById("student-info");
 const gameContainer = document.getElementById("game-container");
+const finishButton = document.getElementById("finish-btn");
+
+const endModal = document.getElementById("end-modal");
+const scoreDisplayModal = document.getElementById("score-display");
+const againBtn = document.getElementById("again-btn");
+const menuBtn = document.getElementById("menu-btn");
+const logoutImg = document.getElementById("logout-btn");
 
 // Redirect if not signed in
 if (!studentName || !studentClass) {
@@ -18,31 +24,37 @@ if (!studentName || !studentClass) {
   }
 }
 
-// Logout clears localStorage and redirects
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", () => {
-    localStorage.removeItem("studentName");
-    localStorage.removeItem("studentClass");
-    window.location.href = "../index.html";
-  });
-}
-
 document.addEventListener('DOMContentLoaded', () => {
-  const gameContainer = document.getElementById('game-container');
   const balloonArea = document.getElementById('balloon-area');
   const scoreDisplay = document.getElementById('score');
   const levelDisplay = document.getElementById('level');
   const thoughtBubble = document.getElementById('thought-bubble');
   const background = document.getElementById('background');
   const mrsC = document.getElementById('mrs-c');
-  const finishButton = document.getElementById('finishButton');
+
   if (finishButton) {
-  finishButton.addEventListener('click', () => {
-    finishButton.style.display = 'none'; // Hide the button
-    finishButtonHandler(true); // Call the game-ending function
+    finishButton.addEventListener('click', () => {
+      finishButton.style.display = 'none';
+      finishButtonHandler(true);
+    });
+  }
+
+  // Modal Buttons
+  againBtn.addEventListener('click', () => {
+    endModal.style.display = 'none';
+    resetGame();
   });
-}
- 
+
+  menuBtn.addEventListener('click', () => {
+    window.location.href = "../index.html";
+  });
+
+  logoutImg.addEventListener('click', () => {
+    localStorage.removeItem("studentName");
+    localStorage.removeItem("studentClass");
+    window.location.href = "../index.html";
+  });
+
   let score = 0;
   let totalClicks = 0;
   let correctAnswers = 0;
@@ -269,13 +281,15 @@ document.addEventListener('DOMContentLoaded', () => {
     clearInterval(balloonInterval);
     clearInterval(correctBalloonInterval);
     clearBalloons();
-    const message = early ? 'Game ended early.' : 'Congratulations! You completed the game!';
-    const percentage = totalClicks > 0 ? Math.round((correctAnswers / totalClicks) * 100) : 0;
-    alert(`${message}\n\n${studentName} from ${studentClass},\nScore: ${score}\nQuestions Answered: ${totalClicks}\nCorrect Answers: ${correctAnswers}\nPercentage: ${percentage}%`);
 
+    const percentage = totalClicks > 0 ? Math.round((correctAnswers / totalClicks) * 100) : 0;
     const correctList = [...correctAnswersList].sort().join(', ');
     const incorrectList = [...incorrectAnswersList].sort().join(', ');
 
+    // Update modal score display
+    scoreDisplayModal.textContent = `Score: ${score} (${percentage}%)`;
+
+    // Submit results to Google Form silently
     const form = document.createElement('form');
     form.action = 'https://docs.google.com/forms/d/e/1FAIpQLSeHCxQ4czHbx1Gdv649vlr5-Dz9-4DQu5M5OcIfC46WlL-6Qw/formResponse';
     form.method = 'POST';
@@ -306,38 +320,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(form);
     form.submit();
 
-    showPlayAgainButton();
-  }
-
-  function showPlayAgainButton() {
-    const playAgainButton = document.createElement('img');
-    playAgainButton.src = 'assets/Again.png';
-    playAgainButton.alt = 'Play Again';
-    playAgainButton.style.position = 'absolute';
-    playAgainButton.style.top = '50%';
-    playAgainButton.style.left = '50%';
-    playAgainButton.style.transform = 'translate(-50%, -50%)';
-    playAgainButton.style.padding = '20px';
-    playAgainButton.style.height = '300px';
-    playAgainButton.style.cursor = 'pointer';
-    playAgainButton.style.zIndex = '999';
-
-    playAgainButton.addEventListener('click', () => {
-      playAgainButton.remove();
-      resetGame();
-    });
-
-    document.body.appendChild(playAgainButton);
+    // Show modal
+    endModal.style.display = 'flex';
   }
 
   function resetGame() {
     finishButton.style.display = 'block';
-    
-    finishButton.onclick = () => {
-    finishButton.style.display = 'none';
-    finishButtonHandler(true);
-  };
-    
+
     score = 0;
     totalClicks = 0;
     correctAnswers = 0;
@@ -353,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
     startGame();
   }
 
-  // Start automatically
+  // Initial setup
   levelDisplay.textContent = `Level: ${level}`;
   scoreDisplay.textContent = `Score: ${score}`;
   updateBackground();
