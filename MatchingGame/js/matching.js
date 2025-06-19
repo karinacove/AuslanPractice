@@ -9,18 +9,35 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
-  const logoutBtn = document.getElementById("logoutBtn");
+  // Modal buttons
+  const finishBtn = document.getElementById("finish-btn");
+  const againBtn = document.getElementById("again-btn");
+  const menuBtn = document.getElementById("menu-btn");
+  const logoutBtn = document.getElementById("logout-btn");
+  const modal = document.getElementById("end-modal");
+
+  if (finishBtn) {
+    finishBtn.addEventListener("click", () => {
+      endGame();
+    });
+  }
+
+  if (againBtn) {
+    againBtn.addEventListener("click", () => {
+      location.reload(); // Reload page to restart game
+    });
+  }
+
+  if (menuBtn) {
+    menuBtn.addEventListener("click", () => {
+      window.location.href = "../index.html"; // To main menu
+    });
+  }
+
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
       localStorage.clear();
       window.location.href = "../index.html";
-    });
-  }
-
-  const finishButton = document.getElementById("finishButton");
-  if (finishButton) {
-    finishButton.addEventListener("click", () => {
-      endGame();
     });
   }
 
@@ -290,22 +307,15 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.appendChild(form);
     form.submit();
 
-    const modal = document.createElement("div");
-    modal.id = "congratsModal";
-    modal.innerHTML = `
-      <div class="modal-content">
-        <h2>🎉 Congratulations, ${studentName}!</h2>
-        <p>You’ve finished the Alphabet Matching Game.</p>
-        <p><strong>✅ Accuracy:</strong> ${entries["entry.1996137354"]}</p>
-        <p><strong>⏱️ Time:</strong> ${formatted}</p>
-        <button id="backToHub">Back to Hub</button>
-      </div>
-    `;
-    document.body.appendChild(modal);
+    document.getElementById("score-display").innerText = `
+Well done ${studentName}!
 
-    setTimeout(() => {
-      window.location.href = "hub.html";
-    }, 5000);
+✅ Accuracy: ${entries["entry.1996137354"]}
+⏱️ Time: ${formatted}
+`;
+
+document.getElementById("end-modal").style.display = "flex";
+
   }
 
   loadPage();
