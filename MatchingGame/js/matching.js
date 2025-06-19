@@ -326,5 +326,5 @@ document.addEventListener("DOMContentLoaded", function () {
       localStorage.removeItem("studentClass");
       window.location.href = "../index.html"; // or "login.html" if separate
     });
-  }
+  })
 }
