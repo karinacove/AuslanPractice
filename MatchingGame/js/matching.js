@@ -16,6 +16,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const logoutBtn = document.getElementById("logout-btn");
   const modal = document.getElementById("end-modal");
 
+  finishBtn.addEventListener("click", () => {
+    endGame();
+  });
+  
   if (finishBtn) {
     finishBtn.addEventListener("click", () => {
       endGame();
@@ -307,16 +311,20 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.appendChild(form);
     form.submit();
 
-    document.getElementById("score-display").innerText = `
-Well done ${studentName}!
+    endModal.style.display = "flex";
+    
+    document.getElementById("again-btn").addEventListener("click", () => {
+      location.reload();
+    });
 
-✅ Accuracy: ${entries["entry.1996137354"]}
-⏱️ Time: ${formatted}
-`;
+    document.getElementById("menu-btn").addEventListener("click", () => {  
+      window.location.href = "../index.html"; // or "AuslanPractice/index.html" depending on folder
+    });
 
-document.getElementById("end-modal").style.display = "flex";
-
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      localStorage.removeItem("studentName");
+      localStorage.removeItem("studentClass");
+      window.location.href = "../index.html"; // or "login.html" if separate
+    });
   }
-
-  loadPage();
-});
+}
