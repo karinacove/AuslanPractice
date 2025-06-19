@@ -49,7 +49,7 @@
       studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
     }
 
-    document.getElementById("logout-btn").addEventListener("click", () => {
+    document.getElementById("logoutBtn").addEventListener("click", () => {
       localStorage.removeItem("studentName");
       localStorage.removeItem("studentClass");
       window.location.href = "../index.html"; // or "login.html" if separate
