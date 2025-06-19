@@ -10,16 +10,12 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
   // Modal buttons
-  const finishBtn = document.getElementById("finish-btn");
   const againBtn = document.getElementById("again-btn");
   const menuBtn = document.getElementById("menu-btn");
   const logoutBtn = document.getElementById("logout-btn");
   const modal = document.getElementById("end-modal");
 
-  finishBtn.addEventListener("click", () => {
-    endGame();
-  });
-  
+  const finishBtn = document.getElementById("finish-btn");
   if (finishBtn) {
     finishBtn.addEventListener("click", () => {
       endGame();
