@@ -179,26 +179,10 @@
       background-color: #a71d2a;
     }
 
-    /* GREETING TEXT */
-    #greeting {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background-color: #28a745;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 10px;
-      font-weight: bold;
-      font-family: 'Auslan Finger Spelling', sans-serif;
-      z-index: 1500;
-      display: none; /* hidden initially */
-    }
-
   </style>
 </head>
 <body>
 
-  <div id="greeting"></div>
   <button id="logoutBtn" title="Logout">Logout</button>
 
   <div class="bottom-row-links">
@@ -233,7 +217,6 @@
   <script>
     const modal = document.getElementById('loginModal');
     const logoutBtn = document.getElementById('logoutBtn');
-    const greeting = document.getElementById('greeting');
 
     function showModal() {
       modal.style.display = 'block';
@@ -247,15 +230,10 @@
       greeting.style.display = 'block';
     }
 
-    function updateGreeting(name, studentClass) {
-      greeting.textContent = `Welcome, ${name} (${studentClass})`;
-    }
-
     function checkLogin() {
       const savedName = localStorage.getItem('studentName');
       const savedClass = localStorage.getItem('studentClass');
       if (savedName && savedClass) {
-        updateGreeting(savedName, savedClass);
         hideModal();
       } else {
         showModal();
@@ -285,7 +263,6 @@
       if (guestName) {
         localStorage.setItem('studentName', guestName);
         localStorage.setItem('studentClass', 'Home Guest');
-        updateGreeting(guestName, 'Home Guest');
         hideModal();
         alert(`Welcome, ${guestName} (Home Guest)!`);
       }
