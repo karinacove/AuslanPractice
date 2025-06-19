@@ -42,7 +42,6 @@
     const logoutBtn = document.getElementById("logout-btn");
     const studentInfoDiv = document.getElementById("student-info");
 
-    // Redirect if not signed in
     if (!studentName || !studentClass) {
       alert("Please log in first.");
       window.location.href = "../index.html"; // Adjust if needed
@@ -50,14 +49,12 @@
       studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
     }
 
-    // Logout clears localStorage and redirects
-    logoutBtn.addEventListener("click", () => {
+    document.getElementById("logout-btn").addEventListener("click", () => {
       localStorage.removeItem("studentName");
       localStorage.removeItem("studentClass");
-      window.location.href = "../index.html";
+      window.location.href = "../index.html"; // or "login.html" if separate
     });
 
-    // Handle topic clicks
     document.querySelectorAll('.topic-item').forEach(item => {
       item.addEventListener('click', () => {
         const topic = item.dataset.topic;
