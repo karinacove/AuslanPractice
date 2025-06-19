@@ -6,78 +6,14 @@
   <title>Auslan Balloon Game</title>
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="style.css" />
-  <style>
-    #student-info {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background: #28a745;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 10px;
-      max-width: 320px;
-      font-family: sans-serif;
-      font-weight: bold;
-      z-index: 1000;
-    }
-
-    /* Finish button */
-    #finish-btn {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      width: 100px;
-      cursor: pointer;
-      z-index: 1000;
-    }
-
-    /* Modal */
-    #end-modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-    }
-
-    #end-modal-content {
-      background: white;
-      padding: 30px;
-      border-radius: 20px;
-      text-align: center;
-    }
-
-    #end-modal-content img {
-      width: 120px;
-      margin: 10px;
-      cursor: pointer;
-    }
-
-    #score-display {
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
-  </style>
 </head>
 <body>
+
+  <!-- Student Info -->
   <div id="student-info"></div>
 
-  <!-- Finish Button -->
-  <img id="finish-btn" src="assets/finish.png" alt="Finish Game" title="Finish Game" />
-
-  <!-- Modal Popup -->
-  <div id="end-modal">
-    <div id="end-modal-content">
-      <p id="score-display">Score: 0</p>
-      <img id="again-btn" src="assets/again.png" alt="Play Again" title="Play Again" />
-      <img id="menu-btn" src="assets/menu.png" alt="Main Menu" title="Main Menu" />
-      <img id="logout-btn" src="assets/logout.png" alt="Logout" title="Logout" />
-    </div>
-  </div>
+  <!-- Finish Button (bottom-left) -->
+  <img id="finish-btn" src="assets/finish.png" alt="Finish Game" />
 
   <!-- Background Layer -->
   <div id="background"></div>
@@ -95,6 +31,20 @@
     </div>
   </div>
 
+  <!-- End Game Modal -->
+  <div id="end-modal">
+    <div id="end-modal-content">
+      <p id="score-display">Score: 0</p>
+      <img id="again-btn" src="assets/Again.png" alt="Play Again" />
+      <img id="menu-btn" src="assets/menu.png" alt="Main Menu" />
+      <img id="logout-btn" src="assets/logout.png" alt="Logout" />
+    </div>
+  </div>
+
+  <!-- Hidden iframe for Google Form submission -->
+  <iframe name="hidden_iframe" style="display:none;"></iframe>
+
+  <!-- Script -->
   <script src="script.js"></script>
 </body>
 </html>
