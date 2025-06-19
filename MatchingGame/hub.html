@@ -10,7 +10,7 @@
 <body>
   <div id="student-info" aria-live="polite"></div>
 
-  <button id="logoutBtn" title="Logout" aria-label="Logout">Logout</button>
+  <img id="finish-btn" src="assets/finish.png" alt="Finish Game" />
 
   <h1>Choose a Game</h1>
 
@@ -39,7 +39,7 @@
     let studentName = localStorage.getItem("studentName") || "";
     let studentClass = localStorage.getItem("studentClass") || "";
 
-    const logoutBtn = document.getElementById("logoutBtn");
+    const logoutBtn = document.getElementById("logout-btn");
     const studentInfoDiv = document.getElementById("student-info");
 
     // Redirect if not signed in
