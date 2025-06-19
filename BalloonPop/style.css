@@ -12,17 +12,17 @@ body, html {
 #score {
   margin-top: 0px;
 }
- 
+
 #background {
-   position: fixed;
-   top: 0;
-   left: 0;
-   width: 100%;
-   height: 100%;
-   background-size: cover;
-   background-position: center;
-   background-repeat: no-repeat;
-   z-index: -1;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -1;
 }
 
 #start-screen {
@@ -89,7 +89,7 @@ body, html {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  overflow: visable;
+  overflow: visible;
 }
 
 .balloon {
@@ -115,39 +115,6 @@ body, html {
   width: auto;
   height: 270px;
   z-index: 2;
-}
-
-#finishButton {
-  position: absolute;
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-  left: 20px;
-  bottom: 20px;
-  width: 150px;
-  height: 150px;
-  box-shadow: none;
-  outline: none;
-  cursor: pointer;
-  pointer-events: auto;
-  z-index:999;
-}
-
-#finishButton img {
-  display: block;
-  width: auto; /* or set a specific size if needed */
-  height: 150px; /* example */
-  pointer-events: none; /* only if clicks should register on the button, not image */
-}
-
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
-}
-
-#character.animate-mrs-c {
-  animation: bounce 1s ease;
 }
 
 #thought-bubble {
@@ -199,3 +166,65 @@ body, html {
   }
 }
 
+/* New Finish Button */
+#finish-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 100px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+/* End Modal Styles */
+#end-modal {
+  display: none;
+  position: fixed;
+  top: 0; 
+  left: 0;
+  width: 100%; 
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+#end-modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+#end-modal-content img {
+  width: 120px;
+  margin: 10px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+#end-modal-content img:hover {
+  transform: scale(1.1);
+}
+
+#score-display {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+/* Welcome box */
+#student-info {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: #28a745;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+  max-width: 320px;
+  font-family: sans-serif;
+  font-weight: bold;
+  z-index: 1000;
+}
