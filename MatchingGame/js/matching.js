@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const isSignInSlot = slotTypeMap[letter] ?? (mode === "signToImage");
       draggable.src = isSignInSlot
-        : `assets/alphabet/signs/sign-${letter}.png'
+        : `assets/alphabet/signs/sign-${letter}.png';
         ? `assets/alphabet/clipart/${letter}.png`;
       
       const container = document.createElement("div");
