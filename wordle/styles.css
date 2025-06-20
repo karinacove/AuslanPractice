@@ -152,7 +152,7 @@ body {
   pointer-events: none; /* ensures the button captures the click, not just the image */
 }
 
-#logout-btn {
+#finish-btn {
   position: fixed;
   finish: 20px;
   right: 20px;
