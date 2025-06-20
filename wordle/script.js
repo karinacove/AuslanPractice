@@ -237,4 +237,5 @@ function submitWordleResult(targetWord, guessesArray) {
     }).catch((err) => {
         console.error("❌ Form error:", err);
     });
+  }
 }
