@@ -77,6 +77,18 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.body.appendChild(feedbackImage);
 
+  function getRandomLetters(count) {
+    const available = allLetters.filter(l => {
+      return !currentLetters.includes(l);
+    });
+    const selected = [];
+    while (selected.length < count && available.length > 0) {
+      const index = Math.floor(Math.random() * available.length);
+      selected.push(available.splice(index, 1)[0]);
+    }
+    return selected;
+  }
+  
   function loadPage() {
     if (currentLevel >= levels.length) return endGame();
     const mode = levels[currentLevel].type;
