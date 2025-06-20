@@ -141,6 +141,7 @@ document.addEventListener("DOMContentLoaded", function () {
       draggable.addEventListener("dragstart", dragStart);
       draggable.addEventListener("touchstart", touchStart);
 
+      const matchingSlot = [...gameBoard.children].find(s => s.dataset.letter === letter);
       const isSignInSlot = slotTypeMap[letter] ?? (mode === "signToImage");
       draggable.src = isSignInSlot
         ? `assets/alphabet/clipart/${letter}.png`
