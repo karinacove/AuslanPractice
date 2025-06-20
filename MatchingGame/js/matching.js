@@ -116,7 +116,6 @@ document.addEventListener("DOMContentLoaded", function () {
       slot.className = "slot";
       slot.dataset.letter = letter;
 
-      let isSign = false;
       if (mode === "signToImage") {
         slot.style.backgroundImage = `url('assets/alphabet/clipart/${letter}.png')`;
       } else if (mode === "imageToSign") {
