@@ -153,11 +153,16 @@ document.addEventListener("DOMContentLoaded", function () {
       draggable.addEventListener("dragstart", dragStart);
       draggable.addEventListener("touchstart", touchStart);
 
-      const matchingSlot = [...gameBoard.children].find(s => s.dataset.letter === letter);
-      const isSignInSlot = matchingSlot?.style.backgroundImage.includes("sign");
-      draggable.src = isSignInSlot
-        ? `assets/alphabet/clipart/${letter}.png`
-        : `assets/alphabet/signs/sign-${letter}.png`;
+    let isSignInSlot = false;
+      if (matchingSlot) {
+        isSignInSlot = matchingSlot.style.backgroundImage.includes("sign");
+    } else {
+      isSignInSlot = (mode === "signToImage"); // because decoy should match opposite
+    }
+
+    draggable.src = isSignInSlot
+      ? `assets/alphabet/clipart/${letter}.png`
+      : `assets/alphabet/signs/sign-${letter}.png`;
 
       const container = document.createElement("div");
       container.className = "drag-wrapper";
