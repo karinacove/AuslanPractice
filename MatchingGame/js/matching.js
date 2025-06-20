@@ -109,21 +109,27 @@ document.addEventListener("DOMContentLoaded", function () {
        mode === "imageToSign" ? "Match the Picture to the Sign" :
        "Match Signs and Pictures (Mixed)");
 
+    const slotTypeMap = {};
+
     currentLetters.forEach((letter) => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
+
+      let isSign = false;
       if (mode === "signToImage") {
         slot.style.backgroundImage = `url('assets/alphabet/clipart/${letter}.png')`;
       } else if (mode === "imageToSign") {
+        isSign = true;
         slot.style.backgroundImage = `url('assets/alphabet/signs/sign-${letter}.png')`;
       } else {
-        const isSign = Math.random() < 0.5;
+        isSign = Math.random() < 0.5;
         slot.style.backgroundImage = isSign
           ? `url('assets/alphabet/signs/sign-${letter}.png')`
           : `url('assets/alphabet/clipart/${letter}.png')`;
         slot.dataset.isSign = isSign ? "true" : "false";
       }
+      slotTypeMap[letter] = isSign;
       gameBoard.appendChild(slot);
     });
 
@@ -135,14 +141,7 @@ document.addEventListener("DOMContentLoaded", function () {
       draggable.addEventListener("dragstart", dragStart);
       draggable.addEventListener("touchstart", touchStart);
 
-      const matchingSlot = [...gameBoard.children].find(s => s.dataset.letter === letter);
-      let isSignInSlot = false;
-      if (matchingSlot) {
-        isSignInSlot = matchingSlot.style.backgroundImage.includes("sign");
-      } else {
-        isSignInSlot = (mode === "signToImage");
-      }
-
+      const isSignInSlot = slotTypeMap[letter] ?? (mode === "signToImage");
       draggable.src = isSignInSlot
         ? `assets/alphabet/clipart/${letter}.png`
         : `assets/alphabet/signs/sign-${letter}.png`;
@@ -230,17 +229,41 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function touchStart(e) {
+    e.preventDefault();
     const target = e.target;
     const letter = target.dataset.letter;
     const src = target.src;
+
+    const clone = target.cloneNode(true);
+    clone.style.position = "absolute";
+    clone.style.pointerEvents = "none";
+    clone.style.opacity = "0.7";
+    clone.style.zIndex = "10000";
+    document.body.appendChild(clone);
+
+    const moveClone = (touch) => {
+      clone.style.left = `${touch.clientX - clone.width / 2}px`;
+      clone.style.top = `${touch.clientY - clone.height / 2}px`;
+    };
+
+    moveClone(e.touches[0]);
+
+    const handleTouchMove = (ev) => {
+      moveClone(ev.touches[0]);
+    };
+
     const handleTouchEnd = (ev) => {
       const touch = ev.changedTouches[0];
       const el = document.elementFromPoint(touch.clientX, touch.clientY);
       if (el && el.classList.contains("slot")) {
         handleDrop(el, letter, src);
       }
+      document.removeEventListener("touchmove", handleTouchMove);
       document.removeEventListener("touchend", handleTouchEnd);
+      clone.remove();
     };
+
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
     document.addEventListener("touchend", handleTouchEnd, { passive: false });
   }
 
