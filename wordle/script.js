@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (finishButton) {
     finishButton.addEventListener('click', () => {
       finishButton.style.display = 'none';
-      finishButton(true);
+      finishButtonHandler(true);
     });
   }
 
@@ -210,6 +210,9 @@ function showInvalidWordMessage(word) {
     }, 2000);
 }
 
+function finishButtonHandler(early = false) {
+    location.reload());
+  
 function submitWordleResult(targetWord, guessesArray) {
     const guessList = guessesArray.join(', ');
     const numGuesses = guessesArray.length;
