@@ -210,6 +210,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       let isSign = false;
       if (mode === "signToImage") {
+        isSign = false;
         slot.style.backgroundImage = `url('assets/alphabet/clipart/${letter}.png')`;
       } else if (mode === "imageToSign") {
         isSign = true;
@@ -220,6 +221,7 @@ document.addEventListener("DOMContentLoaded", function () {
           ? `url('assets/alphabet/signs/sign-${letter}.png')`
           : `url('assets/alphabet/clipart/${letter}.png')`;
       }
+
       slotTypeMap[letter] = isSign;
       gameBoard.appendChild(slot);
     });
@@ -241,7 +243,7 @@ document.addEventListener("DOMContentLoaded", function () {
       container.className = "drag-wrapper";
       container.appendChild(draggable);
 
-      (i < 6 ? leftSigns : rightSigns).appendChild(container);
+      (i % 2 === 0 ? leftSigns : rightSigns).appendChild(container);
     });
 
     document.querySelectorAll(".slot").forEach(slot => {
