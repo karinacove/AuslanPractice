@@ -197,8 +197,8 @@ button:hover {
   margin: 0;
   right: 20px;
   top: 20px;
-  width: 150px;
-  height: 150px;
+  width: 100px;
+  height: 100px;
   box-shadow: none;
   outline: none;
   cursor: pointer;
@@ -209,7 +209,7 @@ button:hover {
 #finishButton img {
   display: block;
   width: auto;
-  height: 150px;
+  height: 100px;
   pointer-events: none;
 }
 
