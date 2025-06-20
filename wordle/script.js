@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (finishButton) {
     finishButton.addEventListener('click', () => {
       finishButton.style.display = 'none';
-      finishButtonHandler(true);
+      finishButton(true);
     });
   }
 
