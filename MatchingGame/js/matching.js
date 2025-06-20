@@ -307,7 +307,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.appendChild(form);
     form.submit();
 
-    Modal.style.display = "flex";
+    modal.style.display = "flex";
     
     document.getElementById("again-btn").addEventListener("click", () => {
       location.reload();
