@@ -4,23 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
-  <img id="logoutBtn" src="assets/finish.png" alt="logout-btn" />
   <link rel="stylesheet" href="styles.css" />
 
   <style>
-    #logoutBtn {
-      position: fixed;
-      finish: 20px;
-      right: 20px;
-      width: 100px;
-      cursor: pointer;
-      z-index: 1000;
-    }
-    
-    #logoutBtn:hover {
-      background-color: #a71d2a;
-    }
-    
     #student-info {
       position: fixed;
       top: 20px;
@@ -100,7 +86,7 @@
 </head>
 <body>
   <div id="student-info"></div>
-  <button id="logoutBtn" title="Logout">Logout</button>
+  <img id="finish-btn" src="assets/finish.png" alt="Finish Game" />
   </div>
   <div id="game-container">
     <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
@@ -117,9 +103,18 @@
   </button>
 
   <div id="incorrectWordMessage"></div>
-  <div id="leaderboard"></div>
   
-  </script>
+  <div id="end-modal">
+    <div id="end-modal-content">
+      <p id="score-display">Score: 0</p>
+      <img id="again-btn" src="assets/Again.png" alt="Play Again" />
+      <img id="menu-btn" src="assets/menu.png" alt="Main Menu" />
+      <img id="logout-btn" src="assets/logout.png" alt="Logout" />
+    </div>
+  </div>
+
+  <iframe name="hidden_iframe" style="display:none;"></iframe>
+
   <script src="script.js"></script>
 </body>
 </html>
