@@ -77,18 +77,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.body.appendChild(feedbackImage);
 
-  function getRandomLetters(count) {
-    const available = allLetters.filter(l => {
-      return !currentLetters.includes(l);
-    });
-    const selected = [];
-    while (selected.length < count && available.length > 0) {
-      const index = Math.floor(Math.random() * available.length);
-      selected.push(available.splice(index, 1)[0]);
-    }
-    return selected;
-  }
-  
   function loadPage() {
     if (currentLevel >= levels.length) return endGame();
     const mode = levels[currentLevel].type;
@@ -135,13 +123,13 @@ document.addEventListener("DOMContentLoaded", function () {
         isSign = true;
         slot.style.backgroundImage = `url('assets/alphabet/signs/sign-${letter}.png')`;
       } else {
-        isSign = Math.random() < 0.5;
+        const isSign = Math.random() < 0.5;
         slot.style.backgroundImage = isSign
           ? `url('assets/alphabet/signs/sign-${letter}.png')`
           : `url('assets/alphabet/clipart/${letter}.png')`;
         slot.dataset.isSign = isSign ? "true" : "false";
       }
-      slotTypeMap[letter] = isSign;
+
       gameBoard.appendChild(slot);
     });
 
@@ -153,16 +141,10 @@ document.addEventListener("DOMContentLoaded", function () {
       draggable.addEventListener("dragstart", dragStart);
       draggable.addEventListener("touchstart", touchStart);
 
-    let isSignInSlot = false;
-      if (matchingSlot) {
-        isSignInSlot = matchingSlot.style.backgroundImage.includes("sign");
-    } else {
-      isSignInSlot = (mode === "signToImage"); // because decoy should match opposite
-    }
-
-    draggable.src = isSignInSlot
-      ? `assets/alphabet/clipart/${letter}.png`
-      : `assets/alphabet/signs/sign-${letter}.png`;
+      const isSignInSlot = slotTypeMap[letter] ?? (mode === "signToImage");
+      draggable.src = isSignInSlot
+        ? `assets/alphabet/clipart/${letter}.png`
+        : `assets/alphabet/signs/sign-${letter}.png`;
 
       const container = document.createElement("div");
       container.className = "drag-wrapper";
