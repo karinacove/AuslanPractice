@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", function () {
     levelTitle.innerText = `Level ${currentLevel + 1}: ` +
       (mode === "signToImage" ? "Match the Sign to the Picture" :
        mode === "imageToSign" ? "Match the Picture to the Sign" :
-       "Match Signs and Pictures (Mixed)");
+       mode === "mixed" ? "Match Signs and Pictures (Mixed)");
 
     const slotTypeMap = {};
 
@@ -122,19 +122,13 @@ document.addEventListener("DOMContentLoaded", function () {
         isSign = true;
         slot.style.backgroundImage = `url('assets/alphabet/signs/sign-${letter}.png')`;
       } else {
-        const isSign = Math.random() < 0.5;
-        slot.style.backgroundImage = isSign
-          ? `url('assets/alphabet/signs/sign-${letter}.png')`
-          : `url('assets/alphabet/clipart/${letter}.png')`;
-        slot.dataset.isSign = isSign ? "true" : "false";
-      }
-
-      if (mode === "mixed") {
+        const matchingSlot = [...gameBoard.children].find(s => s.dataset.letter === letter);
+        const isSignInSlot = matchingSlot?.style.backgroundImage.includes("sign");
         draggable.src = isSignInSlot
           ? `assets/alphabet/clipart/${letter}.png`
           : `assets/alphabet/signs/sign-${letter}.png`;
-      } 
-      
+      }
+       
       gameBoard.appendChild(slot);
     });
 
