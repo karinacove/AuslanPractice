@@ -9,7 +9,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
-  // Modal buttons
   const againBtn = document.getElementById("again-btn");
   const menuBtn = document.getElementById("menu-btn");
   const logoutBtn = document.getElementById("logout-btn");
@@ -24,13 +23,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (againBtn) {
     againBtn.addEventListener("click", () => {
-      location.reload(); // Reload page to restart game
+      location.reload();
     });
   }
 
   if (menuBtn) {
     menuBtn.addEventListener("click", () => {
-      window.location.href = "../index.html"; // To main menu
+      window.location.href = "../index.html";
     });
   }
 
@@ -55,7 +54,6 @@ document.addEventListener("DOMContentLoaded", function () {
     letterStats[letter] = { attempts: 0, correct: 0, firstCorrect: false };
   });
 
-  let usedLetters = [];
   let currentLetters = [];
   let correctMatches = 0;
   const pagesPerLevel = 3;
@@ -78,18 +76,6 @@ document.addEventListener("DOMContentLoaded", function () {
     zIndex: "1000",
   });
   document.body.appendChild(feedbackImage);
-
-  function getRandomLetters(count) {
-    const available = allLetters.filter(l => {
-      return !currentLetters.includes(l);
-    });
-    const selected = [];
-    while (selected.length < count && available.length > 0) {
-      const index = Math.floor(Math.random() * available.length);
-      selected.push(available.splice(index, 1)[0]);
-    }
-    return selected;
-  }
 
   function loadPage() {
     if (currentLevel >= levels.length) return endGame();
@@ -150,7 +136,13 @@ document.addEventListener("DOMContentLoaded", function () {
       draggable.addEventListener("touchstart", touchStart);
 
       const matchingSlot = [...gameBoard.children].find(s => s.dataset.letter === letter);
-      const isSignInSlot = matchingSlot?.style.backgroundImage.includes("sign");
+      let isSignInSlot = false;
+      if (matchingSlot) {
+        isSignInSlot = matchingSlot.style.backgroundImage.includes("sign");
+      } else {
+        isSignInSlot = (mode === "signToImage");
+      }
+
       draggable.src = isSignInSlot
         ? `assets/alphabet/clipart/${letter}.png`
         : `assets/alphabet/signs/sign-${letter}.png`;
@@ -262,9 +254,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const correctLetters = [];
     const incorrectLetters = [];
 
+    let totalAttempts = 0;
+    let firstTryCorrect = 0;
+
     allLetters.forEach((letter) => {
       const stats = letterStats[letter];
       if (stats.attempts > 0) {
+        totalAttempts += stats.attempts;
+        if (stats.firstCorrect) firstTryCorrect++;
+
         let mark = "";
         if (stats.correct === 3) mark = letter + letter + letter;
         else if (stats.correct === 2) mark = "*" + letter + letter;
@@ -277,13 +275,20 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
+    const scorePercent = totalAttempts > 0 ? Math.round((firstTryCorrect / totalAttempts) * 100) : 0;
+
+    document.getElementById("score-display").innerText = `Score: ${scorePercent}%`;
+    const timeDisplay = document.createElement("p");
+    timeDisplay.innerText = `Time: ${formatted}`;
+    document.getElementById("end-modal-content").appendChild(timeDisplay);
+
     const entries = {
       "entry.1387461004": studentName,
       "entry.1309291707": studentClass,
       "entry.477642881": "Alphabet",
       "entry.1897227570": incorrectLetters.sort().join(", "),
       "entry.1249394203": correctLetters.sort((a,b) => a.replace(/\*/g, "").localeCompare(b.replace(/\*/g, ""))).join(", "),
-      "entry.1996137354": `${Math.round((correctLetters.length / (correctLetters.length + incorrectLetters.length)) * 100) || 0}%`,
+      "entry.1996137354": `${scorePercent}%`,
       "entry.1374858042": formatted,
     };
 
@@ -308,20 +313,7 @@ document.addEventListener("DOMContentLoaded", function () {
     form.submit();
 
     modal.style.display = "flex";
-    
-    document.getElementById("again-btn").addEventListener("click", () => {
-      location.reload();
-    });
-
-    document.getElementById("menu-btn").addEventListener("click", () => {  
-      window.location.href = "../index.html"; // or "AuslanPractice/index.html" depending on folder
-    });
-
-    document.getElementById("logout-btn").addEventListener("click", () => {
-      localStorage.removeItem("studentName");
-      localStorage.removeItem("studentClass");
-      window.location.href = "../index.html"; // or "login.html" if separate
-    });
   }
-    loadPage(); 
+
+  loadPage(); 
 });
