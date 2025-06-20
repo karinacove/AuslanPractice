@@ -13,46 +13,30 @@ document.addEventListener("DOMContentLoaded", function () {
   const menuBtn = document.getElementById("menu-btn");
   const logoutBtn = document.getElementById("logout-btn");
   const modal = document.getElementById("end-modal");
-
   const finishBtn = document.getElementById("finish-btn");
+
   if (finishBtn) {
-    finishBtn.addEventListener("click", () => {
-      endGame();
-    });
+    finishBtn.addEventListener("click", () => endGame());
   }
 
-  if (againBtn) {
-    againBtn.addEventListener("click", () => {
-      location.reload();
-    });
-  }
-
-  if (menuBtn) {
-    menuBtn.addEventListener("click", () => {
-      window.location.href = "../index.html";
-    });
-  }
-
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      localStorage.clear();
-      window.location.href = "../index.html";
-    });
-  }
+  if (againBtn) againBtn.addEventListener("click", () => location.reload());
+  if (menuBtn) menuBtn.addEventListener("click", () => window.location.href = "../index.html");
+  if (logoutBtn) logoutBtn.addEventListener("click", () => {
+    localStorage.clear();
+    window.location.href = "../index.html";
+  });
 
   const levels = [
     { type: "signToImage" },
     { type: "imageToSign" },
     { type: "mixed" },
   ];
+
   let currentLevel = 0;
   let currentPage = 0;
   const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
   const letterStats = {};
-
-  allLetters.forEach((letter) => {
-    letterStats[letter] = { attempts: 0, correct: 0, firstCorrect: false };
-  });
+  allLetters.forEach(letter => letterStats[letter] = { attempts: 0, correct: 0, firstCorrect: false });
 
   let currentLetters = [];
   let correctMatches = 0;
@@ -107,28 +91,28 @@ document.addEventListener("DOMContentLoaded", function () {
     levelTitle.innerText = `Level ${currentLevel + 1}: ` +
       (mode === "signToImage" ? "Match the Sign to the Picture" :
        mode === "imageToSign" ? "Match the Picture to the Sign" :
-         "Match Signs and Pictures (Mixed)");
+       "Match Signs and Pictures (Mixed)");
 
     const slotTypeMap = {};
 
-    currentLetters.forEach((letter) => {
+    currentLetters.forEach(letter => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
 
+      let isSign = false;
       if (mode === "signToImage") {
         slot.style.backgroundImage = `url('assets/alphabet/clipart/${letter}.png')`;
       } else if (mode === "imageToSign") {
         isSign = true;
         slot.style.backgroundImage = `url('assets/alphabet/signs/sign-${letter}.png')`;
       } else {
-        const matchingSlot = [...gameBoard.children].find(s => s.dataset.letter === letter);
-        const isSignInSlot = matchingSlot?.style.backgroundImage.includes("sign");
-        draggable.src = isSignInSlot
-          ? `assets/alphabet/clipart/${letter}.png`
-          : `assets/alphabet/signs/sign-${letter}.png`;
+        isSign = Math.random() < 0.5;
+        slot.style.backgroundImage = isSign
+          ? `url('assets/alphabet/signs/sign-${letter}.png')`
+          : `url('assets/alphabet/clipart/${letter}.png')`;
       }
-       
+      slotTypeMap[letter] = isSign;
       gameBoard.appendChild(slot);
     });
 
@@ -142,9 +126,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const isSignInSlot = slotTypeMap[letter] ?? (mode === "signToImage");
       draggable.src = isSignInSlot
-        ? `assets/alphabet/signs/sign-${letter}.png`
-        : `assets/alphabet/clipart/${letter}.png`;
-      
+        ? `assets/alphabet/clipart/${letter}.png`
+        : `assets/alphabet/signs/sign-${letter}.png`;
+
       const container = document.createElement("div");
       container.className = "drag-wrapper";
       container.appendChild(draggable);
@@ -156,7 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    document.querySelectorAll(".slot").forEach((slot) => {
+    document.querySelectorAll(".slot").forEach(slot => {
       slot.addEventListener("dragover", dragOver);
       slot.addEventListener("drop", drop);
     });
@@ -181,7 +165,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function handleDrop(slot, letter, src) {
     letterStats[letter].attempts++;
-
     if (slot.dataset.letter === letter) {
       correctMatches++;
       if (letterStats[letter].attempts === 1) {
@@ -222,9 +205,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function showFeedback(correct) {
     feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
     feedbackImage.style.display = "block";
-    setTimeout(() => {
-      feedbackImage.style.display = "none";
-    }, 1000);
+    setTimeout(() => feedbackImage.style.display = "none", 1000);
   }
 
   function touchStart(e) {
@@ -247,16 +228,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     moveClone(e.touches[0]);
 
-    const handleTouchMove = (ev) => {
-      moveClone(ev.touches[0]);
-    };
-
+    const handleTouchMove = (ev) => moveClone(ev.touches[0]);
     const handleTouchEnd = (ev) => {
       const touch = ev.changedTouches[0];
       const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (el && el.classList.contains("slot")) {
-        handleDrop(el, letter, src);
-      }
+      if (el && el.classList.contains("slot")) handleDrop(el, letter, src);
       document.removeEventListener("touchmove", handleTouchMove);
       document.removeEventListener("touchend", handleTouchEnd);
       clone.remove();
@@ -275,11 +251,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const correctLetters = [];
     const incorrectLetters = [];
-
     let totalAttempts = 0;
     let firstTryCorrect = 0;
 
-    allLetters.forEach((letter) => {
+    allLetters.forEach(letter => {
       const stats = letterStats[letter];
       if (stats.attempts > 0) {
         totalAttempts += stats.attempts;
@@ -298,7 +273,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     const scorePercent = totalAttempts > 0 ? Math.round((firstTryCorrect / totalAttempts) * 100) : 0;
-
     document.getElementById("score-display").innerText = `Score: ${scorePercent}%`;
     const timeDisplay = document.createElement("p");
     timeDisplay.innerText = `Time: ${formatted}`;
@@ -333,9 +307,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.body.appendChild(form);
     form.submit();
-
     modal.style.display = "flex";
   }
 
-  loadPage(); 
+  loadPage();
 });
