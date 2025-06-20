@@ -15,7 +15,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const modal = document.getElementById("end-modal");
   const finishBtn = document.getElementById("finish-btn");
 
-  if (finishBtn) finishBtn.addEventListener("click", () => endGame());
+  if (finishBtn) {
+    finishBtn.addEventListener("click", () => endGame());
+  }
+
   if (againBtn) againBtn.addEventListener("click", () => location.reload());
   if (menuBtn) menuBtn.addEventListener("click", () => window.location.href = "../index.html");
   if (logoutBtn) logoutBtn.addEventListener("click", () => {
@@ -80,7 +83,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (slot.dataset.letter === letter) {
       correctMatches++;
-      if (letterStats[letter].attempts === 1) letterStats[letter].firstCorrect = true;
+      if (letterStats[letter].attempts === 1) {
+        letterStats[letter].firstCorrect = true;
+      }
       letterStats[letter].correct++;
       showFeedback(true);
 
@@ -133,11 +138,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
     moveClone(e.touches[0]);
 
-    const handleTouchMove = (ev) => moveClone(ev.touches[0]);
+    const handleTouchMove = (ev) => {
+      moveClone(ev.touches[0]);
+    };
+
     const handleTouchEnd = (ev) => {
       const touch = ev.changedTouches[0];
       const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (el && el.classList.contains("slot")) handleDrop(el, letter, src);
+      if (el && el.classList.contains("slot")) {
+        handleDrop(el, letter, src);
+      }
       document.removeEventListener("touchmove", handleTouchMove);
       document.removeEventListener("touchend", handleTouchEnd);
       clone.remove();
@@ -150,16 +160,17 @@ document.addEventListener("DOMContentLoaded", function () {
   function showFeedback(correct) {
     feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
     feedbackImage.style.display = "block";
-    setTimeout(() => feedbackImage.style.display = "none", 1000);
+    setTimeout(() => {
+      feedbackImage.style.display = "none";
+    }, 1000);
   }
 
   function endGame() {
-    // Placeholder for endGame logic
+    // existing endGame code...
   }
 
   function loadPage() {
     if (currentLevel >= levels.length) return endGame();
-
     const mode = levels[currentLevel].type;
     currentLetters = [];
     const usedThisPage = new Set();
@@ -199,19 +210,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
       let isSign = false;
       if (mode === "signToImage") {
+        isSign = false;
         slot.style.backgroundImage = `url('assets/alphabet/clipart/${letter}.png')`;
-        slotTypeMap[letter] = false;
       } else if (mode === "imageToSign") {
+        isSign = true;
         slot.style.backgroundImage = `url('assets/alphabet/signs/sign-${letter}.png')`;
-        slotTypeMap[letter] = true;
       } else {
         isSign = Math.random() < 0.5;
         slot.style.backgroundImage = isSign
           ? `url('assets/alphabet/signs/sign-${letter}.png')`
           : `url('assets/alphabet/clipart/${letter}.png')`;
-        slotTypeMap[letter] = isSign;
       }
 
+      slotTypeMap[letter] = isSign;
       gameBoard.appendChild(slot);
     });
 
@@ -223,10 +234,19 @@ document.addEventListener("DOMContentLoaded", function () {
       draggable.addEventListener("dragstart", dragStart);
       draggable.addEventListener("touchstart", touchStart);
 
-      const isSlotSign = slotTypeMap[letter];
-      draggable.src = isSlotSign
-        ? `assets/alphabet/clipart/${letter}.png`
-        : `assets/alphabet/signs/sign-${letter}.png`;
+      const isSignInSlot = slotTypeMap[letter];
+
+      // For level 2 (imageToSign), all draggables should be clipart
+      if (mode === "imageToSign") {
+        draggable.src = `assets/alphabet/clipart/${letter}.png`;
+      } else if (mode === "signToImage") {
+        draggable.src = `assets/alphabet/signs/sign-${letter}.png`;
+      } else {
+        // Mixed level: if grid is sign, draggable is image and vice versa
+        draggable.src = isSignInSlot
+          ? `assets/alphabet/clipart/${letter}.png`
+          : `assets/alphabet/signs/sign-${letter}.png`;
+      }
 
       const container = document.createElement("div");
       container.className = "drag-wrapper";
