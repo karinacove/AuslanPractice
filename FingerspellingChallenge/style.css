@@ -189,34 +189,14 @@ button:hover {
   pointer-events: none;
 }
 
-#logoutBtn {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background-color: #dc3545;
-  color: white;    
-  border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  font-weight: bold;
-  cursor: pointer;
-  font-family: sans-serif;
-  z-index: 1500;
-  transition: background-color 0.3s;
-}
-
-#logoutBtn:hover {
-  background-color: #a71d2a;
-}
-
 #finishButton {
   position: absolute;
   background: transparent;
   border: none;
   padding: 0;
   margin: 0;
-  left: 20px;
-  bottom: 20px;
+  right: 20px;
+  top: 20px;
   width: 150px;
   height: 150px;
   box-shadow: none;
