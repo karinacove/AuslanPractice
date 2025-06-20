@@ -15,10 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const modal = document.getElementById("end-modal");
   const finishBtn = document.getElementById("finish-btn");
 
-  if (finishBtn) {
-    finishBtn.addEventListener("click", () => endGame());
-  }
-
+  if (finishBtn) finishBtn.addEventListener("click", () => endGame());
   if (againBtn) againBtn.addEventListener("click", () => location.reload());
   if (menuBtn) menuBtn.addEventListener("click", () => window.location.href = "../index.html");
   if (logoutBtn) logoutBtn.addEventListener("click", () => {
@@ -105,7 +102,11 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
           currentLevel++;
           currentPage = 0;
-          setTimeout(loadPage, 800);
+          if (currentLevel >= levels.length) {
+            setTimeout(endGame, 800);
+          } else {
+            setTimeout(loadPage, 800);
+          }
         }
       }
     } else {
@@ -138,16 +139,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     moveClone(e.touches[0]);
 
-    const handleTouchMove = (ev) => {
-      moveClone(ev.touches[0]);
-    };
+    const handleTouchMove = (ev) => moveClone(ev.touches[0]);
 
     const handleTouchEnd = (ev) => {
       const touch = ev.changedTouches[0];
       const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (el && el.classList.contains("slot")) {
-        handleDrop(el, letter, src);
-      }
+      if (el && el.classList.contains("slot")) handleDrop(el, letter, src);
       document.removeEventListener("touchmove", handleTouchMove);
       document.removeEventListener("touchend", handleTouchEnd);
       clone.remove();
@@ -160,13 +157,77 @@ document.addEventListener("DOMContentLoaded", function () {
   function showFeedback(correct) {
     feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
     feedbackImage.style.display = "block";
-    setTimeout(() => {
-      feedbackImage.style.display = "none";
-    }, 1000);
+    setTimeout(() => feedbackImage.style.display = "none", 1000);
   }
 
   function endGame() {
-    // existing endGame code...
+    const endTime = Date.now();
+    const time = Math.round((endTime - startTime) / 1000);
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    const formatted = `${minutes} mins ${seconds} sec`;
+
+    const correctLetters = [];
+    const incorrectLetters = [];
+    let totalAttempts = 0;
+    let firstTryCorrect = 0;
+
+    allLetters.forEach(letter => {
+      const stats = letterStats[letter];
+      if (stats.attempts > 0) {
+        totalAttempts += stats.attempts;
+        if (stats.firstCorrect) firstTryCorrect++;
+
+        let mark = "";
+        if (stats.correct === 3) mark = letter + letter + letter;
+        else if (stats.correct === 2) mark = "*" + letter + letter;
+        else if (stats.correct === 1) mark = "**" + letter;
+        if (mark) correctLetters.push(mark);
+
+        if (stats.correct < stats.attempts) {
+          incorrectLetters.push(letter.repeat(stats.attempts - stats.correct));
+        }
+      }
+    });
+
+    const scorePercent = totalAttempts > 0 ? Math.round((firstTryCorrect / totalAttempts) * 100) : 0;
+
+    document.getElementById("score-display").innerText = `Score: ${scorePercent}%`;
+    const timeDisplay = document.createElement("p");
+    timeDisplay.innerText = `Time: ${formatted}`;
+    document.getElementById("end-modal-content").appendChild(timeDisplay);
+
+    const entries = {
+      "entry.1387461004": studentName,
+      "entry.1309291707": studentClass,
+      "entry.477642881": "Alphabet",
+      "entry.1897227570": incorrectLetters.sort().join(", "),
+      "entry.1249394203": correctLetters.sort((a,b) => a.replace(/\*/g, "").localeCompare(b.replace(/\*/g, ""))).join(", "),
+      "entry.1996137354": `${scorePercent}%`,
+      "entry.1374858042": formatted,
+    };
+
+    const form = document.createElement("form");
+    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+    form.method = "POST";
+    form.target = "hidden_iframe";
+    const iframe = document.createElement("iframe");
+    iframe.name = "hidden_iframe";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+
+    for (const key in entries) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = entries[key];
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+
+    modal.style.display = "flex";
   }
 
   function loadPage() {
@@ -236,13 +297,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const isSignInSlot = slotTypeMap[letter];
 
-      // For level 2 (imageToSign), all draggables should be clipart
       if (mode === "imageToSign") {
         draggable.src = `assets/alphabet/clipart/${letter}.png`;
       } else if (mode === "signToImage") {
         draggable.src = `assets/alphabet/signs/sign-${letter}.png`;
       } else {
-        // Mixed level: if grid is sign, draggable is image and vice versa
         draggable.src = isSignInSlot
           ? `assets/alphabet/clipart/${letter}.png`
           : `assets/alphabet/signs/sign-${letter}.png`;
