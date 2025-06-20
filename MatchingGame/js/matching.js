@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", function () {
     levelTitle.innerText = `Level ${currentLevel + 1}: ` +
       (mode === "signToImage" ? "Match the Sign to the Picture" :
        mode === "imageToSign" ? "Match the Picture to the Sign" :
-       mode === "mixed" ? "Match Signs and Pictures (Mixed)");
+         "Match Signs and Pictures (Mixed)");
 
     const slotTypeMap = {};
 
