@@ -211,7 +211,7 @@ function showInvalidWordMessage(word) {
 }
 
 function finishButtonHandler(early = false) {
-    location.reload());
+    location.reload();
   
 function submitWordleResult(targetWord, guessesArray) {
     const guessList = guessesArray.join(', ');
