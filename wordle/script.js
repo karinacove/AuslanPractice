@@ -1,9 +1,14 @@
 let studentName = localStorage.getItem("studentName") || "";
 let studentClass = localStorage.getItem("studentClass") || "";
 
-const logoutBtn = document.getElementById("logout-btn");
 const studentInfoDiv = document.getElementById("student-info");
 const gameContainer = document.getElementById("game-container");
+const finishButton = document.getElementById("finish-btn");
+const endModal = document.getElementById("end-modal");
+const scoreDisplayModal = document.getElementById("score-display");
+const againBtn = document.getElementById("again-btn");
+const menuBtn = document.getElementById("menu-btn");
+const logoutImg = document.getElementById("logout-btn");
 
 // Redirect if not signed in
 if (!studentName || !studentClass) {
@@ -18,15 +23,30 @@ if (!studentName || !studentClass) {
   }
 }
 
-// Logout clears localStorage and redirects
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", () => {
+document.addEventListener('DOMContentLoaded', () => {
+    if (finishButton) {
+    finishButton.addEventListener('click', () => {
+      finishButton.style.display = 'none';
+      finishButtonHandler(true);
+    });
+  }
+
+  againBtn.addEventListener('click', () => {
+    endModal.style.display = 'none';
+    resetGame();
+  });
+
+  menuBtn.addEventListener('click', () => {
+    window.location.href = "../index.html";
+  });
+
+  logoutImg.addEventListener('click', () => {
     localStorage.removeItem("studentName");
     localStorage.removeItem("studentClass");
     window.location.href = "../index.html";
   });
 }
-
+                          
 function adjustZoom() {
     let scale = window.innerWidth / document.documentElement.clientWidth;
     document.body.style.transformOrigin = "top center";
