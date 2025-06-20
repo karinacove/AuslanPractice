@@ -133,11 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
         draggable.src = isSignInSlot
           ? `assets/alphabet/clipart/${letter}.png`
           : `assets/alphabet/signs/sign-${letter}.png`;
-      } else {
-        draggable.src = isSignInSlot
-           ? `assets/alphabet/clipart/${letter}.png`
-          : `assets/alphabet/signs/sign-${letter}.png`;
-     }
+      } 
       
       gameBoard.appendChild(slot);
     });
