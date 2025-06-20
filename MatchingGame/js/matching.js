@@ -61,6 +61,114 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.body.appendChild(feedbackImage);
 
+  function dragStart(e) {
+    e.dataTransfer.setData("text/plain", e.target.dataset.letter);
+    e.dataTransfer.setData("src", e.target.src);
+    e.target.classList.add("dragging");
+  }
+
+  function dragOver(e) {
+    e.preventDefault();
+  }
+
+  function drop(e) {
+    e.preventDefault();
+    const letter = e.dataTransfer.getData("text/plain");
+    const src = e.dataTransfer.getData("src");
+    handleDrop(e.currentTarget, letter, src);
+  }
+
+  function handleDrop(slot, letter, src) {
+    letterStats[letter].attempts++;
+
+    if (slot.dataset.letter === letter) {
+      correctMatches++;
+      if (letterStats[letter].attempts === 1) {
+        letterStats[letter].firstCorrect = true;
+      }
+      letterStats[letter].correct++;
+      showFeedback(true);
+
+      slot.innerHTML = "";
+      const overlay = document.createElement("img");
+      overlay.src = src;
+      overlay.className = "overlay";
+      slot.appendChild(overlay);
+
+      document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
+
+      if (correctMatches >= 9) {
+        correctMatches = 0;
+        currentPage++;
+        if (currentPage < pagesPerLevel) {
+          setTimeout(loadPage, 800);
+        } else {
+          currentLevel++;
+          currentPage = 0;
+          setTimeout(loadPage, 800);
+        }
+      }
+    } else {
+      showFeedback(false);
+      const wrong = document.querySelector(`img.draggable[data-letter='${letter}']`);
+      if (wrong) {
+        wrong.classList.add("shake");
+        setTimeout(() => wrong.classList.remove("shake"), 500);
+      }
+    }
+  }
+
+  function touchStart(e) {
+    e.preventDefault();
+    const target = e.target;
+    const letter = target.dataset.letter;
+    const src = target.src;
+
+    const clone = target.cloneNode(true);
+    clone.style.position = "absolute";
+    clone.style.pointerEvents = "none";
+    clone.style.opacity = "0.7";
+    clone.style.zIndex = "10000";
+    document.body.appendChild(clone);
+
+    const moveClone = (touch) => {
+      clone.style.left = `${touch.clientX - clone.width / 2}px`;
+      clone.style.top = `${touch.clientY - clone.height / 2}px`;
+    };
+
+    moveClone(e.touches[0]);
+
+    const handleTouchMove = (ev) => {
+      moveClone(ev.touches[0]);
+    };
+
+    const handleTouchEnd = (ev) => {
+      const touch = ev.changedTouches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (el && el.classList.contains("slot")) {
+        handleDrop(el, letter, src);
+      }
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
+      clone.remove();
+    };
+
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
+    document.addEventListener("touchend", handleTouchEnd, { passive: false });
+  }
+
+  function showFeedback(correct) {
+    feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
+    feedbackImage.style.display = "block";
+    setTimeout(() => {
+      feedbackImage.style.display = "none";
+    }, 1000);
+  }
+
+  function endGame() {
+    // existing endGame code...
+  }
+
   function loadPage() {
     if (currentLevel >= levels.length) return endGame();
     const mode = levels[currentLevel].type;
@@ -141,8 +249,6 @@ document.addEventListener("DOMContentLoaded", function () {
       slot.addEventListener("drop", drop);
     });
   }
-
-  // ... rest of script unchanged
 
   loadPage();
 });
