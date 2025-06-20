@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.removeItem("studentClass");
     window.location.href = "../index.html";
   });
-}
+})
                           
 function adjustZoom() {
     let scale = window.innerWidth / document.documentElement.clientWidth;
