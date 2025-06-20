@@ -129,6 +129,16 @@ document.addEventListener("DOMContentLoaded", function () {
         slot.dataset.isSign = isSign ? "true" : "false";
       }
 
+      if (mode === "mixed") {
+        draggable.src = isSignInSlot
+          ? `assets/alphabet/clipart/${letter}.png`
+          : `assets/alphabet/signs/sign-${letter}.png`;
+      } else {
+        draggable.src = isSignInSlot
+           ? `assets/alphabet/clipart/${letter}.png`
+          : `assets/alphabet/signs/sign-${letter}.png`;
+     }
+      
       gameBoard.appendChild(slot);
     });
 
