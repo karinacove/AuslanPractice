@@ -82,7 +82,7 @@ document.body.addEventListener('touchmove', e => moveDrag(e, true));
 document.body.addEventListener('touchend', endDrag);
 
 // -------------------------
-// Submit to Google Form & Show Modal
+// Finish Button: Submit & Show Modal
 // -------------------------
 document.getElementById("finish-btn").addEventListener("click", () => {
   const placedVehicles = document.querySelectorAll(".draggable-wrapper");
