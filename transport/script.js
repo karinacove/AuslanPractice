@@ -82,9 +82,9 @@ document.body.addEventListener('touchmove', e => moveDrag(e, true));
 document.body.addEventListener('touchend', endDrag);
 
 // -------------------------
-// Submit to Google Form
+// Submit to Google Form & Show Modal
 // -------------------------
-document.getElementById("submit-button").addEventListener("click", () => {
+document.getElementById("finish-btn").addEventListener("click", () => {
   const placedVehicles = document.querySelectorAll(".draggable-wrapper");
   const vehicleData = [];
 
@@ -108,28 +108,36 @@ document.getElementById("submit-button").addEventListener("click", () => {
   const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse";
 
   const formData = new FormData();
-  formData.append("entry.1202364028", "Mrs Cove");             // Teacher
-  formData.append("entry.1957249768", studentClass);           // Class
-  formData.append("entry.436910009", studentName);             // Name
-  formData.append("entry.169376211", "Give");                  // Task type
-  formData.append("entry.1017965571", "1");                    // Task number
-  formData.append("entry.1568301781", vehicleSummary);         // Vehicle positions
+  formData.append("entry.1202364028", "Mrs Cove");
+  formData.append("entry.1957249768", studentClass);
+  formData.append("entry.436910009", studentName);
+  formData.append("entry.169376211", "Give");
+  formData.append("entry.1017965571", "1");
+  formData.append("entry.1568301781", vehicleSummary);
 
   fetch(formURL, {
     method: "POST",
     mode: "no-cors",
     body: formData
   }).then(() => {
-    alert("✅ Submission successful!");
+    document.getElementById("end-modal").style.display = "flex";
   }).catch(() => {
     alert("❌ Submission failed. Please try again.");
   });
 });
 
 // -------------------------
-// Logout Button Handling
+// Modal Button Handling
 // -------------------------
-document.getElementById("logoutBtn").addEventListener("click", () => {
+document.getElementById("again-btn").addEventListener("click", () => {
+  window.location.reload();
+});
+
+document.getElementById("menu-btn").addEventListener("click", () => {
+  window.location.href = "hub.html";
+});
+
+document.getElementById("logout-btn").addEventListener("click", () => {
   localStorage.removeItem("studentName");
   localStorage.removeItem("studentClass");
   window.location.href = "../index.html";
