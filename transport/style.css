@@ -81,14 +81,18 @@ body {
 }
 
 #submit-button, #finish-btn {
-  margin-bottom: 20px;
-  padding: 12px 24px;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 100px;
+  padding: 12px;
   background-color: #28a745;
   color: white;
   font-size: 1rem;
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  z-index: 1001;
 }
 
 #submit-button:hover, #finish-btn:hover {
@@ -133,7 +137,6 @@ body {
   width: 100vw;
   height: 100vh;
   background: rgba(0, 0, 0, 0.7);
-  display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
@@ -143,6 +146,6 @@ body {
 #end-modal img {
   margin: 10px;
   cursor: pointer;
-  width: 20vw;
-  max-width: 300px;
+  width: 120px;
+  height: auto;
 }
