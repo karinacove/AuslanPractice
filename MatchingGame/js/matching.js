@@ -170,13 +170,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const correctLetters = [];
     const incorrectLetters = [];
     let totalAttempts = 0;
-    let firstTryCorrect = 0;
+    let totalFirstTryCorrect = 0;
 
     allLetters.forEach(letter => {
       const stats = letterStats[letter];
       if (stats.attempts > 0) {
         totalAttempts += stats.attempts;
-        if (stats.firstCorrect) firstTryCorrect++;
+        totalFirstTryCorrect += stats.firstCorrect ? 1 : 0;
 
         let mark = "";
         if (stats.correct === 3) mark = letter + letter + letter;
@@ -190,7 +190,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    const scorePercent = totalAttempts > 0 ? Math.round((firstTryCorrect / totalAttempts) * 100) : 0;
+    const scorePercent = totalAttempts > 0 ? Math.round((totalFirstTryCorrect / totalAttempts) * 100) : 0;
 
     document.getElementById("score-display").innerText = `Score: ${scorePercent}%`;
     const timeDisplay = document.createElement("p");
