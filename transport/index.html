@@ -7,21 +7,6 @@
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="style.css">
   <style>
-    #logoutBtn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background-color: #dc3545; /* red */
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 10px;
-      font-weight: bold;
-      cursor: pointer;
-      font-family: sans-serif;
-      z-index: 1500;
-      transition: background-color 0.3s;
-    }
     #logoutBtn:hover {
       background-color: #a71d2a;
     }
@@ -90,29 +75,11 @@
       border-radius: 12px;
       z-index: 10;
     }
-
-    #submit-button {
-      display: none;
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      padding: 10px 20px;
-      background: #007acc;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      z-index: 10;
-    }
-
-    #submit-button:hover {
-      background: #005fa3;
-    }
   </style>
 </head>
 <body>
   <div id="student-info"></div>
-  <button id="logoutBtn" title="Logout">Logout</button>
+  <img id="finish-btn" src="assets/finish.png" alt="Finish" style="cursor:pointer; width:100px;" />
   </div>
 <form id="student-form">
   <label for="jobDescription">Job Description:</label>
@@ -155,7 +122,7 @@
     <img src="assets/Pink Caravan.png" alt="PinkCaravan" class="draggable">
   </div>
 
-  <button id="submit-button">Submit</button>
+  <img id="finish-btn" src="assets/finish.png" alt="Finish" style="cursor:pointer; width:100px;" />
 
   <img id="playAgain" src="assets/Again.png" alt="Play Again" style="display: none; position: fixed; top: 70%; left: 50%; transform: translate(-50%, -50%); cursor: pointer; width: 20vw; max-width: 300px; z-index: 1001;">
 
@@ -274,42 +241,11 @@
       body: formData
     });
 
-    alert("How many vehicles did you get right?");
-    submitButton.disabled = true;
-    submitButton.innerText = 'Submitted';
-
-    setTimeout(() => {
-      showPlayAgainButton();
-    }, 3000);
-  });
-
-  function showPlayAgainButton() {
-    let button = document.getElementById("playAgain");
-    if (!button) {
-      button = document.createElement("img");
-      button.id = "playAgain";
-      button.src = "assets/Again.png";
-      button.alt = "Play Again";
-      button.style.position = "fixed";
-      button.style.bottom = "5vh";
-      button.style.left = "50%";
-      button.style.transform = "translateX(-50%)";
-      button.style.cursor = "pointer";
-      button.style.width = "200px";
-      button.style.zIndex = "1000";
-      document.body.appendChild(button);
-    }
-    button.style.display = "block";
-    button.addEventListener("click", () => location.reload());
-  }
-
-  const logoutBtn = document.getElementById("logoutBtn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("studentName");
-      localStorage.removeItem("studentClass");
-      window.location.href = "../index.html";
-    });
+    <div id="end-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; flex-direction:column; z-index:999;">
+      <img src="assets/again.png" id="again-btn" style="margin:10px; cursor:pointer;" />
+      <img src="assets/menu.png" id="menu-btn" style="margin:10px; cursor:pointer;" />
+      <img src="assets/logout.png" id="logout-btn" style="margin:10px; cursor:pointer;" />
+    </div>
   }
 </script>
 </body>
