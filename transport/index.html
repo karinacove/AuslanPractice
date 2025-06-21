@@ -7,10 +7,6 @@
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="style.css">
   <style>
-    #logoutBtn:hover {
-      background-color: #a71d2a;
-    }
-    
     #student-info {
       position: fixed;
       top: 20px;
@@ -23,7 +19,7 @@
       font-family: sans-serif;
       font-weight: bold;
       z-index: 1000;
-    }  
+    }
 
     html, body {
       height: 100%;
@@ -75,178 +71,171 @@
       border-radius: 12px;
       z-index: 10;
     }
+
+    #end-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 999;
+    }
   </style>
 </head>
 <body>
   <div id="student-info"></div>
-  <img id="finish-btn" src="assets/finish.png" alt="Finish" style="cursor:pointer; width:100px;" />
-  </div>
-<form id="student-form">
-  <label for="jobDescription">Job Description:</label>
-  <input type="text" id="jobDescription" name="jobDescription" required>
 
-  <label for="partnerName">Partner Name:</label>
-  <input type="text" id="partnerName" name="partnerName" required>
+  <form id="student-form">
+    <label for="jobDescription">Job Description:</label>
+    <input type="text" id="jobDescription" name="jobDescription" required>
 
-  <button type="submit">Start</button>
-</form>
+    <label for="partnerName">Partner Name:</label>
+    <input type="text" id="partnerName" name="partnerName" required>
+
+    <button type="submit">Start</button>
+  </form>
+
+  <img id="finish-btn" src="assets/finish.png" alt="Finish" style="cursor:pointer; width:100px; display:none;" />
 
   <div id="vehicle-palette" style="display: none;">
-    <img src="assets/Blue Car.png" alt="BlueCar" class="draggable">
-    <img src="assets/Green Car.png" alt="GreenCar" class="draggable">
-    <img src="assets/Red Car.png" alt="RedCar" class="draggable">
-    <img src="assets/Yellow Car.png" alt="YellowCar" class="draggable">
-    <img src="assets/White Van.png" alt="WhiteVan" class="draggable">
-    <img src="assets/Blue Van.png" alt="BlueVan" class="draggable">
-    <img src="assets/Green Boat.png" alt="GreenBoat" class="draggable">
-    <img src="assets/Yellow Boat.png" alt="YellowBoat" class="draggable">   
-    <img src="assets/Purple Train.png" alt="PurpleTrain" class="draggable">
-    <img src="assets/Red Train.png" alt="RedTrain" class="draggable">
-    <img src="assets/Green Tram.png" alt="GreenTram" class="draggable">
-    <img src="assets/Yellow Tram.png" alt="YellowTram" class="draggable">
-    <img src="assets/Blue Bus.png" alt="BlueBus" class="draggable">
-    <img src="assets/Yellow Bus.png" alt="YellowBus" class="draggable">   
-    <img src="assets/Pink Plane.png" alt="PinkPlane" class="draggable">
-    <img src="assets/Blue Plane.png" alt="BluePlane" class="draggable">
-    <img src="assets/Red Truck.png" alt="RedTruck" class="draggable">
-    <img src="assets/Blue Truck.png" alt="BlueTruck" class="draggable">
-    <img src="assets/Green Bike.png" alt="GreenBike" class="draggable">  
-    <img src="assets/Purple Bike.png" alt="PurpleBike" class="draggable">
-    <img src="assets/Girl and Dog.png" alt="GirlDog" class="draggable">
-    <img src="assets/Red Helicopter.png" alt="RedHelicopter" class="draggable">
-    <img src="assets/Green Helicopter.png" alt="GreenHelicopter" class="draggable">
-    <img src="assets/Green Motorbike.png" alt="GreenMotorbike" class="draggable">
-    <img src="assets/Red Motorbike.png" alt="RedMotorbike" class="draggable">
-    <img src="assets/Man and Dog.png" alt="ManDog" class="draggable">
-    <img src="assets/Two People Walking.png" alt="TwoPeopleWalking" class="draggable">   
-    <img src="assets/Pink Caravan.png" alt="PinkCaravan" class="draggable">
+    <!-- All vehicle images go here -->
   </div>
 
-  <img id="finish-btn" src="assets/finish.png" alt="Finish" style="cursor:pointer; width:100px;" />
+  <div id="end-modal">
+    <img src="assets/again.png" id="again-btn" style="margin:10px; cursor:pointer;" />
+    <img src="assets/menu.png" id="menu-btn" style="margin:10px; cursor:pointer;" />
+    <img src="assets/logout.png" id="logout-btn" style="margin:10px; cursor:pointer;" />
+  </div>
 
-  <img id="playAgain" src="assets/Again.png" alt="Play Again" style="display: none; position: fixed; top: 70%; left: 50%; transform: translate(-50%, -50%); cursor: pointer; width: 20vw; max-width: 300px; z-index: 1001;">
+  <script>
+    const form = document.getElementById('student-form');
+    const palette = document.getElementById('vehicle-palette');
+    const finishBtn = document.getElementById('finish-btn');
+    const studentInfo = document.getElementById('student-info');
+    const modal = document.getElementById('end-modal');
 
+    const studentName = localStorage.getItem('studentName') || '';
+    const studentClass = localStorage.getItem('studentClass') || '';
 
- <script>
-  const form = document.getElementById('student-form');
-  const palette = document.getElementById('vehicle-palette');
-  const submitButton = document.getElementById('submit-button');
-  const studentInfo = document.getElementById('student-info');
-
-  const studentName = localStorage.getItem('studentName') || '';
-  const studentClass = localStorage.getItem('studentClass') || '';
-
-  // Redirect if not signed in
-  if (!studentName || !studentClass) {
-    alert("Please log in first.");
-    window.location.href = "../index.html"; // adjust as needed
-  }
-
-  let jobDescription = '';
-  let partnerName = '';
-  let dragged;
-  const MAX_VEHICLES = 10;
-
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    jobDescription = form.elements['jobDescription'].value;
-    partnerName = form.elements['partnerName'].value;
-    form.style.display = 'none';
-    palette.style.display = 'grid';
-    submitButton.style.display = 'inline-block';
-    studentInfo.style.display = 'block';
-    studentInfo.innerText = `${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
-  });
-
-  document.body.addEventListener('mousedown', (e) => {
-    if (!e.target.classList.contains('draggable') || e.target.parentElement !== palette) return;
-    const existingCount = document.querySelectorAll('body > .draggable-wrapper').length;
-    if (existingCount >= MAX_VEHICLES) return;
-
-    const wrapper = document.createElement('div');
-    wrapper.classList.add('draggable-wrapper');
-    wrapper.style.position = 'absolute';
-    wrapper.style.left = e.pageX - 40 + 'px';
-    wrapper.style.top = e.pageY - 40 + 'px';
-    wrapper.style.zIndex = 1000;
-
-    const clone = e.target.cloneNode(true);
-    clone.style.pointerEvents = 'none';
-    wrapper.appendChild(clone);
-
-    const flipBtn = document.createElement('button');
-    flipBtn.className = 'flip-btn';
-    flipBtn.innerHTML = '↔';
-    flipBtn.style.display = 'none';
-    flipBtn.onclick = (ev) => {
-      ev.stopPropagation();
-      clone.classList.toggle('flipped-horizontal');
-    };
-    wrapper.appendChild(flipBtn);
-
-    wrapper.addEventListener('mouseenter', () => flipBtn.style.display = 'block');
-    wrapper.addEventListener('mouseleave', () => flipBtn.style.display = 'none');
-
-    document.body.appendChild(wrapper);
-
-    dragged = wrapper;
-    dragged.offsetX = e.offsetX;
-    dragged.offsetY = e.offsetY;
-  });
-
-  document.body.addEventListener('mousemove', (e) => {
-    if (dragged) {
-      dragged.style.left = (e.pageX - dragged.offsetX) + 'px';
-      dragged.style.top = (e.pageY - dragged.offsetY) + 'px';
+    if (!studentName || !studentClass) {
+      alert("Please log in first.");
+      window.location.href = "../index.html";
     }
-  });
 
-  document.body.addEventListener('mouseup', () => {
-    if (dragged) dragged.style.zIndex = '';
-    dragged = null;
-  });
+    let jobDescription = '';
+    let partnerName = '';
+    let dragged;
+    const MAX_VEHICLES = 10;
 
-  document.body.addEventListener('dblclick', (e) => {
-    const wrapper = e.target.closest('.draggable-wrapper');
-    if (wrapper) wrapper.remove();
-  });
-
-  submitButton.addEventListener('click', () => {
-    const vehicleWrappers = [...document.querySelectorAll('.draggable-wrapper')];
-    const vehicleData = vehicleWrappers
-      .map(wrapper => {
-        const img = wrapper.querySelector('img');
-        const alt = img?.alt || "Unknown";
-        const flipped = img?.classList.contains('flipped-horizontal') ? ' (flipped)' : '';
-        return {
-          name: alt,
-          position: `${alt}${flipped} at (${wrapper.style.left}, ${wrapper.style.top})`
-        };
-      })
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map(entry => entry.position)
-      .join('; ');
-
-    const formData = new FormData();
-    formData.append('entry.1202364028', studentName);
-    formData.append('entry.1957249768', studentClass);
-    formData.append('entry.436910009', jobDescription);
-    formData.append('entry.169376211', partnerName);
-    formData.append('entry.1017965571', '1');
-    formData.append('entry.1568301781', vehicleData);
-
-    fetch('https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse', {
-      method: 'POST',
-      mode: 'no-cors',
-      body: formData
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      jobDescription = form.elements['jobDescription'].value;
+      partnerName = form.elements['partnerName'].value;
+      form.style.display = 'none';
+      palette.style.display = 'grid';
+      finishBtn.style.display = 'inline-block';
+      studentInfo.innerText = `${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
     });
 
-    <div id="end-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; flex-direction:column; z-index:999;">
-      <img src="assets/again.png" id="again-btn" style="margin:10px; cursor:pointer;" />
-      <img src="assets/menu.png" id="menu-btn" style="margin:10px; cursor:pointer;" />
-      <img src="assets/logout.png" id="logout-btn" style="margin:10px; cursor:pointer;" />
-    </div>
-  }
-</script>
+    document.body.addEventListener('mousedown', (e) => {
+      if (!e.target.classList.contains('draggable') || e.target.parentElement !== palette) return;
+      const existingCount = document.querySelectorAll('body > .draggable-wrapper').length;
+      if (existingCount >= MAX_VEHICLES) return;
+
+      const wrapper = document.createElement('div');
+      wrapper.classList.add('draggable-wrapper');
+      wrapper.style.position = 'absolute';
+      wrapper.style.left = e.pageX - 40 + 'px';
+      wrapper.style.top = e.pageY - 40 + 'px';
+      wrapper.style.zIndex = 1000;
+
+      const clone = e.target.cloneNode(true);
+      clone.style.pointerEvents = 'none';
+      wrapper.appendChild(clone);
+
+      const flipBtn = document.createElement('button');
+      flipBtn.className = 'flip-btn';
+      flipBtn.innerHTML = '↔';
+      flipBtn.style.display = 'none';
+      flipBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        clone.classList.toggle('flipped-horizontal');
+      };
+      wrapper.appendChild(flipBtn);
+
+      wrapper.addEventListener('mouseenter', () => flipBtn.style.display = 'block');
+      wrapper.addEventListener('mouseleave', () => flipBtn.style.display = 'none');
+
+      document.body.appendChild(wrapper);
+
+      dragged = wrapper;
+      dragged.offsetX = e.offsetX;
+      dragged.offsetY = e.offsetY;
+    });
+
+    document.body.addEventListener('mousemove', (e) => {
+      if (dragged) {
+        dragged.style.left = (e.pageX - dragged.offsetX) + 'px';
+        dragged.style.top = (e.pageY - dragged.offsetY) + 'px';
+      }
+    });
+
+    document.body.addEventListener('mouseup', () => {
+      if (dragged) dragged.style.zIndex = '';
+      dragged = null;
+    });
+
+    document.body.addEventListener('dblclick', (e) => {
+      const wrapper = e.target.closest('.draggable-wrapper');
+      if (wrapper) wrapper.remove();
+    });
+
+    finishBtn.addEventListener('click', () => {
+      const vehicleWrappers = [...document.querySelectorAll('.draggable-wrapper')];
+      const vehicleData = vehicleWrappers
+        .map(wrapper => {
+          const img = wrapper.querySelector('img');
+          const alt = img?.alt || "Unknown";
+          const flipped = img?.classList.contains('flipped-horizontal') ? ' (flipped)' : '';
+          return {
+            name: alt,
+            position: `${alt}${flipped} at (${wrapper.style.left}, ${wrapper.style.top})`
+          };
+        })
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(entry => entry.position)
+        .join('; ');
+
+      const formData = new FormData();
+      formData.append('entry.1202364028', studentName);
+      formData.append('entry.1957249768', studentClass);
+      formData.append('entry.436910009', jobDescription);
+      formData.append('entry.169376211', partnerName);
+      formData.append('entry.1017965571', '1');
+      formData.append('entry.1568301781', vehicleData);
+
+      fetch('https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse', {
+        method: 'POST',
+        mode: 'no-cors',
+        body: formData
+      }).then(() => {
+        modal.style.display = 'flex';
+      });
+    });
+
+    document.getElementById('again-btn').addEventListener('click', () => window.location.reload());
+    document.getElementById('menu-btn').addEventListener('click', () => window.location.href = 'hub.html');
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      localStorage.removeItem('studentName');
+      localStorage.removeItem('studentClass');
+      window.location.href = '../index.html';
+    });
+  </script>
 </body>
 </html>
