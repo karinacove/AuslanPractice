@@ -1,324 +1,144 @@
-document.addEventListener("DOMContentLoaded", function () {
-  let studentName = localStorage.getItem("studentName") || "";
-  let studentClass = localStorage.getItem("studentClass") || "";
+// -------------------------
+// Student Sign-in Handling
+// -------------------------
+const studentName = localStorage.getItem("studentName") || "";
+const studentClass = localStorage.getItem("studentClass") || "";
 
-  if (!studentName || !studentClass) {
-    window.location.href = "../index.html";
-    return;
-  }
+if (!studentName || !studentClass) {
+  alert("Please return to the sign-in page.");
+  window.location.href = "../index.html";
+}
 
-  document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
+document.getElementById("student-info").textContent = `👤 ${studentName} (${studentClass})`;
+document.getElementById("vehicle-palette").style.display = "block";
 
-  const againBtn = document.getElementById("again-btn");
-  const menuBtn = document.getElementById("menu-btn");
-  const logoutBtn = document.getElementById("logout-btn");
-  const modal = document.getElementById("end-modal");
-  const finishBtn = document.getElementById("finish-btn");
+// -------------------------
+// Drag & Drop Vehicle Logic with Touch Support
+// -------------------------
+const MAX_VEHICLES = 12;
+const palette = document.getElementById("vehicle-palette");
+let dragged = null;
 
-  if (finishBtn) finishBtn.addEventListener("click", () => endGame());
-  if (againBtn) againBtn.addEventListener("click", () => location.reload());
-  if (menuBtn) menuBtn.addEventListener("click", () => window.location.href = "../index.html");
-  if (logoutBtn) logoutBtn.addEventListener("click", () => {
-    localStorage.clear();
-    window.location.href = "../index.html";
+function startDrag(e, isTouch = false) {
+  const target = isTouch ? e.targetTouches[0].target : e.target;
+  if (!target.classList.contains('draggable') || target.parentElement !== palette) return;
+  if (document.querySelectorAll('body > .draggable-wrapper').length >= MAX_VEHICLES) return;
+
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('draggable-wrapper');
+  wrapper.style.position = 'absolute';
+  wrapper.style.zIndex = 1000;
+
+  const clone = target.cloneNode(true);
+  clone.classList.add("dropped-vehicle");
+  clone.style.pointerEvents = 'none';
+  wrapper.appendChild(clone);
+
+  const flipBtn = document.createElement('button');
+  flipBtn.className = 'flip-btn';
+  flipBtn.innerHTML = '↔';
+  flipBtn.style.display = 'none';
+  flipBtn.onclick = (ev) => {
+    ev.stopPropagation();
+    clone.classList.toggle('flipped-horizontal');
+  };
+  wrapper.appendChild(flipBtn);
+
+  wrapper.addEventListener('mouseenter', () => flipBtn.style.display = 'block');
+  wrapper.addEventListener('mouseleave', () => flipBtn.style.display = 'none');
+
+  document.body.appendChild(wrapper);
+  dragged = wrapper;
+
+  const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
+  const clientY = isTouch ? e.targetTouches[0].clientY : e.clientY;
+
+  dragged.offsetX = 40;
+  dragged.offsetY = 40;
+  dragged.style.left = (clientX - dragged.offsetX) + 'px';
+  dragged.style.top = (clientY - dragged.offsetY) + 'px';
+
+  e.preventDefault();
+}
+
+function moveDrag(e, isTouch = false) {
+  if (!dragged) return;
+  const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
+  const clientY = isTouch ? e.targetTouches[0].clientY : e.clientY;
+  dragged.style.left = (clientX - dragged.offsetX) + 'px';
+  dragged.style.top = (clientY - dragged.offsetY) + 'px';
+}
+
+function endDrag() {
+  if (dragged) dragged.style.zIndex = '';
+  dragged = null;
+}
+
+document.body.addEventListener('mousedown', e => startDrag(e, false));
+document.body.addEventListener('mousemove', e => moveDrag(e, false));
+document.body.addEventListener('mouseup', endDrag);
+document.body.addEventListener('touchstart', e => startDrag(e, true));
+document.body.addEventListener('touchmove', e => moveDrag(e, true));
+document.body.addEventListener('touchend', endDrag);
+
+// -------------------------
+// Submit to Google Form & Show Modal
+// -------------------------
+document.getElementById("finish-btn").addEventListener("click", () => {
+  const placedVehicles = document.querySelectorAll(".draggable-wrapper");
+  const vehicleData = [];
+
+  placedVehicles.forEach(wrapper => {
+    const img = wrapper.querySelector("img");
+    const isFlipped = img.classList.contains("flipped-horizontal");
+    vehicleData.push({
+      name: img.src.split("/").pop().split(".")[0],
+      x: wrapper.style.left,
+      y: wrapper.style.top,
+      flipped: isFlipped
+    });
   });
 
-  const levels = [
-    { type: "signToImage" },
-    { type: "imageToSign" },
-    { type: "mixed" },
-  ];
+  vehicleData.sort((a, b) => a.name.localeCompare(b.name));
 
-  let currentLevel = 0;
-  let currentPage = 0;
-  const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
-  const letterStats = {};
-  allLetters.forEach(letter => letterStats[letter] = { attempts: 0, correct: 0, firstCorrect: false });
+  const vehicleSummary = vehicleData.map(v =>
+    `${v.name} at (${v.x}, ${v.y})${v.flipped ? " [flipped]" : ""}`
+  ).join("; ");
 
-  let currentLetters = [];
-  let correctMatches = 0;
-  const pagesPerLevel = 3;
-  let startTime = Date.now();
+  const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse";
 
-  const gameBoard = document.getElementById("gameBoard");
-  const leftSigns = document.getElementById("leftSigns");
-  const rightSigns = document.getElementById("rightSigns");
-  const levelTitle = document.getElementById("levelTitle");
+  const formData = new FormData();
+  formData.append("entry.1202364028", "Mrs Cove");
+  formData.append("entry.1957249768", studentClass);
+  formData.append("entry.436910009", studentName);
+  formData.append("entry.169376211", "Give");
+  formData.append("entry.1017965571", "1");
+  formData.append("entry.1568301781", vehicleSummary);
 
-  const feedbackImage = document.createElement("img");
-  feedbackImage.id = "feedbackImage";
-  Object.assign(feedbackImage.style, {
-    position: "fixed",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "200px",
-    display: "none",
-    zIndex: "1000",
+  fetch(formURL, {
+    method: "POST",
+    mode: "no-cors",
+    body: formData
+  }).then(() => {
+    document.getElementById("end-modal").style.display = "flex";
+  }).catch(() => {
+    alert("❌ Submission failed. Please try again.");
   });
-  document.body.appendChild(feedbackImage);
+});
 
-  function dragStart(e) {
-    e.dataTransfer.setData("text/plain", e.target.dataset.letter);
-    e.dataTransfer.setData("src", e.target.src);
-    e.target.classList.add("dragging");
-  }
+// -------------------------
+// Modal Button Handling
+// -------------------------
+document.getElementById("again-btn").addEventListener("click", () => {
+  window.location.reload();
+});
 
-  function dragOver(e) {
-    e.preventDefault();
-  }
+document.getElementById("menu-btn").addEventListener("click", () => {
+  window.location.href = "hub.html";
+});
 
-  function drop(e) {
-    e.preventDefault();
-    const letter = e.dataTransfer.getData("text/plain");
-    const src = e.dataTransfer.getData("src");
-    handleDrop(e.currentTarget, letter, src);
-  }
-
-  function handleDrop(slot, letter, src) {
-    letterStats[letter].attempts++;
-
-    if (slot.dataset.letter === letter) {
-      correctMatches++;
-      if (letterStats[letter].attempts === 1) {
-        letterStats[letter].firstCorrect = true;
-      }
-      letterStats[letter].correct++;
-      showFeedback(true);
-
-      slot.innerHTML = "";
-      const overlay = document.createElement("img");
-      overlay.src = src;
-      overlay.className = "overlay";
-      slot.appendChild(overlay);
-
-      document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
-
-      if (correctMatches >= 9) {
-        correctMatches = 0;
-        currentPage++;
-        if (currentPage < pagesPerLevel) {
-          setTimeout(loadPage, 800);
-        } else {
-          currentLevel++;
-          currentPage = 0;
-          if (currentLevel >= levels.length) {
-            setTimeout(endGame, 800);
-          } else {
-            setTimeout(loadPage, 800);
-          }
-        }
-      }
-    } else {
-      showFeedback(false);
-      const wrong = document.querySelector(`img.draggable[data-letter='${letter}']`);
-      if (wrong) {
-        wrong.classList.add("shake");
-        setTimeout(() => wrong.classList.remove("shake"), 500);
-      }
-    }
-  }
-
-  function touchStart(e) {
-    e.preventDefault();
-    const target = e.target;
-    const letter = target.dataset.letter;
-    const src = target.src;
-
-    const clone = target.cloneNode(true);
-    clone.style.position = "absolute";
-    clone.style.pointerEvents = "none";
-    clone.style.opacity = "0.7";
-    clone.style.zIndex = "10000";
-    document.body.appendChild(clone);
-
-    const moveClone = (touch) => {
-      clone.style.left = `${touch.clientX - clone.width / 2}px`;
-      clone.style.top = `${touch.clientY - clone.height / 2}px`;
-    };
-
-    moveClone(e.touches[0]);
-
-    const handleTouchMove = (ev) => moveClone(ev.touches[0]);
-
-    const handleTouchEnd = (ev) => {
-      const touch = ev.changedTouches[0];
-      const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (el && el.classList.contains("slot")) handleDrop(el, letter, src);
-      document.removeEventListener("touchmove", handleTouchMove);
-      document.removeEventListener("touchend", handleTouchEnd);
-      clone.remove();
-    };
-
-    document.addEventListener("touchmove", handleTouchMove, { passive: false });
-    document.addEventListener("touchend", handleTouchEnd, { passive: false });
-  }
-
-  function showFeedback(correct) {
-    feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
-    feedbackImage.style.display = "block";
-    setTimeout(() => feedbackImage.style.display = "none", 1000);
-  }
-
-  function endGame() {
-    const endTime = Date.now();
-    const time = Math.round((endTime - startTime) / 1000);
-    const minutes = Math.floor(time / 60);
-    const seconds = time % 60;
-    const formatted = `${minutes} mins ${seconds} sec`;
-
-    const correctLetters = [];
-    const incorrectLetters = [];
-    let totalAttempts = 0;
-    let totalFirstTryCorrect = 0;
-
-    allLetters.forEach(letter => {
-      const stats = letterStats[letter];
-      if (stats.attempts > 0) {
-        totalAttempts += stats.attempts;
-        totalFirstTryCorrect += stats.firstCorrect ? 1 : 0;
-
-        let mark = "";
-        if (stats.correct === 3) mark = letter + letter + letter;
-        else if (stats.correct === 2) mark = "*" + letter + letter;
-        else if (stats.correct === 1) mark = "**" + letter;
-        if (mark) correctLetters.push(mark);
-
-        if (stats.correct < stats.attempts) {
-          incorrectLetters.push(letter.repeat(stats.attempts - stats.correct));
-        }
-      }
-    });
-
-    const scorePercent = totalAttempts > 0 ? Math.round((totalFirstTryCorrect / totalAttempts) * 100) : 0;
-
-    document.getElementById("score-display").innerText = `Score: ${scorePercent}%`;
-    const timeDisplay = document.createElement("p");
-    timeDisplay.innerText = `Time: ${formatted}`;
-    document.getElementById("end-modal-content").appendChild(timeDisplay);
-
-    const entries = {
-      "entry.1387461004": studentName,
-      "entry.1309291707": studentClass,
-      "entry.477642881": "Alphabet",
-      "entry.1897227570": incorrectLetters.sort().join(", "),
-      "entry.1249394203": correctLetters.sort((a,b) => a.replace(/\*/g, "").localeCompare(b.replace(/\*/g, ""))).join(", "),
-      "entry.1996137354": `${scorePercent}%`,
-      "entry.1374858042": formatted,
-    };
-
-    const form = document.createElement("form");
-    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
-    form.method = "POST";
-    form.target = "hidden_iframe";
-    const iframe = document.createElement("iframe");
-    iframe.name = "hidden_iframe";
-    iframe.style.display = "none";
-    document.body.appendChild(iframe);
-
-    for (const key in entries) {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = key;
-      input.value = entries[key];
-      form.appendChild(input);
-    }
-
-    document.body.appendChild(form);
-    form.submit();
-
-    modal.style.display = "flex";
-  }
-
-  function loadPage() {
-    if (currentLevel >= levels.length) return endGame();
-    const mode = levels[currentLevel].type;
-    currentLetters = [];
-    const usedThisPage = new Set();
-
-    while (currentLetters.length < 9) {
-      const candidates = allLetters.filter(l => !usedThisPage.has(l));
-      const letter = candidates[Math.floor(Math.random() * candidates.length)];
-      if (!letter) break;
-      currentLetters.push(letter);
-      usedThisPage.add(letter);
-    }
-
-    const remaining = allLetters.filter(l => !currentLetters.includes(l));
-    const decoys = [];
-    while (decoys.length < 3 && remaining.length > 0) {
-      const idx = Math.floor(Math.random() * remaining.length);
-      decoys.push(remaining.splice(idx, 1)[0]);
-    }
-
-    const draggables = [...currentLetters, ...decoys].sort(() => Math.random() - 0.5);
-
-    gameBoard.innerHTML = "";
-    leftSigns.innerHTML = "";
-    rightSigns.innerHTML = "";
-
-    levelTitle.innerText = `Level ${currentLevel + 1}: ` +
-      (mode === "signToImage" ? "Match the Sign to the Picture" :
-       mode === "imageToSign" ? "Match the Picture to the Sign" :
-       "Match Signs and Pictures (Mixed)");
-
-    const slotTypeMap = {};
-
-    currentLetters.forEach(letter => {
-      const slot = document.createElement("div");
-      slot.className = "slot";
-      slot.dataset.letter = letter;
-
-      let isSign = false;
-      if (mode === "signToImage") {
-        isSign = false;
-        slot.style.backgroundImage = `url('assets/alphabet/clipart/${letter}.png')`;
-      } else if (mode === "imageToSign") {
-        isSign = true;
-        slot.style.backgroundImage = `url('assets/alphabet/signs/sign-${letter}.png')`;
-      } else {
-        isSign = Math.random() < 0.5;
-        slot.style.backgroundImage = isSign
-          ? `url('assets/alphabet/signs/sign-${letter}.png')`
-          : `url('assets/alphabet/clipart/${letter}.png')`;
-      }
-
-      slotTypeMap[letter] = isSign;
-      gameBoard.appendChild(slot);
-    });
-
-    draggables.forEach((letter, i) => {
-      const draggable = document.createElement("img");
-      draggable.dataset.letter = letter;
-      draggable.className = "draggable";
-      draggable.draggable = true;
-      draggable.addEventListener("dragstart", dragStart);
-      draggable.addEventListener("touchstart", touchStart);
-
-      const isSignInSlot = slotTypeMap[letter];
-
-      if (mode === "imageToSign") {
-        draggable.src = `assets/alphabet/clipart/${letter}.png`;
-      } else if (mode === "signToImage") {
-        draggable.src = `assets/alphabet/signs/sign-${letter}.png`;
-      } else {
-        draggable.src = isSignInSlot
-          ? `assets/alphabet/clipart/${letter}.png`
-          : `assets/alphabet/signs/sign-${letter}.png`;
-      }
-
-      const container = document.createElement("div");
-      container.className = "drag-wrapper";
-      container.appendChild(draggable);
-
-      (i < draggables.length / 2 ? leftSigns : rightSigns).appendChild(container);
-    });
-
-    document.querySelectorAll(".slot").forEach(slot => {
-      slot.addEventListener("dragover", dragOver);
-      slot.addEventListener("drop", drop);
-    });
-  }
-
-  loadPage();
+document.getElementById("logout-btn").addEventListener("click", () => {
+  localStorage.removeItem("studentName");
+  localStorage.removeItem("studentClass");
+  window.location.href = "../index.html";
 });
