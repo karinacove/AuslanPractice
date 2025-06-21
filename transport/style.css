@@ -80,7 +80,11 @@ body {
   background-color: #005fa3;
 }
 
-#submit-button, #finish-btn {
+#submit-button {
+  display: none;
+}
+
+#finish-btn {
   position: fixed;
   top: 20px;
   right: 20px;
@@ -95,7 +99,7 @@ body {
   z-index: 1001;
 }
 
-#submit-button:hover, #finish-btn:hover {
+#finish-btn:hover {
   background-color: #218838;
 }
 
@@ -139,7 +143,7 @@ body {
   background: rgba(0, 0, 0, 0.7);
   align-items: center;
   justify-content: center;
-  flex-direction: column;
+  flex-direction: row;
   z-index: 999;
 }
 
