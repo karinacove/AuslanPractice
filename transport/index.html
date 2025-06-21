@@ -72,6 +72,16 @@
       z-index: 10;
     }
 
+    #finish-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      cursor: pointer;
+      width: 100px;
+      display: none;
+      z-index: 1000;
+    }
+
     #end-modal {
       display: none;
       position: fixed;
@@ -83,8 +93,14 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-direction: column;
+      flex-direction: row;
+      gap: 20px;
       z-index: 999;
+    }
+
+    #end-modal img {
+      width: 120px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -101,141 +117,18 @@
     <button type="submit">Start</button>
   </form>
 
-  <img id="finish-btn" src="assets/finish.png" alt="Finish" style="cursor:pointer; width:100px; display:none;" />
+  <img id="finish-btn" src="assets/finish.png" alt="Finish" />
 
   <div id="vehicle-palette" style="display: none;">
     <!-- All vehicle images go here -->
   </div>
 
   <div id="end-modal">
-    <img src="assets/again.png" id="again-btn" style="margin:10px; cursor:pointer;" />
-    <img src="assets/menu.png" id="menu-btn" style="margin:10px; cursor:pointer;" />
-    <img src="assets/logout.png" id="logout-btn" style="margin:10px; cursor:pointer;" />
+    <img src="assets/again.png" id="again-btn" alt="Play Again" />
+    <img src="assets/menu.png" id="menu-btn" alt="Menu" />
+    <img src="assets/logout.png" id="logout-btn" alt="Logout" />
   </div>
 
-  <script>
-    const form = document.getElementById('student-form');
-    const palette = document.getElementById('vehicle-palette');
-    const finishBtn = document.getElementById('finish-btn');
-    const studentInfo = document.getElementById('student-info');
-    const modal = document.getElementById('end-modal');
-
-    const studentName = localStorage.getItem('studentName') || '';
-    const studentClass = localStorage.getItem('studentClass') || '';
-
-    if (!studentName || !studentClass) {
-      alert("Please log in first.");
-      window.location.href = "../index.html";
-    }
-
-    let jobDescription = '';
-    let partnerName = '';
-    let dragged;
-    const MAX_VEHICLES = 10;
-
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      jobDescription = form.elements['jobDescription'].value;
-      partnerName = form.elements['partnerName'].value;
-      form.style.display = 'none';
-      palette.style.display = 'grid';
-      finishBtn.style.display = 'inline-block';
-      studentInfo.innerText = `${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
-    });
-
-    document.body.addEventListener('mousedown', (e) => {
-      if (!e.target.classList.contains('draggable') || e.target.parentElement !== palette) return;
-      const existingCount = document.querySelectorAll('body > .draggable-wrapper').length;
-      if (existingCount >= MAX_VEHICLES) return;
-
-      const wrapper = document.createElement('div');
-      wrapper.classList.add('draggable-wrapper');
-      wrapper.style.position = 'absolute';
-      wrapper.style.left = e.pageX - 40 + 'px';
-      wrapper.style.top = e.pageY - 40 + 'px';
-      wrapper.style.zIndex = 1000;
-
-      const clone = e.target.cloneNode(true);
-      clone.style.pointerEvents = 'none';
-      wrapper.appendChild(clone);
-
-      const flipBtn = document.createElement('button');
-      flipBtn.className = 'flip-btn';
-      flipBtn.innerHTML = '↔';
-      flipBtn.style.display = 'none';
-      flipBtn.onclick = (ev) => {
-        ev.stopPropagation();
-        clone.classList.toggle('flipped-horizontal');
-      };
-      wrapper.appendChild(flipBtn);
-
-      wrapper.addEventListener('mouseenter', () => flipBtn.style.display = 'block');
-      wrapper.addEventListener('mouseleave', () => flipBtn.style.display = 'none');
-
-      document.body.appendChild(wrapper);
-
-      dragged = wrapper;
-      dragged.offsetX = e.offsetX;
-      dragged.offsetY = e.offsetY;
-    });
-
-    document.body.addEventListener('mousemove', (e) => {
-      if (dragged) {
-        dragged.style.left = (e.pageX - dragged.offsetX) + 'px';
-        dragged.style.top = (e.pageY - dragged.offsetY) + 'px';
-      }
-    });
-
-    document.body.addEventListener('mouseup', () => {
-      if (dragged) dragged.style.zIndex = '';
-      dragged = null;
-    });
-
-    document.body.addEventListener('dblclick', (e) => {
-      const wrapper = e.target.closest('.draggable-wrapper');
-      if (wrapper) wrapper.remove();
-    });
-
-    finishBtn.addEventListener('click', () => {
-      const vehicleWrappers = [...document.querySelectorAll('.draggable-wrapper')];
-      const vehicleData = vehicleWrappers
-        .map(wrapper => {
-          const img = wrapper.querySelector('img');
-          const alt = img?.alt || "Unknown";
-          const flipped = img?.classList.contains('flipped-horizontal') ? ' (flipped)' : '';
-          return {
-            name: alt,
-            position: `${alt}${flipped} at (${wrapper.style.left}, ${wrapper.style.top})`
-          };
-        })
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .map(entry => entry.position)
-        .join('; ');
-
-      const formData = new FormData();
-      formData.append('entry.1202364028', studentName);
-      formData.append('entry.1957249768', studentClass);
-      formData.append('entry.436910009', jobDescription);
-      formData.append('entry.169376211', partnerName);
-      formData.append('entry.1017965571', '1');
-      formData.append('entry.1568301781', vehicleData);
-
-      fetch('https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse', {
-        method: 'POST',
-        mode: 'no-cors',
-        body: formData
-      }).then(() => {
-        modal.style.display = 'flex';
-      });
-    });
-
-    document.getElementById('again-btn').addEventListener('click', () => window.location.reload());
-    document.getElementById('menu-btn').addEventListener('click', () => window.location.href = 'hub.html');
-    document.getElementById('logout-btn').addEventListener('click', () => {
-      localStorage.removeItem('studentName');
-      localStorage.removeItem('studentClass');
-      window.location.href = '../index.html';
-    });
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
