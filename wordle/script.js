@@ -7,15 +7,13 @@ const studentInfoDiv = document.getElementById("student-info");
 const gameContainer = document.getElementById("game-container");
 const finishButton = document.getElementById("finish-btn");
 const endModal = document.getElementById("end-modal");
-const scoreDisplayModal = document.getElementById("score-display");
 const againBtn = document.getElementById("again-btn");
 const menuBtn = document.getElementById("menu-btn");
 const logoutImg = document.getElementById("logout-btn");
 
-// Redirect if not signed in
 if (!studentName || !studentClass) {
   alert("Please log in first.");
-  window.location.href = "../index.html"; // Adjust path if needed
+  window.location.href = "../index.html";
 } else {
   if (studentInfoDiv) {
     studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
@@ -35,7 +33,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (againBtn) {
     againBtn.addEventListener("click", () => {
-      endModal.style.display = "none";
       location.reload();
     });
   }
@@ -89,8 +86,6 @@ fetch("valid_words.json")
   .catch((error) => console.error("Error loading valid words:", error));
 
 document.addEventListener("keydown", (event) => {
-  console.log("🔑 Key pressed:", event.key);
-
   if (
     event.key.length === 1 &&
     event.key.match(/[a-zA-Z]/i) &&
@@ -230,7 +225,7 @@ function showInvalidWordMessage(word) {
   }, 2000);
 }
 
-function finishButtonHandler(early = false) {
+function finishButtonHandler() {
   if (endModal) {
     endModal.style.display = "flex";
   }
