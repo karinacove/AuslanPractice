@@ -234,11 +234,6 @@ function finishButtonHandler(early = false) {
   if (endModal) {
     endModal.style.display = "flex";
   }
-
-  if (scoreDisplayModal) {
-    const message = early ? "You finished early!" : "Game complete!";
-    scoreDisplayModal.textContent = message;
-  }
 }
 
 function submitWordleResult(targetWord, guessesArray) {
