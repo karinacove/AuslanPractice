@@ -211,7 +211,17 @@ function showInvalidWordMessage(word) {
 }
 
 function finishButtonHandler(early = false) {
-    location.reload;
+  // Show modal
+  if (endModal) {
+    endModal.style.display = "flex"; // or "block", depending on your CSS
+  }
+
+  // Optionally show a message inside the modal (like result or early finish note)
+  if (scoreDisplayModal) {
+    const message = early ? "You finished early!" : "Game complete!";
+    scoreDisplayModal.textContent = message;
+  }
+}
   
 function submitWordleResult(targetWord, guessesArray) {
     const guessList = guessesArray.join(', ');
