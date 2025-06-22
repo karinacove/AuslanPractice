@@ -27,6 +27,8 @@ document.addEventListener("DOMContentLoaded", function () {
     { type: "signToImage" },
     { type: "imageToSign" },
     { type: "mixed" },
+    { type: "signToImage", harder: true },
+    { type: "imageToSign", harder: true },
   ];
 
   let currentLevel = 0;
@@ -95,7 +97,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
 
-      if (correctMatches >= 9) {
+    if (correctMatches >= (levels[currentLevel].harder ? 15 : 9)) {
         correctMatches = 0;
         currentPage++;
         if (currentPage < pagesPerLevel) {
