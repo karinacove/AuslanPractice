@@ -136,6 +136,12 @@ h2#levelTitle {
   cursor: grab;
 }
 
+.wide-mode .left-signs,
+.wide-mode .right-signs {
+  grid-template-columns: repeat(3, 1fr);
+  width: 300px; 
+}
+
 /* Student Info Box */
 #student-info {
   position: fixed;
