@@ -1,4 +1,3 @@
-// [FULL JS with corrected vowel logic and draggable limit]
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -113,7 +112,7 @@ document.addEventListener("DOMContentLoaded", function () {
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
 
       correctMatches++;
-      if (correctMatches >= 9) {
+      if (correctMatches >= (currentPage === 2 ? 10 : 9)) {  // 10 slots on page 3, else 9
         correctMatches = 0;
         saveCurrentPageAttempts();
 
@@ -171,7 +170,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const correctEntries = allLetters.map(letter => letterStats[letter].pageAttempts.join(""));
     const incorrectEntries = allLetters.map(letter => letterStats[letter].incorrectAttempts || "").filter(Boolean);
 
-    const scorePercent = correctEntries.filter(s => !s.includes("*")).length / 26 * 100;
+    // Calculate % correct for letters without any "*"
+    const totalLetters = allLetters.length;
+    let firstTryCorrectCount = 0;
+    allLetters.forEach(letter => {
+      const attemptsForLetter = letterStats[letter].pageAttempts;
+      attemptsForLetter.forEach(pageStr => {
+        if (pageStr.includes(letter) && !pageStr.includes("*")) {
+          firstTryCorrectCount++;
+        }
+      });
+    });
+    const scorePercent = totalLetters > 0 ? (firstTryCorrectCount / (totalLetters * pagesPerLevel)) * 100 : 0;
 
     document.getElementById("score-display").innerText = `Score: ${Math.round(scorePercent)}%`;
     const timeDisplay = document.createElement("p");
@@ -237,20 +247,28 @@ document.addEventListener("DOMContentLoaded", function () {
       currentLetters = shuffle(allLetters).slice(0, 9);
     }
 
+    // Adjust decoy count on page 3 (2nd index)
+    let decoysAdjusted = decoys;
+    if (currentPage === 2) {
+      decoysAdjusted = decoys - 1; // remove 1 decoy to keep draggable count 9 with extra vowel slot
+    }
+
+    const includedLetters = new Set(currentLetters);
+    const decoyLetters = shuffle(allLetters.filter(l => !includedLetters.has(l))).slice(0, decoysAdjusted);
+
     let extra = null;
     if (currentPage === 2) {
-      const includedLetters = new Set(currentLetters);
       const unusedVowels = vowels.filter(v => !includedLetters.has(v));
       extra = unusedVowels.length > 0
         ? unusedVowels[Math.floor(Math.random() * unusedVowels.length)]
         : vowels[Math.floor(Math.random() * vowels.length)];
     }
 
-    const includedLetters = new Set(currentLetters);
-    const decoyLetters = shuffle(allLetters.filter(l => !includedLetters.has(l))).slice(0, decoys);
+    // Slots always include extra vowel on page 3
+    const slotLetters = currentPage === 2 ? [...currentLetters, extra] : currentLetters;
 
-    const draggables = shuffle([...currentLetters, ...decoyLetters]);
-    if (extra) draggables.pop(); // ensure total remains 9 + decoys
+    // Draggables do NOT include extra vowel on page 3
+    const draggables = shuffle(currentPage === 2 ? [...currentLetters, ...decoyLetters] : [...currentLetters, ...decoyLetters, ...(extra ? [extra] : [])]);
 
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
@@ -258,11 +276,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     levelTitle.innerText = `Level ${currentLevel + 1}: ` +
       (mode === "signToImage" ? "Match the Sign to the Picture" :
-       mode === "imageToSign" ? "Match the Picture to the Sign" :
-       "Match Signs and Pictures (Mixed)");
+        mode === "imageToSign" ? "Match the Picture to the Sign" :
+          "Match Signs and Pictures (Mixed)");
 
     const slotTypeMap = {};
-    currentLetters.forEach(letter => {
+    slotLetters.forEach(letter => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
@@ -296,8 +314,9 @@ document.addEventListener("DOMContentLoaded", function () {
       } else if (dragType === "sign") {
         draggable.src = `assets/alphabet/signs/sign-${letter}.png`;
       } else {
-        const isSign = slotTypeMap[letter] === false ? true : false;
-        draggable.src = isSign
+        // Mixed: draggable opposite of slot if possible, else random
+        const isSignForDraggable = slotTypeMap[letter] !== undefined ? !slotTypeMap[letter] : Math.random() < 0.5;
+        draggable.src = isSignForDraggable
           ? `assets/alphabet/signs/sign-${letter}.png`
           : `assets/alphabet/clipart/${letter}.png`;
       }
