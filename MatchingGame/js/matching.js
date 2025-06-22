@@ -38,6 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const letterStats = {};
   allLetters.forEach(letter => letterStats[letter] = { attempts: 0, correct: 0, firstCorrect: false });
 
+  let fullLetterSet = [];
   let currentLetters = [];
   let correctMatches = 0;
   const pagesPerLevel = 3;
@@ -74,14 +75,19 @@ document.addEventListener("DOMContentLoaded", function () {
     const mode = levels[currentLevel].type;
     const harder = levels[currentLevel].harder;
 
-    const amountPerPage = harder ? 15 : 9;
+    const amountPerPage = 9;
     const decoyCount = harder ? 9 : 3;
 
-    const availableLetters = shuffle([...allLetters]);
-    const vowelToRepeat = vowels[Math.floor(Math.random() * vowels.length)];
-    if (!availableLetters.includes(vowelToRepeat)) availableLetters.push(vowelToRepeat);
+    if (currentPage === 0) {
+      const shuffled = shuffle([...allLetters]);
+      const vowelToRepeat = vowels[Math.floor(Math.random() * vowels.length)];
+      if (!shuffled.includes(vowelToRepeat)) shuffled.push(vowelToRepeat);
+      fullLetterSet = shuffle(shuffled).slice(0, 27);
+    }
 
-    const selectedLetters = shuffle([...availableLetters]).slice(0, amountPerPage);
+    const start = currentPage * amountPerPage;
+    const end = start + amountPerPage;
+    const selectedLetters = fullLetterSet.slice(start, end);
     currentLetters = shuffle([...selectedLetters]);
 
     const usedLetters = new Set(currentLetters);
