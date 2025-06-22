@@ -76,12 +76,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const amountPerPage = 9;
     const decoyCount = harder ? 9 : 3;
-    const levelLetterPool = shuffle([...allLetters]);
-    const vowelToRepeat = vowels[Math.floor(Math.random() * vowels.length)];
-    if (!levelLetterPool.includes(vowelToRepeat)) levelLetterPool.push(vowelToRepeat);
-    const selectedPool = shuffle(levelLetterPool).slice(0, pagesPerLevel * amountPerPage);
 
-    const lettersThisPage = shuffle(selectedPool.slice(currentPage * amountPerPage, (currentPage + 1) * amountPerPage));
+    const pool = shuffle([...allLetters]);
+    const vowelToRepeat = vowels[Math.floor(Math.random() * vowels.length)];
+    if (!pool.includes(vowelToRepeat)) pool.push(vowelToRepeat);
+    const fullSet = shuffle(pool).slice(0, pagesPerLevel * amountPerPage);
+
+    const pageStart = currentPage * amountPerPage;
+    const lettersThisPage = shuffle([...fullSet.slice(pageStart, pageStart + amountPerPage)]);
     currentLetters = lettersThisPage;
 
     const usedLetters = new Set(currentLetters);
