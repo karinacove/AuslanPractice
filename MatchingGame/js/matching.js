@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -32,13 +31,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let currentLevel = 0;
   let currentPage = 0;
-  const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
-  const letterStats = {};
-  allLetters.forEach(letter => letterStats[letter] = { attempts: 0, correct: 0, firstCorrect: false });
-
-  let currentLetters = [];
-  let correctMatches = 0;
   const pagesPerLevel = 3;
+  const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
+  
+  // Initialize stats per letter
+  const letterStats = {};
+  allLetters.forEach(letter => {
+    letterStats[letter] = {
+      attempts: 0,            // total attempts
+      correctAttempts: 0,     // total correct attempts
+      firstCorrectOnPage: false,
+      pageAttempts: [],       // array of strings, one per page (e.g. 'b', '*a', '')
+      currentPageAttempt: "", // the string recording current page first attempts for this letter
+      incorrectAttempts: "",  // all wrong attempts concatenated (e.g. 'cccc')
+    };
+  });
+
+  let correctMatches = 0;
   let startTime = Date.now();
 
   const gameBoard = document.getElementById("gameBoard");
@@ -77,14 +86,23 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function handleDrop(slot, letter, src) {
-    letterStats[letter].attempts++;
+    const stats = letterStats[letter];
+    stats.attempts++;
+
+    // If first attempt for this letter on this page
+    const firstAttemptThisPage = stats.currentPageAttempt.length === 0;
 
     if (slot.dataset.letter === letter) {
-      correctMatches++;
-      if (letterStats[letter].attempts === 1) {
-        letterStats[letter].firstCorrect = true;
+      stats.correctAttempts++;
+
+      if (!stats.firstCorrectOnPage) {
+        stats.firstCorrectOnPage = true;
+        // On first correct on page, record the letter itself (no asterisks)
+        stats.currentPageAttempt += letter;
+      } else {
+        // Already got first correct, no need to add anything for subsequent correct attempts on this page
       }
-      letterStats[letter].correct++;
+
       showFeedback(true);
 
       slot.innerHTML = "";
@@ -93,10 +111,16 @@ document.addEventListener("DOMContentLoaded", function () {
       overlay.className = "overlay";
       slot.appendChild(overlay);
 
+      // Remove all draggables for this letter
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
+
+      correctMatches++;
 
       if (correctMatches >= 9) {
         correctMatches = 0;
+        // Save current page attempts for all letters before moving on
+        saveCurrentPageAttempts();
+
         currentPage++;
         if (currentPage < pagesPerLevel) {
           setTimeout(loadPage, 800);
@@ -112,12 +136,30 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     } else {
       showFeedback(false);
+      // If this is the first attempt this page for this letter and incorrect, record '*' in correct column
+      if (!stats.firstCorrectOnPage && firstAttemptThisPage) {
+        stats.currentPageAttempt += "*";
+      }
+      // Record every incorrect attempt letter in incorrectAttempts string
+      stats.incorrectAttempts += letter;
+
+      // Add shake effect
       const wrong = document.querySelector(`img.draggable[data-letter='${letter}']`);
       if (wrong) {
         wrong.classList.add("shake");
         setTimeout(() => wrong.classList.remove("shake"), 500);
       }
     }
+  }
+
+  function saveCurrentPageAttempts() {
+    // At page end, push currentPageAttempt string for each letter and reset flags for next page
+    allLetters.forEach(letter => {
+      const stats = letterStats[letter];
+      stats.pageAttempts.push(stats.currentPageAttempt || "");
+      stats.currentPageAttempt = "";
+      stats.firstCorrectOnPage = false;
+    });
   }
 
   function touchStart(e) {
@@ -162,36 +204,49 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function endGame() {
+    // Save last page attempts if not already saved (in case endGame called early)
+    saveCurrentPageAttempts();
+
     const endTime = Date.now();
     const time = Math.round((endTime - startTime) / 1000);
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
     const formatted = `${minutes} mins ${seconds} sec`;
 
-    const correctLetters = [];
-    const incorrectLetters = [];
-    let totalAttempts = 0;
-    let totalFirstTryCorrect = 0;
+    // Flatten all pageAttempts left-to-right for each letter for correct column
+    const correctEntries = allLetters.map(letter => letterStats[letter].pageAttempts.join(""));
 
+    // Incorrect attempts already concatenated per letter
+    const incorrectEntries = allLetters
+      .map(letter => letterStats[letter].incorrectAttempts || "")
+      .filter(str => str.length > 0);
+
+    // Sort alphabetically ignoring '*'
+    const sortIgnoringAsterisks = (a, b) =>
+      a.replace(/\*/g, "").localeCompare(b.replace(/\*/g, ""));
+
+    correctEntries.sort(sortIgnoringAsterisks);
+    incorrectEntries.sort(sortIgnoringAsterisks);
+
+    const correctStr = correctEntries.join(", ");
+    const incorrectStr = incorrectEntries.join(", ");
+
+    // Calculate score % based on first time correct attempts vs total attempts
+    let totalAttempts = 0;
+    let firstTryCorrectCount = 0;
     allLetters.forEach(letter => {
       const stats = letterStats[letter];
-      if (stats.attempts > 0) {
-        totalAttempts += stats.attempts;
-        totalFirstTryCorrect += stats.firstCorrect ? 1 : 0;
-
-        let mark = "";
-        if (stats.correct === 3) mark = letter + letter + letter;
-        else if (stats.correct === 2) mark = "*" + letter + letter;
-        else if (stats.correct === 1) mark = "**" + letter;
-        if (mark) correctLetters.push(mark);
-
-        if (stats.correct < stats.attempts) {
-          incorrectLetters.push(letter.repeat(stats.attempts - stats.correct));
-        }
-      }
+      totalAttempts += stats.attempts;
+      // count *number of pages* where letter was first matched correctly (number of letters in pageAttempts without '*')
+      const firstCorrectCount = stats.pageAttempts.reduce((acc, val) => {
+        if (val.includes(letter)) return acc + 1;
+        else return acc;
+      }, 0);
+      firstTryCorrectCount += firstCorrectCount;
     });
-
-    const scorePercent = totalAttempts > 0 ? Math.round((totalFirstTryCorrect / totalAttempts) * 100) : 0;
+    const scorePercent = totalAttempts > 0
+      ? Math.round((firstTryCorrectCount / totalAttempts) * 100)
+      : 0;
 
     document.getElementById("score-display").innerText = `Score: ${scorePercent}%`;
     const timeDisplay = document.createElement("p");
@@ -202,8 +257,8 @@ document.addEventListener("DOMContentLoaded", function () {
       "entry.1387461004": studentName,
       "entry.1309291707": studentClass,
       "entry.477642881": "Alphabet",
-      "entry.1897227570": incorrectLetters.sort().join(", "),
-      "entry.1249394203": correctLetters.sort((a,b) => a.replace(/\*/g, "").localeCompare(b.replace(/\*/g, ""))).join(", "),
+      "entry.1897227570": incorrectStr,
+      "entry.1249394203": correctStr,
       "entry.1996137354": `${scorePercent}%`,
       "entry.1374858042": formatted,
     };
@@ -233,9 +288,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function loadPage() {
     if (currentLevel >= levels.length) return endGame();
+
     const mode = levels[currentLevel].type;
     currentLetters = [];
     const usedThisPage = new Set();
+
+    // Reset firstCorrectOnPage and currentPageAttempt for all letters for this new page
+    allLetters.forEach(letter => {
+      letterStats[letter].firstCorrectOnPage = false;
+      letterStats[letter].currentPageAttempt = "";
+    });
 
     while (currentLetters.length < 9) {
       const candidates = allLetters.filter(l => !usedThisPage.has(l));
