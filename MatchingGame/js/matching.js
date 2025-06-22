@@ -27,11 +27,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const vowels = ["a", "e", "i", "o", "u"];
 
   const levels = [
-    { type: "signToImage", decoys: 3 },
     { type: "imageToSign", decoys: 3 },
+    { type: "signToImage", decoys: 3 },
     { type: "mixed", decoys: 3 },
-    { type: "signToImage", decoys: 9 },
     { type: "imageToSign", decoys: 9 },
+    { type: "signToImage", decoys: 9 },
     { type: "mixed", decoys: 9, isReview: true }
   ];
 
@@ -72,134 +72,18 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.body.appendChild(feedbackImage);
 
-  function dragStart(e) {
-    e.dataTransfer.setData("text/plain", e.target.dataset.letter);
-    e.dataTransfer.setData("src", e.target.src);
-    e.target.classList.add("dragging");
-  }
-
-  function dragOver(e) {
-    e.preventDefault();
-  }
-
-  function drop(e) {
-    e.preventDefault();
-    const letter = e.dataTransfer.getData("text/plain");
-    const src = e.dataTransfer.getData("src");
-    handleDrop(e.currentTarget, letter, src);
-  }
-
-  function handleDrop(slot, letter, src) {
-    const stats = letterStats[letter];
-    stats.attempts++;
-    const firstAttemptThisPage = stats.currentPageAttempt.length === 0;
-
-    if (slot.dataset.letter === letter) {
-      stats.correctAttempts++;
-      if (!stats.firstCorrectOnPage) {
-        stats.firstCorrectOnPage = true;
-        stats.currentPageAttempt += letter;
-      }
-      showFeedback(true);
-      slot.innerHTML = "";
-      const overlay = document.createElement("img");
-      overlay.src = src;
-      overlay.className = "overlay";
-      slot.appendChild(overlay);
-      document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
-      correctMatches++;
-      if (correctMatches >= 9) {
-        correctMatches = 0;
-        saveCurrentPageAttempts();
-        currentPage++;
-        if (currentPage < pagesPerLevel) {
-          setTimeout(loadPage, 800);
-        } else {
-          currentLevel++;
-          currentPage = 0;
-          if (currentLevel >= levels.length) {
-            setTimeout(endGame, 800);
-          } else {
-            setTimeout(loadPage, 800);
-          }
-        }
-      }
-    } else {
-      showFeedback(false);
-      if (!stats.firstCorrectOnPage && firstAttemptThisPage) {
-        stats.currentPageAttempt += "*";
-      }
-      stats.incorrectAttempts += letter;
-      const wrong = document.querySelector(`img.draggable[data-letter='${letter}']`);
-      if (wrong) {
-        wrong.classList.add("shake");
-        setTimeout(() => wrong.classList.remove("shake"), 500);
-      }
-    }
-  }
-
-  function saveCurrentPageAttempts() {
-    allLetters.forEach(letter => {
-      const stats = letterStats[letter];
-      stats.pageAttempts.push(stats.currentPageAttempt || "");
-      stats.currentPageAttempt = "";
-      stats.firstCorrectOnPage = false;
-    });
-  }
-
-  function touchStart(e) {
-    e.preventDefault();
-    const target = e.target;
-    const letter = target.dataset.letter;
-    const src = target.src;
-    const clone = target.cloneNode(true);
-    clone.style.position = "absolute";
-    clone.style.pointerEvents = "none";
-    clone.style.opacity = "0.7";
-    clone.style.zIndex = "10000";
-    document.body.appendChild(clone);
-
-    const moveClone = (touch) => {
-      clone.style.left = `${touch.clientX - clone.width / 2}px`;
-      clone.style.top = `${touch.clientY - clone.height / 2}px`;
-    };
-
-    moveClone(e.touches[0]);
-
-    const handleTouchMove = (ev) => moveClone(ev.touches[0]);
-    const handleTouchEnd = (ev) => {
-      const touch = ev.changedTouches[0];
-      const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (el && el.classList.contains("slot")) handleDrop(el, letter, src);
-      document.removeEventListener("touchmove", handleTouchMove);
-      document.removeEventListener("touchend", handleTouchEnd);
-      clone.remove();
-    };
-
-    document.addEventListener("touchmove", handleTouchMove, { passive: false });
-    document.addEventListener("touchend", handleTouchEnd, { passive: false });
-  }
-
-  function showFeedback(correct) {
-    feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
-    feedbackImage.style.display = "block";
-    setTimeout(() => feedbackImage.style.display = "none", 1000);
-  }
-
-  function getMostIncorrectLetters(count) {
-    const sorted = allLetters.slice().sort((a, b) => {
-      return letterStats[b].incorrectAttempts.length - letterStats[a].incorrectAttempts.length;
-    });
-    const topIncorrect = sorted.filter(l => letterStats[l].incorrectAttempts.length > 0);
-    if (topIncorrect.length >= count) return topIncorrect.slice(0, count);
-    const remaining = allLetters.filter(l => !topIncorrect.includes(l));
-    return [...topIncorrect, ...remaining].slice(0, count);
-  }
-
   function getUnique27Letters() {
     const shuffled = allLetters.slice().sort(() => Math.random() - 0.5);
     const selected = shuffled.slice(0, 26);
-    const extraVowel = vowels.find(v => !selected.includes(v)) || vowels[Math.floor(Math.random() * vowels.length)];
+    const remainingVowels = vowels.filter(v => !selected.includes(v));
+    let extraVowel = remainingVowels.length > 0 ? remainingVowels[Math.floor(Math.random() * remainingVowels.length)] : null;
+
+    if (!extraVowel) {
+      const notOnPage = allLetters.filter(l => !selected.includes(l));
+      const fallbackVowel = vowels.find(v => !selected.includes(v));
+      extraVowel = fallbackVowel || vowels[Math.floor(Math.random() * vowels.length)];
+    }
+
     selected.push(extraVowel);
     return selected;
   }
