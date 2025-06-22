@@ -27,14 +27,14 @@ document.addEventListener("DOMContentLoaded", function () {
   const vowels = ["a", "e", "i", "o", "u"];
 
   const levels = [
-    { type: "imageToSign", decoys: 3 },
-    { type: "signToImage", decoys: 3 },
-    { type: "mixed", decoys: 3 },
-    { type: "imageToSign", decoys: 9 },
-    { type: "signToImage", decoys: 9 },
-    { type: "mixed", decoys: 9, isReview: true }
+    { type: "imageToSign", decoys: 3, dragType: "clipart" },
+    { type: "signToImage", decoys: 3, dragType: "sign" },
+    { type: "mixed", decoys: 3, dragType: "mixed" },
+    { type: "imageToSign", decoys: 9, dragType: "clipart" },
+    { type: "signToImage", decoys: 9, dragType: "sign" },
+    { type: "mixed", decoys: 9, dragType: "mixed", isReview: true }
   ];
-
+  
   let currentLevel = 0;
   let currentPage = 0;
   const pagesPerLevel = 3;
@@ -148,7 +148,17 @@ document.addEventListener("DOMContentLoaded", function () {
       draggable.dataset.letter = letter;
       draggable.className = "draggable";
       draggable.draggable = true;
-      draggable.src = slotTypeMap[letter] === true ? `assets/alphabet/clipart/${letter}.png` : `assets/alphabet/signs/sign-${letter}.png`;
+      const isSignInSlot = slotTypeMap[letter];
+      if (mode === "imageToSign") {
+        draggable.src = `assets/alphabet/${dragType === "sign" ? "signs/sign-" : "clipart/"}${letter}.png`;
+      } else if (mode === "signToImage") {
+        draggable.src = `assets/alphabet/${dragType === "clipart" ? "clipart/" : "signs/sign-"}${letter}.png`;
+      } else {
+        // mixed
+        draggable.src = dragType === "mixed"
+          ? (isSignInSlot ? `assets/alphabet/clipart/${letter}.png` : `assets/alphabet/signs/sign-${letter}.png`)
+          : `assets/alphabet/${dragType === "clipart" ? "clipart/" : "signs/sign-"}${letter}.png`;
+      }
 
       const container = document.createElement("div");
       container.className = "drag-wrapper";
