@@ -54,6 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let correctMatches = 0;
   let startTime = Date.now();
+  let currentLetters = [];
 
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
@@ -113,7 +114,7 @@ document.addEventListener("DOMContentLoaded", function () {
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
 
       correctMatches++;
-      const neededMatches = currentPage === 2 && currentLetters.length === 10 ? 10 : 9;
+      const neededMatches = currentLetters.length;
       if (correctMatches >= neededMatches) {
         correctMatches = 0;
         saveCurrentPageAttempts();
@@ -236,21 +237,15 @@ document.addEventListener("DOMContentLoaded", function () {
       currentLetters = incorrectSorted.slice(0, 9);
     } else {
       currentLetters = shuffle(allLetters).slice(0, 9);
-    }
-
-    if (currentPage === 2) {
-      const includedLetters = new Set(currentLetters);
-      const unusedVowels = vowels.filter(v => !includedLetters.has(v));
-      let extra = null;
-      if (unusedVowels.length > 0) {
-        extra = unusedVowels[Math.floor(Math.random() * unusedVowels.length)];
-      } else {
-        const allowedVowels = vowels.filter(v => !currentLetters.includes(v));
-        if (allowedVowels.length > 0) {
-          extra = allowedVowels[Math.floor(Math.random() * allowedVowels.length)];
+      if (currentPage === 2) {
+        const used = new Set(currentLetters);
+        const unusedVowels = shuffle(vowels.filter(v => !used.has(v)));
+        if (unusedVowels.length > 0) {
+          const vowel = unusedVowels[0];
+          const replaceIndex = Math.floor(Math.random() * currentLetters.length);
+          currentLetters[replaceIndex] = vowel;
         }
       }
-      if (extra) currentLetters.push(extra);
     }
 
     const includedLetters = new Set(currentLetters);
