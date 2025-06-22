@@ -162,30 +162,36 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(() => feedbackImage.style.display = "none", 1000);
   }
 
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
   function loadPage() {
     if (currentLevel >= levels.length) return endGame();
     const mode = levels[currentLevel].type;
     const harder = levels[currentLevel].harder;
     currentLetters = [];
 
-    const shuffled = [...allLetters].sort(() => Math.random() - 0.5);
+    const shuffled = shuffle([...allLetters]);
     const vowelToRepeat = vowels[Math.floor(Math.random() * vowels.length)];
-    const allPicks = [...shuffled.slice(0, 26), vowelToRepeat];
-    const levelLetters = allPicks.sort(() => Math.random() - 0.5);
+    const allPicks = shuffle([...shuffled.slice(0, 26), vowelToRepeat]);
 
     const amountPerPage = harder ? 15 : 9;
-    const lettersThisPage = levelLetters.slice(currentPage * amountPerPage, currentPage * amountPerPage + amountPerPage);
+    const lettersThisPage = allPicks.slice(currentPage * amountPerPage, currentPage * amountPerPage + amountPerPage);
     currentLetters = lettersThisPage;
 
     const remaining = allLetters.filter(l => !currentLetters.includes(l));
     const decoys = [];
-    const neededDecoys = harder ? 3 : 3;
-    while (decoys.length < neededDecoys && remaining.length > 0) {
+    while (decoys.length < 3 && remaining.length > 0) {
       const idx = Math.floor(Math.random() * remaining.length);
       decoys.push(remaining.splice(idx, 1)[0]);
     }
 
-    const draggables = [...currentLetters, ...decoys].sort(() => Math.random() - 0.5);
+    const draggables = shuffle([...currentLetters, ...decoys]);
 
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
@@ -198,7 +204,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const slotTypeMap = {};
 
-    currentLetters.forEach(letter => {
+    shuffle([...currentLetters]).forEach(letter => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
