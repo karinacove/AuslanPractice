@@ -254,8 +254,163 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  function endGame() {
-    // unchanged endGame logic...
+ function endGame() {
+    const endTime = Date.now();
+    const time = Math.round((endTime - startTime) / 1000);
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    const formatted = `${minutes} mins ${seconds} sec`;
+
+    const correctLetters = [];
+    const incorrectLetters = [];
+    let totalAttempts = 0;
+    let totalFirstTryCorrect = 0;
+
+    allLetters.forEach(letter => {
+      const stats = letterStats[letter];
+      if (stats.attempts > 0) {
+        totalAttempts += stats.attempts;
+        totalFirstTryCorrect += stats.firstCorrect ? 1 : 0;
+
+        let mark = "";
+        if (stats.correct === 3) mark = letter + letter + letter;
+        else if (stats.correct === 2) mark = "*" + letter + letter;
+        else if (stats.correct === 1) mark = "**" + letter;
+        if (mark) correctLetters.push(mark);
+
+        if (stats.correct < stats.attempts) {
+          incorrectLetters.push(letter.repeat(stats.attempts - stats.correct));
+        }
+      }
+    });
+
+    const scorePercent = totalAttempts > 0 ? Math.round((totalFirstTryCorrect / totalAttempts) * 100) : 0;
+
+    document.getElementById("score-display").innerText = `Score: ${scorePercent}%`;
+    const timeDisplay = document.createElement("p");
+    timeDisplay.innerText = `Time: ${formatted}`;
+    document.getElementById("end-modal-content").appendChild(timeDisplay);
+
+    const entries = {
+      "entry.1387461004": studentName,
+      "entry.1309291707": studentClass,
+      "entry.477642881": "Alphabet",
+      "entry.1897227570": incorrectLetters.sort().join(", "),
+      "entry.1249394203": correctLetters.sort((a,b) => a.replace(/\*/g, "").localeCompare(b.replace(/\*/g, ""))).join(", "),
+      "entry.1996137354": `${scorePercent}%`,
+      "entry.1374858042": formatted,
+    };
+
+    const form = document.createElement("form");
+    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+    form.method = "POST";
+    form.target = "hidden_iframe";
+    const iframe = document.createElement("iframe");
+    iframe.name = "hidden_iframe";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+
+    for (const key in entries) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = entries[key];
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+
+    modal.style.display = "flex";
+  }
+
+  function loadPage() {
+    if (currentLevel >= levels.length) return endGame();
+    const mode = levels[currentLevel].type;
+    currentLetters = [];
+
+    // Use all 26 letters and add 1 vowel to repeat = 27 total (9 per page)
+    const levelLetters = [...allLetters];
+    const vowelToRepeat = vowels[Math.floor(Math.random() * vowels.length)];
+    levelLetters.push(vowelToRepeat);
+
+    const lettersThisPage = levelLetters.slice(currentPage * 9, currentPage * 9 + 9);
+    currentLetters = lettersThisPage;
+
+    const remaining = allLetters.filter(l => !currentLetters.includes(l));
+    const decoys = [];
+    while (decoys.length < 3 && remaining.length > 0) {
+      const idx = Math.floor(Math.random() * remaining.length);
+      decoys.push(remaining.splice(idx, 1)[0]);
+    }
+
+    const draggables = [...currentLetters, ...decoys].sort(() => Math.random() - 0.5);
+
+    gameBoard.innerHTML = "";
+    leftSigns.innerHTML = "";
+    rightSigns.innerHTML = "";
+
+    levelTitle.innerText = `Level ${currentLevel + 1}: ` +
+      (mode === "signToImage" ? "Match the Sign to the Picture" :
+       mode === "imageToSign" ? "Match the Picture to the Sign" :
+       "Match Signs and Pictures (Mixed)");
+
+    const slotTypeMap = {};
+
+    currentLetters.forEach(letter => {
+      const slot = document.createElement("div");
+      slot.className = "slot";
+      slot.dataset.letter = letter;
+
+      let isSign = false;
+      if (mode === "signToImage") {
+        isSign = false;
+        slot.style.backgroundImage = `url('assets/alphabet/clipart/${letter}.png')`;
+      } else if (mode === "imageToSign") {
+        isSign = true;
+        slot.style.backgroundImage = `url('assets/alphabet/signs/sign-${letter}.png')`;
+      } else {
+        isSign = Math.random() < 0.5;
+        slot.style.backgroundImage = isSign
+          ? `url('assets/alphabet/signs/sign-${letter}.png')`
+          : `url('assets/alphabet/clipart/${letter}.png')`;
+      }
+
+      slotTypeMap[letter] = isSign;
+      gameBoard.appendChild(slot);
+    });
+
+    draggables.forEach((letter, i) => {
+      const draggable = document.createElement("img");
+      draggable.dataset.letter = letter;
+      draggable.className = "draggable";
+      draggable.draggable = true;
+      draggable.addEventListener("dragstart", dragStart);
+      draggable.addEventListener("touchstart", touchStart);
+
+      const isSignInSlot = slotTypeMap[letter];
+
+      if (mode === "imageToSign") {
+        draggable.src = `assets/alphabet/clipart/${letter}.png`;
+      } else if (mode === "signToImage") {
+        draggable.src = `assets/alphabet/signs/sign-${letter}.png`;
+      } else {
+        draggable.src = isSignInSlot
+          ? `assets/alphabet/clipart/${letter}.png`
+          : `assets/alphabet/signs/sign-${letter}.png`;
+      }
+
+      const container = document.createElement("div");
+      container.className = "drag-wrapper";
+      container.appendChild(draggable);
+
+      (i < draggables.length / 2 ? leftSigns : rightSigns).appendChild(container);
+    });
+
+    document.querySelectorAll(".slot").forEach(slot => {
+      slot.addEventListener("dragover", dragOver);
+      slot.addEventListener("drop", drop);
+    });
   }
 
   loadPage();
