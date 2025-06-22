@@ -302,7 +302,7 @@ document.addEventListener("DOMContentLoaded", function () {
         : vowels[Math.floor(Math.random() * vowels.length)];
       currentLetters.push(extra);
     }
-    
+  }
 
     // Prepare decoys from remaining letters not in currentLetters
     const remaining = allLetters.filter(l => !currentLetters.includes(l));
