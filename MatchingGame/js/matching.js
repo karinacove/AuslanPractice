@@ -26,20 +26,21 @@ document.addEventListener("DOMContentLoaded", function () {
   const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
   const vowels = ["a", "e", "i", "o", "u"];
 
+  // Levels configuration
   const levels = [
-    { type: "imageToSign", decoys: 3, dragType: "clipart" },
-    { type: "signToImage", decoys: 3, dragType: "sign" },
-    { type: "mixed", decoys: 3, dragType: "mixed" },
-    { type: "imageToSign", decoys: 9, dragType: "clipart" },
-    { type: "signToImage", decoys: 9, dragType: "sign" },
-    { type: "mixed", decoys: 9, dragType: "mixed", isReview: true }
+    { type: "imageToSign", decoys: 3, dragType: "clipart", lettersPerPage: 9, draggablesCount: 12 },
+    { type: "signToImage", decoys: 3, dragType: "sign", lettersPerPage: 9, draggablesCount: 12 },
+    { type: "mixed", decoys: 3, dragType: "mixed", lettersPerPage: 9, draggablesCount: 12 },
+    { type: "imageToSign", decoys: 9, dragType: "clipart", lettersPerPage: 18, draggablesCount: 18 },
+    { type: "signToImage", decoys: 9, dragType: "sign", lettersPerPage: 18, draggablesCount: 18 },
+    { type: "mixed", decoys: 9, dragType: "mixed", lettersPerPage: 18, draggablesCount: 18, isReview: true }
   ];
 
   let currentLevel = 0;
   let currentPage = 0;
   const pagesPerLevel = 3;
-  const letterStats = {};
 
+  const letterStats = {};
   allLetters.forEach(letter => {
     letterStats[letter] = {
       attempts: 0,
@@ -112,7 +113,9 @@ document.addEventListener("DOMContentLoaded", function () {
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
 
       correctMatches++;
-      if (correctMatches >= (currentPage === 2 ? 10 : 9)) {  // 10 slots on page 3, else 9
+
+      const totalSlots = getCurrentLetters().length;
+      if (correctMatches >= totalSlots) {
         correctMatches = 0;
         saveCurrentPageAttempts();
 
@@ -224,51 +227,72 @@ document.addEventListener("DOMContentLoaded", function () {
     return array.sort(() => Math.random() - 0.5);
   }
 
+  // Returns the letters for the current page's slots (grid)
+  function getCurrentLetters() {
+    const level = levels[currentLevel];
+    const lettersNeeded = level.lettersPerPage;
+
+    // Page 3 special case (index 2) for levels 1-3 only
+    if (currentPage === 2 && currentLevel <= 2) {
+      // All 26 letters + 1 extra vowel = 27 letters total in slots
+      const extraVowelCandidates = vowels.filter(v => true); // all vowels eligible
+      const extraVowel = extraVowelCandidates[Math.floor(Math.random() * extraVowelCandidates.length)];
+      // Return full alphabet + extra vowel (duplicate vowel)
+      return [...allLetters, extraVowel];
+    }
+
+    // For pages other than page 3 or levels 4-6, return a shuffled slice of letters
+    // That slice should be lettersNeeded unique letters
+
+    // For review levels, show letters with mistakes first
+    const levelInfo = levels[currentLevel];
+    let baseLetters = [];
+
+    if (levelInfo.isReview) {
+      const incorrectLetters = allLetters.filter(l => letterStats[l].incorrectAttempts.length > 0);
+      baseLetters = incorrectLetters.length > 0 ? incorrectLetters.slice(0, lettersNeeded) : shuffle(allLetters).slice(0, lettersNeeded);
+    } else {
+      baseLetters = shuffle(allLetters).slice(0, lettersNeeded);
+    }
+
+    return baseLetters;
+  }
+
   function loadPage() {
     if (currentLevel >= levels.length) return endGame();
 
     const container = document.getElementById("game-container") || document.body;
     container.classList.toggle("wide-mode", currentLevel >= 3);
 
-    const { type: mode, decoys, dragType, isReview } = levels[currentLevel];
-    let currentLetters = [];
+    const { type: mode, decoys, dragType, lettersPerPage, draggablesCount, isReview } = levels[currentLevel];
+
     allLetters.forEach(l => {
       letterStats[l].firstCorrectOnPage = false;
       letterStats[l].currentPageAttempt = "";
     });
 
-    const incorrectSorted = allLetters
-      .filter(l => letterStats[l].incorrectAttempts.length > 0)
-      .sort((a, b) => letterStats[b].incorrectAttempts.length - letterStats[a].incorrectAttempts.length);
+    // Get the slot letters for current page
+    const slotLetters = getCurrentLetters();
 
-    if (isReview && incorrectSorted.length > 0) {
-      currentLetters = incorrectSorted.slice(0, 9);
-    } else {
-      currentLetters = shuffle(allLetters).slice(0, 9);
+    // For draggables:
+    // Always letters used in slots (except for the extra vowel on page 3 of levels 1-3)
+    // + decoys to reach draggablesCount
+
+    // Remove extra vowel from draggable letters if page 3 and levels 1-3
+    let draggableLetters = slotLetters.slice();
+
+    if (currentPage === 2 && currentLevel <= 2) {
+      // Remove the last letter (the extra vowel) from draggables
+      draggableLetters = draggableLetters.slice(0, draggableLetters.length - 1);
     }
 
-    // Adjust decoy count on page 3 (2nd index)
-    let decoysAdjusted = decoys;
-    if (currentPage === 2) {
-      decoysAdjusted = decoys - 1; // remove 1 decoy to keep draggable count 9 with extra vowel slot
-    }
+    const includedLettersSet = new Set(draggableLetters);
+    // Add decoys excluding included letters
+    const availableDecoys = allLetters.filter(l => !includedLettersSet.has(l));
+    const decoysNeeded = draggablesCount - draggableLetters.length;
+    const decoyLetters = shuffle(availableDecoys).slice(0, decoysNeeded);
 
-    const includedLetters = new Set(currentLetters);
-    const decoyLetters = shuffle(allLetters.filter(l => !includedLetters.has(l))).slice(0, decoysAdjusted);
-
-    let extra = null;
-    if (currentPage === 2) {
-      const unusedVowels = vowels.filter(v => !includedLetters.has(v));
-      extra = unusedVowels.length > 0
-        ? unusedVowels[Math.floor(Math.random() * unusedVowels.length)]
-        : vowels[Math.floor(Math.random() * vowels.length)];
-    }
-
-    // Slots always include extra vowel on page 3
-    const slotLetters = currentPage === 2 ? [...currentLetters, extra] : currentLetters;
-
-    // Draggables do NOT include extra vowel on page 3
-    const draggables = shuffle(currentPage === 2 ? [...currentLetters, ...decoyLetters] : [...currentLetters, ...decoyLetters, ...(extra ? [extra] : [])]);
+    draggableLetters = shuffle([...draggableLetters, ...decoyLetters]);
 
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
@@ -279,6 +303,7 @@ document.addEventListener("DOMContentLoaded", function () {
         mode === "imageToSign" ? "Match the Picture to the Sign" :
           "Match Signs and Pictures (Mixed)");
 
+    // Create slots (grid items) for each letter in slotLetters (including extra vowel if present)
     const slotTypeMap = {};
     slotLetters.forEach(letter => {
       const slot = document.createElement("div");
@@ -301,7 +326,8 @@ document.addEventListener("DOMContentLoaded", function () {
       gameBoard.appendChild(slot);
     });
 
-    draggables.forEach((letter, i) => {
+    // Create draggable images for draggableLetters only (exclude extra vowel on page 3)
+    draggableLetters.forEach((letter, i) => {
       const draggable = document.createElement("img");
       draggable.dataset.letter = letter;
       draggable.className = "draggable";
@@ -324,7 +350,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const container = document.createElement("div");
       container.className = "drag-wrapper";
       container.appendChild(draggable);
-      (i < draggables.length / 2 ? leftSigns : rightSigns).appendChild(container);
+      (i < draggableLetters.length / 2 ? leftSigns : rightSigns).appendChild(container);
     });
 
     document.querySelectorAll(".slot").forEach(slot => {
