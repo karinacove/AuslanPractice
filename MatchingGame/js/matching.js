@@ -75,107 +75,39 @@ document.addEventListener("DOMContentLoaded", function () {
   function getUnique27Letters() {
     const shuffled = allLetters.slice().sort(() => Math.random() - 0.5);
     const selected = shuffled.slice(0, 26);
-    const remainingVowels = vowels.filter(v => !selected.includes(v));
-    let extraVowel = remainingVowels.length > 0 ? remainingVowels[Math.floor(Math.random() * remainingVowels.length)] : null;
-
-    if (!extraVowel) {
-      const notOnPage = allLetters.filter(l => !selected.includes(l));
-      const fallbackVowel = vowels.find(v => !selected.includes(v));
-      extraVowel = fallbackVowel || vowels[Math.floor(Math.random() * vowels.length)];
-    }
-
-    selected.push(extraVowel);
-    return selected;
-  }
-
-  function endGame() {
-    saveCurrentPageAttempts();
-    const endTime = Date.now();
-    const time = Math.round((endTime - startTime) / 1000);
-    const minutes = Math.floor(time / 60);
-    const seconds = time % 60;
-    const formatted = `${minutes} mins ${seconds} sec`;
-
-    const correctEntries = allLetters.map(letter => letterStats[letter].pageAttempts.join(""));
-    const incorrectEntries = allLetters.map(letter => letterStats[letter].incorrectAttempts || "").filter(str => str.length > 0);
-    const sortIgnoringAsterisks = (a, b) => a.replace(/\*/g, "").localeCompare(b.replace(/\*/g, ""));
-
-    correctEntries.sort(sortIgnoringAsterisks);
-    incorrectEntries.sort(sortIgnoringAsterisks);
-
-    const correctStr = correctEntries.join(", ");
-    const incorrectStr = incorrectEntries.join(", ");
-
-    let totalAttempts = 0;
-    let firstTryCorrectCount = 0;
-    allLetters.forEach(letter => {
-      const stats = letterStats[letter];
-      totalAttempts += stats.attempts;
-      const firstCorrectCount = stats.pageAttempts.reduce((acc, val) => val.includes(letter) ? acc + 1 : acc, 0);
-      firstTryCorrectCount += firstCorrectCount;
-    });
-
-    const scorePercent = totalAttempts > 0 ? Math.round((firstTryCorrectCount / totalAttempts) * 100) : 0;
-
-    document.getElementById("score-display").innerText = `Score: ${scorePercent}%`;
-    const timeDisplay = document.createElement("p");
-    timeDisplay.innerText = `Time: ${formatted}`;
-    document.getElementById("end-modal-content").appendChild(timeDisplay);
-
-    const entries = {
-      "entry.1387461004": studentName,
-      "entry.1309291707": studentClass,
-      "entry.477642881": "Alphabet",
-      "entry.1897227570": incorrectStr,
-      "entry.1249394203": correctStr,
-      "entry.1996137354": `${scorePercent}%`,
-      "entry.1374858042": formatted,
-    };
-
-    const form = document.createElement("form");
-    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
-    form.method = "POST";
-    form.target = "hidden_iframe";
-    const iframe = document.createElement("iframe");
-    iframe.name = "hidden_iframe";
-    iframe.style.display = "none";
-    document.body.appendChild(iframe);
-
-    for (const key in entries) {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = key;
-      input.value = entries[key];
-      form.appendChild(input);
-    }
-
-    document.body.appendChild(form);
-    form.submit();
-
-    modal.style.display = "flex";
+    const selectedSet = new Set(selected);
+    const remainingVowels = vowels.filter(v => !selectedSet.has(v));
+    let extraVowel = remainingVowels.length > 0 ? remainingVowels[Math.floor(Math.random() * remainingVowels.length)] : vowels[Math.floor(Math.random() * vowels.length)];
+    return selected.concat(extraVowel);
   }
 
   function loadPage() {
     if (currentLevel >= levels.length) return endGame();
-    const { type: mode, decoys, isReview } = levels[currentLevel];
+
+    const mode = levels[currentLevel].type;
+    const decoyCount = levels[currentLevel].decoys;
+    const isReview = levels[currentLevel].isReview;
+
+    const usedThisPage = new Set();
     let currentLetters = [];
 
     if (isReview) {
-      currentLetters = getMostIncorrectLetters(9);
+      const sortedByWrong = [...allLetters].sort((a, b) => letterStats[b].incorrectAttempts.length - letterStats[a].incorrectAttempts.length);
+      const maxSet = sortedByWrong.filter(l => letterStats[l].incorrectAttempts.length > 0).slice(0, 27);
+      currentLetters = maxSet.length ? maxSet : getUnique27Letters();
     } else {
-      const set = getUnique27Letters();
-      const sliceSize = 9;
-      currentLetters = set.slice(currentPage * sliceSize, (currentPage + 1) * sliceSize);
+      currentLetters = getUnique27Letters();
     }
 
-    const remaining = allLetters.filter(l => !currentLetters.includes(l));
-    const usedDecoys = [];
-    while (usedDecoys.length < decoys && remaining.length > 0) {
-      const idx = Math.floor(Math.random() * remaining.length);
-      usedDecoys.push(remaining.splice(idx, 1)[0]);
+    const selected = currentLetters.slice(currentPage * 9, currentPage * 9 + 9);
+    const decoyPool = allLetters.filter(l => !selected.includes(l));
+    const decoys = [];
+    while (decoys.length < decoyCount && decoyPool.length > 0) {
+      const index = Math.floor(Math.random() * decoyPool.length);
+      decoys.push(decoyPool.splice(index, 1)[0]);
     }
 
-    const draggables = [...currentLetters, ...usedDecoys].sort(() => Math.random() - 0.5);
+    const draggables = [...selected, ...decoys].sort(() => Math.random() - 0.5);
 
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
@@ -188,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const slotTypeMap = {};
 
-    currentLetters.forEach(letter => {
+    selected.forEach(letter => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
@@ -216,32 +148,189 @@ document.addEventListener("DOMContentLoaded", function () {
       draggable.dataset.letter = letter;
       draggable.className = "draggable";
       draggable.draggable = true;
-      draggable.addEventListener("dragstart", dragStart);
-      draggable.addEventListener("touchstart", touchStart);
-
-      const isSignInSlot = slotTypeMap[letter];
-
-      if (mode === "imageToSign") {
-        draggable.src = `assets/alphabet/clipart/${letter}.png`;
-      } else if (mode === "signToImage") {
-        draggable.src = `assets/alphabet/signs/sign-${letter}.png`;
-      } else {
-        draggable.src = isSignInSlot
-          ? `assets/alphabet/clipart/${letter}.png`
-          : `assets/alphabet/signs/sign-${letter}.png`;
-      }
+      draggable.src = slotTypeMap[letter] === true ? `assets/alphabet/clipart/${letter}.png` : `assets/alphabet/signs/sign-${letter}.png`;
 
       const container = document.createElement("div");
       container.className = "drag-wrapper";
       container.appendChild(draggable);
-
       (i < draggables.length / 2 ? leftSigns : rightSigns).appendChild(container);
+
+      draggable.addEventListener("dragstart", dragStart);
+      draggable.addEventListener("touchstart", touchStart);
     });
 
     document.querySelectorAll(".slot").forEach(slot => {
       slot.addEventListener("dragover", dragOver);
       slot.addEventListener("drop", drop);
     });
+  }
+
+  function saveCurrentPageAttempts() {
+    allLetters.forEach(letter => {
+      const stats = letterStats[letter];
+      stats.pageAttempts.push(stats.currentPageAttempt || "");
+      stats.currentPageAttempt = "";
+      stats.firstCorrectOnPage = false;
+    });
+  }
+
+  function dragStart(e) {
+    e.dataTransfer.setData("text/plain", e.target.dataset.letter);
+    e.target.classList.add("dragging");
+  }
+
+  function dragOver(e) {
+    e.preventDefault();
+  }
+
+  function drop(e) {
+    e.preventDefault();
+    const letter = e.dataTransfer.getData("text/plain");
+    const slot = e.currentTarget;
+    const stats = letterStats[letter];
+    stats.attempts++;
+
+    const firstAttemptThisPage = stats.currentPageAttempt.length === 0;
+
+    if (slot.dataset.letter === letter) {
+      stats.correctAttempts++;
+      if (!stats.firstCorrectOnPage) {
+        stats.firstCorrectOnPage = true;
+        stats.currentPageAttempt += letter;
+      }
+
+      slot.innerHTML = "";
+      const img = document.querySelector(`.draggable[data-letter='${letter}']`);
+      if (img) img.remove();
+      slot.appendChild(img);
+      correctMatches++;
+
+      showFeedback(true);
+
+      if (correctMatches >= 9) {
+        correctMatches = 0;
+        saveCurrentPageAttempts();
+        currentPage++;
+        if (currentPage >= pagesPerLevel) {
+          currentPage = 0;
+          currentLevel++;
+        }
+        setTimeout(loadPage, 500);
+      }
+    } else {
+      if (!stats.firstCorrectOnPage && firstAttemptThisPage) {
+        stats.currentPageAttempt += "*";
+      }
+      stats.incorrectAttempts += letter;
+      showFeedback(false);
+    }
+  }
+
+  function touchStart(e) {
+    e.preventDefault();
+    const target = e.target;
+    const letter = target.dataset.letter;
+    const clone = target.cloneNode(true);
+    clone.style.position = "absolute";
+    clone.style.pointerEvents = "none";
+    clone.style.opacity = "0.7";
+    clone.style.zIndex = "10000";
+    document.body.appendChild(clone);
+
+    const moveClone = touch => {
+      clone.style.left = `${touch.clientX - clone.width / 2}px`;
+      clone.style.top = `${touch.clientY - clone.height / 2}px`;
+    };
+
+    moveClone(e.touches[0]);
+
+    const handleTouchMove = ev => moveClone(ev.touches[0]);
+    const handleTouchEnd = ev => {
+      const touch = ev.changedTouches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (el && el.classList.contains("slot")) drop({ preventDefault() {}, currentTarget: el, dataTransfer: { getData: () => letter } });
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
+      clone.remove();
+    };
+
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
+    document.addEventListener("touchend", handleTouchEnd, { passive: false });
+  }
+
+  function showFeedback(correct) {
+    feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
+    feedbackImage.style.display = "block";
+    setTimeout(() => feedbackImage.style.display = "none", 1000);
+  }
+
+  function endGame() {
+    saveCurrentPageAttempts();
+    const endTime = Date.now();
+    const timeTaken = Math.round((endTime - startTime) / 1000);
+    const minutes = Math.floor(timeTaken / 60);
+    const seconds = timeTaken % 60;
+    const formattedTime = `${minutes} mins ${seconds} sec`;
+
+    const correctEntries = allLetters.map(letter => letterStats[letter].pageAttempts.join(""));
+    const incorrectEntries = allLetters
+      .map(letter => letterStats[letter].incorrectAttempts || "")
+      .filter(str => str.length > 0);
+
+    const sortIgnoringAsterisks = (a, b) => a.replace(/\*/g, "").localeCompare(b.replace(/\*/g, ""));
+    correctEntries.sort(sortIgnoringAsterisks);
+    incorrectEntries.sort(sortIgnoringAsterisks);
+
+    const correctStr = correctEntries.join(", ");
+    const incorrectStr = incorrectEntries.join(", ");
+
+    let totalAttempts = 0;
+    let firstTryCorrectCount = 0;
+    allLetters.forEach(letter => {
+      const stats = letterStats[letter];
+      totalAttempts += stats.attempts;
+      const firstCorrectCount = stats.pageAttempts.reduce((acc, val) => val.includes(letter) ? acc + 1 : acc, 0);
+      firstTryCorrectCount += firstCorrectCount;
+    });
+    const scorePercent = totalAttempts > 0 ? Math.round((firstTryCorrectCount / totalAttempts) * 100) : 0;
+
+    document.getElementById("score-display").innerText = `Score: ${scorePercent}%`;
+    const timeDisplay = document.createElement("p");
+    timeDisplay.innerText = `Time: ${formattedTime}`;
+    document.getElementById("end-modal-content").appendChild(timeDisplay);
+
+    const entries = {
+      "entry.1387461004": studentName,
+      "entry.1309291707": studentClass,
+      "entry.477642881": "Alphabet",
+      "entry.1897227570": incorrectStr,
+      "entry.1249394203": correctStr,
+      "entry.1996137354": `${scorePercent}%`,
+      "entry.1374858042": formattedTime,
+    };
+
+    const form = document.createElement("form");
+    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+    form.method = "POST";
+    form.target = "hidden_iframe";
+
+    const iframe = document.createElement("iframe");
+    iframe.name = "hidden_iframe";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+
+    for (const key in entries) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = entries[key];
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+
+    modal.style.display = "flex";
   }
 
   loadPage();
