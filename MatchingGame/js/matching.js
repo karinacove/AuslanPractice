@@ -39,6 +39,9 @@ document.addEventListener("DOMContentLoaded", function () {
   let currentPage = 0;
   const pagesPerLevel = 3;
 
+  // Track letters shown in current level to avoid repeats across pages (except vowel on page 3)
+  let lettersUsedThisLevel = [];
+
   const letterStats = {};
   allLetters.forEach(letter => {
     letterStats[letter] = {
@@ -112,23 +115,20 @@ document.addEventListener("DOMContentLoaded", function () {
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
 
       correctMatches++;
-      console.log(`Correct Matches: ${correctMatches} / ${getCurrentGridCount()} (Level ${currentLevel+1} Page ${currentPage+1})`);
       if (correctMatches >= getCurrentGridCount()) {
         correctMatches = 0;
         saveCurrentPageAttempts();
 
         currentPage++;
         if (currentPage < pagesPerLevel) {
-          console.log(`Moving to Page ${currentPage+1} of Level ${currentLevel+1}`);
           setTimeout(loadPage, 800);
         } else {
           currentLevel++;
           currentPage = 0;
+          lettersUsedThisLevel = [];
           if (currentLevel >= levels.length) {
-            console.log("All levels complete, ending game.");
             setTimeout(endGame, 800);
           } else {
-            console.log(`Starting Level ${currentLevel+1}`);
             setTimeout(loadPage, 800);
           }
         }
@@ -226,13 +226,9 @@ document.addEventListener("DOMContentLoaded", function () {
   function loadPage() {
     if (currentLevel >= levels.length) return endGame();
 
-    console.log(`Loading Level ${currentLevel + 1}, Page ${currentPage + 1}`);
-
-    const container = document.getElementById("game-container") || document.body;
-    container.classList.toggle("wide-mode", currentLevel >= 3);
-
     const { type: mode, decoys, dragType, lettersPerPage, draggablesCount, isReview } = levels[currentLevel];
 
+    // Reset firstCorrectOnPage and currentPageAttempt for all letters
     allLetters.forEach(l => {
       letterStats[l].firstCorrectOnPage = false;
       letterStats[l].currentPageAttempt = "";
@@ -241,29 +237,40 @@ document.addEventListener("DOMContentLoaded", function () {
     let slotLetters = [];
     let draggableLetters = [];
 
-    if (currentLevel <= 2 && currentPage === 2) {
-      // Level 1-3, page 3: all 26 letters + 1 extra vowel (27 letters)
-      const extraVowel = vowels[Math.floor(Math.random() * vowels.length)];
-      slotLetters = [...allLetters, extraVowel];
-    } else if (isReview) {
-      const incorrectSorted = allLetters
-        .filter(l => letterStats[l].incorrectAttempts.length > 0)
-        .sort((a, b) => letterStats[b].incorrectAttempts.length - letterStats[a].incorrectAttempts.length);
-      slotLetters = incorrectSorted.length > 0 ? incorrectSorted.slice(0, lettersPerPage) : shuffle(allLetters).slice(0, lettersPerPage);
-    } else {
-      slotLetters = shuffle(allLetters).slice(0, lettersPerPage);
-    }
-
-    // Draggables
-    if (currentLevel <= 2 && currentPage === 2) {
-      // exclude extra vowel from draggables and keep total draggablesCount
-      draggableLetters = slotLetters.slice(0, 26); // exclude extra vowel (last letter)
-      const includedSet = new Set(draggableLetters);
-      const decoyCount = draggablesCount - draggableLetters.length;
+    if (currentLevel <= 2) {
+      // Levels 1-3 have 9 letters per page and 3 pages, total 27 letters displayed over the whole level
+      if (currentPage < 2) {
+        // Pages 1 and 2: pick letters not used yet this level
+        const remainingLetters = allLetters.filter(l => !lettersUsedThisLevel.includes(l));
+        slotLetters = shuffle(remainingLetters).slice(0, lettersPerPage);
+        lettersUsedThisLevel = lettersUsedThisLevel.concat(slotLetters);
+      } else if (currentPage === 2) {
+        // Page 3: show all remaining letters NOT shown in pages 1 and 2 + extra vowel at the end
+        const remainingLetters = allLetters.filter(l => !lettersUsedThisLevel.includes(l));
+        // Pick one vowel randomly for extra vowel
+        const extraVowels = vowels.filter(v => !lettersUsedThisLevel.includes(v));
+        let extraVowel;
+        if (extraVowels.length > 0) {
+          extraVowel = extraVowels[Math.floor(Math.random() * extraVowels.length)];
+        } else {
+          // fallback if all vowels are used (unlikely)
+          extraVowel = vowels[Math.floor(Math.random() * vowels.length)];
+        }
+        slotLetters = remainingLetters.concat(extraVowel);
+        // Don't add extra vowel to lettersUsedThisLevel to avoid blocking in future levels
+      }
+      // For draggables: all letters on this page + decoys to reach draggablesCount
+      const includedSet = new Set(slotLetters);
+      const decoyCount = draggablesCount - slotLetters.length;
       const decoyPool = allLetters.filter(l => !includedSet.has(l));
       const decoysToAdd = shuffle(decoyPool).slice(0, decoyCount);
-      draggableLetters = shuffle([...draggableLetters, ...decoysToAdd]);
+      draggableLetters = shuffle([...slotLetters, ...decoysToAdd]);
     } else {
+      // Levels 4-6: 18 letters per page, 3 pages, total 54 letters (more than alphabet - so letters can repeat across pages)
+      // We pick fresh letters each page for variety, but letters should not repeat *within* a page
+      // For simplicity, just shuffle alphabet and pick lettersPerPage per page
+      slotLetters = shuffle(allLetters).slice(0, lettersPerPage);
+
       const includedSet = new Set(slotLetters);
       const decoyCount = draggablesCount - slotLetters.length;
       const decoyPool = allLetters.filter(l => !includedSet.has(l));
@@ -371,6 +378,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.addEventListener("touchmove", handleTouchMove, { passive: false });
     document.addEventListener("touchend", handleTouchEnd, { passive: false });
+  }
+
+  function getCurrentGridCount() {
+    if (currentLevel <= 2 && currentPage === 2) return 27;
+    if (currentLevel <= 2) return 9;
+    return 18;
   }
 
   loadPage();
