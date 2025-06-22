@@ -76,21 +76,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const amountPerPage = 9;
     const decoyCount = harder ? 9 : 3;
+    const levelLetterPool = shuffle([...allLetters]);
     const vowelToRepeat = vowels[Math.floor(Math.random() * vowels.length)];
-    let baseLetters = shuffle([...allLetters]);
-    baseLetters.push(vowelToRepeat);
-    baseLetters = shuffle(baseLetters);
+    if (!levelLetterPool.includes(vowelToRepeat)) levelLetterPool.push(vowelToRepeat);
+    const selectedPool = shuffle(levelLetterPool).slice(0, pagesPerLevel * amountPerPage);
 
-    const allLevelLetters = baseLetters.slice(0, pagesPerLevel * amountPerPage);
-    const lettersThisPage = shuffle(allLevelLetters.slice(currentPage * amountPerPage, currentPage * amountPerPage + amountPerPage));
+    const lettersThisPage = shuffle(selectedPool.slice(currentPage * amountPerPage, (currentPage + 1) * amountPerPage));
     currentLetters = lettersThisPage;
 
-    const remaining = allLetters.filter(l => !currentLetters.includes(l));
-    const decoys = [];
-    while (decoys.length < decoyCount && remaining.length > 0) {
-      const idx = Math.floor(Math.random() * remaining.length);
-      decoys.push(remaining.splice(idx, 1)[0]);
-    }
+    const usedLetters = new Set(currentLetters);
+    const remaining = shuffle(allLetters.filter(l => !usedLetters.has(l)));
+    const decoys = remaining.slice(0, decoyCount);
 
     const draggables = shuffle([...currentLetters, ...decoys]);
 
@@ -177,7 +173,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const src = e.dataTransfer.getData("src");
     handleDrop(e.currentTarget, letter, src);
   }
-
+  
   function handleDrop(slot, letter, src) {
     letterStats[letter].attempts++;
 
