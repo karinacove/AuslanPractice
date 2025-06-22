@@ -1,4 +1,4 @@
-// [FULL JS with extra vowel only on page 3 and not added as a slot]
+// [FULL JS with corrected vowel logic and draggable limit]
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -237,18 +237,20 @@ document.addEventListener("DOMContentLoaded", function () {
       currentLetters = shuffle(allLetters).slice(0, 9);
     }
 
-    const includedLetters = new Set(currentLetters);
-    const decoyLetters = shuffle(allLetters.filter(l => !includedLetters.has(l))).slice(0, decoys);
-
     let extra = null;
     if (currentPage === 2) {
+      const includedLetters = new Set(currentLetters);
       const unusedVowels = vowels.filter(v => !includedLetters.has(v));
       extra = unusedVowels.length > 0
         ? unusedVowels[Math.floor(Math.random() * unusedVowels.length)]
         : vowels[Math.floor(Math.random() * vowels.length)];
     }
 
-    const draggables = shuffle([...currentLetters, ...decoyLetters, ...(extra ? [extra] : [])]);
+    const includedLetters = new Set(currentLetters);
+    const decoyLetters = shuffle(allLetters.filter(l => !includedLetters.has(l))).slice(0, decoys);
+
+    const draggables = shuffle([...currentLetters, ...decoyLetters]);
+    if (extra) draggables.pop(); // ensure total remains 9 + decoys
 
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
@@ -288,16 +290,18 @@ document.addEventListener("DOMContentLoaded", function () {
       draggable.draggable = true;
       draggable.addEventListener("dragstart", dragStart);
       draggable.addEventListener("touchstart", touchStart);
+
       if (dragType === "clipart") {
         draggable.src = `assets/alphabet/clipart/${letter}.png`;
       } else if (dragType === "sign") {
         draggable.src = `assets/alphabet/signs/sign-${letter}.png`;
       } else {
-        const isSign = slotTypeMap[letter] || Math.random() < 0.5;
+        const isSign = slotTypeMap[letter] === false ? true : false;
         draggable.src = isSign
-          ? `url('assets/alphabet/signs/sign-${letter}.png')`
-          : `url('assets/alphabet/clipart/${letter}.png')`;
+          ? `assets/alphabet/signs/sign-${letter}.png`
+          : `assets/alphabet/clipart/${letter}.png`;
       }
+
       const container = document.createElement("div");
       container.className = "drag-wrapper";
       container.appendChild(draggable);
