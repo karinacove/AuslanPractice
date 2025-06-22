@@ -27,8 +27,6 @@ document.addEventListener("DOMContentLoaded", function () {
     { type: "signToImage" },
     { type: "imageToSign" },
     { type: "mixed" },
-    { type: "signToImage", harder: true },
-    { type: "imageToSign", harder: true },
   ];
 
   let currentLevel = 0;
@@ -38,7 +36,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const letterStats = {};
   allLetters.forEach(letter => letterStats[letter] = { attempts: 0, correct: 0, firstCorrect: false });
 
-  let fullLetterSet = [];
   let currentLetters = [];
   let correctMatches = 0;
   const pagesPerLevel = 3;
@@ -62,107 +59,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.body.appendChild(feedbackImage);
 
-  function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  }
-
-  function loadPage() {
-    if (currentLevel >= levels.length) return endGame();
-    const mode = levels[currentLevel].type;
-    const harder = levels[currentLevel].harder;
-
-    const amountPerPage = 9;
-    const decoyCount = harder ? 9 : 3;
-
-    if (currentPage === 0) {
-      const shuffled = shuffle([...allLetters]);
-      const vowelToRepeat = vowels[Math.floor(Math.random() * vowels.length)];
-      if (!shuffled.includes(vowelToRepeat)) shuffled.push(vowelToRepeat);
-      fullLetterSet = shuffle(shuffled).slice(0, 27);
-    }
-
-    const start = currentPage * amountPerPage;
-    const end = start + amountPerPage;
-    const selectedLetters = fullLetterSet.slice(start, end);
-    currentLetters = shuffle([...selectedLetters]);
-
-    const usedLetters = new Set(currentLetters);
-    const remaining = shuffle(allLetters.filter(l => !usedLetters.has(l)));
-    const decoys = remaining.slice(0, decoyCount);
-
-    const draggables = shuffle([...currentLetters, ...decoys]);
-
-    gameBoard.innerHTML = "";
-    leftSigns.innerHTML = "";
-    rightSigns.innerHTML = "";
-
-    levelTitle.innerText = `Level ${currentLevel + 1}: ` +
-      (mode === "signToImage" ? "Match the Sign to the Picture" :
-       mode === "imageToSign" ? "Match the Picture to the Sign" :
-       "Match Signs and Pictures (Mixed)");
-
-    const slotTypeMap = {};
-
-    shuffle([...currentLetters]).forEach(letter => {
-      const slot = document.createElement("div");
-      slot.className = "slot";
-      slot.dataset.letter = letter;
-
-      let isSign = false;
-      if (mode === "signToImage") {
-        isSign = false;
-        slot.style.backgroundImage = `url('assets/alphabet/clipart/${letter}.png')`;
-      } else if (mode === "imageToSign") {
-        isSign = true;
-        slot.style.backgroundImage = `url('assets/alphabet/signs/sign-${letter}.png')`;
-      } else {
-        isSign = Math.random() < 0.5;
-        slot.style.backgroundImage = isSign
-          ? `url('assets/alphabet/signs/sign-${letter}.png')`
-          : `url('assets/alphabet/clipart/${letter}.png')`;
-      }
-
-      slotTypeMap[letter] = isSign;
-      gameBoard.appendChild(slot);
-    });
-
-    draggables.forEach((letter, i) => {
-      const draggable = document.createElement("img");
-      draggable.dataset.letter = letter;
-      draggable.className = "draggable";
-      draggable.draggable = true;
-      draggable.addEventListener("dragstart", dragStart);
-      draggable.addEventListener("touchstart", touchStart);
-
-      const isSignInSlot = slotTypeMap[letter];
-
-      if (mode === "imageToSign") {
-        draggable.src = `assets/alphabet/clipart/${letter}.png`;
-      } else if (mode === "signToImage") {
-        draggable.src = `assets/alphabet/signs/sign-${letter}.png`;
-      } else {
-        draggable.src = isSignInSlot
-          ? `assets/alphabet/clipart/${letter}.png`
-          : `assets/alphabet/signs/sign-${letter}.png`;
-      }
-
-      const container = document.createElement("div");
-      container.className = "drag-wrapper";
-      container.appendChild(draggable);
-
-      (i < draggables.length / 2 ? leftSigns : rightSigns).appendChild(container);
-    });
-
-    document.querySelectorAll(".slot").forEach(slot => {
-      slot.addEventListener("dragover", dragOver);
-      slot.addEventListener("drop", drop);
-    });
-  }
-
   function dragStart(e) {
     e.dataTransfer.setData("text/plain", e.target.dataset.letter);
     e.dataTransfer.setData("src", e.target.src);
@@ -179,7 +75,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const src = e.dataTransfer.getData("src");
     handleDrop(e.currentTarget, letter, src);
   }
-  
+
   function handleDrop(slot, letter, src) {
     letterStats[letter].attempts++;
 
@@ -199,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
 
-    if (correctMatches >= (levels[currentLevel].harder ? 15 : 9)) {
+      if (correctMatches >= 9) {
         correctMatches = 0;
         currentPage++;
         if (currentPage < pagesPerLevel) {
@@ -268,7 +164,6 @@ document.addEventListener("DOMContentLoaded", function () {
   function loadPage() {
     if (currentLevel >= levels.length) return endGame();
     const mode = levels[currentLevel].type;
-    const harder = levels[currentLevel].harder;
     currentLetters = [];
 
     const shuffled = [...allLetters].sort(() => Math.random() - 0.5);
@@ -276,13 +171,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const allPicks = [...shuffled.slice(0, 26), vowelToRepeat];
     const levelLetters = allPicks.sort(() => Math.random() - 0.5);
 
-    const amountPerPage = harder ? 15 : 9;
     const lettersThisPage = levelLetters.slice(currentPage * 9, currentPage * 9 + 9);
     currentLetters = lettersThisPage;
 
     const remaining = allLetters.filter(l => !currentLetters.includes(l));
     const decoys = [];
-    while (decoys.length < (harder ? 3 : 3) && remaining.length > 0) {
+    while (decoys.length < 3 && remaining.length > 0) {
       const idx = Math.floor(Math.random() * remaining.length);
       decoys.push(remaining.splice(idx, 1)[0]);
     }
