@@ -164,6 +164,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function loadPage() {
     if (currentLevel >= levels.length) return endGame();
     const mode = levels[currentLevel].type;
+    const harder = levels[currentLevel].harder;
     currentLetters = [];
 
     const shuffled = [...allLetters].sort(() => Math.random() - 0.5);
@@ -171,12 +172,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const allPicks = [...shuffled.slice(0, 26), vowelToRepeat];
     const levelLetters = allPicks.sort(() => Math.random() - 0.5);
 
+    const amountPerPage = harder ? 15 : 9;
     const lettersThisPage = levelLetters.slice(currentPage * 9, currentPage * 9 + 9);
     currentLetters = lettersThisPage;
 
     const remaining = allLetters.filter(l => !currentLetters.includes(l));
     const decoys = [];
-    while (decoys.length < 3 && remaining.length > 0) {
+    while (decoys.length < (harder ? 3 : 3) && remaining.length > 0) {
       const idx = Math.floor(Math.random() * remaining.length);
       decoys.push(remaining.splice(idx, 1)[0]);
     }
