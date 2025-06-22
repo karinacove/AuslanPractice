@@ -26,7 +26,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
   const vowels = ["a", "e", "i", "o", "u"];
 
-  // Added lettersPerPage and draggablesCount for clarity
   const levels = [
     { type: "imageToSign", decoys: 3, dragType: "clipart", lettersPerPage: 9, draggablesCount: 12 },
     { type: "signToImage", decoys: 3, dragType: "sign", lettersPerPage: 9, draggablesCount: 12 },
@@ -113,19 +112,23 @@ document.addEventListener("DOMContentLoaded", function () {
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
 
       correctMatches++;
+      console.log(`Correct Matches: ${correctMatches} / ${getCurrentGridCount()} (Level ${currentLevel+1} Page ${currentPage+1})`);
       if (correctMatches >= getCurrentGridCount()) {
         correctMatches = 0;
         saveCurrentPageAttempts();
 
         currentPage++;
         if (currentPage < pagesPerLevel) {
+          console.log(`Moving to Page ${currentPage+1} of Level ${currentLevel+1}`);
           setTimeout(loadPage, 800);
         } else {
           currentLevel++;
           currentPage = 0;
           if (currentLevel >= levels.length) {
+            console.log("All levels complete, ending game.");
             setTimeout(endGame, 800);
           } else {
+            console.log(`Starting Level ${currentLevel+1}`);
             setTimeout(loadPage, 800);
           }
         }
@@ -210,13 +213,9 @@ document.addEventListener("DOMContentLoaded", function () {
     modal.style.display = "flex";
   }
 
-  // Returns how many slots to expect for current level and page
   function getCurrentGridCount() {
-    // Level 1-3, page 3: 27 slots (26 letters + 1 extra vowel)
     if (currentLevel <= 2 && currentPage === 2) return 27;
-    // Levels 1-3 other pages: 9 slots
     if (currentLevel <= 2) return 9;
-    // Levels 4-6: 18 slots
     return 18;
   }
 
@@ -226,6 +225,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function loadPage() {
     if (currentLevel >= levels.length) return endGame();
+
+    console.log(`Loading Level ${currentLevel + 1}, Page ${currentPage + 1}`);
 
     const container = document.getElementById("game-container") || document.body;
     container.classList.toggle("wide-mode", currentLevel >= 3);
@@ -240,15 +241,11 @@ document.addEventListener("DOMContentLoaded", function () {
     let slotLetters = [];
     let draggableLetters = [];
 
-    // --- Determine letters for the grid (slots) ---
     if (currentLevel <= 2 && currentPage === 2) {
-      // Level 1-3, page 3: all 26 letters + 1 extra vowel (not duplicate vowel on page)
-      const extraVowels = vowels.filter(v => !allLetters.includes(v));
-      // Actually extra vowel must be chosen from vowels not already in the 26 letters, but allLetters has all letters, so just pick random vowel:
+      // Level 1-3, page 3: all 26 letters + 1 extra vowel (27 letters)
       const extraVowel = vowels[Math.floor(Math.random() * vowels.length)];
       slotLetters = [...allLetters, extraVowel];
     } else if (isReview) {
-      // For review levels show letters with most incorrect attempts
       const incorrectSorted = allLetters
         .filter(l => letterStats[l].incorrectAttempts.length > 0)
         .sort((a, b) => letterStats[b].incorrectAttempts.length - letterStats[a].incorrectAttempts.length);
@@ -257,18 +254,16 @@ document.addEventListener("DOMContentLoaded", function () {
       slotLetters = shuffle(allLetters).slice(0, lettersPerPage);
     }
 
-    // --- Determine draggable letters ---
+    // Draggables
     if (currentLevel <= 2 && currentPage === 2) {
-      // On level 1-3, page 3, exclude extra vowel from draggables and keep total draggables count to 12
+      // exclude extra vowel from draggables and keep total draggablesCount
       draggableLetters = slotLetters.slice(0, 26); // exclude extra vowel (last letter)
-      // Add decoys to reach draggablesCount (12)
       const includedSet = new Set(draggableLetters);
       const decoyCount = draggablesCount - draggableLetters.length;
       const decoyPool = allLetters.filter(l => !includedSet.has(l));
       const decoysToAdd = shuffle(decoyPool).slice(0, decoyCount);
       draggableLetters = shuffle([...draggableLetters, ...decoysToAdd]);
     } else {
-      // Normal case: draggables = slots + decoys, total draggablesCount
       const includedSet = new Set(slotLetters);
       const decoyCount = draggablesCount - slotLetters.length;
       const decoyPool = allLetters.filter(l => !includedSet.has(l));
@@ -276,7 +271,6 @@ document.addEventListener("DOMContentLoaded", function () {
       draggableLetters = shuffle([...slotLetters, ...decoysToAdd]);
     }
 
-    // Clear previous content
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
     rightSigns.innerHTML = "";
@@ -286,7 +280,6 @@ document.addEventListener("DOMContentLoaded", function () {
        mode === "imageToSign" ? "Match the Picture to the Sign" :
        "Match Signs and Pictures (Mixed)");
 
-    // Map for slots to know which is sign or clipart
     const slotTypeMap = {};
     slotLetters.forEach(letter => {
       const slot = document.createElement("div");
@@ -309,7 +302,6 @@ document.addEventListener("DOMContentLoaded", function () {
       gameBoard.appendChild(slot);
     });
 
-    // Create draggables
     draggableLetters.forEach((letter, i) => {
       const draggable = document.createElement("img");
       draggable.dataset.letter = letter;
@@ -323,10 +315,8 @@ document.addEventListener("DOMContentLoaded", function () {
       } else if (dragType === "sign") {
         draggable.src = `assets/alphabet/signs/sign-${letter}.png`;
       } else {
-        // mixed: draggable is opposite type of slot if known
-        const isSignInSlot = slotTypeMap[letter];
-        const isSignForDraggable = (typeof isSignInSlot === "boolean") ? !isSignInSlot : Math.random() < 0.5;
-        draggable.src = isSignForDraggable
+        const isSign = slotTypeMap[letter] || Math.random() < 0.5;
+        draggable.src = isSign
           ? `assets/alphabet/signs/sign-${letter}.png`
           : `assets/alphabet/clipart/${letter}.png`;
       }
@@ -335,7 +325,6 @@ document.addEventListener("DOMContentLoaded", function () {
       container.className = "drag-wrapper";
       container.appendChild(draggable);
 
-      // Split draggable half left / right
       if (i < draggableLetters.length / 2) {
         leftSigns.appendChild(container);
       } else {
@@ -343,7 +332,6 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    // Add drag handlers on slots
     document.querySelectorAll(".slot").forEach(slot => {
       slot.addEventListener("dragover", dragOver);
       slot.addEventListener("drop", drop);
