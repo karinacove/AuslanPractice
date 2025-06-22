@@ -181,8 +181,8 @@ document.addEventListener("DOMContentLoaded", function () {
     shuffledLetters = shuffle(shuffledLetters);
 
     const amountPerPage = harder ? 15 : 9;
-    const lettersThisPage = shuffledLetters.slice(currentPage * amountPerPage, currentPage * amountPerPage + amountPerPage);
-    currentLetters = lettersThisPage;
+    const lettersThisPage = levelLetters.slice(currentPage * amountPerPage, currentPage * amountPerPage + amountPerPage);
+    lettersThisPage.sort(() => Math.random() - 0.5);
 
     const remaining = allLetters.filter(l => !currentLetters.includes(l));
     const decoys = [];
