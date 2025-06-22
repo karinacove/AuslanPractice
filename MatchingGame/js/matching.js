@@ -1,4 +1,3 @@
-// [FULL JS for Alphabet Matching Game with enhanced decoy logic and all features implemented]
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -28,12 +27,12 @@ document.addEventListener("DOMContentLoaded", function () {
   const vowels = ["a", "e", "i", "o", "u"];
 
   const levels = [
-    { type: "imageToSign", decoys: 3, dragType: "clipart" },
-    { type: "signToImage", decoys: 3, dragType: "sign" },
-    { type: "mixed", decoys: 3, dragType: "mixed" },
-    { type: "imageToSign", decoys: 9, dragType: "clipart" },
-    { type: "signToImage", decoys: 9, dragType: "sign" },
-    { type: "mixed", decoys: 9, dragType: "mixed", isReview: true }
+    { type: "imageToSign", decoys: 3, dragType: "clipart" },  // Level 1 (swapped)
+    { type: "signToImage", decoys: 3, dragType: "sign" },     // Level 2 (swapped)
+    { type: "mixed", decoys: 3, dragType: "mixed" },          // Level 3
+    { type: "imageToSign", decoys: 9, dragType: "clipart" },  // Level 4
+    { type: "signToImage", decoys: 9, dragType: "sign" },     // Level 5
+    { type: "mixed", decoys: 9, dragType: "mixed", isReview: true } // Level 6 (review)
   ];
 
   let currentLevel = 0;
@@ -154,6 +153,41 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  function touchStart(e) {
+    e.preventDefault();
+    const target = e.target;
+    const letter = target.dataset.letter;
+    const src = target.src;
+
+    const clone = target.cloneNode(true);
+    clone.style.position = "absolute";
+    clone.style.pointerEvents = "none";
+    clone.style.opacity = "0.7";
+    clone.style.zIndex = "10000";
+    document.body.appendChild(clone);
+
+    const moveClone = (touch) => {
+      clone.style.left = `${touch.clientX - clone.width / 2}px`;
+      clone.style.top = `${touch.clientY - clone.height / 2}px`;
+    };
+
+    moveClone(e.touches[0]);
+
+    const handleTouchMove = (ev) => moveClone(ev.touches[0]);
+
+    const handleTouchEnd = (ev) => {
+      const touch = ev.changedTouches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (el && el.classList.contains("slot")) handleDrop(el, letter, src);
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
+      clone.remove();
+    };
+
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
+    document.addEventListener("touchend", handleTouchEnd, { passive: false });
+  }
+
   function showFeedback(correct) {
     feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
     feedbackImage.style.display = "block";
@@ -162,6 +196,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function endGame() {
     saveCurrentPageAttempts();
+
     const endTime = Date.now();
     const time = Math.round((endTime - startTime) / 1000);
     const minutes = Math.floor(time / 60);
@@ -184,7 +219,10 @@ document.addEventListener("DOMContentLoaded", function () {
     allLetters.forEach(letter => {
       const stats = letterStats[letter];
       totalAttempts += stats.attempts;
-      const firstCorrectCount = stats.pageAttempts.reduce((acc, val) => val.includes(letter) ? acc + 1 : acc, 0);
+      const firstCorrectCount = stats.pageAttempts.reduce((acc, val) => {
+        if (val.includes(letter)) return acc + 1;
+        else return acc;
+      }, 0);
       firstTryCorrectCount += firstCorrectCount;
     });
 
@@ -230,19 +268,8 @@ document.addEventListener("DOMContentLoaded", function () {
     modal.style.display = "flex";
   }
 
-  function shuffle(array) {
-    return array.sort(() => Math.random() - 0.5);
-  }
-
   function loadPage() {
     if (currentLevel >= levels.length) return endGame();
-
-    const container = document.getElementById("game-container") || document.body;
-    if (currentLevel >= 3) {
-      container.classList.add("wide-mode");
-    } else {
-      container.classList.remove("wide-mode");
-    }
 
     const { type: mode, decoys, dragType, isReview } = levels[currentLevel];
 
@@ -254,6 +281,7 @@ document.addEventListener("DOMContentLoaded", function () {
       letterStats[letter].currentPageAttempt = "";
     });
 
+    // For review level: show most incorrectly answered letters first
     const incorrectSorted = allLetters
       .filter(l => letterStats[l].incorrectAttempts.length > 0)
       .sort((a, b) => letterStats[b].incorrectAttempts.length - letterStats[a].incorrectAttempts.length);
@@ -261,23 +289,35 @@ document.addEventListener("DOMContentLoaded", function () {
     if (isReview && incorrectSorted.length > 0) {
       currentLetters = incorrectSorted.slice(0, 9);
     } else {
-      currentLetters = shuffle(allLetters).slice(0, 9);
+      // Select 9 unique letters + 1 vowel that isn't in current page letters
+      currentLetters = allLetters.slice();
 
+      // Shuffle the alphabet
+      currentLetters = shuffle(currentLetters);
+
+      // Pick first 9 letters from shuffled
+      currentLetters = currentLetters.slice(0, 9);
+
+      // Add an additional vowel not already in currentLetters if possible
       const includedLetters = new Set(currentLetters);
-      const remaining = allLetters.filter(l => !includedLetters.has(l));
       const extraVowels = vowels.filter(v => !includedLetters.has(v));
 
-      const extra = extraVowels.length
+      // Pick random vowel not in currentLetters or fallback vowel
+      const extra = extraVowels.length > 0
         ? extraVowels[Math.floor(Math.random() * extraVowels.length)]
         : vowels[Math.floor(Math.random() * vowels.length)];
 
+      // Only add extra vowel if not already in currentLetters
       if (!includedLetters.has(extra)) {
         currentLetters.push(extra);
       }
     }
 
+    // Prepare decoys from remaining letters not in currentLetters
     const remaining = allLetters.filter(l => !currentLetters.includes(l));
     const decoyLetters = shuffle(remaining).slice(0, decoys);
+
+    // Combine draggables = letters + decoys, shuffled
     const draggables = shuffle([...currentLetters, ...decoyLetters]);
 
     gameBoard.innerHTML = "";
@@ -291,7 +331,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const slotTypeMap = {};
 
-    currentLetters.slice(0, 9).forEach(letter => {
+    // Slots only for currentLetters (without decoys)
+    currentLetters.forEach(letter => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
@@ -314,6 +355,7 @@ document.addEventListener("DOMContentLoaded", function () {
       gameBoard.appendChild(slot);
     });
 
+    // Draggables for all draggable letters (including decoys)
     draggables.forEach((letter, i) => {
       const draggable = document.createElement("img");
       draggable.dataset.letter = letter;
@@ -322,13 +364,16 @@ document.addEventListener("DOMContentLoaded", function () {
       draggable.addEventListener("dragstart", dragStart);
       draggable.addEventListener("touchstart", touchStart);
 
+      // Draggables' image type depends on level dragType setting
       if (dragType === "clipart") {
         draggable.src = `assets/alphabet/clipart/${letter}.png`;
       } else if (dragType === "sign") {
         draggable.src = `assets/alphabet/signs/sign-${letter}.png`;
       } else {
-        const isSign = slotTypeMap[letter] || Math.random() < 0.5;
-        draggable.src = isSign
+        // Mixed draggables: opposite to slot if possible, else random
+        const isSignInSlot = slotTypeMap[letter];
+        const isSignForDraggable = isSignInSlot !== undefined ? !isSignInSlot : Math.random() < 0.5;
+        draggable.src = isSignForDraggable
           ? `assets/alphabet/signs/sign-${letter}.png`
           : `assets/alphabet/clipart/${letter}.png`;
       }
@@ -337,13 +382,24 @@ document.addEventListener("DOMContentLoaded", function () {
       container.className = "drag-wrapper";
       container.appendChild(draggable);
 
-      (i < draggables.length / 2 ? leftSigns : rightSigns).appendChild(container);
+      // Distribute half draggables to left, half to right
+      if (i < draggables.length / 2) {
+        leftSigns.appendChild(container);
+      } else {
+        rightSigns.appendChild(container);
+      }
     });
 
+    // Add dragover and drop handlers on all slots
     document.querySelectorAll(".slot").forEach(slot => {
       slot.addEventListener("dragover", dragOver);
       slot.addEventListener("drop", drop);
     });
+  }
+
+  // Simple shuffle helper
+  function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
   }
 
   loadPage();
