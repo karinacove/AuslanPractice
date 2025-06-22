@@ -74,17 +74,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const mode = levels[currentLevel].type;
     const harder = levels[currentLevel].harder;
 
-    const amountPerPage = 9;
+    const amountPerPage = harder ? 15 : 9;
     const decoyCount = harder ? 9 : 3;
 
-    const pool = shuffle([...allLetters]);
+    const availableLetters = shuffle([...allLetters]);
     const vowelToRepeat = vowels[Math.floor(Math.random() * vowels.length)];
-    if (!pool.includes(vowelToRepeat)) pool.push(vowelToRepeat);
-    const fullSet = shuffle(pool).slice(0, pagesPerLevel * amountPerPage);
+    if (!availableLetters.includes(vowelToRepeat)) availableLetters.push(vowelToRepeat);
 
-    const pageStart = currentPage * amountPerPage;
-    const lettersThisPage = shuffle([...fullSet.slice(pageStart, pageStart + amountPerPage)]);
-    currentLetters = lettersThisPage;
+    const selectedLetters = shuffle([...availableLetters]).slice(0, amountPerPage);
+    currentLetters = shuffle([...selectedLetters]);
 
     const usedLetters = new Set(currentLetters);
     const remaining = shuffle(allLetters.filter(l => !usedLetters.has(l)));
@@ -103,7 +101,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const slotTypeMap = {};
 
-    currentLetters.forEach(letter => {
+    shuffle([...currentLetters]).forEach(letter => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
