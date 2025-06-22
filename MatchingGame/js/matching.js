@@ -23,27 +23,31 @@ document.addEventListener("DOMContentLoaded", function () {
     window.location.href = "../index.html";
   });
 
+  const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
+  const vowels = ["a", "e", "i", "o", "u"];
+
   const levels = [
-    { type: "signToImage" },
-    { type: "imageToSign" },
-    { type: "mixed" },
+    { type: "signToImage", decoys: 3 },
+    { type: "imageToSign", decoys: 3 },
+    { type: "mixed", decoys: 3 },
+    { type: "signToImage", decoys: 9 },
+    { type: "imageToSign", decoys: 9 },
+    { type: "mixed", decoys: 9, isReview: true }
   ];
 
   let currentLevel = 0;
   let currentPage = 0;
   const pagesPerLevel = 3;
-  const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
-  
-  // Initialize stats per letter
+
   const letterStats = {};
   allLetters.forEach(letter => {
     letterStats[letter] = {
-      attempts: 0,            // total attempts
-      correctAttempts: 0,     // total correct attempts
+      attempts: 0,
+      correctAttempts: 0,
       firstCorrectOnPage: false,
-      pageAttempts: [],       // array of strings, one per page (e.g. 'b', '*a', '')
-      currentPageAttempt: "", // the string recording current page first attempts for this letter
-      incorrectAttempts: "",  // all wrong attempts concatenated (e.g. 'cccc')
+      pageAttempts: [],
+      currentPageAttempt: "",
+      incorrectAttempts: "",
     };
   });
 
@@ -88,39 +92,25 @@ document.addEventListener("DOMContentLoaded", function () {
   function handleDrop(slot, letter, src) {
     const stats = letterStats[letter];
     stats.attempts++;
-
-    // If first attempt for this letter on this page
     const firstAttemptThisPage = stats.currentPageAttempt.length === 0;
 
     if (slot.dataset.letter === letter) {
       stats.correctAttempts++;
-
       if (!stats.firstCorrectOnPage) {
         stats.firstCorrectOnPage = true;
-        // On first correct on page, record the letter itself (no asterisks)
         stats.currentPageAttempt += letter;
-      } else {
-        // Already got first correct, no need to add anything for subsequent correct attempts on this page
       }
-
       showFeedback(true);
-
       slot.innerHTML = "";
       const overlay = document.createElement("img");
       overlay.src = src;
       overlay.className = "overlay";
       slot.appendChild(overlay);
-
-      // Remove all draggables for this letter
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
-
       correctMatches++;
-
       if (correctMatches >= 9) {
         correctMatches = 0;
-        // Save current page attempts for all letters before moving on
         saveCurrentPageAttempts();
-
         currentPage++;
         if (currentPage < pagesPerLevel) {
           setTimeout(loadPage, 800);
@@ -136,14 +126,10 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     } else {
       showFeedback(false);
-      // If this is the first attempt this page for this letter and incorrect, record '*' in correct column
       if (!stats.firstCorrectOnPage && firstAttemptThisPage) {
         stats.currentPageAttempt += "*";
       }
-      // Record every incorrect attempt letter in incorrectAttempts string
       stats.incorrectAttempts += letter;
-
-      // Add shake effect
       const wrong = document.querySelector(`img.draggable[data-letter='${letter}']`);
       if (wrong) {
         wrong.classList.add("shake");
@@ -153,7 +139,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function saveCurrentPageAttempts() {
-    // At page end, push currentPageAttempt string for each letter and reset flags for next page
     allLetters.forEach(letter => {
       const stats = letterStats[letter];
       stats.pageAttempts.push(stats.currentPageAttempt || "");
@@ -167,7 +152,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const target = e.target;
     const letter = target.dataset.letter;
     const src = target.src;
-
     const clone = target.cloneNode(true);
     clone.style.position = "absolute";
     clone.style.pointerEvents = "none";
@@ -183,7 +167,6 @@ document.addEventListener("DOMContentLoaded", function () {
     moveClone(e.touches[0]);
 
     const handleTouchMove = (ev) => moveClone(ev.touches[0]);
-
     const handleTouchEnd = (ev) => {
       const touch = ev.changedTouches[0];
       const el = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -203,27 +186,35 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(() => feedbackImage.style.display = "none", 1000);
   }
 
-  function endGame() {
-    // Save last page attempts if not already saved (in case endGame called early)
-    saveCurrentPageAttempts();
+  function getMostIncorrectLetters(count) {
+    const sorted = allLetters.slice().sort((a, b) => {
+      return letterStats[b].incorrectAttempts.length - letterStats[a].incorrectAttempts.length;
+    });
+    const topIncorrect = sorted.filter(l => letterStats[l].incorrectAttempts.length > 0);
+    if (topIncorrect.length >= count) return topIncorrect.slice(0, count);
+    const remaining = allLetters.filter(l => !topIncorrect.includes(l));
+    return [...topIncorrect, ...remaining].slice(0, count);
+  }
 
+  function getUnique27Letters() {
+    const shuffled = allLetters.slice().sort(() => Math.random() - 0.5);
+    const selected = shuffled.slice(0, 26);
+    const extraVowel = vowels.find(v => !selected.includes(v)) || vowels[Math.floor(Math.random() * vowels.length)];
+    selected.push(extraVowel);
+    return selected;
+  }
+
+  function endGame() {
+    saveCurrentPageAttempts();
     const endTime = Date.now();
     const time = Math.round((endTime - startTime) / 1000);
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
     const formatted = `${minutes} mins ${seconds} sec`;
 
-    // Flatten all pageAttempts left-to-right for each letter for correct column
     const correctEntries = allLetters.map(letter => letterStats[letter].pageAttempts.join(""));
-
-    // Incorrect attempts already concatenated per letter
-    const incorrectEntries = allLetters
-      .map(letter => letterStats[letter].incorrectAttempts || "")
-      .filter(str => str.length > 0);
-
-    // Sort alphabetically ignoring '*'
-    const sortIgnoringAsterisks = (a, b) =>
-      a.replace(/\*/g, "").localeCompare(b.replace(/\*/g, ""));
+    const incorrectEntries = allLetters.map(letter => letterStats[letter].incorrectAttempts || "").filter(str => str.length > 0);
+    const sortIgnoringAsterisks = (a, b) => a.replace(/\*/g, "").localeCompare(b.replace(/\*/g, ""));
 
     correctEntries.sort(sortIgnoringAsterisks);
     incorrectEntries.sort(sortIgnoringAsterisks);
@@ -231,22 +222,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const correctStr = correctEntries.join(", ");
     const incorrectStr = incorrectEntries.join(", ");
 
-    // Calculate score % based on first time correct attempts vs total attempts
     let totalAttempts = 0;
     let firstTryCorrectCount = 0;
     allLetters.forEach(letter => {
       const stats = letterStats[letter];
       totalAttempts += stats.attempts;
-      // count *number of pages* where letter was first matched correctly (number of letters in pageAttempts without '*')
-      const firstCorrectCount = stats.pageAttempts.reduce((acc, val) => {
-        if (val.includes(letter)) return acc + 1;
-        else return acc;
-      }, 0);
+      const firstCorrectCount = stats.pageAttempts.reduce((acc, val) => val.includes(letter) ? acc + 1 : acc, 0);
       firstTryCorrectCount += firstCorrectCount;
     });
-    const scorePercent = totalAttempts > 0
-      ? Math.round((firstTryCorrectCount / totalAttempts) * 100)
-      : 0;
+
+    const scorePercent = totalAttempts > 0 ? Math.round((firstTryCorrectCount / totalAttempts) * 100) : 0;
 
     document.getElementById("score-display").innerText = `Score: ${scorePercent}%`;
     const timeDisplay = document.createElement("p");
@@ -288,33 +273,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function loadPage() {
     if (currentLevel >= levels.length) return endGame();
+    const { type: mode, decoys, isReview } = levels[currentLevel];
+    let currentLetters = [];
 
-    const mode = levels[currentLevel].type;
-    currentLetters = [];
-    const usedThisPage = new Set();
-
-    // Reset firstCorrectOnPage and currentPageAttempt for all letters for this new page
-    allLetters.forEach(letter => {
-      letterStats[letter].firstCorrectOnPage = false;
-      letterStats[letter].currentPageAttempt = "";
-    });
-
-    while (currentLetters.length < 9) {
-      const candidates = allLetters.filter(l => !usedThisPage.has(l));
-      const letter = candidates[Math.floor(Math.random() * candidates.length)];
-      if (!letter) break;
-      currentLetters.push(letter);
-      usedThisPage.add(letter);
+    if (isReview) {
+      currentLetters = getMostIncorrectLetters(9);
+    } else {
+      const set = getUnique27Letters();
+      const sliceSize = 9;
+      currentLetters = set.slice(currentPage * sliceSize, (currentPage + 1) * sliceSize);
     }
 
     const remaining = allLetters.filter(l => !currentLetters.includes(l));
-    const decoys = [];
-    while (decoys.length < 3 && remaining.length > 0) {
+    const usedDecoys = [];
+    while (usedDecoys.length < decoys && remaining.length > 0) {
       const idx = Math.floor(Math.random() * remaining.length);
-      decoys.push(remaining.splice(idx, 1)[0]);
+      usedDecoys.push(remaining.splice(idx, 1)[0]);
     }
 
-    const draggables = [...currentLetters, ...decoys].sort(() => Math.random() - 0.5);
+    const draggables = [...currentLetters, ...usedDecoys].sort(() => Math.random() - 0.5);
 
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
