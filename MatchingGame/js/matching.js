@@ -1,3 +1,4 @@
+// [FULL JS for Alphabet Matching Game with enhanced decoy logic and all features implemented]
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -34,12 +35,12 @@ document.addEventListener("DOMContentLoaded", function () {
     { type: "signToImage", decoys: 9, dragType: "sign" },
     { type: "mixed", decoys: 9, dragType: "mixed", isReview: true }
   ];
-  
+
   let currentLevel = 0;
   let currentPage = 0;
   const pagesPerLevel = 3;
-
   const letterStats = {};
+
   allLetters.forEach(letter => {
     letterStats[letter] = {
       attempts: 0,
@@ -47,7 +48,7 @@ document.addEventListener("DOMContentLoaded", function () {
       firstCorrectOnPage: false,
       pageAttempts: [],
       currentPageAttempt: "",
-      incorrectAttempts: "",
+      incorrectAttempts: ""
     };
   });
 
@@ -68,46 +69,240 @@ document.addEventListener("DOMContentLoaded", function () {
     transform: "translate(-50%, -50%)",
     width: "200px",
     display: "none",
-    zIndex: "1000",
+    zIndex: "1000"
   });
   document.body.appendChild(feedbackImage);
 
-  function getUnique27Letters() {
-    const shuffled = allLetters.slice().sort(() => Math.random() - 0.5);
-    const selected = shuffled.slice(0, 26);
-    const selectedSet = new Set(selected);
-    const remainingVowels = vowels.filter(v => !selectedSet.has(v));
-    let extraVowel = remainingVowels.length > 0 ? remainingVowels[Math.floor(Math.random() * remainingVowels.length)] : vowels[Math.floor(Math.random() * vowels.length)];
-    return selected.concat(extraVowel);
+  function dragStart(e) {
+    e.dataTransfer.setData("text/plain", e.target.dataset.letter);
+    e.dataTransfer.setData("src", e.target.src);
+    e.target.classList.add("dragging");
+  }
+
+  function dragOver(e) {
+    e.preventDefault();
+  }
+
+  function drop(e) {
+    e.preventDefault();
+    const letter = e.dataTransfer.getData("text/plain");
+    const src = e.dataTransfer.getData("src");
+    handleDrop(e.currentTarget, letter, src);
+  }
+
+  function handleDrop(slot, letter, src) {
+    const stats = letterStats[letter];
+    stats.attempts++;
+    const firstAttemptThisPage = stats.currentPageAttempt.length === 0;
+
+    if (slot.dataset.letter === letter) {
+      stats.correctAttempts++;
+      if (!stats.firstCorrectOnPage) {
+        stats.firstCorrectOnPage = true;
+        stats.currentPageAttempt += letter;
+      }
+
+      showFeedback(true);
+
+      slot.innerHTML = "";
+      const overlay = document.createElement("img");
+      overlay.src = src;
+      overlay.className = "overlay";
+      slot.appendChild(overlay);
+
+      document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
+
+      correctMatches++;
+      if (correctMatches >= 9) {
+        correctMatches = 0;
+        saveCurrentPageAttempts();
+
+        currentPage++;
+        if (currentPage < pagesPerLevel) {
+          setTimeout(loadPage, 800);
+        } else {
+          currentLevel++;
+          currentPage = 0;
+          if (currentLevel >= levels.length) {
+            setTimeout(endGame, 800);
+          } else {
+            setTimeout(loadPage, 800);
+          }
+        }
+      }
+    } else {
+      showFeedback(false);
+      if (!stats.firstCorrectOnPage && firstAttemptThisPage) {
+        stats.currentPageAttempt += "*";
+      }
+      stats.incorrectAttempts += letter;
+
+      const wrong = document.querySelector(`img.draggable[data-letter='${letter}']`);
+      if (wrong) {
+        wrong.classList.add("shake");
+        setTimeout(() => wrong.classList.remove("shake"), 500);
+      }
+    }
+  }
+
+  function saveCurrentPageAttempts() {
+    allLetters.forEach(letter => {
+      const stats = letterStats[letter];
+      stats.pageAttempts.push(stats.currentPageAttempt || "");
+      stats.currentPageAttempt = "";
+      stats.firstCorrectOnPage = false;
+    });
+  }
+
+  function touchStart(e) {
+    e.preventDefault();
+    const target = e.target;
+    const letter = target.dataset.letter;
+    const src = target.src;
+
+    const clone = target.cloneNode(true);
+    clone.style.position = "absolute";
+    clone.style.pointerEvents = "none";
+    clone.style.opacity = "0.7";
+    clone.style.zIndex = "10000";
+    document.body.appendChild(clone);
+
+    const moveClone = (touch) => {
+      clone.style.left = `${touch.clientX - clone.width / 2}px`;
+      clone.style.top = `${touch.clientY - clone.height / 2}px`;
+    };
+
+    moveClone(e.touches[0]);
+
+    const handleTouchMove = (ev) => moveClone(ev.touches[0]);
+
+    const handleTouchEnd = (ev) => {
+      const touch = ev.changedTouches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (el && el.classList.contains("slot")) handleDrop(el, letter, src);
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
+      clone.remove();
+    };
+
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
+    document.addEventListener("touchend", handleTouchEnd, { passive: false });
+  }
+
+  function showFeedback(correct) {
+    feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
+    feedbackImage.style.display = "block";
+    setTimeout(() => feedbackImage.style.display = "none", 1000);
+  }
+
+  function endGame() {
+    saveCurrentPageAttempts();
+
+    const endTime = Date.now();
+    const time = Math.round((endTime - startTime) / 1000);
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    const formatted = `${minutes} mins ${seconds} sec`;
+
+    const correctEntries = allLetters.map(letter => letterStats[letter].pageAttempts.join(""));
+    const incorrectEntries = allLetters
+      .map(letter => letterStats[letter].incorrectAttempts || "")
+      .filter(str => str.length > 0);
+
+    correctEntries.sort((a, b) => a.replace(/\*/g, "").localeCompare(b.replace(/\*/g, "")));
+    incorrectEntries.sort((a, b) => a.replace(/\*/g, "").localeCompare(b.replace(/\*/g, "")));
+
+    const correctStr = correctEntries.join(", ");
+    const incorrectStr = incorrectEntries.join(", ");
+
+    let totalAttempts = 0;
+    let firstTryCorrectCount = 0;
+    allLetters.forEach(letter => {
+      const stats = letterStats[letter];
+      totalAttempts += stats.attempts;
+      const firstCorrectCount = stats.pageAttempts.reduce((acc, val) => {
+        if (val.includes(letter)) return acc + 1;
+        else return acc;
+      }, 0);
+      firstTryCorrectCount += firstCorrectCount;
+    });
+
+    const scorePercent = totalAttempts > 0
+      ? Math.round((firstTryCorrectCount / totalAttempts) * 100)
+      : 0;
+
+    document.getElementById("score-display").innerText = `Score: ${scorePercent}%`;
+    const timeDisplay = document.createElement("p");
+    timeDisplay.innerText = `Time: ${formatted}`;
+    document.getElementById("end-modal-content").appendChild(timeDisplay);
+
+    const entries = {
+      "entry.1387461004": studentName,
+      "entry.1309291707": studentClass,
+      "entry.477642881": "Alphabet",
+      "entry.1897227570": incorrectStr,
+      "entry.1249394203": correctStr,
+      "entry.1996137354": `${scorePercent}%`,
+      "entry.1374858042": formatted
+    };
+
+    const form = document.createElement("form");
+    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+    form.method = "POST";
+    form.target = "hidden_iframe";
+    const iframe = document.createElement("iframe");
+    iframe.name = "hidden_iframe";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+
+    for (const key in entries) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = entries[key];
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+
+    modal.style.display = "flex";
   }
 
   function loadPage() {
     if (currentLevel >= levels.length) return endGame();
 
-    const mode = levels[currentLevel].type;
-    const decoyCount = levels[currentLevel].decoys;
-    const isReview = levels[currentLevel].isReview;
+    const { type: mode, decoys, dragType, isReview } = levels[currentLevel];
 
-    const usedThisPage = new Set();
     let currentLetters = [];
+    const usedThisPage = new Set();
 
-    if (isReview) {
-      const sortedByWrong = [...allLetters].sort((a, b) => letterStats[b].incorrectAttempts.length - letterStats[a].incorrectAttempts.length);
-      const maxSet = sortedByWrong.filter(l => letterStats[l].incorrectAttempts.length > 0).slice(0, 27);
-      currentLetters = maxSet.length ? maxSet : getUnique27Letters();
+    allLetters.forEach(letter => {
+      letterStats[letter].firstCorrectOnPage = false;
+      letterStats[letter].currentPageAttempt = "";
+    });
+
+    const incorrectSorted = allLetters
+      .filter(l => letterStats[l].incorrectAttempts.length > 0)
+      .sort((a, b) => letterStats[b].incorrectAttempts.length - letterStats[a].incorrectAttempts.length);
+
+    if (isReview && incorrectSorted.length > 0) {
+      currentLetters = incorrectSorted.slice(0, 9);
     } else {
-      currentLetters = getUnique27Letters();
+      currentLetters = allLetters.slice();
+      currentLetters = shuffle(currentLetters).slice(0, 9);
+
+      const includedLetters = new Set(currentLetters);
+      const remaining = allLetters.filter(l => !includedLetters.has(l));
+      const extraVowels = vowels.filter(v => !includedLetters.has(v));
+
+      const extra = extraVowels.length ? extraVowels[Math.floor(Math.random() * extraVowels.length)] : vowels[Math.floor(Math.random() * vowels.length)];
+      currentLetters.push(extra);
     }
 
-    const selected = currentLetters.slice(currentPage * 9, currentPage * 9 + 9);
-    const decoyPool = allLetters.filter(l => !selected.includes(l));
-    const decoys = [];
-    while (decoys.length < decoyCount && decoyPool.length > 0) {
-      const index = Math.floor(Math.random() * decoyPool.length);
-      decoys.push(decoyPool.splice(index, 1)[0]);
-    }
-
-    const draggables = [...selected, ...decoys].sort(() => Math.random() - 0.5);
+    const remaining = allLetters.filter(l => !currentLetters.includes(l));
+    const decoyLetters = shuffle(remaining).slice(0, decoys);
+    const draggables = shuffle([...currentLetters, ...decoyLetters]);
 
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
@@ -120,7 +315,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const slotTypeMap = {};
 
-    selected.forEach(letter => {
+    currentLetters.slice(0, 9).forEach(letter => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
@@ -148,25 +343,25 @@ document.addEventListener("DOMContentLoaded", function () {
       draggable.dataset.letter = letter;
       draggable.className = "draggable";
       draggable.draggable = true;
-      const isSignInSlot = slotTypeMap[letter];
-      if (mode === "imageToSign") {
-        draggable.src = `assets/alphabet/${dragType === "sign" ? "signs/sign-" : "clipart/"}${letter}.png`;
-      } else if (mode === "signToImage") {
-        draggable.src = `assets/alphabet/${dragType === "clipart" ? "clipart/" : "signs/sign-"}${letter}.png`;
+      draggable.addEventListener("dragstart", dragStart);
+      draggable.addEventListener("touchstart", touchStart);
+
+      if (dragType === "clipart") {
+        draggable.src = `assets/alphabet/clipart/${letter}.png`;
+      } else if (dragType === "sign") {
+        draggable.src = `assets/alphabet/signs/sign-${letter}.png`;
       } else {
-        // mixed
-        draggable.src = dragType === "mixed"
-          ? (isSignInSlot ? `assets/alphabet/clipart/${letter}.png` : `assets/alphabet/signs/sign-${letter}.png`)
-          : `assets/alphabet/${dragType === "clipart" ? "clipart/" : "signs/sign-"}${letter}.png`;
+        const isSign = slotTypeMap[letter] || Math.random() < 0.5;
+        draggable.src = isSign
+          ? `assets/alphabet/signs/sign-${letter}.png`
+          : `assets/alphabet/clipart/${letter}.png`;
       }
 
       const container = document.createElement("div");
       container.className = "drag-wrapper";
       container.appendChild(draggable);
-      (i < draggables.length / 2 ? leftSigns : rightSigns).appendChild(container);
 
-      draggable.addEventListener("dragstart", dragStart);
-      draggable.addEventListener("touchstart", touchStart);
+      (i < draggables.length / 2 ? leftSigns : rightSigns).appendChild(container);
     });
 
     document.querySelectorAll(".slot").forEach(slot => {
@@ -175,172 +370,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  function saveCurrentPageAttempts() {
-    allLetters.forEach(letter => {
-      const stats = letterStats[letter];
-      stats.pageAttempts.push(stats.currentPageAttempt || "");
-      stats.currentPageAttempt = "";
-      stats.firstCorrectOnPage = false;
-    });
-  }
-
-  function dragStart(e) {
-    e.dataTransfer.setData("text/plain", e.target.dataset.letter);
-    e.target.classList.add("dragging");
-  }
-
-  function dragOver(e) {
-    e.preventDefault();
-  }
-
-  function drop(e) {
-    e.preventDefault();
-    const letter = e.dataTransfer.getData("text/plain");
-    const slot = e.currentTarget;
-    const stats = letterStats[letter];
-    stats.attempts++;
-
-    const firstAttemptThisPage = stats.currentPageAttempt.length === 0;
-
-    if (slot.dataset.letter === letter) {
-      stats.correctAttempts++;
-      if (!stats.firstCorrectOnPage) {
-        stats.firstCorrectOnPage = true;
-        stats.currentPageAttempt += letter;
-      }
-
-      slot.innerHTML = "";
-      const img = document.querySelector(`.draggable[data-letter='${letter}']`);
-      if (img) img.remove();
-      slot.appendChild(img);
-      correctMatches++;
-
-      showFeedback(true);
-
-      if (correctMatches >= 9) {
-        correctMatches = 0;
-        saveCurrentPageAttempts();
-        currentPage++;
-        if (currentPage >= pagesPerLevel) {
-          currentPage = 0;
-          currentLevel++;
-        }
-        setTimeout(loadPage, 500);
-      }
-    } else {
-      if (!stats.firstCorrectOnPage && firstAttemptThisPage) {
-        stats.currentPageAttempt += "*";
-      }
-      stats.incorrectAttempts += letter;
-      showFeedback(false);
-    }
-  }
-
-  function touchStart(e) {
-    e.preventDefault();
-    const target = e.target;
-    const letter = target.dataset.letter;
-    const clone = target.cloneNode(true);
-    clone.style.position = "absolute";
-    clone.style.pointerEvents = "none";
-    clone.style.opacity = "0.7";
-    clone.style.zIndex = "10000";
-    document.body.appendChild(clone);
-
-    const moveClone = touch => {
-      clone.style.left = `${touch.clientX - clone.width / 2}px`;
-      clone.style.top = `${touch.clientY - clone.height / 2}px`;
-    };
-
-    moveClone(e.touches[0]);
-
-    const handleTouchMove = ev => moveClone(ev.touches[0]);
-    const handleTouchEnd = ev => {
-      const touch = ev.changedTouches[0];
-      const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (el && el.classList.contains("slot")) drop({ preventDefault() {}, currentTarget: el, dataTransfer: { getData: () => letter } });
-      document.removeEventListener("touchmove", handleTouchMove);
-      document.removeEventListener("touchend", handleTouchEnd);
-      clone.remove();
-    };
-
-    document.addEventListener("touchmove", handleTouchMove, { passive: false });
-    document.addEventListener("touchend", handleTouchEnd, { passive: false });
-  }
-
-  function showFeedback(correct) {
-    feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
-    feedbackImage.style.display = "block";
-    setTimeout(() => feedbackImage.style.display = "none", 1000);
-  }
-
-  function endGame() {
-    saveCurrentPageAttempts();
-    const endTime = Date.now();
-    const timeTaken = Math.round((endTime - startTime) / 1000);
-    const minutes = Math.floor(timeTaken / 60);
-    const seconds = timeTaken % 60;
-    const formattedTime = `${minutes} mins ${seconds} sec`;
-
-    const correctEntries = allLetters.map(letter => letterStats[letter].pageAttempts.join(""));
-    const incorrectEntries = allLetters
-      .map(letter => letterStats[letter].incorrectAttempts || "")
-      .filter(str => str.length > 0);
-
-    const sortIgnoringAsterisks = (a, b) => a.replace(/\*/g, "").localeCompare(b.replace(/\*/g, ""));
-    correctEntries.sort(sortIgnoringAsterisks);
-    incorrectEntries.sort(sortIgnoringAsterisks);
-
-    const correctStr = correctEntries.join(", ");
-    const incorrectStr = incorrectEntries.join(", ");
-
-    let totalAttempts = 0;
-    let firstTryCorrectCount = 0;
-    allLetters.forEach(letter => {
-      const stats = letterStats[letter];
-      totalAttempts += stats.attempts;
-      const firstCorrectCount = stats.pageAttempts.reduce((acc, val) => val.includes(letter) ? acc + 1 : acc, 0);
-      firstTryCorrectCount += firstCorrectCount;
-    });
-    const scorePercent = totalAttempts > 0 ? Math.round((firstTryCorrectCount / totalAttempts) * 100) : 0;
-
-    document.getElementById("score-display").innerText = `Score: ${scorePercent}%`;
-    const timeDisplay = document.createElement("p");
-    timeDisplay.innerText = `Time: ${formattedTime}`;
-    document.getElementById("end-modal-content").appendChild(timeDisplay);
-
-    const entries = {
-      "entry.1387461004": studentName,
-      "entry.1309291707": studentClass,
-      "entry.477642881": "Alphabet",
-      "entry.1897227570": incorrectStr,
-      "entry.1249394203": correctStr,
-      "entry.1996137354": `${scorePercent}%`,
-      "entry.1374858042": formattedTime,
-    };
-
-    const form = document.createElement("form");
-    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
-    form.method = "POST";
-    form.target = "hidden_iframe";
-
-    const iframe = document.createElement("iframe");
-    iframe.name = "hidden_iframe";
-    iframe.style.display = "none";
-    document.body.appendChild(iframe);
-
-    for (const key in entries) {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = key;
-      input.value = entries[key];
-      form.appendChild(input);
-    }
-
-    document.body.appendChild(form);
-    form.submit();
-
-    modal.style.display = "flex";
+  function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
   }
 
   loadPage();
