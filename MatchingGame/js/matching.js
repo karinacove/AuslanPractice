@@ -27,8 +27,6 @@ document.addEventListener("DOMContentLoaded", function () {
     { type: "signToImage" },
     { type: "imageToSign" },
     { type: "mixed" },
-    { type: "signToImage", harder: true },
-    { type: "imageToSign", harder: true },
   ];
 
   let currentLevel = 0;
@@ -97,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
 
-      if (correctMatches >= (levels[currentLevel].harder ? 15 : 9)) {
+      if (correctMatches >= 9) {
         correctMatches = 0;
         currentPage++;
         if (currentPage < pagesPerLevel) {
@@ -143,6 +141,7 @@ document.addEventListener("DOMContentLoaded", function () {
     moveClone(e.touches[0]);
 
     const handleTouchMove = (ev) => moveClone(ev.touches[0]);
+
     const handleTouchEnd = (ev) => {
       const touch = ev.changedTouches[0];
       const el = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -162,36 +161,27 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(() => feedbackImage.style.display = "none", 1000);
   }
 
-  function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  }
-
   function loadPage() {
     if (currentLevel >= levels.length) return endGame();
     const mode = levels[currentLevel].type;
-    const harder = levels[currentLevel].harder;
+    currentLetters = [];
 
+    const shuffled = [...allLetters].sort(() => Math.random() - 0.5);
     const vowelToRepeat = vowels[Math.floor(Math.random() * vowels.length)];
-    let levelLetters = shuffle([...allLetters]);
-    levelLetters.push(vowelToRepeat);
-    levelLetters = shuffle(levelLetters);
+    const allPicks = [...shuffled.slice(0, 26), vowelToRepeat];
+    const levelLetters = allPicks.sort(() => Math.random() - 0.5);
 
-    const amountPerPage = harder ? 15 : 9;
-    const lettersThisPage = shuffle(levelLetters.slice(currentPage * amountPerPage, currentPage * amountPerPage + amountPerPage));
+    const lettersThisPage = levelLetters.slice(currentPage * 9, currentPage * 9 + 9);
     currentLetters = lettersThisPage;
 
     const remaining = allLetters.filter(l => !currentLetters.includes(l));
     const decoys = [];
-    while (decoys.length < (harder ? 3 : 3) && remaining.length > 0) {
+    while (decoys.length < 3 && remaining.length > 0) {
       const idx = Math.floor(Math.random() * remaining.length);
       decoys.push(remaining.splice(idx, 1)[0]);
     }
 
-    const draggables = shuffle([...currentLetters, ...decoys]);
+    const draggables = [...currentLetters, ...decoys].sort(() => Math.random() - 0.5);
 
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
@@ -204,7 +194,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const slotTypeMap = {};
 
-    shuffle([...currentLetters]).forEach(letter => {
+    currentLetters.forEach(letter => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
