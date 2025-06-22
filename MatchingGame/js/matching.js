@@ -175,14 +175,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const mode = levels[currentLevel].type;
     const harder = levels[currentLevel].harder;
 
-    let shuffledLetters = shuffle([...allLetters]);
     const vowelToRepeat = vowels[Math.floor(Math.random() * vowels.length)];
-    shuffledLetters.push(vowelToRepeat);
-    shuffledLetters = shuffle(shuffledLetters);
+    let levelLetters = shuffle([...allLetters]);
+    levelLetters.push(vowelToRepeat);
+    levelLetters = shuffle(levelLetters);
 
     const amountPerPage = harder ? 15 : 9;
-    const lettersThisPage = levelLetters.slice(currentPage * amountPerPage, currentPage * amountPerPage + amountPerPage);
-    lettersThisPage.sort(() => Math.random() - 0.5);
+    const lettersThisPage = shuffle(levelLetters.slice(currentPage * amountPerPage, currentPage * amountPerPage + amountPerPage));
+    currentLetters = lettersThisPage;
 
     const remaining = allLetters.filter(l => !currentLetters.includes(l));
     const decoys = [];
