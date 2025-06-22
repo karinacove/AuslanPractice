@@ -27,8 +27,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const vowels = ["a", "e", "i", "o", "u"];
 
   const levels = [
-    { type: "imageToSign", decoys: 3, dragType: "clipart" },  // Level 1 (swapped)
-    { type: "signToImage", decoys: 3, dragType: "sign" },     // Level 2 (swapped)
+    { type: "imageToSign", decoys: 3, dragType: "clipart" },  // Level 1
+    { type: "signToImage", decoys: 3, dragType: "sign" },     // Level 2
     { type: "mixed", decoys: 3, dragType: "mixed" },          // Level 3
     { type: "imageToSign", decoys: 9, dragType: "clipart" },  // Level 4
     { type: "signToImage", decoys: 9, dragType: "sign" },     // Level 5
@@ -292,26 +292,17 @@ document.addEventListener("DOMContentLoaded", function () {
       // Select 9 unique letters + 1 vowel that isn't in current page letters
       currentLetters = allLetters.slice();
 
-      // Shuffle the alphabet
-      currentLetters = shuffle(currentLetters);
+    currentLetters = shuffle(currentLetters).slice(0, 9);
 
-      // Pick first 9 letters from shuffled
-      currentLetters = currentLetters.slice(0, 9);
-
-      // Add an additional vowel not already in currentLetters if possible
+    if (currentPage === 2) {
       const includedLetters = new Set(currentLetters);
       const extraVowels = vowels.filter(v => !includedLetters.has(v));
-
-      // Pick random vowel not in currentLetters or fallback vowel
       const extra = extraVowels.length > 0
         ? extraVowels[Math.floor(Math.random() * extraVowels.length)]
         : vowels[Math.floor(Math.random() * vowels.length)];
-
-      // Only add extra vowel if not already in currentLetters
-      if (!includedLetters.has(extra)) {
-        currentLetters.push(extra);
-      }
+      currentLetters.push(extra);
     }
+    
 
     // Prepare decoys from remaining letters not in currentLetters
     const remaining = allLetters.filter(l => !currentLetters.includes(l));
