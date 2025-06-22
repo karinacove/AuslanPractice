@@ -31,14 +31,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let currentLevel = 0;
   let currentPage = 0;
-  const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
-  const vowels = ["a", "e", "i", "o", "u"];
-  const letterStats = {};
-  allLetters.forEach(letter => letterStats[letter] = { attempts: 0, correct: 0, firstCorrect: false });
-
-  let currentLetters = [];
-  let correctMatches = 0;
   const pagesPerLevel = 3;
+  const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
+  
+  // Initialize stats per letter
+  const letterStats = {};
+  allLetters.forEach(letter => {
+    letterStats[letter] = {
+      attempts: 0,            // total attempts
+      correctAttempts: 0,     // total correct attempts
+      firstCorrectOnPage: false,
+      pageAttempts: [],       // array of strings, one per page (e.g. 'b', '*a', '')
+      currentPageAttempt: "", // the string recording current page first attempts for this letter
+      incorrectAttempts: "",  // all wrong attempts concatenated (e.g. 'cccc')
+    };
+  });
+
+  let correctMatches = 0;
   let startTime = Date.now();
 
   const gameBoard = document.getElementById("gameBoard");
@@ -77,14 +86,23 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function handleDrop(slot, letter, src) {
-    letterStats[letter].attempts++;
+    const stats = letterStats[letter];
+    stats.attempts++;
+
+    // If first attempt for this letter on this page
+    const firstAttemptThisPage = stats.currentPageAttempt.length === 0;
 
     if (slot.dataset.letter === letter) {
-      correctMatches++;
-      if (letterStats[letter].attempts === 1) {
-        letterStats[letter].firstCorrect = true;
+      stats.correctAttempts++;
+
+      if (!stats.firstCorrectOnPage) {
+        stats.firstCorrectOnPage = true;
+        // On first correct on page, record the letter itself (no asterisks)
+        stats.currentPageAttempt += letter;
+      } else {
+        // Already got first correct, no need to add anything for subsequent correct attempts on this page
       }
-      letterStats[letter].correct++;
+
       showFeedback(true);
 
       slot.innerHTML = "";
@@ -93,10 +111,16 @@ document.addEventListener("DOMContentLoaded", function () {
       overlay.className = "overlay";
       slot.appendChild(overlay);
 
+      // Remove all draggables for this letter
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
+
+      correctMatches++;
 
       if (correctMatches >= 9) {
         correctMatches = 0;
+        // Save current page attempts for all letters before moving on
+        saveCurrentPageAttempts();
+
         currentPage++;
         if (currentPage < pagesPerLevel) {
           setTimeout(loadPage, 800);
@@ -112,12 +136,30 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     } else {
       showFeedback(false);
+      // If this is the first attempt this page for this letter and incorrect, record '*' in correct column
+      if (!stats.firstCorrectOnPage && firstAttemptThisPage) {
+        stats.currentPageAttempt += "*";
+      }
+      // Record every incorrect attempt letter in incorrectAttempts string
+      stats.incorrectAttempts += letter;
+
+      // Add shake effect
       const wrong = document.querySelector(`img.draggable[data-letter='${letter}']`);
       if (wrong) {
         wrong.classList.add("shake");
         setTimeout(() => wrong.classList.remove("shake"), 500);
       }
     }
+  }
+
+  function saveCurrentPageAttempts() {
+    // At page end, push currentPageAttempt string for each letter and reset flags for next page
+    allLetters.forEach(letter => {
+      const stats = letterStats[letter];
+      stats.pageAttempts.push(stats.currentPageAttempt || "");
+      stats.currentPageAttempt = "";
+      stats.firstCorrectOnPage = false;
+    });
   }
 
   function touchStart(e) {
@@ -161,254 +203,6 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(() => feedbackImage.style.display = "none", 1000);
   }
 
-  function loadPage() {
-    if (currentLevel >= levels.length) return endGame();
-    const mode = levels[currentLevel].type;
-    currentLetters = [];
-
-    const shuffled = [...allLetters].sort(() => Math.random() - 0.5);
-    const vowelToRepeat = vowels[Math.floor(Math.random() * vowels.length)];
-    const allPicks = [...shuffled.slice(0, 26), vowelToRepeat];
-    const levelLetters = allPicks.sort(() => Math.random() - 0.5);
-
-    const lettersThisPage = levelLetters.slice(currentPage * 9, currentPage * 9 + 9);
-    currentLetters = lettersThisPage;
-
-    const remaining = allLetters.filter(l => !currentLetters.includes(l));
-    const decoys = [];
-    while (decoys.length < 3 && remaining.length > 0) {
-      const idx = Math.floor(Math.random() * remaining.length);
-      decoys.push(remaining.splice(idx, 1)[0]);
-    }
-
-    const draggables = [...currentLetters, ...decoys].sort(() => Math.random() - 0.5);
-
-    gameBoard.innerHTML = "";
-    leftSigns.innerHTML = "";
-    rightSigns.innerHTML = "";
-
-    levelTitle.innerText = `Level ${currentLevel + 1}: ` +
-      (mode === "signToImage" ? "Match the Sign to the Picture" :
-       mode === "imageToSign" ? "Match the Picture to the Sign" :
-       "Match Signs and Pictures (Mixed)");
-
-    const slotTypeMap = {};
-
-    currentLetters.forEach(letter => {
-      const slot = document.createElement("div");
-      slot.className = "slot";
-      slot.dataset.letter = letter;
-
-      let isSign = false;
-      if (mode === "signToImage") {
-        isSign = false;
-        slot.style.backgroundImage = `url('assets/alphabet/clipart/${letter}.png')`;
-      } else if (mode === "imageToSign") {
-        isSign = true;
-        slot.style.backgroundImage = `url('assets/alphabet/signs/sign-${letter}.png')`;
-      } else {
-        isSign = Math.random() < 0.5;
-        slot.style.backgroundImage = isSign
-          ? `url('assets/alphabet/signs/sign-${letter}.png')`
-          : `url('assets/alphabet/clipart/${letter}.png')`;
-      }
-
-      slotTypeMap[letter] = isSign;
-      gameBoard.appendChild(slot);
-    });
-
-    draggables.forEach((letter, i) => {
-      const draggable = document.createElement("img");
-      draggable.dataset.letter = letter;
-      draggable.className = "draggable";
-      draggable.draggable = true;
-      draggable.addEventListener("dragstart", dragStart);
-      draggable.addEventListener("touchstart", touchStart);
-
-      const isSignInSlot = slotTypeMap[letter];
-
-      if (mode === "imageToSign") {
-        draggable.src = `assets/alphabet/clipart/${letter}.png`;
-      } else if (mode === "signToImage") {
-        draggable.src = `assets/alphabet/signs/sign-${letter}.png`;
-      } else {
-        draggable.src = isSignInSlot
-          ? `assets/alphabet/clipart/${letter}.png`
-          : `assets/alphabet/signs/sign-${letter}.png`;
-      }
-
-      const container = document.createElement("div");
-      container.className = "drag-wrapper";
-      container.appendChild(draggable);
-
-      (i < draggables.length / 2 ? leftSigns : rightSigns).appendChild(container);
-    });
-
-    document.querySelectorAll(".slot").forEach(slot => {
-      slot.addEventListener("dragover", dragOver);
-      slot.addEventListener("drop", drop);
-    });
-  }
-
-      function endGame() {
-    const endTime = Date.now();
-    const time = Math.round((endTime - startTime) / 1000);
-    const minutes = Math.floor(time / 60);
-    const seconds = time % 60;
-    const formatted = `${minutes} mins ${seconds} sec`;
-
-    const correctLetters = [];
-    const incorrectLetters = [];
-    let totalAttempts = 0;
-    let totalFirstTryCorrect = 0;
-
-    allLetters.forEach(letter => {
-      const stats = letterStats[letter];
-      if (stats.attempts > 0) {
-        totalAttempts += stats.attempts;
-        totalFirstTryCorrect += stats.firstCorrect ? 1 : 0;
-
-        let mark = "";
-        if (stats.correct === 3) mark = letter + letter + letter;
-        else if (stats.correct === 2) mark = "*" + letter + letter;
-        else if (stats.correct === 1) mark = "**" + letter;
-        if (mark) correctLetters.push(mark);
-
-        if (stats.correct < stats.attempts) {
-          incorrectLetters.push(letter.repeat(stats.attempts - stats.correct));
-        }
-      }
-    });
-
-    const scorePercent = totalAttempts > 0 ? Math.round((totalFirstTryCorrect / totalAttempts) * 100) : 0;
-
-    document.getElementById("score-display").innerText = `Score: ${scorePercent}%`;
-    const timeDisplay = document.createElement("p");
-    timeDisplay.innerText = `Time: ${formatted}`;
-    document.getElementById("end-modal-content").appendChild(timeDisplay);
-
-    const entries = {
-      "entry.1387461004": studentName,
-      "entry.1309291707": studentClass,
-      "entry.477642881": "Alphabet",
-      "entry.1897227570": incorrectLetters.sort().join(", "),
-      "entry.1249394203": correctLetters.sort((a,b) => a.replace(/\*/g, "").localeCompare(b.replace(/\*/g, ""))).join(", "),
-      "entry.1996137354": `${scorePercent}%`,
-      "entry.1374858042": formatted,
-    };
-
-    const form = document.createElement("form");
-    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
-    form.method = "POST";
-    form.target = "hidden_iframe";
-    const iframe = document.createElement("iframe");
-    iframe.name = "hidden_iframe";
-    iframe.style.display = "none";
-    document.body.appendChild(iframe);
-
-    for (const key in entries) {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = key;
-      input.value = entries[key];
-      form.appendChild(input);
-    }
-
-    document.body.appendChild(form);
-    form.submit();
-
-    modal.style.display = "flex";
-  }
-
-  function loadPage() {
-    if (currentLevel >= levels.length) return endGame();
-    const mode = levels[currentLevel].type;
-    currentLetters = [];
-
-    // Use all 26 letters and add 1 vowel to repeat = 27 total (9 per page)
-    const levelLetters = [...allLetters];
-    const vowelToRepeat = vowels[Math.floor(Math.random() * vowels.length)];
-    levelLetters.push(vowelToRepeat);
-
-    const lettersThisPage = levelLetters.slice(currentPage * 9, currentPage * 9 + 9);
-    currentLetters = lettersThisPage;
-
-    const remaining = allLetters.filter(l => !currentLetters.includes(l));
-    const decoys = [];
-    while (decoys.length < 3 && remaining.length > 0) {
-      const idx = Math.floor(Math.random() * remaining.length);
-      decoys.push(remaining.splice(idx, 1)[0]);
-    }
-
-    const draggables = [...currentLetters, ...decoys].sort(() => Math.random() - 0.5);
-
-    gameBoard.innerHTML = "";
-    leftSigns.innerHTML = "";
-    rightSigns.innerHTML = "";
-
-    levelTitle.innerText = `Level ${currentLevel + 1}: ` +
-      (mode === "signToImage" ? "Match the Sign to the Picture" :
-       mode === "imageToSign" ? "Match the Picture to the Sign" :
-       "Match Signs and Pictures (Mixed)");
-
-    const slotTypeMap = {};
-
-    currentLetters.forEach(letter => {
-      const slot = document.createElement("div");
-      slot.className = "slot";
-      slot.dataset.letter = letter;
-
-      let isSign = false;
-      if (mode === "signToImage") {
-        isSign = false;
-        slot.style.backgroundImage = `url('assets/alphabet/clipart/${letter}.png')`;
-      } else if (mode === "imageToSign") {
-        isSign = true;
-        slot.style.backgroundImage = `url('assets/alphabet/signs/sign-${letter}.png')`;
-      } else {
-        isSign = Math.random() < 0.5;
-        slot.style.backgroundImage = isSign
-          ? `url('assets/alphabet/signs/sign-${letter}.png')`
-          : `url('assets/alphabet/clipart/${letter}.png')`;
-      }
-
-      slotTypeMap[letter] = isSign;
-      gameBoard.appendChild(slot);
-    });
-
-    draggables.forEach((letter, i) => {
-      const draggable = document.createElement("img");
-      draggable.dataset.letter = letter;
-      draggable.className = "draggable";
-      draggable.draggable = true;
-      draggable.addEventListener("dragstart", dragStart);
-      draggable.addEventListener("touchstart", touchStart);
-
-      const isSignInSlot = slotTypeMap[letter];
-
-      if (mode === "imageToSign") {
-        draggable.src = `assets/alphabet/clipart/${letter}.png`;
-      } else if (mode === "signToImage") {
-        draggable.src = `assets/alphabet/signs/sign-${letter}.png`;
-      } else {
-        draggable.src = isSignInSlot
-          ? `assets/alphabet/clipart/${letter}.png`
-          : `assets/alphabet/signs/sign-${letter}.png`;
-      }
-
-      const container = document.createElement("div");
-      container.className = "drag-wrapper";
-      container.appendChild(draggable);
-
-      (i < draggables.length / 2 ? leftSigns : rightSigns).appendChild(container);
-    });
-
-    document.querySelectorAll(".slot").forEach(slot => {
-      slot.addEventListener("dragover", dragOver);
-      slot.addEventListener("drop", drop);
-    });
-  }
-  
   function endGame() {
     // Save last page attempts if not already saved (in case endGame called early)
     saveCurrentPageAttempts();
