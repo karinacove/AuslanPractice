@@ -213,7 +213,9 @@ if (finishButton) {
 }
 
 // Initial Setup
-wordInput.style.display = "none";
+wordInput.style.display = "block";
+wordInput.style.visibility = "visible";
+wordInput.focus();
 againButton.style.display = "none";
 speed = parseInt(speedSlider.value);
 
