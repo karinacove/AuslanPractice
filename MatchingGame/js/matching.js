@@ -154,41 +154,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  function touchStart(e) {
-    e.preventDefault();
-    const target = e.target;
-    const letter = target.dataset.letter;
-    const src = target.src;
-
-    const clone = target.cloneNode(true);
-    clone.style.position = "absolute";
-    clone.style.pointerEvents = "none";
-    clone.style.opacity = "0.7";
-    clone.style.zIndex = "10000";
-    document.body.appendChild(clone);
-
-    const moveClone = (touch) => {
-      clone.style.left = `${touch.clientX - clone.width / 2}px`;
-      clone.style.top = `${touch.clientY - clone.height / 2}px`;
-    };
-
-    moveClone(e.touches[0]);
-
-    const handleTouchMove = (ev) => moveClone(ev.touches[0]);
-
-    const handleTouchEnd = (ev) => {
-      const touch = ev.changedTouches[0];
-      const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (el && el.classList.contains("slot")) handleDrop(el, letter, src);
-      document.removeEventListener("touchmove", handleTouchMove);
-      document.removeEventListener("touchend", handleTouchEnd);
-      clone.remove();
-    };
-
-    document.addEventListener("touchmove", handleTouchMove, { passive: false });
-    document.addEventListener("touchend", handleTouchEnd, { passive: false });
-  }
-
   function showFeedback(correct) {
     feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
     feedbackImage.style.display = "block";
@@ -197,7 +162,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function endGame() {
     saveCurrentPageAttempts();
-
     const endTime = Date.now();
     const time = Math.round((endTime - startTime) / 1000);
     const minutes = Math.floor(time / 60);
@@ -220,10 +184,7 @@ document.addEventListener("DOMContentLoaded", function () {
     allLetters.forEach(letter => {
       const stats = letterStats[letter];
       totalAttempts += stats.attempts;
-      const firstCorrectCount = stats.pageAttempts.reduce((acc, val) => {
-        if (val.includes(letter)) return acc + 1;
-        else return acc;
-      }, 0);
+      const firstCorrectCount = stats.pageAttempts.reduce((acc, val) => val.includes(letter) ? acc + 1 : acc, 0);
       firstTryCorrectCount += firstCorrectCount;
     });
 
@@ -269,8 +230,19 @@ document.addEventListener("DOMContentLoaded", function () {
     modal.style.display = "flex";
   }
 
+  function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
+  }
+
   function loadPage() {
     if (currentLevel >= levels.length) return endGame();
+
+    const container = document.getElementById("game-container") || document.body;
+    if (currentLevel >= 3) {
+      container.classList.add("wide-mode");
+    } else {
+      container.classList.remove("wide-mode");
+    }
 
     const { type: mode, decoys, dragType, isReview } = levels[currentLevel];
 
@@ -289,15 +261,19 @@ document.addEventListener("DOMContentLoaded", function () {
     if (isReview && incorrectSorted.length > 0) {
       currentLetters = incorrectSorted.slice(0, 9);
     } else {
-      currentLetters = allLetters.slice();
-      currentLetters = shuffle(currentLetters).slice(0, 9);
+      currentLetters = shuffle(allLetters).slice(0, 9);
 
       const includedLetters = new Set(currentLetters);
       const remaining = allLetters.filter(l => !includedLetters.has(l));
       const extraVowels = vowels.filter(v => !includedLetters.has(v));
 
-      const extra = extraVowels.length ? extraVowels[Math.floor(Math.random() * extraVowels.length)] : vowels[Math.floor(Math.random() * vowels.length)];
-      currentLetters.push(extra);
+      const extra = extraVowels.length
+        ? extraVowels[Math.floor(Math.random() * extraVowels.length)]
+        : vowels[Math.floor(Math.random() * vowels.length)];
+
+      if (!includedLetters.has(extra)) {
+        currentLetters.push(extra);
+      }
     }
 
     const remaining = allLetters.filter(l => !currentLetters.includes(l));
@@ -368,10 +344,6 @@ document.addEventListener("DOMContentLoaded", function () {
       slot.addEventListener("dragover", dragOver);
       slot.addEventListener("drop", drop);
     });
-  }
-
-  function shuffle(array) {
-    return array.sort(() => Math.random() - 0.5);
   }
 
   loadPage();
