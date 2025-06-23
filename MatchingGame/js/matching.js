@@ -171,12 +171,14 @@ document.addEventListener("DOMContentLoaded", function () {
       "entry.1374858042": formattedTime
     };
 
-    // Add each level's correct and incorrect answers explicitly by mapping
     for (let i = 0; i < levels.length; i++) {
-      const correct = Array.from(levelAttempts[i].correct).sort().join("");
-      const incorrect = levelAttempts[i].incorrect.sort().join("");
-      entries[formEntryIDs.correct[i]] = correct;
-      entries[formEntryIDs.incorrect[i]] = incorrect;
+      const correctArr = Array.from(levelAttempts[i].correct);
+      correctArr.sort();
+      const incorrectArr = [...levelAttempts[i].incorrect];
+      incorrectArr.sort();
+
+      entries[formEntryIDs.correct[i]] = correctArr.join("");
+      entries[formEntryIDs.incorrect[i]] = incorrectArr.join("");
     }
 
     // Calculate final percentage
