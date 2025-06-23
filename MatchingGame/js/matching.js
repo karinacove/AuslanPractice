@@ -1,4 +1,3 @@
-// [FULL JS with updated mixed levels: grid is random mix, draggable answers are opposite type, decoys can be both types]
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -79,16 +78,19 @@ document.addEventListener("DOMContentLoaded", function () {
     const src = e.dataTransfer.getData("src");
     const target = e.currentTarget;
     const targetLetter = target.dataset.letter;
+
     if (letter === targetLetter) {
       if (!levelAttempts[currentLevel].correct.has(letter)) {
         levelAttempts[currentLevel].correct.add(letter);
       }
+
       target.innerHTML = "";
       const overlay = document.createElement("img");
       overlay.src = src;
       overlay.className = "overlay";
       target.appendChild(overlay);
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
+
       correctMatches++;
       showFeedback(true);
 
@@ -218,7 +220,8 @@ document.addEventListener("DOMContentLoaded", function () {
       } else {
         isSign = Math.random() < 0.5;
       }
-      slot.style.backgroundImage = `url('assets/alphabet/${isSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}`);
+
+      slot.style.backgroundImage = `url('assets/alphabet/${isSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}')`;
       slotTypes[letter] = isSign;
       gameBoard.appendChild(slot);
     });
@@ -278,7 +281,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const handleTouchEnd = (ev) => {
       const touch = ev.changedTouches[0];
       const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (el && el.classList.contains("slot")) drop({ preventDefault: () => {}, dataTransfer: { getData: (k) => k === "text/plain" ? letter : src }, currentTarget: el });
+      if (el && el.classList.contains("slot")) drop({
+        preventDefault: () => {},
+        dataTransfer: {
+          getData: (k) => k === "text/plain" ? letter : src
+        },
+        currentTarget: el
+      });
       document.removeEventListener("touchmove", handleTouchMove);
       document.removeEventListener("touchend", handleTouchEnd);
       clone.remove();
