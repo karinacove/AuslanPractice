@@ -38,8 +38,8 @@ body {
 }
 
 #vehicle-palette img {
-  width: auto;
-  height: 100px;
+  width: max 100px;
+  height: auto;
   cursor: grab;
   transition: transform 0.2s;
 }
