@@ -16,7 +16,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const finishBtn = document.getElementById("finish-btn");
 
   if (finishBtn) finishBtn.addEventListener("click", () => {
-    // Allow finish multiple times by resetting gameEnded
     gameEnded = false;
     endGame();
   });
