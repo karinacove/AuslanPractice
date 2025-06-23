@@ -1,4 +1,4 @@
-// [FULL JS with level-wise Google Form sending, finish safety net, conditional data sending]
+// [FULL JS with corrected slot image logic for each level type]
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -29,11 +29,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const vowels = ["a", "e", "i", "o", "u"];
 
   const levels = [
-    { type: "imageToSign", decoys: 3, dragType: "clipart" },
-    { type: "signToImage", decoys: 3, dragType: "sign" },
+    { type: "signToImage", decoys: 3, dragType: "clipart" },
+    { type: "imageToSign", decoys: 3, dragType: "sign" },
     { type: "mixed", decoys: 3, dragType: "mixed" },
-    { type: "imageToSign", decoys: 9, dragType: "clipart" },
-    { type: "signToImage", decoys: 9, dragType: "sign" },
+    { type: "signToImage", decoys: 9, dragType: "clipart" },
+    { type: "imageToSign", decoys: 9, dragType: "sign" },
     { type: "mixed", decoys: 9, dragType: "mixed", isReview: true }
   ];
 
@@ -112,12 +112,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const seconds = time % 60;
     const formatted = `${minutes} mins ${seconds} sec`;
 
-    // Send all level data
-    for (let i = 0; i < levelAttempts.length; i++) {
-      sendLevelData(i);
-    }
+    for (let i = 0; i < levelAttempts.length; i++) sendLevelData(i);
 
-    // Calculate score
     let totalCorrect = 0;
     let totalAttempts = 0;
     for (let l of levelAttempts) {
@@ -131,7 +127,6 @@ document.addEventListener("DOMContentLoaded", function () {
     timeDisplay.innerText = `Time: ${formatted}`;
     document.getElementById("end-modal-content").appendChild(timeDisplay);
 
-    // Show Continue button only if they haven't completed all levels
     if (currentLevel < levels.length) {
       continueBtn.style.display = "inline-block";
       continueBtn.onclick = () => {
@@ -263,9 +258,14 @@ document.addEventListener("DOMContentLoaded", function () {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
-      slot.style.backgroundImage = type.includes("Sign")
-        ? `url('assets/alphabet/clipart/${letter}.png')`
-        : `url('assets/alphabet/signs/sign-${letter}.png')`;
+      slot.style.backgroundImage =
+        type === "signToImage"
+          ? `url('assets/alphabet/clipart/${letter}.png')`
+          : type === "imageToSign"
+          ? `url('assets/alphabet/signs/sign-${letter}.png')`
+          : Math.random() < 0.5
+          ? `url('assets/alphabet/signs/sign-${letter}.png')`
+          : `url('assets/alphabet/clipart/${letter}.png')`;
       gameBoard.appendChild(slot);
     });
 
