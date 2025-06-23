@@ -68,6 +68,90 @@ document.addEventListener("DOMContentLoaded", function () {
     return arr.sort(() => Math.random() - 0.5);
   }
 
+  function loadPage() {
+    const { type, decoys, dragType, isReview } = levels[currentLevel];
+    let availableLetters = [...allLetters];
+    let selectedLetters = [];
+
+    if (isReview) {
+      selectedLetters = availableLetters
+        .filter(l => levelAttempts[currentLevel].incorrect.includes(l))
+        .sort()
+        .slice(0, 9);
+    } else {
+      selectedLetters = shuffle(availableLetters);
+      const startIndex = currentPage * 9;
+      selectedLetters = selectedLetters.slice(startIndex, startIndex + 9);
+      if (currentPage === 2 && selectedLetters.length < 9) {
+        const extraVowel = vowels.find(v => !selectedLetters.includes(v));
+        if (extraVowel) selectedLetters.push(extraVowel);
+      }
+    }
+
+    const gridItems = [...selectedLetters];
+    const decoyLetters = shuffle(allLetters.filter(l => !gridItems.includes(l))).slice(0, decoys);
+    const draggableLetters = shuffle([...gridItems, ...decoyLetters]);
+
+    gameBoard.innerHTML = "";
+    leftSigns.innerHTML = "";
+    rightSigns.innerHTML = "";
+    currentLetters = gridItems;
+
+    levelTitle.innerText = `Level ${currentLevel + 1} — Page ${currentPage + 1}`;
+
+    gridItems.forEach(letter => {
+      const slot = document.createElement("div");
+      slot.className = "slot";
+      slot.dataset.letter = letter;
+
+      if (type === "signToImage") {
+        slot.style.backgroundImage = `url('assets/alphabet/signs/sign-${letter}.png')`;
+      } else if (type === "imageToSign") {
+        slot.style.backgroundImage = `url('assets/alphabet/clipart/${letter}.png')`;
+      } else {
+        slot.style.backgroundImage = Math.random() < 0.5
+          ? `url('assets/alphabet/signs/sign-${letter}.png')`
+          : `url('assets/alphabet/clipart/${letter}.png')`;
+      }
+
+      gameBoard.appendChild(slot);
+    });
+
+    draggableLetters.forEach((letter, i) => {
+      const img = document.createElement("img");
+      img.className = "draggable";
+      img.dataset.letter = letter;
+      img.draggable = true;
+
+      img.src = dragType === "clipart"
+        ? `assets/alphabet/clipart/${letter}.png`
+        : dragType === "sign"
+        ? `assets/alphabet/signs/sign-${letter}.png`
+        : (i % 2 === 0
+          ? `assets/alphabet/signs/sign-${letter}.png`
+          : `assets/alphabet/clipart/${letter}.png`
+        );
+
+      img.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text/plain", letter);
+        e.dataTransfer.setData("src", img.src);
+      });
+
+      img.addEventListener("touchstart", touchStart);
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "drag-wrapper";
+      wrapper.appendChild(img);
+
+      (i < draggableLetters.length / 2 ? leftSigns : rightSigns).appendChild(wrapper);
+    });
+
+    document.querySelectorAll(".slot").forEach(slot => {
+      slot.addEventListener("dragover", e => e.preventDefault());
+      slot.addEventListener("drop", drop);
+    });
+  }
+
   function sendLevelData(levelIndex) {
     const correct = Array.from(levelAttempts[levelIndex].correct).sort().join(", ");
     const incorrect = levelAttempts[levelIndex].incorrect.sort().join(", ");
