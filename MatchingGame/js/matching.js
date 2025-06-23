@@ -1,4 +1,3 @@
-// matching.js
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -10,7 +9,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
-  // Modal and buttons
   const modal = document.getElementById("end-modal");
   const scoreDisplay = document.getElementById("score-display");
   const continueBtn = document.getElementById("continue-btn");
@@ -19,13 +17,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const logoutBtn = document.getElementById("logout-btn");
   const finishBtn = document.getElementById("finish-btn");
 
-  // Game elements
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
   const rightSigns = document.getElementById("rightSigns");
   const levelTitle = document.getElementById("levelTitle");
 
-  // Feedback image
   const feedbackImage = document.createElement("img");
   feedbackImage.id = "feedbackImage";
   Object.assign(feedbackImage.style, {
@@ -40,11 +36,9 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.body.appendChild(feedbackImage);
 
-  // Constants
   const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
   const vowels = ["a", "e", "i", "o", "u"];
 
-  // Levels config: type and number of decoys
   const levels = [
     { type: "signToImage", decoys: 3 },
     { type: "imageToSign", decoys: 3 },
@@ -62,13 +56,11 @@ document.addEventListener("DOMContentLoaded", function () {
   let gameEnded = false;
   const startTime = Date.now();
 
-  // Track answers for Google Forms submission
   const levelAttempts = levels.map(() => ({
     correct: new Set(),
     incorrect: [],
   }));
 
-  // Utility: Shuffle array
   function shuffle(arr) {
     const array = arr.slice();
     for (let i = array.length - 1; i > 0; i--) {
@@ -78,7 +70,6 @@ document.addEventListener("DOMContentLoaded", function () {
     return array;
   }
 
-  // Show feedback (correct or wrong)
   function showFeedback(correct) {
     feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
     feedbackImage.style.display = "block";
@@ -87,7 +78,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 1000);
   }
 
-  // Handle drop on slot
   function drop(e) {
     e.preventDefault();
     const letter = e.dataTransfer.getData("text/plain");
@@ -99,14 +89,12 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!levelAttempts[currentLevel].correct.has(letter)) {
         levelAttempts[currentLevel].correct.add(letter);
       }
-      // Show overlay on target slot
       target.innerHTML = "";
       const overlay = document.createElement("img");
       overlay.src = src;
       overlay.className = "overlay";
       target.appendChild(overlay);
 
-      // Remove draggable from left/right signs
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach((el) => el.remove());
 
       correctMatches++;
@@ -131,7 +119,6 @@ document.addEventListener("DOMContentLoaded", function () {
       levelAttempts[currentLevel].incorrect.push(letter);
       showFeedback(false);
 
-      // Shake the wrong draggable
       const wrong = document.querySelector(`img.draggable[data-letter='${letter}']`);
       if (wrong) {
         wrong.classList.add("shake");
@@ -140,7 +127,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // End game and submit results to Google Forms
   function endGame() {
     if (gameEnded) return;
     gameEnded = true;
@@ -151,7 +137,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const seconds = timeTakenSeconds % 60;
     const formattedTime = `${minutes} mins ${seconds} sec`;
 
-    // Prepare form for submission
     const form = document.createElement("form");
     form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
     form.method = "POST";
@@ -163,7 +148,6 @@ document.addEventListener("DOMContentLoaded", function () {
     iframe.style.display = "none";
     document.body.appendChild(iframe);
 
-    // Google Form field mapping
     const entries = {
       "entry.1387461004": studentName,
       "entry.1309291707": studentClass,
@@ -171,8 +155,6 @@ document.addEventListener("DOMContentLoaded", function () {
       "entry.1374858042": formattedTime,
     };
 
-    // For each level, add correct and incorrect (use correct IDs)
-    // IDs for incorrect start at 1897227570, correct at 1249394203, increment by 2 per level
     let totalCorrect = 0;
     let totalAttempts = 0;
 
@@ -183,8 +165,13 @@ document.addEventListener("DOMContentLoaded", function () {
       const correctStr = correctArr.join("");
       const incorrectStr = incorrectArr.join("");
 
-      entries[`entry.1897227570`] = i === 0 ? incorrectStr : entries[`entry.1897227570`] + "," + incorrectStr;
-      entries[`entry.1249394203`] = i === 0 ? correctStr : entries[`entry.1249394203`] + "," + correctStr;
+      // Append with commas if multiple levels
+      entries[`entry.1897227570`] = entries[`entry.1897227570`]
+        ? entries[`entry.1897227570`] + "," + incorrectStr
+        : incorrectStr;
+      entries[`entry.1249394203`] = entries[`entry.1249394203`]
+        ? entries[`entry.1249394203`] + "," + correctStr
+        : correctStr;
 
       totalCorrect += correctArr.length;
       totalAttempts += correctArr.length + incorrectArr.length;
@@ -193,7 +180,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const percentScore = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
     entries["entry.1996137354"] = `${percentScore}%`;
 
-    // Append inputs to form
     for (const [key, value] of Object.entries(entries)) {
       const input = document.createElement("input");
       input.type = "hidden";
@@ -205,12 +191,10 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.appendChild(form);
     form.submit();
 
-    // Show modal with score & time
     scoreDisplay.innerText = `Score: ${percentScore}%\nTime: ${formattedTime}`;
     modal.style.display = "flex";
   }
 
-  // Load a page (grid + draggable signs/images) for the current level and page
   function loadPage() {
     const level = levels[currentLevel];
     const mode = level.type;
@@ -224,15 +208,22 @@ document.addEventListener("DOMContentLoaded", function () {
         : "Match Signs and Pictures (Mixed)"
     }`;
 
+    // Add/remove wide-mode for levels 4-6
+    if (currentLevel >= 3 && currentLevel <= 5) {
+      leftSigns.classList.add("wide-mode");
+      rightSigns.classList.add("wide-mode");
+    } else {
+      leftSigns.classList.remove("wide-mode");
+      rightSigns.classList.remove("wide-mode");
+    }
+
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
     rightSigns.innerHTML = "";
 
-    // Pick 9 random letters for this page
     let shuffledLetters = shuffle(allLetters);
     currentLetters = shuffledLetters.slice(0, 9);
 
-    // On 3rd page (index 2), add a vowel not already included replacing a random letter
     if (currentPage === 2) {
       const used = new Set(currentLetters);
       const unusedVowels = vowels.filter((v) => !used.has(v));
@@ -243,40 +234,33 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
 
-    // Assign slot types (true = sign, false = clipart) based on mode:
-    // signToImage: slots show clipart (false)
-    // imageToSign: slots show sign (true)
-    // mixed: random for slots
-    const slotTypes = {}; // letter -> isSign(boolean)
+    const slotTypes = {};
     currentLetters.forEach((letter) => {
       let isSign;
       if (mode === "signToImage") {
-        isSign = false; // slots show clipart images
+        isSign = false;
       } else if (mode === "imageToSign") {
-        isSign = true; // slots show signs
+        isSign = true;
       } else {
         isSign = Math.random() < 0.5;
       }
       slotTypes[letter] = isSign;
-      // Create slot div
+
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
-      slot.style.backgroundImage = `url('assets/alphabet/${isSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}')`;
+      slot.style.backgroundImage = `url('assets/alphabet/${
+        isSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`
+      }')`;
       gameBoard.appendChild(slot);
 
-      // Enable drop events
       slot.addEventListener("dragover", (e) => e.preventDefault());
       slot.addEventListener("drop", drop);
     });
 
-    // Select decoy letters not in currentLetters
     const decoyLetters = shuffle(allLetters.filter((l) => !currentLetters.includes(l))).slice(0, decoys);
-
-    // Prepare draggables array: correct letters + decoys
     const draggablesLetters = shuffle([...currentLetters, ...decoyLetters]);
 
-    // Clear draggable areas
     leftSigns.innerHTML = "";
     rightSigns.innerHTML = "";
 
@@ -286,29 +270,21 @@ document.addEventListener("DOMContentLoaded", function () {
       img.draggable = true;
       img.dataset.letter = letter;
 
-      // Drag events for desktop
       img.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", letter);
         e.dataTransfer.setData("src", img.src);
       });
 
-      // Touch events for mobile
       img.addEventListener("touchstart", touchStart, { passive: false });
 
-      // For draggables, show opposite type to the slot type for that letter
-      // signToImage mode: slots are clipart, draggables are signs
-      // imageToSign mode: slots are signs, draggables are clipart
-      // mixed mode: opposite of slotTypes[letter]
       const slotIsSign = slotTypes[letter];
       const draggableIsSign = mode === "mixed" ? !slotIsSign : mode === "signToImage" ? true : false;
       img.src = `assets/alphabet/${draggableIsSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}`;
 
-      // Wrap draggable img for spacing
       const wrap = document.createElement("div");
       wrap.className = "drag-wrapper";
       wrap.appendChild(img);
 
-      // Split draggables evenly between left and right containers
       if (idx < draggablesLetters.length / 2) {
         leftSigns.appendChild(wrap);
       } else {
@@ -317,7 +293,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Touch drag support
   function touchStart(e) {
     e.preventDefault();
     const target = e.target;
@@ -362,9 +337,9 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("touchend", onTouchEnd, { passive: false });
   }
 
-  // Modal button handlers
   continueBtn.addEventListener("click", () => {
     modal.style.display = "none";
+    gameEnded = false;  // Allow finish button to be clicked again
   });
 
   againBtn.addEventListener("click", () => {
@@ -384,6 +359,5 @@ document.addEventListener("DOMContentLoaded", function () {
     endGame();
   });
 
-  // Initial load
   loadPage();
 });
