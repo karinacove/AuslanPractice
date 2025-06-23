@@ -9,18 +9,44 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
-  const modal = document.getElementById("end-modal");
-  const scoreDisplay = document.getElementById("score-display");
-  const continueBtn = document.getElementById("continue-btn");
   const againBtn = document.getElementById("again-btn");
   const menuBtn = document.getElementById("menu-btn");
   const logoutBtn = document.getElementById("logout-btn");
+  const modal = document.getElementById("end-modal");
   const finishBtn = document.getElementById("finish-btn");
+
+  if (finishBtn) finishBtn.addEventListener("click", () => endGame());
+  if (againBtn) againBtn.addEventListener("click", () => location.reload());
+  if (menuBtn) menuBtn.addEventListener("click", () => window.location.href = "../index.html");
+  if (logoutBtn) logoutBtn.addEventListener("click", () => {
+    localStorage.clear();
+    window.location.href = "../index.html";
+  });
+
+  const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
+  const vowels = ["a", "e", "i", "o", "u"];
+
+  const levels = [
+    { type: "signToImage", decoys: 3 },
+    { type: "imageToSign", decoys: 3 },
+    { type: "mixed", decoys: 3 },
+    { type: "signToImage", decoys: 9, wideMode: true },
+    { type: "imageToSign", decoys: 9, wideMode: true },
+    { type: "mixed", decoys: 9, isReview: true, wideMode: true }
+  ];
+
+  let currentLevel = 0;
+  let currentPage = 0;
+  const pagesPerLevel = 3;
+  const levelAttempts = Array(levels.length).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
+  let currentLetters = [];
+  let correctMatches = 0;
+  let startTime = Date.now();
+  let gameEnded = false;
 
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
   const rightSigns = document.getElementById("rightSigns");
-  const layoutDiv = document.querySelector(".layout");  // <--- Add this to toggle wide-mode here
   const levelTitle = document.getElementById("levelTitle");
 
   const feedbackImage = document.createElement("img");
@@ -32,51 +58,18 @@ document.addEventListener("DOMContentLoaded", function () {
     transform: "translate(-50%, -50%)",
     width: "200px",
     display: "none",
-    zIndex: "2000",
-    pointerEvents: "none",
+    zIndex: "1000"
   });
   document.body.appendChild(feedbackImage);
 
-  const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
-  const vowels = ["a", "e", "i", "o", "u"];
-
-  const levels = [
-    { type: "signToImage", decoys: 3 },
-    { type: "imageToSign", decoys: 3 },
-    { type: "mixed", decoys: 3 },
-    { type: "signToImage", decoys: 9 },
-    { type: "imageToSign", decoys: 9 },
-    { type: "mixed", decoys: 9 },
-  ];
-
-  let currentLevel = 0;
-  let currentPage = 0;
-  const pagesPerLevel = 3;
-  let currentLetters = [];
-  let correctMatches = 0;
-  let gameEnded = false;
-  const startTime = Date.now();
-
-  const levelAttempts = levels.map(() => ({
-    correct: new Set(),
-    incorrect: [],
-  }));
-
   function shuffle(arr) {
-    const array = arr.slice();
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
+    return arr.sort(() => Math.random() - 0.5);
   }
 
   function showFeedback(correct) {
     feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
     feedbackImage.style.display = "block";
-    setTimeout(() => {
-      feedbackImage.style.display = "none";
-    }, 1000);
+    setTimeout(() => feedbackImage.style.display = "none", 1000);
   }
 
   function drop(e) {
@@ -85,7 +78,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const src = e.dataTransfer.getData("src");
     const target = e.currentTarget;
     const targetLetter = target.dataset.letter;
-
     if (letter === targetLetter) {
       if (!levelAttempts[currentLevel].correct.has(letter)) {
         levelAttempts[currentLevel].correct.add(letter);
@@ -95,9 +87,7 @@ document.addEventListener("DOMContentLoaded", function () {
       overlay.src = src;
       overlay.className = "overlay";
       target.appendChild(overlay);
-
-      document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach((el) => el.remove());
-
+      document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
       correctMatches++;
       showFeedback(true);
 
@@ -119,7 +109,6 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
       levelAttempts[currentLevel].incorrect.push(letter);
       showFeedback(false);
-
       const wrong = document.querySelector(`img.draggable[data-letter='${letter}']`);
       if (wrong) {
         wrong.classList.add("shake");
@@ -133,14 +122,13 @@ document.addEventListener("DOMContentLoaded", function () {
     gameEnded = true;
 
     const endTime = Date.now();
-    const timeTakenSeconds = Math.round((endTime - startTime) / 1000);
-    const minutes = Math.floor(timeTakenSeconds / 60);
-    const seconds = timeTakenSeconds % 60;
+    const timeTaken = Math.round((endTime - startTime) / 1000);
+    const minutes = Math.floor(timeTaken / 60);
+    const seconds = timeTaken % 60;
     const formattedTime = `${minutes} mins ${seconds} sec`;
 
     const form = document.createElement("form");
-    form.action =
-      "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
     form.method = "POST";
     form.target = "hidden_iframe";
     form.style.display = "none";
@@ -154,87 +142,91 @@ document.addEventListener("DOMContentLoaded", function () {
       "entry.1387461004": studentName,
       "entry.1309291707": studentClass,
       "entry.477642881": "Alphabet",
-      "entry.1374858042": formattedTime,
+      "entry.1374858042": formattedTime
     };
-
-    // These are base entry numbers for form fields for each level
-    const incorrectBase = 1897227570; // incorrect answers fields
-    const correctBase = 1249394203; // correct answers fields
 
     let totalCorrect = 0;
     let totalAttempts = 0;
 
     for (let i = 0; i < levels.length; i++) {
-      const correctArr = Array.from(levelAttempts[i].correct).sort();
-      const incorrectArr = levelAttempts[i].incorrect.slice().sort();
-
-      const correctStr = correctArr.join("");
-      const incorrectStr = incorrectArr.join("");
-
-      entries[`entry.${incorrectBase + i * 2}`] = incorrectStr;
-      entries[`entry.${correctBase + i * 2}`] = correctStr;
-
-      totalCorrect += correctArr.length;
-      totalAttempts += correctArr.length + incorrectArr.length;
+      const correct = Array.from(levelAttempts[i].correct).sort().join("");
+      const incorrect = levelAttempts[i].incorrect.sort().join("");
+      entries[`entry.${1897227570 + i * 2}`] = incorrect;
+      entries[`entry.${1249394203 + i * 2}`] = correct;
+      totalCorrect += correct.length;
+      totalAttempts += correct.length + incorrect.length;
     }
 
-    const percentScore = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
-    entries["entry.1996137354"] = `${percentScore}%`;
+    const percent = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
+    entries["entry.1996137354"] = `${percent}%`;
 
-    for (const [key, value] of Object.entries(entries)) {
+    for (const key in entries) {
       const input = document.createElement("input");
       input.type = "hidden";
       input.name = key;
-      input.value = value;
+      input.value = entries[key];
       form.appendChild(input);
     }
 
     document.body.appendChild(form);
     form.submit();
 
-    scoreDisplay.innerText = `Score: ${percentScore}%\nTime: ${formattedTime}`;
+    document.getElementById("score-display").innerText = `Score: ${percent}%`;
+    const timeDisplay = document.createElement("p");
+    timeDisplay.innerText = `Time: ${formattedTime}`;
+    document.getElementById("end-modal-content").appendChild(timeDisplay);
     modal.style.display = "flex";
   }
 
   function loadPage() {
-    const level = levels[currentLevel];
-    const mode = level.type;
-    const decoys = level.decoys;
+    const { type: mode, decoys, wideMode } = levels[currentLevel];
 
-    levelTitle.innerText = `Level ${currentLevel + 1}: ${
-      mode === "signToImage"
-        ? "Match the Sign to the Picture"
-        : mode === "imageToSign"
-        ? "Match the Picture to the Sign"
-        : "Match Signs and Pictures (Mixed)"
-    }`;
-
-    // Toggle wide-mode class on the layout container for levels 4-6 (index 3,4,5)
-    if (currentLevel >= 3 && currentLevel <= 5) {
-      layoutDiv.classList.add("wide-mode");
+    // toggle wide-mode class on body for levels 4-6
+    if (wideMode) {
+      document.body.classList.add("wide-mode");
     } else {
-      layoutDiv.classList.remove("wide-mode");
+      document.body.classList.remove("wide-mode");
     }
 
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
     rightSigns.innerHTML = "";
 
-    let shuffledLetters = shuffle(allLetters);
-    currentLetters = shuffledLetters.slice(0, 9);
+    levelTitle.innerText = `Level ${currentLevel + 1}: ` +
+      (mode === "signToImage" ? "Match the Sign to the Picture" :
+       mode === "imageToSign" ? "Match the Picture to the Sign" :
+       "Match Signs and Pictures (Mixed)");
 
-    if (currentPage === 2) {
-      const used = new Set(currentLetters);
-      const unusedVowels = vowels.filter((v) => !used.has(v));
-      if (unusedVowels.length > 0) {
-        const vowel = unusedVowels[Math.floor(Math.random() * unusedVowels.length)];
-        const replaceIndex = Math.floor(Math.random() * currentLetters.length);
-        currentLetters[replaceIndex] = vowel;
+    // === Letter selection with guaranteed coverage per level ===
+    // Shuffle all letters once per level start
+    if (currentPage === 0 && currentLetters.length === 0) {
+      // Shuffle all 26 letters for the level once
+      const shuffled = shuffle([...allLetters]);
+      // Split into 3 pages: 9, 9, 8
+      levelLetters = [
+        shuffled.slice(0,9),
+        shuffled.slice(9,18),
+        shuffled.slice(18,26)
+      ];
+      // Find vowel not in page 3 letters
+      const vowelsNotInPage3 = vowels.filter(v => !levelLetters[2].includes(v));
+      // Add one vowel to page 3
+      if (vowelsNotInPage3.length > 0) {
+        levelLetters[2].push(vowelsNotInPage3[0]);
+      } else {
+        // fallback: just add 'a'
+        levelLetters[2].push("a");
       }
     }
 
+    currentLetters = levelLetters[currentPage];
+
     const slotTypes = {};
-    currentLetters.forEach((letter) => {
+    currentLetters.forEach(letter => {
+      const slot = document.createElement("div");
+      slot.className = "slot";
+      slot.dataset.letter = letter;
+
       let isSign;
       if (mode === "signToImage") {
         isSign = false;
@@ -243,52 +235,38 @@ document.addEventListener("DOMContentLoaded", function () {
       } else {
         isSign = Math.random() < 0.5;
       }
+      slot.style.backgroundImage = `url('assets/alphabet/${isSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}')`;
       slotTypes[letter] = isSign;
-
-      const slot = document.createElement("div");
-      slot.className = "slot";
-      slot.dataset.letter = letter;
-      slot.style.backgroundImage = `url('assets/alphabet/${
-        isSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`
-      }')`;
       gameBoard.appendChild(slot);
-
-      slot.addEventListener("dragover", (e) => e.preventDefault());
-      slot.addEventListener("drop", drop);
     });
 
-    const decoyLetters = shuffle(allLetters.filter((l) => !currentLetters.includes(l))).slice(0, decoys);
-    const draggablesLetters = shuffle([...currentLetters, ...decoyLetters]);
+    const decoyLetters = shuffle(allLetters.filter(l => !currentLetters.includes(l))).slice(0, decoys);
+    const draggables = shuffle([...currentLetters, ...decoyLetters]);
 
-    leftSigns.innerHTML = "";
-    rightSigns.innerHTML = "";
-
-    draggablesLetters.forEach((letter, idx) => {
+    draggables.forEach((letter, i) => {
       const img = document.createElement("img");
       img.className = "draggable";
       img.draggable = true;
       img.dataset.letter = letter;
-
-      img.addEventListener("dragstart", (e) => {
+      img.addEventListener("dragstart", e => {
         e.dataTransfer.setData("text/plain", letter);
         e.dataTransfer.setData("src", img.src);
       });
+      img.addEventListener("touchstart", touchStart);
 
-      img.addEventListener("touchstart", touchStart, { passive: false });
-
-      const slotIsSign = slotTypes[letter];
-      const draggableIsSign = mode === "mixed" ? !slotIsSign : mode === "signToImage" ? true : false;
-      img.src = `assets/alphabet/${draggableIsSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}`;
+      const isCorrect = currentLetters.includes(letter);
+      const oppositeType = (mode === "mixed") ? !slotTypes[letter] : (mode === "signToImage");
+      img.src = `assets/alphabet/${oppositeType ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}`;
 
       const wrap = document.createElement("div");
       wrap.className = "drag-wrapper";
       wrap.appendChild(img);
+      (i < draggables.length / 2 ? leftSigns : rightSigns).appendChild(wrap);
+    });
 
-      if (idx < draggablesLetters.length / 2) {
-        leftSigns.appendChild(wrap);
-      } else {
-        rightSigns.appendChild(wrap);
-      }
+    document.querySelectorAll(".slot").forEach(slot => {
+      slot.addEventListener("dragover", e => e.preventDefault());
+      slot.addEventListener("drop", drop);
     });
   }
 
@@ -305,58 +283,27 @@ document.addEventListener("DOMContentLoaded", function () {
     clone.style.zIndex = "10000";
     document.body.appendChild(clone);
 
-    function moveClone(touch) {
+    const moveClone = (touch) => {
       clone.style.left = `${touch.clientX - clone.width / 2}px`;
       clone.style.top = `${touch.clientY - clone.height / 2}px`;
-    }
+    };
+
     moveClone(e.touches[0]);
 
-    function onTouchMove(ev) {
-      moveClone(ev.touches[0]);
-    }
+    const handleTouchMove = (ev) => moveClone(ev.touches[0]);
 
-    function onTouchEnd(ev) {
+    const handleTouchEnd = (ev) => {
       const touch = ev.changedTouches[0];
       const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (el && el.classList.contains("slot")) {
-        drop({
-          preventDefault: () => {},
-          dataTransfer: {
-            getData: (type) => (type === "text/plain" ? letter : src),
-          },
-          currentTarget: el,
-        });
-      }
-      document.removeEventListener("touchmove", onTouchMove);
-      document.removeEventListener("touchend", onTouchEnd);
+      if (el && el.classList.contains("slot")) drop({ preventDefault: () => {}, dataTransfer: { getData: (k) => k === "text/plain" ? letter : src }, currentTarget: el });
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
       clone.remove();
-    }
+    };
 
-    document.addEventListener("touchmove", onTouchMove, { passive: false });
-    document.addEventListener("touchend", onTouchEnd, { passive: false });
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
+    document.addEventListener("touchend", handleTouchEnd, { passive: false });
   }
-
-  continueBtn.addEventListener("click", () => {
-    modal.style.display = "none";
-    gameEnded = false; // Allow finish button to be clicked again
-  });
-
-  againBtn.addEventListener("click", () => {
-    location.reload();
-  });
-
-  menuBtn.addEventListener("click", () => {
-    window.location.href = "../index.html";
-  });
-
-  logoutBtn.addEventListener("click", () => {
-    localStorage.clear();
-    window.location.href = "../index.html";
-  });
-
-  finishBtn.addEventListener("click", () => {
-    endGame();
-  });
 
   loadPage();
 });
