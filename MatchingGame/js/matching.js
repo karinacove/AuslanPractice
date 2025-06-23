@@ -114,21 +114,21 @@ document.addEventListener("DOMContentLoaded", function () {
       correctMatches++;
       showFeedback(true);
 
-      if (correctMatches >= currentLetters.length) {
-        correctMatches = 0;
-        currentPage++;
-        if (currentPage < pagesPerLevel) {
-          setTimeout(loadPage, 800);
+     if (correctMatches >= currentLetters[currentPage].length) {
+      correctMatches = 0;
+      currentPage++;
+      if (currentPage < pagesPerLevel) {
+        setTimeout(loadPage, 800);
+      } else {
+        currentLevel++;
+        currentPage = 0;
+        if (currentLevel >= levels.length) {
+          setTimeout(endGame, 800);
         } else {
-          currentLevel++;
-          currentPage = 0;
-          if (currentLevel >= levels.length) {
-            setTimeout(endGame, 800);
-          } else {
-            setTimeout(loadPage, 800);
-          }
+          setTimeout(loadPage, 800);
         }
       }
+    }
     } else {
       levelAttempts[currentLevel].incorrect.push(letter);
       showFeedback(false);
