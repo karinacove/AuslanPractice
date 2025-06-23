@@ -10,7 +10,7 @@ const scoreDisplayModal = document.getElementById("score-display");
 const continueBtn = document.getElementById("continue-btn");
 const againBtn = document.getElementById("again-btn");
 const menuBtn = document.getElementById("menu-btn");
-const logoutImg = document.getElementById("logout-btn");
+const logoutBtn = document.getElementById("logout-btn");
 
 // Redirect if not signed in
 if (!studentName || !studentClass) {
