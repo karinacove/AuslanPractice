@@ -3,7 +3,7 @@ let studentClass = localStorage.getItem("studentClass") || "";
 
 const studentInfoDiv = document.getElementById("student-info");
 const gameContainer = document.getElementById("game-container");
-const finishButton = document.getElementById("finish-btn");
+const finishBtn = document.getElementById("finish-btn");
 
 const endModal = document.getElementById("end-modal");
 const scoreDisplayModal = document.getElementById("score-display");
@@ -331,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function resetGame() {
-    finishButton.style.display = 'block';
+    finishBtn.style.display = 'block';
 
     score = 0;
     totalClicks = 0;
