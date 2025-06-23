@@ -81,6 +81,15 @@ body, html {
   z-index: 5;
 }
 
+#continue-btn {
+  background-image: url('assets/continue.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  width: 120px;
+  height: 120px;
+}
+
+
 #balloon-area {
   position: absolute;
   width: 100%;
