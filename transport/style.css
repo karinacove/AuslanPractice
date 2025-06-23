@@ -38,7 +38,7 @@ body {
 }
 
 #vehicle-palette img {
-  width: 75px;
+  width: auto;
   height: 100px;
   cursor: grab;
   transition: transform 0.2s;
