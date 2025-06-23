@@ -7,6 +7,7 @@ const finishButton = document.getElementById("finish-btn");
 
 const endModal = document.getElementById("end-modal");
 const scoreDisplayModal = document.getElementById("score-display");
+const continueBtn = document.getElementById("continue-btn");
 const againBtn = document.getElementById("again-btn");
 const menuBtn = document.getElementById("menu-btn");
 const logoutImg = document.getElementById("logout-btn");
@@ -32,28 +33,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const background = document.getElementById('background');
   const mrsC = document.getElementById('mrs-c');
 
-  if (finishButton) {
-    finishButton.addEventListener('click', () => {
-      finishButton.style.display = 'none';
-      finishButtonHandler(true);
-    });
-  }
-
-  // Modal Buttons
-  againBtn.addEventListener('click', () => {
-    endModal.style.display = 'none';
-    resetGame();
+   if (finishBtn) finishBtn.addEventListener("click", () => {
+    gameEnded = false;
+    endGame();
+  });
+  
+  continueBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+    gameEnded = false;  // Allow finish button to be clicked again
   });
 
-  menuBtn.addEventListener('click', () => {
+  againBtn.addEventListener("click", () => {
+    location.reload();
+  });
+
+  menuBtn.addEventListener("click", () => {
     window.location.href = "../index.html";
   });
 
-  logoutImg.addEventListener('click', () => {
-    localStorage.removeItem("studentName");
-    localStorage.removeItem("studentClass");
+  logoutBtn.addEventListener("click", () => {
+    localStorage.clear();
     window.location.href = "../index.html";
   });
+
+  finishBtn.addEventListener("click", () => {
+    endGame();
+  });
+
 
   let score = 0;
   let totalClicks = 0;
