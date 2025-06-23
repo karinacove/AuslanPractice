@@ -1,4 +1,3 @@
-// [FULL JS with corrected slot image logic and updated Google Form logic and modal actions]
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -46,6 +45,8 @@ document.addEventListener("DOMContentLoaded", function () {
   let startTime = Date.now();
   let gameEnded = false;
 
+  const levelLetterSets = levels.map(() => shuffle([...allLetters]));
+
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
   const rightSigns = document.getElementById("rightSigns");
@@ -70,21 +71,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function loadPage() {
     const { type, decoys, dragType, isReview } = levels[currentLevel];
-    let availableLetters = [...allLetters];
     let selectedLetters = [];
 
     if (isReview) {
-      selectedLetters = availableLetters
+      selectedLetters = allLetters
         .filter(l => levelAttempts[currentLevel].incorrect.includes(l))
         .sort()
         .slice(0, 9);
     } else {
-      selectedLetters = shuffle(availableLetters);
-      const startIndex = currentPage * 9;
-      selectedLetters = selectedLetters.slice(startIndex, startIndex + 9);
-      if (currentPage === 2 && selectedLetters.length < 9) {
-        const extraVowel = vowels.find(v => !selectedLetters.includes(v));
-        if (extraVowel) selectedLetters.push(extraVowel);
+      selectedLetters = levelLetterSets[currentLevel].slice(currentPage * 9, currentPage * 9 + 9);
+      if (currentPage === 2) {
+        const vowel = vowels.find(v => !selectedLetters.includes(v));
+        if (vowel) selectedLetters.push(vowel);
       }
     }
 
@@ -151,7 +149,7 @@ document.addEventListener("DOMContentLoaded", function () {
       slot.addEventListener("drop", drop);
     });
   }
-
+  
   function drop(e) {
     e.preventDefault();
     const letter = e.dataTransfer.getData("text/plain");
