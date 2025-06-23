@@ -123,7 +123,7 @@ h2#levelTitle {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   gap: 10px;
-  width: 200px;
+  width: 180px;
   justify-items: center;
   align-content: start;
 }
@@ -450,7 +450,7 @@ input, select, button {
     grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
   }
   #gameBoard {
-    width: 90vw;
+    width: 100vw;
     grid-template-columns: repeat(2, 1fr);
   }
 }
