@@ -234,9 +234,26 @@ document.addEventListener("DOMContentLoaded", function () {
     addField("entry.1309291707", studentClass);
     addField("entry.477642881", "Alphabet");
 
+    const correctIDs = [
+      "entry.1249394203",
+      "entry.1551220511",
+      "entry.903633326",
+      "entry.497882042",
+      "entry.1591755601",
+      "entry.1996137354"
+    ];
+    const incorrectIDs = [
+      "entry.1897227570",
+      "entry.1116300030",
+      "entry.187975538",
+      "entry.1880514176",
+      "entry.552536101",
+      "entry.922308538"
+    ];
+
     levelAttempts.forEach((lvl, idx) => {
-      addField(`entry.${1000 + idx * 2}`, Array.from(lvl.correct).sort().join(", "));
-      addField(`entry.${1001 + idx * 2}`, lvl.incorrect.sort().join(", "));
+      addField(correctIDs[idx], Array.from(lvl.correct).sort().join(", "));
+      addField(incorrectIDs[idx], lvl.incorrect.sort().join(", "));
     });
 
     addField("entry.1996137354", `${percent}%`);
