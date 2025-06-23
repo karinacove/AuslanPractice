@@ -39,8 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   
   continueBtn.addEventListener("click", () => {
-    modal.style.display = "none";
-    gameEnded = false;  // Allow finish button to be clicked again
+    endModal.style.display = "none";
+    gameEnded = false;
   });
 
   againBtn.addEventListener("click", () => {
