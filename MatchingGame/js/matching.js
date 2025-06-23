@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
   const rightSigns = document.getElementById("rightSigns");
+  const layoutDiv = document.querySelector(".layout");  // <--- Add this to toggle wide-mode here
   const levelTitle = document.getElementById("levelTitle");
 
   const feedbackImage = document.createElement("img");
@@ -138,7 +139,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const formattedTime = `${minutes} mins ${seconds} sec`;
 
     const form = document.createElement("form");
-    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+    form.action =
+      "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
     form.method = "POST";
     form.target = "hidden_iframe";
     form.style.display = "none";
@@ -155,6 +157,10 @@ document.addEventListener("DOMContentLoaded", function () {
       "entry.1374858042": formattedTime,
     };
 
+    // These are base entry numbers for form fields for each level
+    const incorrectBase = 1897227570; // incorrect answers fields
+    const correctBase = 1249394203; // correct answers fields
+
     let totalCorrect = 0;
     let totalAttempts = 0;
 
@@ -165,13 +171,8 @@ document.addEventListener("DOMContentLoaded", function () {
       const correctStr = correctArr.join("");
       const incorrectStr = incorrectArr.join("");
 
-      // Append with commas if multiple levels
-      entries[`entry.1897227570`] = entries[`entry.1897227570`]
-        ? entries[`entry.1897227570`] + "," + incorrectStr
-        : incorrectStr;
-      entries[`entry.1249394203`] = entries[`entry.1249394203`]
-        ? entries[`entry.1249394203`] + "," + correctStr
-        : correctStr;
+      entries[`entry.${incorrectBase + i * 2}`] = incorrectStr;
+      entries[`entry.${correctBase + i * 2}`] = correctStr;
 
       totalCorrect += correctArr.length;
       totalAttempts += correctArr.length + incorrectArr.length;
@@ -208,13 +209,11 @@ document.addEventListener("DOMContentLoaded", function () {
         : "Match Signs and Pictures (Mixed)"
     }`;
 
-    // Add/remove wide-mode for levels 4-6
+    // Toggle wide-mode class on the layout container for levels 4-6 (index 3,4,5)
     if (currentLevel >= 3 && currentLevel <= 5) {
-      leftSigns.classList.add("wide-mode");
-      rightSigns.classList.add("wide-mode");
+      layoutDiv.classList.add("wide-mode");
     } else {
-      leftSigns.classList.remove("wide-mode");
-      rightSigns.classList.remove("wide-mode");
+      layoutDiv.classList.remove("wide-mode");
     }
 
     gameBoard.innerHTML = "";
@@ -339,7 +338,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   continueBtn.addEventListener("click", () => {
     modal.style.display = "none";
-    gameEnded = false;  // Allow finish button to be clicked again
+    gameEnded = false; // Allow finish button to be clicked again
   });
 
   againBtn.addEventListener("click", () => {
