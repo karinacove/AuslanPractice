@@ -10,20 +10,38 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
   const againBtn = document.getElementById("again-btn");
+  const continueBtn = document.getElementById("continue-btn");
   const menuBtn = document.getElementById("menu-btn");
   const logoutBtn = document.getElementById("logout-btn");
   const modal = document.getElementById("end-modal");
   const finishBtn = document.getElementById("finish-btn");
 
-  if (finishBtn) finishBtn.addEventListener("click", () => {
+ if (finishBtn) finishBtn.addEventListener("click", () => {
     gameEnded = false;
     endGame();
   });
-  if (againBtn) againBtn.addEventListener("click", () => location.reload());
-  if (menuBtn) menuBtn.addEventListener("click", () => window.location.href = "../index.html");
-  if (logoutBtn) logoutBtn.addEventListener("click", () => {
+  
+  continueBtn.addEventListener("click", () => {
+    endModal.style.display = "none";
+    gameEnded = false;
+    startGame();
+  });
+
+  againBtn.addEventListener("click", () => {
+    location.reload();
+  });
+
+  menuBtn.addEventListener("click", () => {
+    window.location.href = "../index.html";
+  });
+
+  logoutBtn.addEventListener("click", () => {
     localStorage.clear();
     window.location.href = "../index.html";
+  });
+
+  finishBtn.addEventListener("click", () => {
+    endGame();
   });
 
   const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
