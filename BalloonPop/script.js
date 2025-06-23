@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
   continueBtn.addEventListener("click", () => {
     endModal.style.display = "none";
     gameEnded = false;
+    startGame();
   });
 
   againBtn.addEventListener("click", () => {
