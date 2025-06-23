@@ -78,19 +78,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const src = e.dataTransfer.getData("src");
     const target = e.currentTarget;
     const targetLetter = target.dataset.letter;
-
     if (letter === targetLetter) {
       if (!levelAttempts[currentLevel].correct.has(letter)) {
         levelAttempts[currentLevel].correct.add(letter);
       }
-
       target.innerHTML = "";
       const overlay = document.createElement("img");
       overlay.src = src;
       overlay.className = "overlay";
       target.appendChild(overlay);
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
-
       correctMatches++;
       showFeedback(true);
 
@@ -174,11 +171,80 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.appendChild(form);
     form.submit();
 
-    document.getElementById("score-display").innerText = `Score: ${percent}%`;
+    // Build modal content dynamically
+    modal.innerHTML = ""; // Clear previous content
+    modal.style.display = "flex";
+
+    const modalContent = document.createElement("div");
+    modalContent.id = "end-modal-content";
+    modalContent.style.textAlign = "center";
+    modalContent.style.padding = "20px";
+    modalContent.style.backgroundColor = "#fff";
+    modalContent.style.borderRadius = "10px";
+    modalContent.style.maxWidth = "320px";
+    modalContent.style.margin = "auto";
+
+    // Score display
+    const scoreDisplay = document.createElement("p");
+    scoreDisplay.id = "score-display";
+    scoreDisplay.innerText = `Score: ${percent}%`;
+    scoreDisplay.style.fontSize = "1.5em";
+    scoreDisplay.style.marginBottom = "10px";
+    modalContent.appendChild(scoreDisplay);
+
+    // Time display
     const timeDisplay = document.createElement("p");
     timeDisplay.innerText = `Time: ${formattedTime}`;
-    document.getElementById("end-modal-content").appendChild(timeDisplay);
-    modal.style.display = "flex";
+    timeDisplay.style.marginBottom = "20px";
+    modalContent.appendChild(timeDisplay);
+
+    // Buttons container
+    const buttonsContainer = document.createElement("div");
+    buttonsContainer.style.display = "flex";
+    buttonsContainer.style.justifyContent = "space-around";
+    buttonsContainer.style.gap = "10px";
+
+    // Helper to create image buttons
+    function createImgButton(id, src, alt) {
+      const btn = document.createElement("img");
+      btn.id = id;
+      btn.src = src;
+      btn.alt = alt;
+      btn.style.cursor = "pointer";
+      btn.style.width = "60px";
+      btn.style.height = "60px";
+      btn.title = alt;
+      return btn;
+    }
+
+    // Continue button
+    const continueBtn = createImgButton("continue-btn", "assets/continue.png", "Continue");
+    continueBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+      // Continue logic: maybe advance or close modal - here, just close modal to continue
+    });
+    buttonsContainer.appendChild(continueBtn);
+
+    // Again button
+    const againBtnModal = createImgButton("again-btn", "assets/again.png", "Play Again");
+    againBtnModal.addEventListener("click", () => location.reload());
+    buttonsContainer.appendChild(againBtnModal);
+
+    // Menu button
+    const menuBtnModal = createImgButton("menu-btn", "assets/menu.png", "Menu");
+    menuBtnModal.addEventListener("click", () => window.location.href = "../index.html");
+    buttonsContainer.appendChild(menuBtnModal);
+
+    // Logout button
+    const logoutBtnModal = createImgButton("logout-btn", "assets/logout.png", "Logout");
+    logoutBtnModal.addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "../index.html";
+    });
+    buttonsContainer.appendChild(logoutBtnModal);
+
+    modalContent.appendChild(buttonsContainer);
+    modal.appendChild(modalContent);
   }
 
   function loadPage() {
@@ -220,8 +286,7 @@ document.addEventListener("DOMContentLoaded", function () {
       } else {
         isSign = Math.random() < 0.5;
       }
-
-      slot.style.backgroundImage = `url('assets/alphabet/${isSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}')`;
+      slot.style.backgroundImage = `url('assets/alphabet/${isSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`})`;
       slotTypes[letter] = isSign;
       gameBoard.appendChild(slot);
     });
@@ -281,13 +346,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const handleTouchEnd = (ev) => {
       const touch = ev.changedTouches[0];
       const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (el && el.classList.contains("slot")) drop({
-        preventDefault: () => {},
-        dataTransfer: {
-          getData: (k) => k === "text/plain" ? letter : src
-        },
-        currentTarget: el
-      });
+      if (el && el.classList.contains("slot")) drop({ preventDefault: () => {}, dataTransfer: { getData: (k) => k === "text/plain" ? letter : src }, currentTarget: el });
       document.removeEventListener("touchmove", handleTouchMove);
       document.removeEventListener("touchend", handleTouchEnd);
       clone.remove();
