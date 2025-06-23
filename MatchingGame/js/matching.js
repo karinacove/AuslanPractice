@@ -1,4 +1,4 @@
-// [FULL JS with corrected slot image logic for each level type]
+// [FULL JS with corrected slot image logic and grid-match fix]
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -45,7 +45,6 @@ document.addEventListener("DOMContentLoaded", function () {
   let correctMatches = 0;
   let startTime = Date.now();
   let gameEnded = false;
-  let pageHasInteraction = false;
 
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
@@ -72,7 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function sendLevelData(levelIndex) {
     const correct = Array.from(levelAttempts[levelIndex].correct).sort().join(", ");
     const incorrect = levelAttempts[levelIndex].incorrect.sort().join(", ");
-    if (!correct && !incorrect) return; // skip if nothing was attempted
+    if (!correct && !incorrect) return;
 
     const form = document.createElement("form");
     form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
@@ -144,7 +143,6 @@ document.addEventListener("DOMContentLoaded", function () {
     e.preventDefault();
     const letter = e.dataTransfer.getData("text/plain");
     const slotLetter = e.currentTarget.dataset.letter;
-    pageHasInteraction = true;
 
     if (letter === slotLetter) {
       e.currentTarget.innerHTML = "";
@@ -258,14 +256,17 @@ document.addEventListener("DOMContentLoaded", function () {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
-      slot.style.backgroundImage =
-        type === "signToImage"
+
+      if (type === "signToImage") {
+        slot.style.backgroundImage = `url('assets/alphabet/clipart/${letter}.png')`;
+      } else if (type === "imageToSign") {
+        slot.style.backgroundImage = `url('assets/alphabet/signs/sign-${letter}.png')`;
+      } else {
+        slot.style.backgroundImage = Math.random() < 0.5
           ? `url('assets/alphabet/clipart/${letter}.png')`
-          : type === "imageToSign"
-          ? `url('assets/alphabet/signs/sign-${letter}.png')`
-          : Math.random() < 0.5
-          ? `url('assets/alphabet/signs/sign-${letter}.png')`
-          : `url('assets/alphabet/clipart/${letter}.png')`;
+          : `url('assets/alphabet/signs/sign-${letter}.png')`;
+      }
+
       gameBoard.appendChild(slot);
     });
 
@@ -274,6 +275,7 @@ document.addEventListener("DOMContentLoaded", function () {
       img.className = "draggable";
       img.dataset.letter = letter;
       img.draggable = true;
+
       img.src = dragType === "clipart"
         ? `assets/alphabet/clipart/${letter}.png`
         : dragType === "sign"
@@ -294,11 +296,7 @@ document.addEventListener("DOMContentLoaded", function () {
       wrapper.className = "drag-wrapper";
       wrapper.appendChild(img);
 
-      if (i < draggableLetters.length / 2) {
-        leftSigns.appendChild(wrapper);
-      } else {
-        rightSigns.appendChild(wrapper);
-      }
+      (i < draggableLetters.length / 2 ? leftSigns : rightSigns).appendChild(wrapper);
     });
 
     document.querySelectorAll(".slot").forEach(slot => {
