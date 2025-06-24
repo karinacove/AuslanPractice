@@ -33,6 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (againBtn) {
     againBtn.addEventListener("click", () => {
+      endModal.style.display = "none";
       location.reload();
     });
   }
@@ -50,6 +51,8 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = "../index.html";
     });
   }
+
+  setupKeyboard();
 });
 
 function adjustZoom() {
@@ -97,11 +100,7 @@ document.addEventListener("keydown", (event) => {
     currentGuess = currentGuess.slice(0, -1);
     updateGrid();
   } else if (event.key === "Enter" && currentGuess.length === 5) {
-    if (
-      !validWords ||
-      validWords.length === 0 ||
-      !validWords.includes(currentGuess.toUpperCase())
-    ) {
+    if (!validWords.includes(currentGuess.toUpperCase())) {
       showInvalidWordMessage(currentGuess);
       return;
     }
@@ -225,7 +224,7 @@ function showInvalidWordMessage(word) {
   }, 2000);
 }
 
-function finishButtonHandler() {
+function finishButtonHandler(early = false) {
   if (endModal) {
     endModal.style.display = "flex";
   }
@@ -262,48 +261,93 @@ function submitWordleResult(targetWord, guessesArray) {
     });
 }
 
-function createKeyboard() {
+function setupKeyboard() {
   const keyboard = document.getElementById("onScreenKeyboard");
-  keyboard.innerHTML = "";
+  const toggleBtn = document.getElementById("toggleKeyboardBtn");
+  if (!keyboard || !toggleBtn) return;
 
-  const rows = [
-    [..."QWERTYUIOP"],
-    [..."ASDFGHJKL"],
-    ["Backspace", ..."ZXCVBNM", "Enter"]
+  const layout = [
+    "QWERTYUIOP",
+    "ASDFGHJKL",
+    "ZXCVBNM"
   ];
 
-  rows.forEach(rowKeys => {
+  keyboard.style.position = "fixed";
+  keyboard.style.bottom = "15vh";
+  keyboard.style.left = "50%";
+  keyboard.style.transform = "translateX(-50%)";
+  keyboard.style.background = "#fff";
+  keyboard.style.border = "4px solid #000";
+  keyboard.style.padding = "10px";
+  keyboard.style.zIndex = "3000";
+  keyboard.style.borderRadius = "12px";
+  keyboard.style.boxShadow = "0 0 15px rgba(0,0,0,0.5)";
+  keyboard.innerHTML = "";
+
+  layout.forEach(row => {
     const rowDiv = document.createElement("div");
-    rowDiv.classList.add("keyboard-row");
-
-    rowKeys.forEach(key => {
-      const keyBtn = document.createElement("div");
-      keyBtn.classList.add("key");
-      if (key === "Backspace" || key === "Enter") keyBtn.classList.add("wide");
-      keyBtn.textContent = key;
-      keyBtn.addEventListener("click", () => handleOnScreenKey(key));
-      rowDiv.appendChild(keyBtn);
+    rowDiv.style.display = "flex";
+    rowDiv.style.justifyContent = "center";
+    row.split("").forEach(letter => {
+      const key = document.createElement("button");
+      key.textContent = letter;
+      key.style.margin = "5px";
+      key.style.padding = "20px 30px";
+      key.style.fontSize = "32px";
+      key.style.fontWeight = "bold";
+      key.style.cursor = "pointer";
+      key.style.border = "2px solid #000";
+      key.style.borderRadius = "10px";
+      key.style.backgroundColor = "#eee";
+      key.addEventListener("click", () => {
+        if (currentGuess.length < 5) {
+          currentGuess += letter;
+          updateGrid();
+        }
+      });
+      rowDiv.appendChild(key);
     });
-
     keyboard.appendChild(rowDiv);
   });
-}
 
-function handleOnScreenKey(key) {
-  const event = new KeyboardEvent("keydown", { key });
-  document.dispatchEvent(event);
-}
+  // Backspace and Enter
+  const controlRow = document.createElement("div");
+  controlRow.style.display = "flex";
+  controlRow.style.justifyContent = "center";
 
-function setupKeyboardToggle() {
-  const toggleBtn = document.getElementById("toggleKeyboardBtn");
-  const keyboard = document.getElementById("onScreenKeyboard");
+  const backspaceBtn = document.createElement("button");
+  backspaceBtn.textContent = "←";
+  backspaceBtn.style.padding = "20px 30px";
+  backspaceBtn.style.margin = "5px";
+  backspaceBtn.style.fontSize = "32px";
+  backspaceBtn.style.cursor = "pointer";
+  backspaceBtn.addEventListener("click", () => {
+    currentGuess = currentGuess.slice(0, -1);
+    updateGrid();
+  });
+
+  const enterBtn = document.createElement("button");
+  enterBtn.textContent = "ENTER";
+  enterBtn.style.padding = "20px 30px";
+  enterBtn.style.margin = "5px";
+  enterBtn.style.fontSize = "32px";
+  enterBtn.style.cursor = "pointer";
+  enterBtn.addEventListener("click", () => {
+    if (currentGuess.length === 5) {
+      if (!validWords.includes(currentGuess.toUpperCase())) {
+        showInvalidWordMessage(currentGuess);
+        return;
+      }
+      checkGuess();
+    }
+  });
+
+  controlRow.appendChild(backspaceBtn);
+  controlRow.appendChild(enterBtn);
+  keyboard.appendChild(controlRow);
 
   toggleBtn.addEventListener("click", () => {
-    keyboard.style.display = keyboard.style.display === "none" ? "block" : "none";
+    keyboard.style.display =
+      keyboard.style.display === "none" ? "block" : "none";
   });
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-  createKeyboard();
-  setupKeyboardToggle();
-});
