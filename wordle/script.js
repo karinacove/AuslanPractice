@@ -258,11 +258,14 @@ function submitWordleResult(targetWord, guessesArray) {
 
 function setupKeyboard() {
   const keyboard = document.getElementById("onScreenKeyboard");
-  const toggleBtn = document.getElementById("KeyboardBtn");
-  if (!keyboard || !Btn) return;
+  const toggleBtn = document.getElementById("toggleKeyboardBtn");
+  if (!keyboard || !toggleBtn) return;
 
   keyboard.innerHTML = `
-    <button id="closeKeyboardBtn" style="font-size: 20px; font-weight: bold; background: none; border: none; cursor: pointer;">✖</button>
+    <div id="keyboard-header" style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 8px;">
+      <div>Keyboard</div>
+      <button id="closeKeyboardBtn" style="font-size: 20px; font-weight: bold; background: none; border: none; cursor: pointer;">✖</button>
+    </div>
   `;
 
   const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
@@ -311,7 +314,7 @@ function setupKeyboard() {
   controlRow.append(backspace, enter);
   keyboard.appendChild(controlRow);
 
-  KeyboardBtn.onclick = () => keyboard.style.display = keyboard.style.display === "none" ? "block" : "none";
+  toggleBtn.onclick = () => keyboard.style.display = keyboard.style.display === "none" ? "block" : "none";
 
   setTimeout(() => {
     const closeBtn = document.getElementById("closeKeyboardBtn");
