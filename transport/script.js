@@ -24,8 +24,7 @@ if (!studentName || !studentClass) {
 document.getElementById("student-info").textContent = `👤 ${studentName} (${studentClass})`;
 document.getElementById("vehicle-palette").style.display = "block";
 
-// Form submission
-form.addEventListener('start-btn', function (e) {
+document.body.addEventListener('start-btn', function (e) {
   e.preventDefault();
   jobDescription = form.elements['jobDescription'].value;
   partnerName = form.elements['partnerName'].value;
