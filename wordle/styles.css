@@ -24,7 +24,6 @@ body {
   position: fixed;
   bottom: 0;
   left: 50%;
-  transform: translateX(-50%);
   transform-origin: bottom center;
 
   display: flex;
@@ -45,7 +44,7 @@ body {
 #word-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
+  gap: 5px;
   margin-bottom: 2px;
   background: transparent;
 }
