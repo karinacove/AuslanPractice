@@ -261,3 +261,32 @@ function submitWordleResult(targetWord, guessesArray) {
       console.error("❌ Form error:", err);
     });
 }
+
+function createKeyboard() {
+  const keyboard = document.getElementById("onScreenKeyboard");
+  const keys = [
+    ..."QWERTYUIOP",
+    ..."ASDFGHJKL",
+    "Backspace", ..."ZXCVBNM", "Enter"
+  ];
+
+  keys.forEach(key => {
+    const button = document.createElement("div");
+    button.classList.add("key");
+
+    if (key === "Backspace" || key === "Enter") {
+      button.classList.add("wide");
+    }
+
+    button.textContent = key;
+    button.addEventListener("click", () => handleOnScreenKey(key));
+    keyboard.appendChild(button);
+  });
+}
+
+function handleOnScreenKey(key) {
+  const event = new KeyboardEvent("keydown", { key });
+  document.dispatchEvent(event);
+}
+
+document.addEventListener("DOMContentLoaded", createKeyboard);
