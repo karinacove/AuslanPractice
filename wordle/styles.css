@@ -249,8 +249,8 @@ body {
 
 @media only screen and (max-width: 1366px) and (orientation: landscape) {
   #game-container {
-    width: 85vw;
-    height: 75vh;
+    width: 60vw;
+    height: 30vh;
     transform: translateX(-50%) scale(0.85);
   }
 
