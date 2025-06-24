@@ -5,89 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="styles.css" />
-
-  <style>
-    #student-info {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background: #28a745;
-      color: white;
-      padding: 10px 10px;
-      border-radius: 10px;
-      max-width: 320px;
-      font-family: sans-serif;
-      font-weight: bold;
-      z-index: 1000;
-    }  
-
-    @font-face {
-      font-family: 'Auslan Finger Spelling';
-      src: url('assets/Auslan Finger Spelling.otf') format('opentype');
-    }
-
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-    }
-
-    body {
-      font-family: 'Auslan Finger Spelling', sans-serif;
-      text-align: center;
-      background: url('assets/Wordle Template 2.png') no-repeat center center;
-      background-size: contain;
-      background-attachment: fixed;
-      background-color: #fff;
-    }
-
-    #game-container {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%) scale(0.25);
-      transform-origin: bottom center;
-
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      z-index: 10;
-
-      width: auto;
-      max-width: 100vw;
-      padding: 20px;
-    }
-
-    .row {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .cell {
-      width: 250px;
-      height: 250px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: 15px solid black;
-      border-radius: 30px;
-      padding: 10px;
-      font-size: 200pt;
-      margin: 9px;
-    }
-  </style>
+  <title>Auslan Wordle</title>
 </head>
 <body>
+  <!-- Student Info -->
   <div id="student-info"></div>
+
+  <!-- Finish Button -->
   <img id="finish-btn" src="assets/finish.png" alt="Finish Game" />
-  </div>
+
+  <!-- Main Game Grid -->
   <div id="game-container">
     <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
     <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
@@ -97,13 +24,18 @@
     <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
   </div>
 
+  <!-- Auslan Clap GIF -->
   <img id="AuslanClap" src="assets/auslan-clap.gif" style="display: none;" alt="Auslan Clap" />
+
+  <!-- Again Button (old style) -->
   <button id="again-button" class="button">
     <img src="assets/Again.png" alt="Again" />
   </button>
 
+  <!-- Incorrect Word Message -->
   <div id="incorrectWordMessage"></div>
-  
+
+  <!-- End Game Modal -->
   <div id="end-modal">
     <div id="end-modal-content">
       <img id="again-btn" src="assets/Again.png" alt="Play Again" />
@@ -112,11 +44,13 @@
     </div>
   </div>
 
-  <iframe name="hidden_iframe" style="display:none;"></iframe>
-  
-  <button id="toggleKeyboardBtn" style="position: fixed; bottom: 10px; right: 10px; z-index: 3000;">Toggle Keyboard</button>
+  <!-- On-screen Keyboard Trigger and Container -->
+  <button id="toggleKeyboardBtn" style="position: fixed; bottom: 10px; right: 10px; z-index: 3000;">
+    Toggle Keyboard
+  </button>
   <div id="onScreenKeyboard" class="keyboard-modal" style="display: none;"></div>
 
+  <!-- Main Script -->
   <script src="script.js"></script>
 </body>
 </html>
