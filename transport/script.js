@@ -7,9 +7,11 @@ const studentClass = localStorage.getItem("studentClass") || "";
 const studentInfoDiv = document.getElementById("student-info");
 const gameContainer = document.getElementById("game-container");
 const finishButton = document.getElementById("finish-btn");
+const startButton = document.getElementByID("start-btn");
 
 const endModal = document.getElementById("end-modal");
 const scoreDisplayModal = document.getElementById("score-display");
+const continueBtn = document.getElementById("continue-btn");
 const againBtn = document.getElementById("again-btn");
 const menuBtn = document.getElementById("menu-btn");
 const logoutImg = document.getElementById("logout-btn");
@@ -22,9 +24,21 @@ if (!studentName || !studentClass) {
 document.getElementById("student-info").textContent = `👤 ${studentName} (${studentClass})`;
 document.getElementById("vehicle-palette").style.display = "block";
 
-// -------------------------
-// Drag & Drop Vehicle Logic with Touch Support
-// -------------------------
+// Form submission
+form.addEventListener('start-btn', function (e) {
+  e.preventDefault();
+  jobDescription = form.elements['jobDescription'].value;
+  partnerName = form.elements['partnerName'].value;
+
+  form.style.display = 'none';
+  palette.style.display = 'grid';
+  start-btn.style.display = 'inline-block';
+  studentInfo.style.display = 'block';
+  studentInfo.innerText = `${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
+});
+
+let jobDescription = '';
+let partnerName = '';
 const MAX_VEHICLES = 12;
 const palette = document.getElementById("vehicle-palette");
 let dragged = null;
@@ -99,6 +113,12 @@ document.body.addEventListener('touchend', endDrag);
   }
 
   // Modal Buttons
+  continueBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+    gameEnded = false;
+    loadPage();
+  });
+
   againBtn.addEventListener('click', () => {
     endModal.style.display = 'none';
     resetGame();
