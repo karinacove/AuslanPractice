@@ -13,7 +13,7 @@ html, body {
 body {
     font-family: 'AuslanFingerSpelling', sans-serif;
     text-align: center;
-    background: url('assets/Wordle Template 2.png') no-repeat center center;
+    background: url('assets/Wordle Template 2.png') no-repeat top center;
     background-size: contain;
     background-attachment: fixed;
     background-color: #5b65a9;
