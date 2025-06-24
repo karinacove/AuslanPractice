@@ -89,6 +89,27 @@
   <div id="finish-modal" style="display: none;">
     <!-- Modal structure will be injected by JS -->
   </div>
+  <!-- Finish Modal -->
+  <div id="end-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 999; justify-content: center; align-items: center; flex-direction: column;">
+    <div style="background: white; padding: 30px 40px; border-radius: 20px; text-align: center; max-width: 90%; width: 300px;">
+      <h2 style="margin-top: 0;">Game Over</h2>
+      <p id="score-percentage" style="font-size: 1.5rem; margin: 10px 0;">Loading...</p>
+      <div class="buttons" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px;">
+        <button id="continue-btn">
+          <img src="Assets/Icons/continue.png" alt="Continue" style="height: 60px;" />
+        </button>
+        <button id="again-button-modal">
+          <img src="Assets/Icons/Again.png" alt="Again" style="height: 60px;" />
+        </button>
+        <button id="menu-button">
+          <img src="Assets/Icons/menu.png" alt="Menu" style="height: 60px;" />
+        </button>
+        <button id="logout-button">
+          <img src="Assets/Icons/logout.png" alt="Logout" style="height: 60px;" />
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script src="script.js" defer></script>
 </body>
