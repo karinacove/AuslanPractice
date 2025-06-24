@@ -264,23 +264,32 @@ function submitWordleResult(targetWord, guessesArray) {
 
 function createKeyboard() {
   const keyboard = document.getElementById("onScreenKeyboard");
-  const keys = [
-    ..."QWERTYUIOP",
-    ..."ASDFGHJKL",
-    "Backspace", ..."ZXCVBNM", "Enter"
+  keyboard.innerHTML = ""; // Clear if regenerating
+
+  const rows = [
+    [..."QWERTYUIOP"],
+    [..."ASDFGHJKL"],
+    ["Backspace", ..."ZXCVBNM", "Enter"]
   ];
 
-  keys.forEach(key => {
-    const button = document.createElement("div");
-    button.classList.add("key");
+  rows.forEach(rowKeys => {
+    const rowDiv = document.createElement("div");
+    rowDiv.classList.add("keyboard-row");
 
-    if (key === "Backspace" || key === "Enter") {
-      button.classList.add("wide");
-    }
+    rowKeys.forEach(key => {
+      const keyBtn = document.createElement("div");
+      keyBtn.classList.add("key");
 
-    button.textContent = key;
-    button.addEventListener("click", () => handleOnScreenKey(key));
-    keyboard.appendChild(button);
+      if (key === "Backspace" || key === "Enter") {
+        keyBtn.classList.add("wide");
+      }
+
+      keyBtn.textContent = key;
+      keyBtn.addEventListener("click", () => handleOnScreenKey(key));
+      rowDiv.appendChild(keyBtn);
+    });
+
+    keyboard.appendChild(rowDiv);
   });
 }
 
