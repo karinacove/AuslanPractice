@@ -44,6 +44,7 @@ let wordLength = 3;
 let guessedWords = new Set();
 let incorrectWords = [];
 let wordBank = {};
+let speedMultiplier = 1;
 
 // -------------------------
 // Load Word List
@@ -60,22 +61,22 @@ fetch("data/wordlist.json")
 // -------------------------
 function showLetterByLetter(word) {
   clearLetters();
+  currentLetterIndex = 0;
   letterDisplay.textContent = "";
-
-  let totalDelay = 500; // Initial pause before first letter
+  const baseDelay = 300 * speedMultiplier;
+  const displayDuration = 200 * speedMultiplier;
 
   word.split("").forEach((letter, index) => {
     const timeout = setTimeout(() => {
       letterDisplay.textContent = letter.toLowerCase();
-      setTimeout(() => {
+      const hideTimeout = setTimeout(() => {
         if (letterDisplay.textContent === letter.toLowerCase()) {
           letterDisplay.textContent = "";
         }
-      }, 200); // Pause between letter hiding
-    }, totalDelay);
-
+      }, displayDuration);
+      letterTimeouts.push(hideTimeout);
+    }, 500 + index * baseDelay); // start after 0.5s, then spaced per letter
     letterTimeouts.push(timeout);
-    totalDelay += 300; // Interval between each letter
   });
 }
 
@@ -240,8 +241,10 @@ wordInput.addEventListener("input", () => {
 });
 
 speedSlider.addEventListener("input", () => {
-  speed = parseInt(speedSlider.value);
+  const val = parseInt(speedSlider.value); // range 0–200
+  speedMultiplier = 1 + (200 - val) / 100; // inverse: low slider = slow
 });
+
 
 againButton.addEventListener("click", () => {
   showLetterByLetter(currentWord);
