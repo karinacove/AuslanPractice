@@ -207,13 +207,15 @@ body {
   position: fixed;
   bottom: 5vh;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%, -50%);
   background: rgba(255, 255, 255, 0.95);
   padding: 15px 20px;
   border-radius: 12px;
   box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
   z-index: 2500;
   display: none;
+  width: 350px;
+  max-width: 90vw;
   cursor: move;
   touch-action: none;
 }
@@ -240,11 +242,12 @@ body {
   display: flex;
   justify-content: center;
   margin: 5px 0;
+  flex-wrap: nowrap;
 }
 
 .key {
-  font-size: 20px;
-  padding: 12px 10px;
+  font-size: 18px;
+  padding: 10px 8px;
   margin: 3px;
   background: #eee;
   border: 2px solid #aaa;
