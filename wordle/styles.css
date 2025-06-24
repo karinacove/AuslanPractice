@@ -205,7 +205,7 @@ body {
 /* On-Screen Keyboard Styling */
 .keyboard-modal {
   position: fixed;
-  bottom: 15vh;
+  bottom: 5vh;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.95);
@@ -215,6 +215,25 @@ body {
   z-index: 2500;
   display: none;
   cursor: move;
+  touch-action: none;
+}
+
+#keyboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  margin-bottom: 10px;
+  cursor: move;
+}
+
+#closeKeyboardBtn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #333;
 }
 
 .keyboard-row {
