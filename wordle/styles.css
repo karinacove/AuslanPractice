@@ -24,21 +24,43 @@ body {
   position: fixed;
   bottom: 0;
   left: 50%;
-  transform: translateX(+60%);
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: flex-end; /* Ensures rows fill from bottom up */
   align-items: center;
 
   background: transparent;
   z-index: 10;
 
-  width: 58vw;
-  height: 88vh;
+  width: 60vw;
+  height: 80vh; /* Visible on iPad landscape */
   padding: 5px 5px;
   overflow: hidden;
 }
 
+.row {
+  display: flex;
+  justify-content: center;
+  gap: 2px;         /* Less horizontal space between cells */
+  margin-bottom: 12px; /* More vertical space between rows */
+}
+
+.cell {
+  width: 90px;
+  height: 90px;
+  margin: 0px 1px;  /* Minimal horizontal gap */
+  font-size: clamp(24px, 4vw, 60px);
+  font-weight: bold;
+  cursor: pointer;
+  border: 4px solid #000;
+  border-radius: 10px;
+  background-color: #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  aspect-ratio: 1 / 1;
+}
 
 #word-grid {
   display: grid;
@@ -60,29 +82,6 @@ body {
   background: white;
   text-transform: uppercase;
   aspect-ratio: 1/1;
-}
-
-.row {
-  display: flex;
-  justify-content: center;
-  gap: 5px;
-  margin: 0;
-}
-
-.cell {
-  width: 100px;
-  height: 100px;
-  margin: 2px;
-  font-size: clamp(24px, 4vw, 64px);
-  font-weight: bold;
-  cursor: pointer;
-  border: 4px solid #000;
-  border-radius: 10px;
-  background-color: #ddd;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  aspect-ratio: 1 / 1;
 }
 
 .cell:hover {
@@ -245,17 +244,16 @@ body {
   background: #ccc;
 }
 
-@media only screen and (max-width: 1366px) and (orientation: landscape) {
+@media only screen and (max-device-width: 1024px) and (orientation: landscape) {
   #game-container {
-    width: 60vw;
-    height: 30vh;
-    transform: translateX(-50%) scale(0.85);
+    height: 78vh;
+    width: 90vw;
   }
 
   .cell {
-    width: 90px;
-    height: 90px;
-    font-size: clamp(20px, 3.5vw, 60px);
+    width: 80px;
+    height: 80px;
+    font-size: clamp(18px, 4vw, 48px);
   }
 
   #finish-btn {
