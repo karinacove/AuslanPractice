@@ -73,7 +73,22 @@ document.addEventListener('DOMContentLoaded', () => {
   let collectedCount = 0;
   let floatSpeed = 30;
   let balloonInterval, correctBalloonInterval;
+  let consecutiveIncorrect = 0;
 
+  function showCarefulWarning() {
+    const warning = document.createElement('img');
+    warning.src = 'assets/careful.png';
+    warning.classList.add('careful-warning'); // Define this in CSS
+    warning.style.position = 'fixed';
+    warning.style.left = '50%';
+    warning.style.top = '50%';
+    warning.style.transform = 'translate(-50%, -50%)';
+    warning.style.zIndex = 1000;
+
+    document.body.appendChild(warning);
+    setTimeout(() => warning.remove(), 1500);
+  }
+  
   const colours = ['green', 'red', 'orange', 'yellow', 'purple', 'pink', 'blue', 'brown', 'black', 'white'];
 
   function getNumberRangeForLevel(level) {
@@ -85,8 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return Array.from({ length: 21 }, (_, i) => i + 20); // 21–41 (20–40)
     } else if (level >= 10 && level <= 12) {
       return Array.from({ length: 60 }, (_, i) => i + 41); // 41–100
-    } else {
-      return Array.from({ length: 100 }, (_, i) => i + 1); // fallback 1–100
+    } else if (level >=13 && level <=15) {
+      return Array.from({ length: 100 }, (_, i) => i + 1); // 1–100
     }
   }
 
@@ -194,31 +209,36 @@ document.addEventListener('DOMContentLoaded', () => {
       if (colourClicked === targetColour && numberClicked === targetNumber) {
         score++;
         correctAnswers++;
+        consecutiveIncorrect = 0;
         correctAnswersList.push(answerKey);
         scoreDisplay.textContent = `Score: ${score}`;
         moveToCollected(balloon);
         animateMrsC();
         updateThoughtBubble();
 
-        if (score % 10 === 0 && level < 12) {
-          level++;
-          levelDisplay.textContent = `Level: ${level}`;
-          collectedCount = 0;
-          clearBalloons();
-          updateBackground();
-          updateFloatSpeed();
-          clearInterval(balloonInterval);
-          clearInterval(correctBalloonInterval);
-          startGame();
-        } else if (score === 120) {
-          endGame();
-        }
-      } else {
+     if (score % 10 === 0 && level < 12) {
+       level++;
+       levelDisplay.textContent = `Level: ${level}`;
+       collectedCount = 0;
+       clearBalloons();
+       updateBackground();
+       updateFloatSpeed();
+       clearInterval(balloonInterval);
+       clearInterval(correctBalloonInterval);
+       startGame();
+     } else if (score === 120) {
+        endGame();
+     } else {
         incorrectAnswersList.push(answerKey);
-        createPopEffect(balloon);
-        balloon.remove();
-      }
-    });
+        consecutiveIncorrect++;
+    if (consecutiveIncorrect >= 5) {
+        showCarefulWarning();
+        consecutiveIncorrect = 0;
+    }
+      createPopEffect(balloon);
+      balloon.remove();
+    }
+  });
 
     balloonArea.appendChild(balloon);
     floatBalloon(balloon);
