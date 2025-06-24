@@ -67,7 +67,6 @@ body {
 .row {
   display: flex;
   justify-content: center;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   gap: 5px;
   margin: 0;
 }
