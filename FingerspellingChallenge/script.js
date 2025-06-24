@@ -24,6 +24,8 @@ const againButton = document.getElementById("again-button");
 const finishButton = document.getElementById("finishButton");
 const keyboardBtn = document.getElementById("keyboard-btn");
 const keyboardContainer = document.getElementById("keyboard-container");
+const endModal = document.getElementById("end-modal");
+const continueBtn = document.getElementById("continue-btn");
 
 // -------------------------
 // Game State
@@ -41,6 +43,7 @@ let wordLength = 3;
 let guessedWords = new Set();
 let incorrectWords = [];
 let wordBank = {};
+let isPaused = false;
 
 // -------------------------
 // Load Word Bank
@@ -66,12 +69,14 @@ function showLetterByLetter(word) {
 
   word.split("").forEach((letter, index) => {
     const timeout = setTimeout(() => {
-      letterDisplay.textContent = letter.toLowerCase();
-      setTimeout(() => {
-        if (letterDisplay.textContent === letter.toLowerCase()) {
-          letterDisplay.textContent = "";
-        }
-      }, 400 - speed); // linger per letter
+      if (!isPaused) {
+        letterDisplay.textContent = letter.toLowerCase();
+        setTimeout(() => {
+          if (!isPaused && letterDisplay.textContent === letter.toLowerCase()) {
+            letterDisplay.textContent = "";
+          }
+        }, 400 - speed); // linger per letter
+      }
     }, delay + index * (400 - speed));
     letterTimeouts.push(timeout);
   });
@@ -87,9 +92,11 @@ function updateTimer() {
 
 function startTimer() {
   timer = setInterval(() => {
-    timeLeft--;
-    updateTimer();
-    if (timeLeft <= 0) endGame();
+    if (!isPaused) {
+      timeLeft--;
+      updateTimer();
+      if (timeLeft <= 0) endGame();
+    }
   }, 1000);
 }
 
@@ -137,17 +144,19 @@ function submitResults() {
 }
 
 function showFinishModal() {
-  const modal = document.createElement("div");
-  modal.id = "finish-popup";
-  modal.innerHTML = `
-    <div style="background:white;padding:20px;border-radius:10px;text-align:center;max-width:300px;margin:10vh auto;">
-      <h2>All done!</h2>
-      <button onclick="location.reload()"><img src='Assets/Icons/Again.png' alt='Again' /></button>
-      <button onclick="window.location.href='../hub.html'"><img src='Assets/Icons/menu.png' alt='Menu' /></button>
-      <button onclick="localStorage.clear(); window.location.href='../index.html'"><img src='Assets/Icons/logout.png' alt='Logout' /></button>
-    </div>
-  `;
-  document.body.appendChild(modal);
+  isPaused = true;
+  submitResults();
+  endModal.style.display = "flex";
+  const percentage = correctWords + incorrectWords.length > 0
+    ? Math.round((correctWords / (correctWords + incorrectWords.length)) * 100)
+    : 100;
+  endModal.querySelector("#score-percentage").textContent = `${percentage}% Correct`;
+}
+
+function hideFinishModal() {
+  isPaused = false;
+  endModal.style.display = "none";
+  wordInput.focus();
 }
 
 // -------------------------
@@ -163,6 +172,7 @@ startButton.addEventListener("click", () => {
 });
 
 wordInput.addEventListener("input", () => {
+  if (isPaused) return;
   const typed = wordInput.value.trim().toLowerCase();
   if (typed.length === currentWord.length) {
     if (typed === currentWord) {
@@ -185,6 +195,7 @@ speedSlider.addEventListener("input", () => {
 });
 
 againButton.addEventListener("click", () => {
+  if (isPaused) return;
   againButton.style.display = "block";
   wordInput.value = "";
   wordInput.style.visibility = "visible";
@@ -192,7 +203,9 @@ againButton.addEventListener("click", () => {
   showLetterByLetter(currentWord);
 });
 
-finishButton.addEventListener("click", endGame);
+finishButton.addEventListener("click", showFinishModal);
+
+continueBtn.addEventListener("click", hideFinishModal);
 
 keyboardBtn.addEventListener("click", () => {
   if (keyboardContainer.style.display === "none") {
@@ -203,48 +216,19 @@ keyboardBtn.addEventListener("click", () => {
 });
 
 function showKeyboard() {
-  if (!keyboardContainer) return;
-
-  keyboardContainer.innerHTML = `
-    <div id="keyboard-header" style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 8px; cursor: move;">
-      <div>Keyboard</div>
-      <button id="closeKeyboardBtn" style="font-size: 20px; font-weight: bold; background: none; border: none; cursor: pointer;">✖</button>
-    </div>
-  `;
-
-  const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
-  layout.forEach(row => {
-    const rowDiv = document.createElement("div");
-    rowDiv.className = "keyboard-row";
-    row.split("").forEach(letter => {
-      const key = document.createElement("button");
-      key.className = "keyboard-key";
-      key.textContent = letter;
-      key.addEventListener("click", () => {
-        wordInput.value += letter.toLowerCase();
-        wordInput.dispatchEvent(new Event("input"));
-        wordInput.focus(); // keep focus on input
-      });
-      rowDiv.appendChild(key);
+  const letters = "abcdefghijklmnopqrstuvwxyz".split("");
+  keyboardContainer.innerHTML = "";
+  letters.forEach(letter => {
+    const key = document.createElement("button");
+    key.className = "keyboard-key";
+    key.textContent = letter;
+    key.addEventListener("click", () => {
+      wordInput.value += letter;
+      wordInput.dispatchEvent(new Event("input"));
     });
-    keyboardContainer.appendChild(rowDiv);
+    keyboardContainer.appendChild(key);
   });
-
-  const deleteKey = document.createElement("button");
-  deleteKey.className = "keyboard-key";
-  deleteKey.textContent = "⌫";
-  deleteKey.addEventListener("click", () => {
-    wordInput.value = wordInput.value.slice(0, -1);
-    wordInput.dispatchEvent(new Event("input"));
-    wordInput.focus();
-  });
-  keyboardContainer.appendChild(deleteKey);
-
-  document.getElementById("closeKeyboardBtn").addEventListener("click", () => {
-    keyboardContainer.style.display = "none";
-  });
-
-  keyboardContainer.style.display = "block";
+  keyboardContainer.style.display = "flex";
 }
 
 // Setup initial values
