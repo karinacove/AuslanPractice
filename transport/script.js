@@ -4,6 +4,16 @@
 const studentName = localStorage.getItem("studentName") || "";
 const studentClass = localStorage.getItem("studentClass") || "";
 
+const studentInfoDiv = document.getElementById("student-info");
+const gameContainer = document.getElementById("game-container");
+const finishButton = document.getElementById("finish-btn");
+
+const endModal = document.getElementById("end-modal");
+const scoreDisplayModal = document.getElementById("score-display");
+const againBtn = document.getElementById("again-btn");
+const menuBtn = document.getElementById("menu-btn");
+const logoutImg = document.getElementById("logout-btn");
+
 if (!studentName || !studentClass) {
   alert("Please return to the sign-in page.");
   window.location.href = "../index.html";
@@ -80,6 +90,29 @@ document.body.addEventListener('mouseup', endDrag);
 document.body.addEventListener('touchstart', e => startDrag(e, true));
 document.body.addEventListener('touchmove', e => moveDrag(e, true));
 document.body.addEventListener('touchend', endDrag);
+
+ if (finishButton) {
+    finishButton.addEventListener('click', () => {
+      finishButton.style.display = 'none';
+      finishButtonHandler(true);
+    });
+  }
+
+  // Modal Buttons
+  againBtn.addEventListener('click', () => {
+    endModal.style.display = 'none';
+    resetGame();
+  });
+
+  menuBtn.addEventListener('click', () => {
+    window.location.href = "../index.html";
+  });
+
+  logoutImg.addEventListener('click', () => {
+    localStorage.removeItem("studentName");
+    localStorage.removeItem("studentClass");
+    window.location.href = "../index.html";
+  });
 
 // -------------------------
 // Submit to Google Form
