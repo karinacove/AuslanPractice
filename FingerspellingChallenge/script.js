@@ -1,23 +1,16 @@
-let studentName = localStorage.getItem("studentName") || "";
-let studentClass = localStorage.getItem("studentClass") || "";
+// -------------------------
+// Initial Setup
+// -------------------------
+const studentName = localStorage.getItem("studentName") || "";
+const studentClass = localStorage.getItem("studentClass") || "";
+
+if (!studentName || !studentClass) {
+  alert("Please log in first.");
+  window.location.href = "../index.html";
+}
 
 const studentInfoDiv = document.getElementById("student-info");
 const gameContainer = document.getElementById("game-container");
-
-// Redirect if not signed in
-if (!studentName || !studentClass) {
-  alert("Please log in first.");
-  window.location.href = "../index.html"; // Adjust path if needed
-} else {
-  if (studentInfoDiv) {
-    studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
-  }
-  if (gameContainer) {
-    gameContainer.style.display = "block";
-  }
-}
-
-// Elements
 const signinScreen = document.getElementById("signin-screen");
 const gameScreen = document.getElementById("game-screen");
 const startButton = document.getElementById("start-button");
@@ -25,27 +18,36 @@ const wordInput = document.getElementById("word-input");
 const speedSlider = document.getElementById("speed-slider");
 const timerDisplay = document.querySelector("#timer .value");
 const scoreDisplay = document.querySelector("#score .value");
-const letterDisplay = document.getElementById("letter-display").style.border = "2px solid red";
+const letterDisplay = document.getElementById("letter-display");
 const againButton = document.getElementById("again-button");
 const finishButton = document.getElementById("finishButton");
 
-// State
+if (studentInfoDiv) {
+  studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
+}
+if (gameContainer) {
+  gameContainer.style.display = "block";
+}
+
+// -------------------------
+// Game State
+// -------------------------
 let timer;
 let timeLeft = 120;
 let score = 0;
 let currentWord = "";
-let currentLetterIndex = 0;
 let letterTimeouts = [];
 let speed = 100;
 let correctWords = 0;
-let gameMode = "timed"; // or "levelup"
+let gameMode = "timed";
 let wordLength = 3;
 let guessedWords = new Set();
 let incorrectWords = [];
-
 let wordBank = {};
 
-// Load word bank from JSON
+// -------------------------
+// Load Word List
+// -------------------------
 fetch("data/wordlist.json")
   .then((response) => response.json())
   .then((data) => {
@@ -53,12 +55,12 @@ fetch("data/wordlist.json")
   })
   .catch((error) => console.error("Error loading word list:", error));
 
+// -------------------------
+// Letter Display
+// -------------------------
 function showLetterByLetter(word) {
   clearLetters();
-  currentLetterIndex = 0;
   letterDisplay.textContent = "";
-  let delay = 400;
-
   word.split("").forEach((letter, index) => {
     const timeout = setTimeout(() => {
       letterDisplay.textContent = letter.toLowerCase();
@@ -67,7 +69,7 @@ function showLetterByLetter(word) {
           letterDisplay.textContent = "";
         }
       }, 300 - speed);
-    }, delay + index * (300 - speed));
+    }, 400 + index * (300 - speed));
     letterTimeouts.push(timeout);
   });
 }
@@ -78,6 +80,9 @@ function clearLetters() {
   letterDisplay.textContent = "";
 }
 
+// -------------------------
+// Game Functions
+// -------------------------
 function startGame() {
   signinScreen.style.display = "none";
   gameScreen.style.display = "flex";
@@ -88,21 +93,18 @@ function startGame() {
   incorrectWords = [];
   updateScore();
   updateTimer();
-
   wordInput.value = "";
-  wordInput.style.display = "visible";
+  wordInput.style.visibility = "visible";
   wordInput.focus();
-
   againButton.style.display = "none";
   startTimer();
-  setTimeout(nextWord, 400); // Initial delay
+  setTimeout(nextWord, 400);
 }
 
 function nextWord() {
   if (gameMode === "levelup" && correctWords > 0 && correctWords % 10 === 0 && wordLength < 10) {
     wordLength++;
   }
-
   const words = wordBank[wordLength] || wordBank[3];
   currentWord = words[Math.floor(Math.random() * words.length)];
   showLetterByLetter(currentWord);
@@ -147,33 +149,20 @@ function endGameManually() {
 function submitResults() {
   const correct = Array.from(guessedWords).join(", ");
   const wrong = incorrectWords.join(", ");
-  const formURL = `https://docs.google.com/forms/d/e/1FAIpQLSfOFWu8FcUR3bOwg0mo_3Kb2O7p4m0TLvfUpZjx0zdzqKac4Q/formResponse?entry.423692452=${encodeURIComponent(
-    studentName
-  )}&entry.1307864012=${encodeURIComponent(
-    studentClass
-  )}&entry.468778567=${encodeURIComponent(
-    gameMode
-  )}&entry.1083699348=${score}&entry.746947164=${encodeURIComponent(
-    correct
-  )}&entry.1534005804=${encodeURIComponent(
-    wrong
-  )}&entry.1974555000=${encodeURIComponent(speedSlider.value)}`;
+  const formURL = `https://docs.google.com/forms/d/e/1FAIpQLSfOFWu8FcUR3bOwg0mo_3Kb2O7p4m0TLvfUpZjx0zdzqKac4Q/formResponse?entry.423692452=${encodeURIComponent(studentName)}&entry.1307864012=${encodeURIComponent(studentClass)}&entry.468778567=${encodeURIComponent(gameMode)}&entry.1083699348=${score}&entry.746947164=${encodeURIComponent(correct)}&entry.1534005804=${encodeURIComponent(wrong)}&entry.1974555000=${encodeURIComponent(speedSlider.value)}`;
   fetch(formURL, { method: "POST", mode: "no-cors" });
   setTimeout(() => window.location.href = "../index.html", 3000);
 }
 
+// -------------------------
 // Event Listeners
+// -------------------------
 startButton.addEventListener("click", () => {
   const selectedMode = document.getElementById("game-mode");
   const selectedLength = document.getElementById("word-length");
   gameMode = selectedMode ? selectedMode.value : "timed";
   wordLength = selectedLength ? parseInt(selectedLength.value) : 3;
-    if (gameMode === "levelup") {
-    document.getElementById("length-container").style.display = "none";
-  } else {
-    document.getElementById("length-container").style.display = "block";
-}
-
+  document.getElementById("length-container").style.display = (gameMode === "levelup") ? "none" : "block";
   startGame();
 });
 
@@ -208,19 +197,4 @@ againButton.addEventListener("click", () => {
   wordInput.focus();
 });
 
-if (finishButton) {
-  finishButton.addEventListener("click", endGameManually);
-}
-
-// Initial Setup
-wordInput.style.display = "block";
-wordInput.style.visibility = "visible";
-wordInput.focus();
-againButton.style.display = "none";
-speed = parseInt(speedSlider.value);
-
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  localStorage.removeItem("studentName");
-  localStorage.removeItem("studentClass");
-  window.location.href = "../index.html";
-});
+finishButton.addEventListener("click", endGameManually);
