@@ -192,19 +192,16 @@ body {
 #end-modal-content img:hover {
   transform: scale(1.1);
 
-#onScreenKeyboard {
+.keyboard-modal {
   position: fixed;
-  bottom: 20px;
+  bottom: 60px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.95);
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  z-index: 2000;
+  padding: 15px 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
+  z-index: 2500;
 }
 
 .keyboard-row {
@@ -214,26 +211,26 @@ body {
 }
 
 .key {
-  font-size: 24px;
-  padding: 15px 12px;
-  margin: 2px;
+  font-size: 20px;
+  padding: 12px 10px;
+  margin: 3px;
   background: #eee;
   border: 2px solid #aaa;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   user-select: none;
   text-transform: uppercase;
   font-weight: bold;
-  min-width: 40px;
+  width: 40px;
   text-align: center;
+}
+
+.key.wide {
+  width: 80px;
 }
 
 .key:hover {
   background: #ccc;
-}
-
-.key.wide {
-  min-width: 80px;
 }
 
 #onScreenKeyboard:active {
