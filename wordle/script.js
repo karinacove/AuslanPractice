@@ -264,7 +264,7 @@ function submitWordleResult(targetWord, guessesArray) {
 
 function createKeyboard() {
   const keyboard = document.getElementById("onScreenKeyboard");
-  keyboard.innerHTML = ""; // Clear if regenerating
+  keyboard.innerHTML = "";
 
   const rows = [
     [..."QWERTYUIOP"],
@@ -279,11 +279,7 @@ function createKeyboard() {
     rowKeys.forEach(key => {
       const keyBtn = document.createElement("div");
       keyBtn.classList.add("key");
-
-      if (key === "Backspace" || key === "Enter") {
-        keyBtn.classList.add("wide");
-      }
-
+      if (key === "Backspace" || key === "Enter") keyBtn.classList.add("wide");
       keyBtn.textContent = key;
       keyBtn.addEventListener("click", () => handleOnScreenKey(key));
       rowDiv.appendChild(keyBtn);
@@ -298,26 +294,16 @@ function handleOnScreenKey(key) {
   document.dispatchEvent(event);
 }
 
-document.addEventListener("DOMContentLoaded", createKeyboard);
+function setupKeyboardToggle() {
+  const toggleBtn = document.getElementById("toggleKeyboardBtn");
+  const keyboard = document.getElementById("onScreenKeyboard");
 
-let isDragging = false;
-let offsetX, offsetY;
+  toggleBtn.addEventListener("click", () => {
+    keyboard.style.display = keyboard.style.display === "none" ? "block" : "none";
+  });
+}
 
-const keyboardDiv = document.getElementById("onScreenKeyboard");
-
-keyboardDiv.addEventListener("mousedown", (e) => {
-  isDragging = true;
-  offsetX = e.clientX - keyboardDiv.offsetLeft;
-  offsetY = e.clientY - keyboardDiv.offsetTop;
+document.addEventListener("DOMContentLoaded", () => {
+  createKeyboard();
+  setupKeyboardToggle();
 });
-
-document.addEventListener("mouseup", () => isDragging = false);
-
-document.addEventListener("mousemove", (e) => {
-  if (isDragging) {
-    keyboardDiv.style.left = `${e.clientX - offsetX}px`;
-    keyboardDiv.style.top = `${e.clientY - offsetY}px`;
-    keyboardDiv.style.bottom = "auto"; // Detach from fixed bottom
-  }
-});
-
