@@ -236,4 +236,7 @@ body {
   min-width: 80px;
 }
 
+#onScreenKeyboard:active {
+  cursor: move;
+}
 
