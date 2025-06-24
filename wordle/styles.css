@@ -43,7 +43,7 @@ body {
   display: flex;
   justify-content: center;
   gap: 2px;         /* Less horizontal space between cells */
-  margin-bottom: 12px; /* More vertical space between rows */
+  margin-bottom: 5px; /* More vertical space between rows */
 }
 
 .cell {
