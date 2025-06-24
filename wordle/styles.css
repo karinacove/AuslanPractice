@@ -191,3 +191,37 @@ body {
 
 #end-modal-content img:hover {
   transform: scale(1.1);
+
+.keyboard {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 10px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.95);
+  z-index: 1000;
+}
+
+.key {
+  font-size: 24px;
+  padding: 15px;
+  background: #eee;
+  border: 2px solid #aaa;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.key:hover {
+  background: #ccc;
+}
+
+.key.wide {
+  grid-column: span 2;
+}
+
