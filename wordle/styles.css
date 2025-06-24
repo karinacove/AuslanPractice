@@ -27,40 +27,42 @@ body {
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
-  justify-content: flex-end; /* Ensures rows fill from bottom up */
+  justify-content: flex-start;
   align-items: center;
 
   background: transparent;
   z-index: 10;
 
-  width: 60vw;
-  height: 80vh; /* Visible on iPad landscape */
-  padding: 5px 5px;
+  width: 75vw;
+  height: 88vh;
+  padding: 1vh 0;
   overflow: hidden;
 }
 
 .row {
   display: flex;
   justify-content: center;
-  gap: 2px;         /* Less horizontal space between cells */
-  margin-bottom: 5px; /* More vertical space between rows */
+  gap: 2px;
+  margin-bottom: 1vh;
 }
 
 .cell {
-  width: 90px;
-  height: 90px;
-  margin: 0px 1px;  /* Minimal horizontal gap */
-  font-size: clamp(24px, 4vw, 60px);
+  width: 12vw;
+  max-width: 80px;
+  height: 12vw;
+  max-height: 80px;
+  margin: 0px;
+  font-size: clamp(18px, 4vw, 48px);
   font-weight: bold;
-  cursor: pointer;
   border: 4px solid #000;
   border-radius: 10px;
   background-color: #ddd;
   display: flex;
   justify-content: center;
   align-items: center;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1/1;
 }
+
 
 #word-grid {
   display: grid;
