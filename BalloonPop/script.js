@@ -179,69 +179,70 @@ document.addEventListener('DOMContentLoaded', () => {
     createBalloon(targetColour, targetNumber, true);
   }
 
-  function createBalloon(colour, number, isCorrect) {
-    const balloon = document.createElement('img');
-    balloon.src = `assets/balloon/${colour}_${number}.png`;
-    balloon.classList.add('balloon');
-    balloon.dataset.colour = colour;
-    balloon.dataset.number = number;
-    balloon.dataset.correct = isCorrect;
-    balloon.dataset.clicked = 'false';
+function createBalloon(colour, number, isCorrect) {
+  const balloon = document.createElement('img');
+  balloon.src = `assets/balloon/${colour}_${number}.png`;
+  balloon.classList.add('balloon');
+  balloon.dataset.colour = colour;
+  balloon.dataset.number = number;
+  balloon.dataset.correct = isCorrect;
+  balloon.dataset.clicked = 'false';
 
-    const gameWidth = window.innerWidth;
-    const minX = gameWidth * 0.15;
-    const maxX = gameWidth * 0.75 - 120;
-    const x = Math.random() * (maxX - minX) + minX;
+  const gameWidth = window.innerWidth;
+  const minX = gameWidth * 0.15;
+  const maxX = gameWidth * 0.75 - 120;
+  const x = Math.random() * (maxX - minX) + minX;
 
-    balloon.style.left = `${x}px`;
-    balloon.style.bottom = `-150px`;
+  balloon.style.left = `${x}px`;
+  balloon.style.bottom = `-150px`;
 
-    balloon.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (balloon.dataset.clicked === 'true') return;
-      balloon.dataset.clicked = 'true';
-      totalClicks++;
+  balloon.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (balloon.dataset.clicked === 'true') return;
+    balloon.dataset.clicked = 'true';
+    totalClicks++;
 
-      const colourClicked = balloon.dataset.colour;
-      const numberClicked = parseInt(balloon.dataset.number);
-      const answerKey = `${colourClicked}_${numberClicked}`;
+    const colourClicked = balloon.dataset.colour;
+    const numberClicked = parseInt(balloon.dataset.number);
+    const answerKey = `${colourClicked}_${numberClicked}`;
 
-      if (colourClicked === targetColour && numberClicked === targetNumber) {
-        score++;
-        correctAnswers++;
-        consecutiveIncorrect = 0;
-        correctAnswersList.push(answerKey);
-        scoreDisplay.textContent = `Score: ${score}`;
-        moveToCollected(balloon);
-        animateMrsC();
-        updateThoughtBubble();
+    if (colourClicked === targetColour && numberClicked === targetNumber) {
+      score++;
+      correctAnswers++;
+      consecutiveIncorrect = 0;
+      correctAnswersList.push(answerKey);
+      scoreDisplay.textContent = `Score: ${score}`;
+      moveToCollected(balloon);
+      animateMrsC();
+      updateThoughtBubble();
 
-     if (score % 10 === 0 && level < 12) {
-       level++;
-       levelDisplay.textContent = `Level: ${level}`;
-       collectedCount = 0;
-       clearBalloons();
-       updateBackground();
-       updateFloatSpeed();
-       clearInterval(balloonInterval);
-       clearInterval(correctBalloonInterval);
-       startGame();
-     } else if (score === 120) {
+      if (score % 10 === 0 && level < 12) {
+        level++;
+        levelDisplay.textContent = `Level: ${level}`;
+        collectedCount = 0;
+        clearBalloons();
+        updateBackground();
+        updateFloatSpeed();
+        clearInterval(balloonInterval);
+        clearInterval(correctBalloonInterval);
+        startGame();
+      } else if (score === 120) {
         endGame();
-     } else {
-        incorrectAnswersList.push(answerKey);
-        consecutiveIncorrect++;
-    if (consecutiveIncorrect >= 5) {
+      }
+    } else {
+      incorrectAnswersList.push(answerKey);
+      consecutiveIncorrect++;
+      if (consecutiveIncorrect >= 5) {
         showCarefulWarning();
         consecutiveIncorrect = 0;
-    }
+      }
       createPopEffect(balloon);
       balloon.remove();
     }
   });
 
-    balloonArea.appendChild(balloon);
-    floatBalloon(balloon);
+  balloonArea.appendChild(balloon);
+  floatBalloon(balloon);
 }
 
   function animateMrsC() {
