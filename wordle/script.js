@@ -299,3 +299,25 @@ function handleOnScreenKey(key) {
 }
 
 document.addEventListener("DOMContentLoaded", createKeyboard);
+
+let isDragging = false;
+let offsetX, offsetY;
+
+const keyboardDiv = document.getElementById("onScreenKeyboard");
+
+keyboardDiv.addEventListener("mousedown", (e) => {
+  isDragging = true;
+  offsetX = e.clientX - keyboardDiv.offsetLeft;
+  offsetY = e.clientY - keyboardDiv.offsetTop;
+});
+
+document.addEventListener("mouseup", () => isDragging = false);
+
+document.addEventListener("mousemove", (e) => {
+  if (isDragging) {
+    keyboardDiv.style.left = `${e.clientX - offsetX}px`;
+    keyboardDiv.style.top = `${e.clientY - offsetY}px`;
+    keyboardDiv.style.bottom = "auto"; // Detach from fixed bottom
+  }
+});
+
