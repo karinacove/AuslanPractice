@@ -107,7 +107,6 @@ function updateGrid() {
   cells.forEach((cell, index) => {
     cell.textContent = currentGuess[index] || "";
     cell.style.fontFamily = "'AuslanFingerSpelling', sans-serif";
-    cell.style.fontSize = "200px";
   });
 }
 
@@ -147,6 +146,7 @@ function checkGuess() {
   });
 
   if (currentGuess === correctWord) {
+    currentGuess = "";
     submitWordleResult(correctWord, guessesList);
     showAuslanClap();
     setTimeout(showPlayAgainButton, 3000);
@@ -260,39 +260,21 @@ function setupKeyboard() {
   const toggleBtn = document.getElementById("toggleKeyboardBtn");
   if (!keyboard || !toggleBtn) return;
 
-  const layout = [
-    "QWERTYUIOP",
-    "ASDFGHJKL",
-    "ZXCVBNM"
-  ];
+  keyboard.innerHTML = `
+    <div id="keyboard-header" style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 8px;">
+      <div>Keyboard</div>
+      <button id="closeKeyboardBtn" style="font-size: 20px; font-weight: bold; background: none; border: none; cursor: pointer;">✖</button>
+    </div>
+  `;
 
-  keyboard.style.position = "fixed";
-  keyboard.style.bottom = "15vh";
-  keyboard.style.left = "50%";
-  keyboard.style.transform = "translateX(-50%)";
-  keyboard.style.background = "#fff";
-  keyboard.style.border = "4px solid #000";
-  keyboard.style.padding = "10px";
-  keyboard.style.zIndex = "3000";
-  keyboard.style.borderRadius = "12px";
-  keyboard.style.boxShadow = "0 0 15px rgba(0,0,0,0.5)";
-  keyboard.innerHTML = "";
-
+  const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
   layout.forEach(row => {
     const rowDiv = document.createElement("div");
-    rowDiv.style.display = "flex";
-    rowDiv.style.justifyContent = "center";
+    rowDiv.className = "keyboard-row";
     row.split("").forEach(letter => {
       const key = document.createElement("button");
+      key.className = "key";
       key.textContent = letter;
-      key.style.margin = "5px";
-      key.style.padding = "20px 30px";
-      key.style.fontSize = "32px";
-      key.style.fontWeight = "bold";
-      key.style.cursor = "pointer";
-      key.style.border = "2px solid #000";
-      key.style.borderRadius = "10px";
-      key.style.backgroundColor = "#eee";
       key.addEventListener("click", () => {
         if (currentGuess.length < 5) {
           currentGuess += letter;
@@ -304,29 +286,21 @@ function setupKeyboard() {
     keyboard.appendChild(rowDiv);
   });
 
-  // Backspace and Enter
   const controlRow = document.createElement("div");
-  controlRow.style.display = "flex";
-  controlRow.style.justifyContent = "center";
+  controlRow.className = "keyboard-row";
 
-  const backspaceBtn = document.createElement("button");
-  backspaceBtn.textContent = "←";
-  backspaceBtn.style.padding = "20px 30px";
-  backspaceBtn.style.margin = "5px";
-  backspaceBtn.style.fontSize = "32px";
-  backspaceBtn.style.cursor = "pointer";
-  backspaceBtn.addEventListener("click", () => {
+  const backspace = document.createElement("button");
+  backspace.textContent = "←";
+  backspace.className = "key wide";
+  backspace.onclick = () => {
     currentGuess = currentGuess.slice(0, -1);
     updateGrid();
-  });
+  };
 
-  const enterBtn = document.createElement("button");
-  enterBtn.textContent = "ENTER";
-  enterBtn.style.padding = "20px 30px";
-  enterBtn.style.margin = "5px";
-  enterBtn.style.fontSize = "32px";
-  enterBtn.style.cursor = "pointer";
-  enterBtn.addEventListener("click", () => {
+  const enter = document.createElement("button");
+  enter.textContent = "ENTER";
+  enter.className = "key wide";
+  enter.onclick = () => {
     if (currentGuess.length === 5) {
       if (!validWords.includes(currentGuess.toUpperCase())) {
         showInvalidWordMessage(currentGuess);
@@ -334,14 +308,64 @@ function setupKeyboard() {
       }
       checkGuess();
     }
-  });
+  };
 
-  controlRow.appendChild(backspaceBtn);
-  controlRow.appendChild(enterBtn);
+  controlRow.append(backspace, enter);
   keyboard.appendChild(controlRow);
 
-  toggleBtn.addEventListener("click", () => {
-    keyboard.style.display =
-      keyboard.style.display === "none" ? "block" : "none";
-  });
+  toggleBtn.onclick = () => keyboard.style.display = keyboard.style.display === "none" ? "block" : "none";
+
+  setTimeout(() => {
+    const closeBtn = document.getElementById("closeKeyboardBtn");
+    if (closeBtn) closeBtn.onclick = () => keyboard.style.display = "none";
+  }, 0);
+
+  dragElement(keyboard);
+}
+
+function dragElement(elmnt) {
+  let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  const header = elmnt.querySelector("#keyboard-header");
+
+  if (header) {
+    header.onmousedown = dragMouseDown;
+    header.ontouchstart = dragMouseDown;
+  }
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    if (e.type === "touchstart") {
+      pos3 = e.touches[0].clientX;
+      pos4 = e.touches[0].clientY;
+      document.ontouchmove = elementDrag;
+      document.ontouchend = closeDragElement;
+    } else {
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      document.onmousemove = elementDrag;
+    }
+  }
+
+  function elementDrag(e) {
+    e = e || window.event;
+    let clientX = e.type.includes("touch") ? e.touches[0].clientX : e.clientX;
+    let clientY = e.type.includes("touch") ? e.touches[0].clientY : e.clientY;
+
+    pos1 = pos3 - clientX;
+    pos2 = pos4 - clientY;
+    pos3 = clientX;
+    pos4 = clientY;
+
+    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    elmnt.style.transform = "none";
+  }
+
+  function closeDragElement() {
+    document.onmouseup = null;
+    document.onmousemove = null;
+    document.ontouchend = null;
+    document.ontouchmove = null;
+  }
 }
