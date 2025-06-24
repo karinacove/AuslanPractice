@@ -238,11 +238,11 @@ document.addEventListener('DOMContentLoaded', () => {
       createPopEffect(balloon);
       balloon.remove();
     }
-  };
+  });
 
     balloonArea.appendChild(balloon);
     floatBalloon(balloon);
-  )}
+}
 
   function animateMrsC() {
     if (mrsC) {
