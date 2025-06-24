@@ -37,7 +37,7 @@ let timeLeft = 120;
 let score = 0;
 let currentWord = "";
 let letterTimeouts = [];
-let speed = 100;
+let speed = 60; // Slower by default
 let correctWords = 0;
 let gameMode = "timed";
 let wordLength = 3;
@@ -61,6 +61,9 @@ fetch("data/wordlist.json")
 function showLetterByLetter(word) {
   clearLetters();
   letterDisplay.textContent = "";
+
+  let totalDelay = 500; // Initial pause before first letter
+
   word.split("").forEach((letter, index) => {
     const timeout = setTimeout(() => {
       letterDisplay.textContent = letter.toLowerCase();
@@ -68,9 +71,11 @@ function showLetterByLetter(word) {
         if (letterDisplay.textContent === letter.toLowerCase()) {
           letterDisplay.textContent = "";
         }
-      }, 300 - speed);
-    }, 400 + index * (300 - speed));
+      }, 200); // Pause between letter hiding
+    }, totalDelay);
+
     letterTimeouts.push(timeout);
+    totalDelay += 300; // Interval between each letter
   });
 }
 
@@ -96,9 +101,9 @@ function startGame() {
   wordInput.value = "";
   wordInput.style.visibility = "visible";
   wordInput.focus();
-  againButton.style.display = "none";
+  againButton.style.display = "block";
   startTimer();
-  setTimeout(nextWord, 400);
+  setTimeout(nextWord, 500); // Delay before first word
 }
 
 function nextWord() {
@@ -144,6 +149,7 @@ function endGameManually() {
   againButton.style.display = "block";
   letterDisplay.textContent = "Great work!";
   submitResults();
+  showEndModal();
 }
 
 function submitResults() {
@@ -151,7 +157,56 @@ function submitResults() {
   const wrong = incorrectWords.join(", ");
   const formURL = `https://docs.google.com/forms/d/e/1FAIpQLSfOFWu8FcUR3bOwg0mo_3Kb2O7p4m0TLvfUpZjx0zdzqKac4Q/formResponse?entry.423692452=${encodeURIComponent(studentName)}&entry.1307864012=${encodeURIComponent(studentClass)}&entry.468778567=${encodeURIComponent(gameMode)}&entry.1083699348=${score}&entry.746947164=${encodeURIComponent(correct)}&entry.1534005804=${encodeURIComponent(wrong)}&entry.1974555000=${encodeURIComponent(speedSlider.value)}`;
   fetch(formURL, { method: "POST", mode: "no-cors" });
-  setTimeout(() => window.location.href = "../index.html", 3000);
+}
+
+function showEndModal() {
+  const modal = document.createElement("div");
+  modal.id = "end-modal";
+  modal.style.position = "fixed";
+  modal.style.top = 0;
+  modal.style.left = 0;
+  modal.style.width = "100vw";
+  modal.style.height = "100vh";
+  modal.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+  modal.style.display = "flex";
+  modal.style.flexDirection = "column";
+  modal.style.justifyContent = "center";
+  modal.style.alignItems = "center";
+  modal.style.zIndex = 9999;
+
+  const options = [
+    { id: "continue", img: "Assets/Icons/continue.png", action: startGame },
+    { id: "again", img: "Assets/Icons/Again.png", action: () => location.reload() },
+    { id: "menu", img: "Assets/Icons/menu.png", action: () => location.href = "../index.html" },
+    { id: "logout", img: "Assets/Icons/logout.png", action: () => {
+      localStorage.clear();
+      location.href = "../index.html";
+    }}
+  ];
+
+  options.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.id = opt.id;
+    btn.style.background = "transparent";
+    btn.style.border = "none";
+    btn.style.margin = "10px";
+    btn.style.cursor = "pointer";
+
+    const img = document.createElement("img");
+    img.src = opt.img;
+    img.alt = opt.id;
+    img.style.height = "80px";
+    btn.appendChild(img);
+
+    btn.onclick = () => {
+      modal.remove();
+      opt.action();
+    };
+
+    modal.appendChild(btn);
+  });
+
+  document.body.appendChild(modal);
 }
 
 // -------------------------
@@ -180,7 +235,6 @@ wordInput.addEventListener("input", () => {
       incorrectWords.push(typed);
       wordInput.classList.add("breathe");
       setTimeout(() => wordInput.classList.remove("breathe"), 300);
-      againButton.style.display = "block";
     }
   }
 });
@@ -190,11 +244,12 @@ speedSlider.addEventListener("input", () => {
 });
 
 againButton.addEventListener("click", () => {
-  againButton.style.display = "none";
   showLetterByLetter(currentWord);
   wordInput.style.visibility = "visible";
   wordInput.value = "";
   wordInput.focus();
 });
 
-finishButton.addEventListener("click", endGameManually);
+finishButton.addEventListener("click", () => {
+  endGameManually();
+});
