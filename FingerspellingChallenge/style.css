@@ -48,6 +48,7 @@ body {
   padding-top: 20vh;
   position: relative;
   gap: 1rem;
+  padding-bottom: 180px; /* Space for keyboard */
 }
 
 #student-info {
@@ -175,6 +176,7 @@ body {
   justify-content: center;
   gap: 5px;
   z-index: 1000;
+  user-select: none;
 }
 
 .keyboard-key {
@@ -184,7 +186,6 @@ body {
   background-color: #eee;
   border-radius: 5px;
   cursor: pointer;
-  user-select: none;
 }
 
 .keyboard-key:hover {
