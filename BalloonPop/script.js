@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     balloonArea.appendChild(balloon);
     floatBalloon(balloon);
-  }
+  )}
 
   function animateMrsC() {
     if (mrsC) {
