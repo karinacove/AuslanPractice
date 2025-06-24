@@ -7,7 +7,7 @@ const studentClass = localStorage.getItem("studentClass") || "";
 const studentInfoDiv = document.getElementById("student-info");
 const gameContainer = document.getElementById("game-container");
 const finishButton = document.getElementById("finish-btn");
-const startBtn = document.getElementByID("start-btn");
+const startBtn = document.getElementById("start-btn");
 
 const endModal = document.getElementById("end-modal");
 const scoreDisplayModal = document.getElementById("score-display");
