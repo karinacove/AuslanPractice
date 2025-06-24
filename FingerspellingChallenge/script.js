@@ -203,19 +203,48 @@ keyboardBtn.addEventListener("click", () => {
 });
 
 function showKeyboard() {
-  const letters = "abcdefghijklmnopqrstuvwxyz".split("");
-  keyboardContainer.innerHTML = "";
-  letters.forEach(letter => {
-    const key = document.createElement("button");
-    key.className = "keyboard-key";
-    key.textContent = letter;
-    key.addEventListener("click", () => {
-      wordInput.value += letter;
-      wordInput.dispatchEvent(new Event("input"));
+  if (!keyboardContainer) return;
+
+  keyboardContainer.innerHTML = `
+    <div id="keyboard-header" style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 8px; cursor: move;">
+      <div>Keyboard</div>
+      <button id="closeKeyboardBtn" style="font-size: 20px; font-weight: bold; background: none; border: none; cursor: pointer;">✖</button>
+    </div>
+  `;
+
+  const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
+  layout.forEach(row => {
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "keyboard-row";
+    row.split("").forEach(letter => {
+      const key = document.createElement("button");
+      key.className = "keyboard-key";
+      key.textContent = letter;
+      key.addEventListener("click", () => {
+        wordInput.value += letter.toLowerCase();
+        wordInput.dispatchEvent(new Event("input"));
+        wordInput.focus(); // keep focus on input
+      });
+      rowDiv.appendChild(key);
     });
-    keyboardContainer.appendChild(key);
+    keyboardContainer.appendChild(rowDiv);
   });
-  keyboardContainer.style.display = "flex";
+
+  const deleteKey = document.createElement("button");
+  deleteKey.className = "keyboard-key";
+  deleteKey.textContent = "⌫";
+  deleteKey.addEventListener("click", () => {
+    wordInput.value = wordInput.value.slice(0, -1);
+    wordInput.dispatchEvent(new Event("input"));
+    wordInput.focus();
+  });
+  keyboardContainer.appendChild(deleteKey);
+
+  document.getElementById("closeKeyboardBtn").addEventListener("click", () => {
+    keyboardContainer.style.display = "none";
+  });
+
+  keyboardContainer.style.display = "block";
 }
 
 // Setup initial values
