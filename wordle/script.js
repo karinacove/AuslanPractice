@@ -53,6 +53,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  if (keyboardBtn) {
+    keyboardBtn.addEventListener("click", () => {
+      const keyboard = document.getElementById("onScreenKeyboard");
+      if (keyboard) keyboard.style.display = keyboard.style.display === "none" ? "block" : "none";
+    });
+  }
+
   setupKeyboard();
 });
 
@@ -255,7 +262,6 @@ function submitWordleResult(targetWord, guessesArray) {
       console.error("❌ Form error:", err);
     });
 }
-
 function setupKeyboard() {
   const keyboard = document.getElementById("onScreenKeyboard");
   const toggleBtn = document.getElementById("toggleKeyboardBtn");
