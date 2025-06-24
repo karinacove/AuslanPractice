@@ -10,6 +10,7 @@ const endModal = document.getElementById("end-modal");
 const againBtn = document.getElementById("again-btn");
 const menuBtn = document.getElementById("menu-btn");
 const logoutImg = document.getElementById("logout-btn");
+const keyboardBtn = document.getElementById("keyboard-btn");
 
 if (!studentName || !studentClass) {
   alert("Please log in first.");
