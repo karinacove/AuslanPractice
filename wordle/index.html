@@ -5,15 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="styles.css" />
+  <title>Auslan Wordle</title>
 </head>
 <body>
-  <!-- Student Info -->
+  <!-- Student Info Badge -->
   <div id="student-info"></div>
 
   <!-- Finish Button -->
   <img id="finish-btn" src="assets/finish.png" alt="Finish Game" />
 
-  <!-- Main Game Grid -->
+  <!-- Game Container -->
   <div id="game-container">
     <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
     <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
@@ -23,18 +24,18 @@
     <div class="row"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
   </div>
 
-  <!-- Auslan Clap GIF -->
+  <!-- Auslan Clap Animation -->
   <img id="AuslanClap" src="assets/auslan-clap.gif" style="display: none;" alt="Auslan Clap" />
 
-  <!-- Again Button (old style) -->
+  <!-- Again Button (outside modal for win/loss scenarios) -->
   <button id="again-button" class="button">
     <img src="assets/Again.png" alt="Again" />
   </button>
 
-  <!-- Incorrect Word Message -->
+  <!-- Invalid Word Message -->
   <div id="incorrectWordMessage"></div>
 
-  <!-- End Game Modal -->
+  <!-- End Modal -->
   <div id="end-modal">
     <div id="end-modal-content">
       <img id="again-btn" src="assets/Again.png" alt="Play Again" />
@@ -43,13 +44,11 @@
     </div>
   </div>
 
-  <!-- On-screen Keyboard Trigger and Container -->
-  <button id="toggleKeyboardBtn" style="position: fixed; bottom: 10px; right: 10px; z-index: 3000;">
-    Keyboard
-  </button>
+  <!-- On-screen Keyboard Toggle + Modal -->
+  <button id="toggleKeyboardBtn" style="position: fixed; bottom: 10px; right: 10px; z-index: 3000;">Toggle Keyboard</button>
   <div id="onScreenKeyboard" class="keyboard-modal" style="display: none;"></div>
 
-  <!-- Main Script -->
+  <!-- Script -->
   <script src="script.js"></script>
 </body>
 </html>
