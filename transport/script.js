@@ -32,7 +32,7 @@ form.addEventListener('start-btn', function (e) {
 
   form.style.display = 'none';
   palette.style.display = 'grid';
-  start-btn.style.display = 'inline-block';
+  startBtn.style.display = 'inline-block';
   studentInfo.style.display = 'block';
   studentInfo.innerText = `${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
 });
