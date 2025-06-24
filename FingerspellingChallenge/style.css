@@ -113,7 +113,7 @@ body {
 #again-button {
   display: block;
   cursor: pointer;
-  width: 100px;
+  width: 150px;
   height: auto;
   background: transparent;
   border: none;
@@ -126,8 +126,8 @@ body {
   border: none;
   padding: 0;
   margin: 0;
-  width: 100px;
-  height: 100px;
+  width: 150px;
+  height: 150px;
   box-shadow: none;
   outline: none;
   cursor: pointer;
@@ -150,7 +150,7 @@ body {
 #finishButton img {
   display: block;
   width: auto;
-  height: 100px;
+  height: 150px;
   pointer-events: none;
 }
 
