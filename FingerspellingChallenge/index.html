@@ -5,18 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="Assets/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="style.css" />
-  <title>Fingerspelling Game</title>
+  <title>Fingerspelling Challenge</title>
 </head>
 <body>
-  <div id="student-info"></div>
+
   <button id="finishButton">
     <img src="Assets/Icons/finish.png" alt="Finish Game" />
   </button>
 
+  <button id="keyboard-btn">
+    <img src="Assets/keyboard.png" alt="Toggle Keyboard" />
+  </button>
+
   <div id="game-container">
+
     <!-- Sign-in screen -->
     <div id="signin-screen">
-      <h2 style="display: none">Choose Game Mode</h2> <!-- Hidden because background contains title -->
+      <h2>Choose Game Mode</h2>
       <label>
         Game Mode:
         <select id="game-mode">
@@ -25,7 +30,7 @@
         </select>
       </label>
 
-      <div id="length-container">
+      <div id="length-container" style="display: block;">
         <label>
           Word Length:
           <select id="word-length">
@@ -47,8 +52,7 @@
     </div>
 
     <!-- Game screen -->
-    <div id="game-screen" style="display: none; flex-direction: column; align-items: center; gap: 20px;">
-
+    <div id="game-screen" style="display: none;">
       <div id="speed-container">
         <label for="speed-slider">Speed:</label>
         <input type="range" id="speed-slider" min="0" max="200" value="100" />
@@ -76,6 +80,14 @@
 
       <div id="clap-display"></div>
     </div>
+  </div>
+
+  <!-- On-screen keyboard container -->
+  <div id="keyboard-container" style="display: none;"></div>
+
+  <!-- Optional modal for finish -->
+  <div id="finish-modal" style="display: none;">
+    <!-- Modal structure will be injected by JS -->
   </div>
 
   <script src="script.js" defer></script>
