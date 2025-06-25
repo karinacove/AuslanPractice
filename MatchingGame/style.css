@@ -127,7 +127,7 @@ h2#levelTitle {
   grid-template-columns: repeat(auto-fill, minmax(80px, 2fr));
   gap: 10px;
   min-width: 180px;
-  max-width: 30%
+  max-width: 30%;
   justify-items: center;
   align-content: start;
   position: absolute;
