@@ -126,6 +126,16 @@ h2#levelTitle {
   width: 180px;
   justify-items: center;
   align-content: start;
+  position: absolute;
+  top: 100px;
+}
+
+.left-signs {
+  left: 5%;
+}
+
+.right-signs {
+  right: 5%;
 }
 
 .left-signs img,
