@@ -319,8 +319,8 @@ input, select, button {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 5px;
-  padding: 4px;
+  margin: 2px;
+  padding: 2px;
 }
 
 /* Feedback Image */
