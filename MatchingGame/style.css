@@ -107,8 +107,8 @@ h2#levelTitle {
 .right-signs {
   display: grid;
   grid-template-columns: repeat(2, 1fr); /* levels 1–3 */
-  gap: 5px;
-  min-width: 100px;
+  gap: 15px;
+  min-width: 120px;
   max-width: 23vw;  /* just under a quarter of a screen */
   max-height: 100%;
   padding: 10px;
