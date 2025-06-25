@@ -126,7 +126,8 @@ h2#levelTitle {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   gap: 10px;
-  width: 180px;
+  min-width: 180px;
+  max-width: 30%
   justify-items: center;
   align-content: start;
   position: absolute;
@@ -142,8 +143,8 @@ h2#levelTitle {
 
 .left-signs img,
 .right-signs img {
-  width: 80px;
-  height: 80px;
+  min-width: 80px;
+  min-height: 80px;
   object-fit: contain;
   cursor: grab;
 }
@@ -216,6 +217,8 @@ h2#levelTitle {
   align-items: center;
   min-width: 380px;
   min-height: 360px;
+  max-height: 30%;
+  max-width: 30%;
   background-color: transparent;
   border-radius: 10px;
   padding: 10px;
@@ -225,8 +228,8 @@ h2#levelTitle {
 
 /* Grid Items */
 .grid-item {
-  width: 120px;
-  height: 120px;
+  min-width: 120px;
+  min-height: 120px;
   border: 2px solid #ccc;
   position: relative;
   background-color: transparent;
