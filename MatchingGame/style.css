@@ -108,15 +108,16 @@ h2#levelTitle {
 /* Layout Columns */
 .layout {
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  justify-content: space-between;
+  align-items: center;
   position: absolute;
-  bottom: 20px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 100%;
   height: 80%;
-  padding: 20px 0;
+  padding: 20px;
   gap: 20px;
-  flex-wrap: wrap;
   box-sizing: border-box;
 }
 
@@ -124,24 +125,18 @@ h2#levelTitle {
 .left-signs,
 .right-signs {
   display: grid;
-  transform: center;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
-  min-width: 180px;
-  min-height: auto;
-  max-width: 28%;
-  max-height: auto;
+  height: 100%;
+  width: 20vw;
   justify-items: center;
-  align-content: start;
-  position: absolute;
+  align-content: center;
 }
 
-.left-signs {
-  left: 6%;
-}
-
-.right-signs {
-  right: 6%;
+.wide-mode .left-signs,
+.wide-mode .right-signs {
+  grid-template-columns: repeat(3, 1fr);
+  width: 22vw;
 }
 
 .left-signs img,
@@ -150,12 +145,6 @@ h2#levelTitle {
   min-height: 80px;
   object-fit: contain;
   cursor: grab;
-}
-
-.wide-mode .left-signs,
-.wide-mode .right-signs {
-  grid-template-columns: repeat(3, 1fr);
-  width: 300px; 
 }
 
 /* Student Info Box */
@@ -214,21 +203,16 @@ h2#levelTitle {
 
 #gameBoard {
   display: grid;
-  position: absolute;
-  top: 50%;
-  left: 50%;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   justify-items: center;
   align-items: center;
-  min-width: auto;
-  min-height: 400px;
-  max-height: auto;
-  max-width: 30%;
+  width: 30vw;
+  height: 100%;
   background-color: transparent;
   border-radius: 10px;
   padding: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
   box-sizing: border-box;
 }
 
