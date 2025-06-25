@@ -1,24 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="Assets/favicon.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="style.css" />
-  <title>Fingerspelling Challenge</title>
-</head>
 <body>
-
   <button id="finishButton">
     <img src="Assets/Icons/finish.png" alt="Finish Game" />
   </button>
 
-  <button id="keyboard-btn">
-    <img src="Assets/keyboard.png" alt="Toggle Keyboard" />
-  </button>
+  <img id="keyboard-btn" src="Assets/keyboard.png" alt="Keyboard Toggle" style="position: fixed; bottom: 140px; right: 20px; width: 60px; cursor: pointer; z-index: 999;" />
 
   <div id="game-container">
-
     <!-- Sign-in screen -->
     <div id="signin-screen">
       <h2>Choose Game Mode</h2>
@@ -52,7 +39,8 @@
     </div>
 
     <!-- Game screen -->
-    <div id="game-screen" style="display: none;">
+    <div id="game-screen" style="display: none; flex-direction: column; align-items: center; gap: 20px;">
+
       <div id="speed-container">
         <label for="speed-slider">Speed:</label>
         <input type="range" id="speed-slider" min="0" max="200" value="100" />
@@ -71,7 +59,7 @@
 
       <div id="letter-display" class="auslan-font"></div>
 
-      <div id="controls">
+      <div id="controls" style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
         <input type="text" id="word-input" placeholder="Type the word" autocomplete="off" />
         <button id="again-button">
           <img src="Assets/Icons/Again.png" alt="Again" style="height: 80px;" />
@@ -82,35 +70,32 @@
     </div>
   </div>
 
-  <!-- On-screen keyboard container -->
-  <div id="keyboard-container" style="display: none;"></div>
-
-  <!-- Optional modal for finish -->
-  <div id="finish-modal" style="display: none;">
-    <!-- Modal structure will be injected by JS -->
-  </div>
-  <!-- Finish Modal -->
-  <div id="end-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 999; justify-content: center; align-items: center; flex-direction: column;">
-    <div style="background: white; padding: 30px 40px; border-radius: 20px; text-align: center; max-width: 90%; width: 300px;">
-      <h2 style="margin-top: 0;">Game Over</h2>
-      <p id="score-percentage" style="font-size: 1.5rem; margin: 10px 0;">Loading...</p>
-      <div class="buttons" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px;">
+  <!-- Modal -->
+  <div id="end-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0,0,0,0.75); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; text-align: center;">
+    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 400px; width: 90%;">
+      <h2>Great Job!</h2>
+      <p id="score-percentage">0% Correct</p>
+      <div style="display: flex; justify-content: space-around; margin-top: 20px;">
         <button id="continue-btn">
-          <img src="Assets/Icons/continue.png" alt="Continue" style="height: 60px;" />
+          <img src="Assets/Icons/continue.png" alt="Continue" style="width: 60px;" />
         </button>
         <button id="again-button-modal">
-          <img src="Assets/Icons/Again.png" alt="Again" style="height: 60px;" />
+          <img src="Assets/Icons/Again.png" alt="Again" style="width: 60px;" />
         </button>
         <button id="menu-button">
-          <img src="Assets/Icons/menu.png" alt="Menu" style="height: 60px;" />
+          <img src="Assets/Icons/menu.png" alt="Menu" style="width: 60px;" />
         </button>
         <button id="logout-button">
-          <img src="Assets/Icons/logout.png" alt="Logout" style="height: 60px;" />
+          <img src="Assets/Icons/logout.png" alt="Logout" style="width: 60px;" />
         </button>
       </div>
     </div>
   </div>
 
+  <!-- On-screen keyboard -->
+  <div id="keyboard-container" style="display: none; position: fixed; bottom: 0; width: 100%; background: #eee; padding: 10px; z-index: 999; flex-wrap: wrap; justify-content: center; gap: 5px;"></div>
+
   <script src="script.js" defer></script>
 </body>
-</html>
+
