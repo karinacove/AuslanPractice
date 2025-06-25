@@ -230,107 +230,22 @@ logoutButton.addEventListener("click", () => {
   window.location.href = "../index.html";
 });
 
-function setupKeyboard() {
-  const keyboard = document.getElementById("onScreenKeyboard");
-  if (!keyboard) return;
-
-  keyboard.innerHTML = `
-    <div id="keyboard-header" style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 8px; cursor: move;">
-      <div>Keyboard</div>
-      <button id="closeKeyboardBtn" style="font-size: 20px; font-weight: bold; background: none; border: none; cursor: pointer;">✖</button>
-    </div>
-  `;
-
-  const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
-  layout.forEach(row => {
-    const rowDiv = document.createElement("div");
-    rowDiv.className = "keyboard-row";
-    row.split("").forEach(letter => {
-      const key = document.createElement("button");
-      key.className = "key";
-      key.textContent = letter;
-      key.addEventListener("click", () => {
-        wordInput.value += letter.toLowerCase();
-        wordInput.focus();
-        wordInput.dispatchEvent(new Event("input"));
-      });
-      rowDiv.appendChild(key);
+function showKeyboard() {
+  const letters = "abcdefghijklmnopqrstuvwxyz".split("");
+  keyboardContainer.innerHTML = "";
+  letters.forEach(letter => {
+    const key = document.createElement("button");
+    key.className = "keyboard-key";
+    key.textContent = letter;
+    key.addEventListener("click", () => {
+      wordInput.value += letter;
+      wordInput.dispatchEvent(new Event("input"));
     });
-    keyboard.appendChild(rowDiv);
+    keyboardContainer.appendChild(key);
   });
-
-  const controlRow = document.createElement("div");
-  controlRow.className = "keyboard-row";
-
-  const backspace = document.createElement("button");
-  backspace.textContent = "←";
-  backspace.className = "key wide";
-  backspace.onclick = () => {
-    wordInput.value = wordInput.value.slice(0, -1);
-    wordInput.focus();
-    wordInput.dispatchEvent(new Event("input"));
-  };
-
-  const enter = document.createElement("button");
-  enter.textContent = "ENTER";
-  enter.className = "key wide";
-  enter.onclick = () => {
-    wordInput.dispatchEvent(new Event("input"));
-  };
-
-  controlRow.append(backspace, enter);
-  keyboard.appendChild(controlRow);
-
-  document.getElementById("closeKeyboardBtn").onclick = () => {
-    keyboard.style.display = "none";
-  };
-
-  dragElement(keyboard);
+  keyboardContainer.style.display = "flex";
 }
 
-function dragElement(elmnt) {
-  let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-  const header = elmnt.querySelector("#keyboard-header");
-
-  if (header) {
-    header.onmousedown = dragMouseDown;
-    header.ontouchstart = dragMouseDown;
-  }
-
-  function dragMouseDown(e) {
-    e = e || window.event;
-    if (e.type === "touchstart") {
-      pos3 = e.touches[0].clientX;
-      pos4 = e.touches[0].clientY;
-      document.ontouchmove = elementDrag;
-      document.ontouchend = closeDragElement;
-    } else {
-      pos3 = e.clientX;
-      pos4 = e.clientY;
-      document.onmouseup = closeDragElement;
-      document.onmousemove = elementDrag;
-    }
-  }
-
-  function elementDrag(e) {
-    e = e || window.event;
-    const clientX = e.type.includes("touch") ? e.touches[0].clientX : e.clientX;
-    const clientY = e.type.includes("touch") ? e.touches[0].clientY : e.clientY;
-
-    pos1 = pos3 - clientX;
-    pos2 = pos4 - clientY;
-    pos3 = clientX;
-    pos4 = clientY;
-
-    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-    elmnt.style.transform = "none";
-  }
-
-  function closeDragElement() {
-    document.onmouseup = null;
-    document.onmousemove = null;
-    document.ontouchend = null;
-    document.ontouchmove = null;
-  }
-}
+// Setup initial values
+speed = parseInt(speedSlider.value);
+wordInput.focus();
