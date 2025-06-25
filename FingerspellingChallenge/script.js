@@ -222,7 +222,7 @@ againButtonModal.addEventListener("click", () => {
 });
 
 menuButton.addEventListener("click", () => {
-  window.location.href = "../hub.html";
+  window.location.href = "../index.html";
 });
 
 logoutButton.addEventListener("click", () => {
