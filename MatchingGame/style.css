@@ -108,9 +108,10 @@ h2#levelTitle {
 /* Layout Columns */
 .layout {
   display: flex;
-  bottom: 20px;
   justify-content: center;
   align-items: flex-start;
+  position: absolute;
+  bottom: 20px;
   width: 100%;
   max-height: 80%;
   padding: 20px 0;
