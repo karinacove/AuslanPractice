@@ -334,7 +334,3 @@ function dragElement(elmnt) {
     document.ontouchmove = null;
   }
 }
-
-// Setup initial values
-speed = parseInt(speedSlider.value);
-wordInput.focus();
