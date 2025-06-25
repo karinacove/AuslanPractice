@@ -124,7 +124,7 @@ h2#levelTitle {
 .left-signs,
 .right-signs {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(80px, 2fr));
   gap: 10px;
   min-width: 180px;
   max-width: 30%
