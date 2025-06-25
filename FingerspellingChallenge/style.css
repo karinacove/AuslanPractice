@@ -1,7 +1,11 @@
+/* -------------------------
+   Fingerspelling Game Styles
+---------------------------- */
+
 body {
   font-family: sans-serif;
   margin: 0;
-  padding: 0;
+  padding: 2px;
   background: url('Assets/fingerspelling-background.png') no-repeat center center;
   background-size: contain;
   background-attachment: fixed;
@@ -43,13 +47,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  height: 100vh;
-  padding-top: 20vh;
+  justify-content: space-around;
   position: relative;
-  gap: 1rem;
-  padding-bottom: 260px; /* Extra space for keyboard */
-  box-sizing: border-box;
+  padding-bottom: 200px;
 }
 
 #student-info {
@@ -73,7 +73,13 @@ body {
   align-items: center;
   gap: 1rem;
   margin-bottom: 1rem;
+  margin-top: 20vh;
+}
+
+.input-container {
   width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 #word-input {
@@ -81,13 +87,15 @@ body {
   padding: 10px;
   width: 80%;
   max-width: 400px;
+  margin: 10px auto;
   text-align: center;
   display: block;
 }
 
 #speed-container {
-  width: 40%;
+  width: 60%;
   text-align: center;
+  margin-top: 20vh;
 }
 
 #speed-slider {
@@ -111,6 +119,39 @@ body {
   margin-top: 20px;
 }
 
+#score-timer-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+
+#score, #timer {
+  font-family: 'AuslanFingerspelling', sans-serif;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 10px;
+}
+
 #again-button {
   display: block;
   cursor: pointer;
@@ -120,46 +161,115 @@ body {
   border: none;
 }
 
-#start-button,
-#finishButton,
-#keyboard-btn {
+#start-button {
   position: absolute;
   background: transparent;
   border: none;
   padding: 0;
   margin: 0;
-  width: 100px;
-  height: 100px;
-  box-shadow: none;
-  outline: none;
-  cursor: pointer;
-  pointer-events: auto;
+  left: 50%;
+  top: 55%;
+  transform: translate(-75%, -60%);
+  width: 150px;
+  height: 150px;
   z-index: 999;
 }
 
-#start-button {
-  left: 50%;
-  top: 55%;
-  transform: translate(-50%, -50%);
+#start-button img {
+  display: block;
+  width: auto;
+  height: 150px;
 }
 
 #finishButton {
+  position: absolute;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
   right: 20px;
   top: 20px;
+  width: 100px;
+  height: 100px;
+  z-index: 999;
 }
 
-#keyboard-btn {
-  left: 20px;
-  bottom: 20px;
-}
-
-#start-button img,
-#finishButton img,
-#keyboard-btn img {
+#finishButton img {
   display: block;
   width: auto;
   height: 100px;
-  pointer-events: none;
+}
+
+#keyboard-container {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #eee;
+  padding: 10px;
+  z-index: 999;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+}
+
+.keyboard-key {
+  padding: 10px 15px;
+  margin: 3px;
+  font-size: 1.2rem;
+  background: #5b65a9;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  min-width: 40px;
+  text-align: center;
+}
+
+/* -------------------------
+   Modal Styling
+------------------------- */
+
+#end-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+#end-modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+#end-modal-content h2 {
+  margin-top: 0;
+}
+
+#end-modal-content button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  background-color: #4caf50;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+#end-modal-content img {
+  width: 120px;
+  margin: 10px;
+  cursor: pointer;
 }
 
 .breathe {
@@ -170,37 +280,4 @@ body {
   0% { transform: scale(1); }
   50% { transform: scale(1.2); }
   100% { transform: scale(1); }
-}
-
-/* On-screen keyboard */
-#keyboard-container {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background-color: rgba(255, 255, 255, 0.95);
-  padding: 10px 5px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 5px;
-  z-index: 1000;
-  user-select: none;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
-}
-
-.keyboard-key {
-  font-size: 1.2rem;
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  background-color: #eee;
-  border-radius: 6px;
-  cursor: pointer;
-  min-width: 36px;
-  text-align: center;
-  flex-grow: 1;
-  max-width: 48px;
-}
-
-.keyboard-key:hover {
-  background-color: #ddd;
 }
