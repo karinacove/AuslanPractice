@@ -29,8 +29,13 @@ body {
   font-size: 5rem;
   text-align: center;
   min-height: 6rem;
-  margin: 20px 0;
+  margin: 20px auto;
   transition: all 0.3s ease-in-out;
+  background: white;
+  padding: 20px 40px;
+  border-radius: 20px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  width: fit-content;
 }
 
 #signin-screen {
