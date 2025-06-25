@@ -149,13 +149,15 @@ function checkGuess() {
     }
   });
 
-  if (currentGuess === correctWord || attempts + 1 >= maxAttempts) {
+  const guessedCorrectly = currentGuess === correctWord;
+  attempts++;
+
+  if (guessedCorrectly || attempts >= maxAttempts) {
     currentGuess = "";
     submitWordleResult(correctWord, guessesList);
     document.removeEventListener("keydown", keydownHandler);
-    showEndModal(currentGuess === correctWord);
+    showEndModal(guessedCorrectly);
   } else {
-    attempts++;
     setTimeout(() => {
       currentGuess = "";
       currentRow++;
@@ -197,6 +199,17 @@ function showEndModal(success) {
       window.location.href = "../index.html";
     };
   }, 0);
+}
+
+function showAuslanClap() {
+  const clapGif = document.getElementById("AuslanClap");
+  if (clapGif) {
+    clapGif.src = "assets/auslan-clap.gif";
+    clapGif.style.display = "block";
+    setTimeout(() => {
+      clapGif.style.display = "none";
+    }, 3000);
+  }
 }
 
 function showInvalidWordMessage(word) {
