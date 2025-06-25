@@ -169,7 +169,7 @@ button:hover {
 #again-button {
   display: block;
   cursor: pointer;
-  width: 100px;
+  width: 200px;
   height: auto;
   background: transparent;
   border: none;
