@@ -271,7 +271,7 @@ h2#levelTitle {
 .draggable {
   width: 80px;
   height: 80px;
-  margin: 10px;
+  margin: 5px;
   cursor: grab;
   touch-action: none;
 }
