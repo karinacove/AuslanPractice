@@ -109,8 +109,7 @@ h2#levelTitle {
   gap: 8px;
   max-width: 23vw;  /* just under a quarter of a screen */
   height: 100%;
-  justify-items: center;
-  align-content: center;
+  justify-content: center;
   box-sizing: border-box;
   position: relative;
 }
