@@ -286,11 +286,13 @@ input, select, button {
 }
 
 .drag-wrapper {
+  width: 100%;
+  aspect-ratio: 1 / 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 2px;
   padding: 2px;
+  box-sizing: border-box;
 }
 
 /* Feedback Image */
