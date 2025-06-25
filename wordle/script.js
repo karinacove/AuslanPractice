@@ -285,7 +285,6 @@ function setupKeyboard() {
 
   keyboard.innerHTML = `
     <div id="keyboard-header" style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 8px; cursor: move;">
-      <div>Keyboard</div>
       <button id="closeKeyboardBtn" style="font-size: 20px; font-weight: bold; background: none; border: none; cursor: pointer;">✖</button>
     </div>
   `;
@@ -321,7 +320,7 @@ function setupKeyboard() {
   };
 
   const enter = document.createElement("button");
-  enter.textContent = "ENTER";
+  enter.textContent = "↵";
   enter.className = "key wide";
   enter.onclick = () => {
     if (currentGuess.length === 5) {
