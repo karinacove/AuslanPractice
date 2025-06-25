@@ -131,11 +131,11 @@ h2#levelTitle {
 }
 
 .left-signs {
-  left: 5%;
+  left: 6%;
 }
 
 .right-signs {
-  right: 5%;
+  right: 6%;
 }
 
 .left-signs img,
@@ -212,7 +212,7 @@ h2#levelTitle {
   gap: 10px;
   justify-items: center;
   align-items: center;
-  width: 380px;
+  min-width: 380px;
   min-height: 360px;
   background-color: transparent;
   border-radius: 10px;
@@ -290,26 +290,6 @@ h2#levelTitle {
   background: rgba(255, 255, 255, 0.8);
   padding: 2px 6px;
   border-radius: 4px;
-}
-
-/* Next Level Button */
-#nextLevel {
-  margin-top: 20px;
-  padding: 12px 24px;
-  font-size: 1rem;
-  font-weight: 600;
-  background: #4a90e2;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  box-shadow: 0 3px 8px rgba(74, 144, 226, 0.4);
-  transition: background-color 0.3s ease;
-  display: none;
-}
-
-#nextLevel:hover {
-  background-color: #357ABD;
 }
 
 input, select, button {
