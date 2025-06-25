@@ -213,6 +213,14 @@ button:hover {
   gap: 5px;
 }
 
+#keyboard-btn {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  max-width: 200px;
+  z-index: 3000;
+}
+
 .keyboard-key {
   padding: 10px 15px;
   margin: 3px;
