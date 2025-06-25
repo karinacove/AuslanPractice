@@ -166,15 +166,6 @@ button:hover {
   margin: 0 10px;
 }
 
-#again-button {
-  display: block;
-  cursor: pointer;
-  width: 200px;
-  height: auto;
-  background: transparent;
-  border: none;
-}
-
 #start-button {
   position: absolute;
   background: transparent;
@@ -196,15 +187,12 @@ button:hover {
 }
 
 #finishButton {
-  position: absolute;
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
+  position: fixed;
   right: 20px;
   top: 20px;
   width: 100px;
   height: 100px;
+  cursor: pointer;
   z-index: 999;
 }
 
@@ -263,10 +251,10 @@ button:hover {
 
 #end-modal-content {
   background: white;
-  padding: 30px;
+  padding: 30px 40px;
   border-radius: 20px;
   text-align: center;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 #end-modal-content h2 {
@@ -282,6 +270,14 @@ button:hover {
   color: white;
   border-radius: 10px;
   cursor: pointer;
+}
+
+#end-modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
 }
 
 #end-modal-content img {
