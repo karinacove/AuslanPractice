@@ -53,15 +53,6 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = "../index.html";
     });
   }
-
-  if (keyboardBtn) {
-    keyboardBtn.addEventListener("click", () => {
-      const keyboard = document.getElementById("onScreenKeyboard");
-      if (keyboard) keyboard.style.display = keyboard.style.display === "none" ? "block" : "none";
-    });
-  }
-
-  setupKeyboard();
 });
 
 let words = [];
@@ -91,7 +82,9 @@ fetch("valid_words.json")
   })
   .catch((error) => console.error("Error loading valid words:", error));
 
-document.addEventListener("keydown", (event) => {
+document.addEventListener("keydown", keydownHandler);
+
+function keydownHandler(event) {
   if (endModal.style.display === "flex") return;
 
   if (
@@ -111,7 +104,7 @@ document.addEventListener("keydown", (event) => {
     }
     checkGuess();
   }
-});
+}
 
 function updateGrid() {
   const cells = rows[currentRow].querySelectorAll(".cell");
@@ -156,12 +149,11 @@ function checkGuess() {
     }
   });
 
-  const guessedCorrectly = currentGuess === correctWord;
-  const isLastAttempt = attempts + 1 >= maxAttempts;
-
-  if (guessedCorrectly || isLastAttempt) {
+  if (currentGuess === correctWord || attempts + 1 >= maxAttempts) {
+    currentGuess = "";
     submitWordleResult(correctWord, guessesList);
-    showEndModal(guessedCorrectly);
+    document.removeEventListener("keydown", keydownHandler);
+    showEndModal(currentGuess === correctWord);
   } else {
     attempts++;
     setTimeout(() => {
@@ -195,7 +187,6 @@ function showEndModal(success) {
   `;
 
   endModal.style.display = "flex";
-  document.removeEventListener("keydown", keydownHandler);
 
   setTimeout(() => {
     document.getElementById("again-btn").onclick = () => location.reload();
