@@ -50,9 +50,9 @@ body {
 
 .cell {
   width: 12vw;
-  max-width: 100px;
+  max-width: 95px;
   height: 12vw;
-  max-height: 100px;
+  max-height: 95px;
   font-size: clamp(16px, 3vw, 44px);
   font-weight: bold;
   border: 4px solid #000;
