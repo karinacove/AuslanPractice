@@ -214,7 +214,9 @@ h2#levelTitle {
 
 #gameBoard {
   display: grid;
-  transform: translateY(-50%);
+  position: absolute;
+  top: 50%;
+  left: 50%;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   justify-items: center;
