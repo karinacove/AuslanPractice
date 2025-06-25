@@ -168,7 +168,7 @@ function showEndModal(success) {
   let message = "";
   let image = "";
 
-  if (correctWord) {
+  if (success) {
     showAuslanClap();
     message = `<h2 style="font-family: sans-serif">Congratulations!</h2><p style="font-family: sans-serif">You guessed the word in ${guessesList.length} attempts.</p>`;
     image = `<img src="assets/auslan-clap.gif" style="max-width: 60%; height: auto; margin: 10px auto;" alt="Clap">`;
@@ -197,17 +197,6 @@ function showEndModal(success) {
       window.location.href = "../index.html";
     };
   }, 0);
-}
-
-function showAuslanClap() {
-  const clapGif = document.getElementById("AuslanClap");
-  if (clapGif) {
-    clapGif.src = "assets/auslan-clap.gif";
-    clapGif.style.display = "block";
-    setTimeout(() => {
-      clapGif.style.display = "none";
-    }, 3000);
-  }
 }
 
 function showInvalidWordMessage(word) {
