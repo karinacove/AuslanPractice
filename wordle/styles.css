@@ -218,7 +218,7 @@ body {
   left: 50%;
   transform: translate(-50%, -50%) !important;
   background: rgba(255, 255, 255, 0.95);
-  padding: 15px 20px;
+  padding: 10px 10px;
   border-radius: 12px;
   box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
   z-index: 2500;
@@ -250,18 +250,18 @@ body {
 .keyboard-row {
   display: flex;
   justify-content: center;
-  margin: 5px 0;
+  margin: 2px 0;
   flex-wrap: nowrap;
 }
 
 .key {
   font-family: 'AuslanFingerSpelling';
-  font-size: 18px;
-  padding: 10px 8px;
+  font-size: 30px;
+  padding: 5px 5px;
   margin: 3px;
   background: #eee;
   border: 2px solid #aaa;
-  border-radius: 6px;
+  border-radius: 3px;
   cursor: pointer;
   user-select: none;
   text-transform: lowercase;
