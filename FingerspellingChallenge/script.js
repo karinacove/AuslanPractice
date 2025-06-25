@@ -26,6 +26,9 @@ const keyboardBtn = document.getElementById("keyboard-btn");
 const keyboardContainer = document.getElementById("keyboard-container");
 const endModal = document.getElementById("end-modal");
 const continueBtn = document.getElementById("continue-btn");
+const againButtonModal = document.getElementById("again-button-modal");
+const menuButton = document.getElementById("menu-button");
+const logoutButton = document.getElementById("logout-button");
 
 // -------------------------
 // Game State
@@ -145,7 +148,6 @@ function submitResults() {
 
 function showFinishModal() {
   isPaused = true;
-  submitResults();
   endModal.style.display = "flex";
   const percentage = correctWords + incorrectWords.length > 0
     ? Math.round((correctWords / (correctWords + incorrectWords.length)) * 100)
@@ -213,6 +215,19 @@ keyboardBtn.addEventListener("click", () => {
   } else {
     keyboardContainer.style.display = "none";
   }
+});
+
+againButtonModal.addEventListener("click", () => {
+  window.location.href = "../FingerspellingChallenge/index.html";
+});
+
+menuButton.addEventListener("click", () => {
+  window.location.href = "../hub.html";
+});
+
+logoutButton.addEventListener("click", () => {
+  localStorage.clear();
+  window.location.href = "../index.html";
 });
 
 function showKeyboard() {
