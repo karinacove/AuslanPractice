@@ -7,6 +7,7 @@ const studentInfoDiv = document.getElementById("student-info");
 const gameContainer = document.getElementById("game-container");
 const finishButton = document.getElementById("finish-btn");
 const endModal = document.getElementById("end-modal");
+const endModalContent = document.getElementById("end-modal-content");
 const againBtn = document.getElementById("again-btn");
 const menuBtn = document.getElementById("menu-btn");
 const logoutImg = document.getElementById("logout-btn");
@@ -91,6 +92,8 @@ fetch("valid_words.json")
   .catch((error) => console.error("Error loading valid words:", error));
 
 document.addEventListener("keydown", (event) => {
+  if (endModal.style.display === "flex") return;
+
   if (
     event.key.length === 1 &&
     event.key.match(/[a-zA-Z]/i) &&
@@ -153,25 +156,56 @@ function checkGuess() {
     }
   });
 
-  if (currentGuess === correctWord) {
-    currentGuess = "";
+  const guessedCorrectly = currentGuess === correctWord;
+  const isLastAttempt = attempts + 1 >= maxAttempts;
+
+  if (guessedCorrectly || isLastAttempt) {
     submitWordleResult(correctWord, guessesList);
-    showAuslanClap();
-    setTimeout(showPlayAgainButton, 3000);
+    showEndModal(guessedCorrectly);
   } else {
     attempts++;
-    if (attempts >= maxAttempts) {
-      alert(`The correct word was: ${correctWord}`);
-      submitWordleResult(correctWord, guessesList);
-      showPlayAgainButton();
-    } else {
-      setTimeout(() => {
-        currentGuess = "";
-        currentRow++;
-        updateGrid();
-      }, 2000);
-    }
+    setTimeout(() => {
+      currentGuess = "";
+      currentRow++;
+      updateGrid();
+    }, 1000);
   }
+}
+
+function showEndModal(success) {
+  let message = "";
+  let image = "";
+
+  if (success) {
+    showAuslanClap();
+    message = `<h2 style="font-family: sans-serif">Congratulations!</h2><p style="font-family: sans-serif">You guessed the word in ${guessesList.length} attempts.</p>`;
+    image = `<img src="assets/auslan-clap.gif" style="max-width: 60%; height: auto; margin: 10px auto;" alt="Clap">`;
+  } else {
+    message = `<h2 style="font-family: sans-serif">Unlucky!</h2><p style="font-family: sans-serif">The correct word was:</p>`;
+    image = `<img src="assets/unlucky.png" style="max-width: 40%; height: auto; margin: 10px auto;" alt="Unlucky">`;
+  }
+
+  endModalContent.innerHTML = `
+    ${message}
+    <div style="font-family: 'AuslanFingerSpelling', sans-serif; font-size: 60px; margin-bottom: 10px;">${correctWord}</div>
+    ${image}
+    <img id="again-btn" src="assets/Again.png" alt="Play Again" />
+    <img id="menu-btn" src="assets/menu.png" alt="Main Menu" />
+    <img id="logout-btn" src="assets/logout.png" alt="Logout" />
+  `;
+
+  endModal.style.display = "flex";
+  document.removeEventListener("keydown", keydownHandler);
+
+  setTimeout(() => {
+    document.getElementById("again-btn").onclick = () => location.reload();
+    document.getElementById("menu-btn").onclick = () => window.location.href = "../index.html";
+    document.getElementById("logout-btn").onclick = () => {
+      localStorage.removeItem("studentName");
+      localStorage.removeItem("studentClass");
+      window.location.href = "../index.html";
+    };
+  }, 0);
 }
 
 function showAuslanClap() {
@@ -183,26 +217,6 @@ function showAuslanClap() {
       clapGif.style.display = "none";
     }, 3000);
   }
-}
-
-function showPlayAgainButton() {
-  let button = document.getElementById("playAgain");
-  if (!button) {
-    button = document.createElement("img");
-    button.id = "playAgain";
-    button.src = "assets/Again.png";
-    button.alt = "Play Again";
-    button.style.position = "fixed";
-    button.style.bottom = "5vh";
-    button.style.left = "50%";
-    button.style.transform = "translateX(-50%)";
-    button.style.cursor = "pointer";
-    button.style.width = "200px";
-    button.style.zIndex = "1000";
-    document.body.appendChild(button);
-  }
-  button.style.display = "block";
-  button.addEventListener("click", () => location.reload());
 }
 
 function showInvalidWordMessage(word) {
@@ -261,112 +275,4 @@ function submitWordleResult(targetWord, guessesArray) {
     .catch((err) => {
       console.error("❌ Form error:", err);
     });
-}
-
-function setupKeyboard() {
-  const keyboard = document.getElementById("onScreenKeyboard");
-  if (!keyboard) return;
-
-  keyboard.innerHTML = `
-    <div id="keyboard-header" style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 8px; cursor: move;">
-      <button id="closeKeyboardBtn" style="font-size: 20px; font-weight: bold; background: none; border: none; cursor: pointer;">✖</button>
-    </div>
-  `;
-
-  const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
-  layout.forEach(row => {
-    const rowDiv = document.createElement("div");
-    rowDiv.className = "keyboard-row";
-    row.split("").forEach(letter => {
-      const key = document.createElement("button");
-      key.className = "key";
-      key.textContent = letter;
-      key.addEventListener("click", () => {
-        if (currentGuess.length < 5) {
-          currentGuess += letter;
-          updateGrid();
-        }
-      });
-      rowDiv.appendChild(key);
-    });
-    keyboard.appendChild(rowDiv);
-  });
-
-  const controlRow = document.createElement("div");
-  controlRow.className = "keyboard-row";
-
-  const backspace = document.createElement("button");
-  backspace.textContent = "←";
-  backspace.className = "key wide";
-  backspace.onclick = () => {
-    currentGuess = currentGuess.slice(0, -1);
-    updateGrid();
-  };
-
-  const enter = document.createElement("button");
-  enter.textContent = "ENTER";
-  enter.className = "key wide";
-  enter.onclick = () => {
-    if (currentGuess.length === 5) {
-      if (!validWords.includes(currentGuess.toUpperCase())) {
-        showInvalidWordMessage(currentGuess);
-        return;
-      }
-      checkGuess();
-    }
-  };
-
-  controlRow.append(backspace, enter);
-  keyboard.appendChild(controlRow);
-
-  document.getElementById("closeKeyboardBtn").onclick = () => keyboard.style.display = "none";
-
-  dragElement(keyboard);
-}
-
-function dragElement(elmnt) {
-  let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-  const header = elmnt.querySelector("#keyboard-header");
-
-  if (header) {
-    header.onmousedown = dragMouseDown;
-    header.ontouchstart = dragMouseDown;
-  }
-
-  function dragMouseDown(e) {
-    e = e || window.event;
-    if (e.type === "touchstart") {
-      pos3 = e.touches[0].clientX;
-      pos4 = e.touches[0].clientY;
-      document.ontouchmove = elementDrag;
-      document.ontouchend = closeDragElement;
-    } else {
-      pos3 = e.clientX;
-      pos4 = e.clientY;
-      document.onmouseup = closeDragElement;
-      document.onmousemove = elementDrag;
-    }
-  }
-
-  function elementDrag(e) {
-    e = e || window.event;
-    let clientX = e.type.includes("touch") ? e.touches[0].clientX : e.clientX;
-    let clientY = e.type.includes("touch") ? e.touches[0].clientY : e.clientY;
-
-    pos1 = pos3 - clientX;
-    pos2 = pos4 - clientY;
-    pos3 = clientX;
-    pos4 = clientY;
-
-    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-    elmnt.style.transform = "none";
-  }
-
-  function closeDragElement() {
-    document.onmouseup = null;
-    document.onmousemove = null;
-    document.ontouchend = null;
-    document.ontouchmove = null;
-  }
 }
