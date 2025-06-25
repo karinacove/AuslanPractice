@@ -223,7 +223,7 @@ body {
   box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
   z-index: 2500;
   display: none;
-  min-width: 500px;
+  min-width: 600px;
   max-width: 90vw;
   cursor: move;
   touch-action: none;
@@ -265,8 +265,7 @@ body {
   cursor: pointer;
   user-select: none;
   text-transform: lowercase;
-  font-weight: bold;
-  width: 45px;
+  width: 50px;
   text-align: center;
 }
 
