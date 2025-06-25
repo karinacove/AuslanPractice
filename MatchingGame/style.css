@@ -112,7 +112,7 @@ h2#levelTitle {
   justify-items: center;
   align-content: center;
   box-sizing: border-box;
-  position: relative center center;
+  position: relative;
 }
 
 /* levels 4–6 */
