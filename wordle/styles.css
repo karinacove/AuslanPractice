@@ -223,7 +223,7 @@ body {
   box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
   z-index: 2500;
   display: none;
-  width: 350px;
+  min-width: 500px;
   max-width: 90vw;
   cursor: move;
   touch-action: none;
