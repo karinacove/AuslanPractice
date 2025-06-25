@@ -168,7 +168,7 @@ function showEndModal(success) {
   let message = "";
   let image = "";
 
-  if (success) {
+  if (correctWord) {
     showAuslanClap();
     message = `<h2 style="font-family: sans-serif">Congratulations!</h2><p style="font-family: sans-serif">You guessed the word in ${guessesList.length} attempts.</p>`;
     image = `<img src="assets/auslan-clap.gif" style="max-width: 60%; height: auto; margin: 10px auto;" alt="Clap">`;
