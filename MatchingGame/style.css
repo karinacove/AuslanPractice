@@ -217,7 +217,7 @@ h2#levelTitle {
   gap: 10px;
   justify-items: center;
   align-items: center;
-  min-width: 380px;
+  min-width: auto;
   min-height: 400px;
   max-height: auto;
   max-width: 30%;
