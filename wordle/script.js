@@ -53,6 +53,15 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = "../index.html";
     });
   }
+  
+  if (keyboardBtn) {
+    keyboardBtn.addEventListener("click", () => {
+      const keyboard = document.getElementById("onScreenKeyboard");
+      if (keyboard) keyboard.style.display = keyboard.style.display === "none" ? "block" : "none";
+    });
+  }
+
+  setupKeyboard();
 });
 
 let words = [];
@@ -268,4 +277,113 @@ function submitWordleResult(targetWord, guessesArray) {
     .catch((err) => {
       console.error("❌ Form error:", err);
     });
+}
+
+function setupKeyboard() {
+  const keyboard = document.getElementById("onScreenKeyboard");
+  if (!keyboard) return;
+
+  keyboard.innerHTML = `
+    <div id="keyboard-header" style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 8px; cursor: move;">
+      <div>Keyboard</div>
+      <button id="closeKeyboardBtn" style="font-size: 20px; font-weight: bold; background: none; border: none; cursor: pointer;">✖</button>
+    </div>
+  `;
+
+  const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
+  layout.forEach(row => {
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "keyboard-row";
+    row.split("").forEach(letter => {
+      const key = document.createElement("button");
+      key.className = "key";
+      key.textContent = letter;
+      key.addEventListener("click", () => {
+        if (currentGuess.length < 5) {
+          currentGuess += letter;
+          updateGrid();
+        }
+      });
+      rowDiv.appendChild(key);
+    });
+    keyboard.appendChild(rowDiv);
+  });
+
+  const controlRow = document.createElement("div");
+  controlRow.className = "keyboard-row";
+
+  const backspace = document.createElement("button");
+  backspace.textContent = "←";
+  backspace.className = "key wide";
+  backspace.onclick = () => {
+    currentGuess = currentGuess.slice(0, -1);
+    updateGrid();
+  };
+
+  const enter = document.createElement("button");
+  enter.textContent = "ENTER";
+  enter.className = "key wide";
+  enter.onclick = () => {
+    if (currentGuess.length === 5) {
+      if (!validWords.includes(currentGuess.toUpperCase())) {
+        showInvalidWordMessage(currentGuess);
+        return;
+      }
+      checkGuess();
+    }
+  };
+
+  controlRow.append(backspace, enter);
+  keyboard.appendChild(controlRow);
+
+  document.getElementById("closeKeyboardBtn").onclick = () => keyboard.style.display = "none";
+
+  dragElement(keyboard);
+}
+
+function dragElement(elmnt) {
+  let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  const header = elmnt.querySelector("#keyboard-header");
+
+  if (header) {
+    header.onmousedown = dragMouseDown;
+    header.ontouchstart = dragMouseDown;
+  }
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    if (e.type === "touchstart") {
+      pos3 = e.touches[0].clientX;
+      pos4 = e.touches[0].clientY;
+      document.ontouchmove = elementDrag;
+      document.ontouchend = closeDragElement;
+    } else {
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      document.onmousemove = elementDrag;
+    }
+  }
+
+  function elementDrag(e) {
+    e = e || window.event;
+    let clientX = e.type.includes("touch") ? e.touches[0].clientX : e.clientX;
+    let clientY = e.type.includes("touch") ? e.touches[0].clientY : e.clientY;
+
+    pos1 = pos3 - clientX;
+    pos2 = pos4 - clientY;
+    pos3 = clientX;
+    pos4 = clientY;
+
+    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    elmnt.style.transform = "none";
+  }
+
+  function closeDragElement() {
+    document.onmouseup = null;
+    document.onmousemove = null;
+    document.ontouchend = null;
+    document.ontouchmove = null;
+  }
 }
