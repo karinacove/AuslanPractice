@@ -35,7 +35,7 @@ body {
 
   width: auto;
   max-width: none;
-  max-height: 78vh;
+  height: 78vh;
   padding: 1vh 0;
   overflow: hidden;
 }
