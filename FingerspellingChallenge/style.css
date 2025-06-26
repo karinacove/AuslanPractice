@@ -111,12 +111,20 @@ body {
 }
 
 #start-button img,
-#finishButton,
 #keyboard-btn,
 #again-button img,
 #end-modal-content img {
   width: 100px;
   cursor: pointer;
+}
+
+#finishButton {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 100px;
+  cursor: pointer;
+  z-index: 1000;
 }
 
 #keyboard-btn {
@@ -206,28 +214,21 @@ body {
 }
 
 /* -------------------------
-   Selection Highlight Effects
+   Selection Highlighting
 ------------------------- */
 
-#length-selection img,
-#timed-select,
-#levelup-select {
+.mode-option, .length-option {
   transition: transform 0.2s, box-shadow 0.2s;
   border-radius: 12px;
 }
 
-#length-selection img:hover,
-#timed-select:hover,
-#levelup-select:hover {
+.mode-option:hover, .length-option:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 10px #fff;
-  cursor: pointer;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
 }
 
-.selected-mode,
-.selected-length {
+.mode-option.selected, .length-option.selected {
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
   transform: scale(1.1);
-  box-shadow: 0 0 15px #00ffcc;
-  outline: 3px solid #00ffcc;
-  border-radius: 12px;
+  border: 2px solid white;
 }
