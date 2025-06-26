@@ -202,6 +202,22 @@ button:hover {
   height: 100px;
 }
 
+/* Headings */
+h1 {
+  font-size: 2rem;
+  color: white;
+  margin-top: 40px;
+  text-align: center;
+}
+
+h2#levelTitle {
+  margin-top: 100px;
+  margin-bottom: 20px;
+  font-size: 24px;
+  text-align: center;
+  color: white;
+}
+
 #keyboard-btn {
   position: fixed;
   bottom: 10px;
