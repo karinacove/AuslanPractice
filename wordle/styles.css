@@ -33,7 +33,7 @@ body {
   background: transparent;
   z-index: 10;
 
-  width: auto;
+  min-width: 30%;
   max-width: none;
   height: 78vh;
   padding: 1vh 0;
