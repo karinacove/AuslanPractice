@@ -248,7 +248,9 @@ body {
   cursor: pointer;
   font-weight: bold;
   color: #333;
-}
+  padding: 10px;
+  z-index: 10;
+  pointer-events: auto;}
 
 .keyboard-row {
   display: flex;
