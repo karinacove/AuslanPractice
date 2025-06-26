@@ -202,34 +202,76 @@ button:hover {
   height: 100px;
 }
 
-#keyboard-container {
-  display: none;
+#keyboard-btn {
   position: fixed;
-  bottom: 0;
-  width: 100%;
-  max-height: 40vh;
-  overflow-y: auto;
-  background: #eee;
-  padding: 10px;
+  bottom: 10px;
+  right: 10px;
+  max-width: 200px;
   z-index: 2000;
+}
+
+#keyboard-container {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%) !important;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 5px 5px;
+  border-radius: 8px;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
+  z-index: 2500;
+  display: none;
+  min-width: 800px;
+  max-width: 90vw;
+  cursor: move;
+  touch-action: none;
+}
+
+#keyboard-header {
   display: flex;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  margin-bottom: 5px;
+  cursor: move;
+}
+
+#closeKeyboardBtn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #333;
+}
+
+.keyboard-row {
+  display: flex;
   justify-content: center;
-  gap: 5px;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+  margin: 2px 0;
+  flex-wrap: nowrap;
 }
 
 .keyboard-key {
-  padding: 10px 15px;
-  margin: 3px;
-  font-size: 1.2rem;
-  background: #5b65a9;
-  color: white;
-  border: none;
-  border-radius: 6px;
+  font-size: 40px;
+  padding: 1px 1px;
+  margin: 1px;
+  background: #eee;
+  border: 2px solid #aaa;
+  border-radius: 2px;
   cursor: pointer;
-  min-width: 40px;
+  user-select: none;
+  text-transform: lowercase;
+  width: 70px;
   text-align: center;
+}
+
+.key.wide {
+  width: 80px;
+}
+
+.key:hover {
+  background: #ccc;
 }
 
 /* -------------------------
