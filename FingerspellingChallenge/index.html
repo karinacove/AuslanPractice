@@ -7,7 +7,8 @@
   <link rel="stylesheet" href="style.css" />
   <title>Fingerspelling Challenge</title>
 </head>
-<body><body>
+<body>
+
   <img id="finishButton" src="Assets/Icons/finish.png" alt="Finish Game" />
   <img id="keyboard-btn" src="Assets/keyboard.png" alt="Keyboard Toggle" />
 
@@ -15,31 +16,26 @@
     <!-- Sign-in screen -->
     <div id="signin-screen">
       <h2>Choose Game Mode</h2>
-      <label>
-        Game Mode:
-        <select id="game-mode">
-          <option value="timed">Timed Challenge</option>
-          <option value="levelup">Level Up Challenge</option>
-        </select>
-      </label>
-
-      <div id="length-container" style="display: block;">
-        <label>
-          Word Length:
-          <select id="word-length">
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-          </select>
-        </label>
+      <div id="mode-selection">
+        <img src="Assets/Icons/2-min.png" alt="Timed Challenge" id="timed-select" />
+        <img src="Assets/Icons/level-up.png" alt="Level Up" id="levelup-select" />
       </div>
 
-      <button id="start-button">
+      <div id="length-selection" style="display: none;">
+        <h2>Select Word Length</h2>
+        <div class="length-options">
+          <img src="Assets/Icons/3letters.png" alt="3 Letters" data-length="3" />
+          <img src="Assets/Icons/4letters.png" alt="4 Letters" data-length="4" />
+          <img src="Assets/Icons/5letters.png" alt="5 Letters" data-length="5" />
+          <img src="Assets/Icons/6letters.png" alt="6 Letters" data-length="6" />
+          <img src="Assets/Icons/7letters.png" alt="7 Letters" data-length="7" />
+          <img src="Assets/Icons/8letters.png" alt="8 Letters" data-length="8" />
+          <img src="Assets/Icons/9letters.png" alt="9 Letters" data-length="9" />
+          <img src="Assets/Icons/10letters.png" alt="10 Letters" data-length="10" />
+        </div>
+      </div>
+
+      <button id="start-button" style="display: none;">
         <img src="Assets/Icons/startbtn.png" alt="Start" />
       </button>
     </div>
@@ -48,8 +44,9 @@
     <div id="game-screen" style="display: none; flex-direction: column; align-items: center; gap: 20px;">
 
       <div id="speed-container">
-        <label for="speed-slider">Speed:</label>
+        <img src="Assets/Icons/slow.png" alt="Slow" style="width: 40px;" />
         <input type="range" id="speed-slider" min="0" max="200" value="100" />
+        <img src="Assets/Icons/fast.png" alt="Fast" style="width: 40px;" />
       </div>
 
       <div id="top-bar">
@@ -68,11 +65,12 @@
       <div id="controls" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
         <input type="text" id="word-input" placeholder="Type the word" autocomplete="off" />
         <button id="again-button">
-          <img src="Assets/Icons/Again.png" alt="Again" />
+          <img src="Assets/Icons/again.png" alt="Again" />
         </button>
       </div>
     </div>
   </div>
+
   <div id="onScreenKeyboard"></div>
 
   <!-- Modal -->
@@ -81,15 +79,11 @@
       <div id="clap-display"></div>
       <p id="score-percentage">0% Correct</p>
       <img id="continue-btn" src="Assets/Icons/continue.png" alt="Continue" />
-      <img id="again-button-modal" src="Assets/Icons/Again.png" alt="Again" />
+      <img id="again-button-modal" src="Assets/Icons/again.png" alt="Again" />
       <img id="menu-button" src="Assets/Icons/menu.png" alt="Menu" />
       <img id="logout-button" src="Assets/Icons/logout.png" alt="Logout" />
     </div>
   </div>
-
-
-  <!-- On-screen keyboard -->
-  <div id="keyboard-container"></div>
 
   <script src="script.js" defer></script>
 </body>
