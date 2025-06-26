@@ -30,6 +30,9 @@ const againButtonModal = document.getElementById("again-button-modal");
 const menuButton = document.getElementById("menu-button");
 const logoutButton = document.getElementById("logout-button");
 
+const timedSelect = document.getElementById("timed-select");
+const levelupSelect = document.getElementById("levelup-select");
+const lengthSelection = document.getElementById("length-selection");
 
 // -------------------------
 // Game State
@@ -42,7 +45,7 @@ let currentLetterIndex = 0;
 let letterTimeouts = [];
 let speed = 100;
 let correctWords = 0;
-let gameMode = "timed";
+let gameMode = "";
 let wordLength = 3;
 let guessedWords = new Set();
 let incorrectWords = [];
@@ -58,6 +61,29 @@ fetch("data/wordlist.json")
   .catch((error) => console.error("Error loading word list:", error));
 
 // -------------------------
+// Visual Mode Selection Logic
+// -------------------------
+timedSelect.addEventListener("click", () => {
+  gameMode = "timed";
+  lengthSelection.style.display = "block";
+  startButton.style.display = "none";
+});
+
+levelupSelect.addEventListener("click", () => {
+  gameMode = "levelup";
+  wordLength = 3;
+  lengthSelection.style.display = "none";
+  startButton.style.display = "block";
+});
+
+lengthSelection.addEventListener("click", (e) => {
+  const img = e.target.closest("img[data-length]");
+  if (!img) return;
+  wordLength = parseInt(img.dataset.length);
+  startButton.style.display = "block";
+});
+
+// -------------------------
 // Core Functions
 // -------------------------
 function clearLetters() {
@@ -69,7 +95,7 @@ function clearLetters() {
 function showLetterByLetter(word) {
   clearLetters();
   currentLetterIndex = 0;
-  let delay = 500; // initial pause
+  let delay = 500;
 
   word.split("").forEach((letter, index) => {
     const timeout = setTimeout(() => {
@@ -79,7 +105,7 @@ function showLetterByLetter(word) {
           if (!isPaused && letterDisplay.textContent === letter.toLowerCase()) {
             letterDisplay.textContent = "";
           }
-        }, 400 - speed); // linger per letter
+        }, 400 - speed);
       }
     }, delay + index * (400 - speed));
     letterTimeouts.push(timeout);
@@ -164,14 +190,7 @@ function hideFinishModal() {
 // -------------------------
 // Event Listeners
 // -------------------------
-startButton.addEventListener("click", () => {
-  gameMode = document.getElementById("game-mode").value;
-  wordLength = parseInt(document.getElementById("word-length").value);
-  if (gameMode === "levelup") {
-    document.getElementById("length-container").style.display = "none";
-  }
-  startGame();
-});
+startButton.addEventListener("click", startGame);
 
 wordInput.addEventListener("input", () => {
   if (isPaused) return;
@@ -198,7 +217,6 @@ speedSlider.addEventListener("input", () => {
 
 againButton.addEventListener("click", () => {
   if (isPaused) return;
-  againButton.style.display = "block";
   wordInput.value = "";
   wordInput.style.visibility = "visible";
   wordInput.focus();
@@ -206,15 +224,10 @@ againButton.addEventListener("click", () => {
 });
 
 finishButton.addEventListener("click", showFinishModal);
-
 continueBtn.addEventListener("click", hideFinishModal);
 
 keyboardBtn.addEventListener("click", () => {
-  if (keyboardContainer.style.display === "none") {
-    showKeyboard();
-  } else {
-    keyboardContainer.style.display = "none";
-  }
+  keyboardContainer.style.display = keyboardContainer.style.display === "none" ? "block" : "none";
 });
 
 againButtonModal.addEventListener("click", () => {
@@ -229,124 +242,3 @@ logoutButton.addEventListener("click", () => {
   localStorage.clear();
   window.location.href = "../index.html";
 });
-
-function setupKeyboard() {
-  const keyboard = document.getElementById("onScreenKeyboard");
-  if (!keyboard) return;
-
-  keyboard.innerHTML = `
-    <div id="keyboard-header">
-      <button id="closeKeyboardBtn">✖</button>
-    </div>
-  `;
-
-  const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
-  layout.forEach(row => {
-    const rowDiv = document.createElement("div");
-    rowDiv.className = "keyboard-row";
-    row.split("").forEach(letter => {
-      const key = document.createElement("button");
-      key.className = "key";
-      key.textContent = letter;
-      key.addEventListener("click", () => {
-        if (currentGuess.length < 5) {
-          currentGuess += letter;
-          updateGrid();
-        }
-      });
-      rowDiv.appendChild(key);
-    });
-    keyboard.appendChild(rowDiv);
-  });
-
-  const controlRow = document.createElement("div");
-  controlRow.className = "keyboard-row";
-
-  const backspace = document.createElement("button");
-  backspace.textContent = "←";
-  backspace.className = "key wide";
-  backspace.onclick = () => {
-    currentGuess = currentGuess.slice(0, -1);
-    updateGrid();
-  };
-
-  const enter = document.createElement("button");
-  enter.textContent = "↵";
-  enter.className = "key wide";
-  enter.onclick = () => {
-    if (currentGuess.length === 5) {
-      if (!validWords.includes(currentGuess.toUpperCase())) {
-        showInvalidWordMessage(currentGuess);
-        return;
-      }
-      checkGuess();
-    }
-  };
-
-  controlRow.append(backspace, enter);
-  keyboard.appendChild(controlRow);
-
-  document.getElementById("closeKeyboardBtn").onclick = () => keyboard.style.display = "none";
-
-  dragElement(keyboard);
-}
-
-function dragElement(elmnt) {
-  const header = elmnt.querySelector("#keyboard-header");
-  let startX = 0, startY = 0, initialX = 0, initialY = 0, dragging = false;
-
-  if (!header) return;
-
-  // Mouse events
-  header.addEventListener("mousedown", (e) => {
-    e.preventDefault();
-    dragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    initialX = elmnt.offsetLeft;
-    initialY = elmnt.offsetTop;
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", stopDrag);
-  });
-
-  // Touch events
-  header.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    dragging = true;
-    const touch = e.touches[0];
-    startX = touch.clientX;
-    startY = touch.clientY;
-    initialX = elmnt.offsetLeft;
-    initialY = elmnt.offsetTop;
-    document.addEventListener("touchmove", onTouchMove, { passive: false });
-    document.addEventListener("touchend", stopDrag);
-  });
-
-  function onMouseMove(e) {
-    if (!dragging) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    elmnt.style.left = `${initialX + dx}px`;
-    elmnt.style.top = `${initialY + dy}px`;
-    elmnt.style.transform = "none";
-  }
-
-  function onTouchMove(e) {
-    if (!dragging) return;
-    const touch = e.touches[0];
-    const dx = touch.clientX - startX;
-    const dy = touch.clientY - startY;
-    elmnt.style.left = `${initialX + dx}px`;
-    elmnt.style.top = `${initialY + dy}px`;
-    elmnt.style.transform = "none";
-    e.preventDefault(); // prevent page scroll while dragging
-  }
-
-  function stopDrag() {
-    dragging = false;
-    document.removeEventListener("mousemove", onMouseMove);
-    document.removeEventListener("mouseup", stopDrag);
-    document.removeEventListener("touchmove", onTouchMove);
-    document.removeEventListener("touchend", stopDrag);
-  }
-}
