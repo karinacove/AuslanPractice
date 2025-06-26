@@ -204,3 +204,30 @@ body {
   50% { transform: scale(1.2); }
   100% { transform: scale(1); }
 }
+
+/* -------------------------
+   Selection Highlight Effects
+------------------------- */
+
+#length-selection img,
+#timed-select,
+#levelup-select {
+  transition: transform 0.2s, box-shadow 0.2s;
+  border-radius: 12px;
+}
+
+#length-selection img:hover,
+#timed-select:hover,
+#levelup-select:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px #fff;
+  cursor: pointer;
+}
+
+.selected-mode,
+.selected-length {
+  transform: scale(1.1);
+  box-shadow: 0 0 15px #00ffcc;
+  outline: 3px solid #00ffcc;
+  border-radius: 12px;
+}
