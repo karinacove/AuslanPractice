@@ -112,6 +112,12 @@ body {
   margin-top: 2vh;
 }
 
+#again-button {
+   width: 200px;
+   cursor: pointer;
+   z-index: 999;
+}
+   
 #speed-slider {
   width: 100%;
   margin: 10px 0;
