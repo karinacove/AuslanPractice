@@ -133,8 +133,6 @@ function endGame() {
   clearInterval(timer);
   clearLetters();
   wordInput.style.visibility = "hidden";
-  againButton.style.display = "block";
-  letterDisplay.textContent = "Great work!";
   submitResults();
   showFinishModal();
 }
@@ -235,9 +233,8 @@ function setupKeyboard() {
   if (!keyboard) return;
 
   keyboard.innerHTML = `
-    <div id="keyboard-header" style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 8px; cursor: move;">
-      <div>Keyboard</div>
-      <button id="closeKeyboardBtn" style="font-size: 20px; font-weight: bold; background: none; border: none; cursor: pointer;">✖</button>
+    <div id="keyboard-header">
+      <button id="closeKeyboardBtn">✖</button>
     </div>
   `;
 
@@ -250,9 +247,10 @@ function setupKeyboard() {
       key.className = "key";
       key.textContent = letter;
       key.addEventListener("click", () => {
-        wordInput.value += letter.toLowerCase();
-        wordInput.focus();
-        wordInput.dispatchEvent(new Event("input"));
+        if (currentGuess.length < 5) {
+          currentGuess += letter;
+          updateGrid();
+        }
       });
       rowDiv.appendChild(key);
     });
@@ -266,24 +264,27 @@ function setupKeyboard() {
   backspace.textContent = "←";
   backspace.className = "key wide";
   backspace.onclick = () => {
-    wordInput.value = wordInput.value.slice(0, -1);
-    wordInput.focus();
-    wordInput.dispatchEvent(new Event("input"));
+    currentGuess = currentGuess.slice(0, -1);
+    updateGrid();
   };
 
   const enter = document.createElement("button");
-  enter.textContent = "ENTER";
+  enter.textContent = "↵";
   enter.className = "key wide";
   enter.onclick = () => {
-    wordInput.dispatchEvent(new Event("input"));
+    if (currentGuess.length === 5) {
+      if (!validWords.includes(currentGuess.toUpperCase())) {
+        showInvalidWordMessage(currentGuess);
+        return;
+      }
+      checkGuess();
+    }
   };
 
   controlRow.append(backspace, enter);
   keyboard.appendChild(controlRow);
 
-  document.getElementById("closeKeyboardBtn").onclick = () => {
-    keyboard.style.display = "none";
-  };
+  document.getElementById("closeKeyboardBtn").onclick = () => keyboard.style.display = "none";
 
   dragElement(keyboard);
 }
@@ -314,8 +315,8 @@ function dragElement(elmnt) {
 
   function elementDrag(e) {
     e = e || window.event;
-    const clientX = e.type.includes("touch") ? e.touches[0].clientX : e.clientX;
-    const clientY = e.type.includes("touch") ? e.touches[0].clientY : e.clientY;
+    let clientX = e.type.includes("touch") ? e.touches[0].clientX : e.clientX;
+    let clientY = e.type.includes("touch") ? e.touches[0].clientY : e.clientY;
 
     pos1 = pos3 - clientX;
     pos2 = pos4 - clientY;
