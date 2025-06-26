@@ -36,59 +36,6 @@ body {
   background: white;
   border-radius: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  transition: none;
-}
-
-#signin-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  height: 70vh;
-  padding-top: 30vh;
-  text-align: center;
-  position: relative;
-}
-
-#game-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  height: 100vh;
-  padding-top: 15vh;
-  padding-bottom: 240px;
-  box-sizing: border-box;
-}
-
-#student-info {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  background: #28a745;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 10px;
-  max-width: 320px;
-  font-family: sans-serif;
-  font-weight: bold;
-  z-index: 1000;
-}
-
-#top-bar {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  margin-top: 2vh;
-}
-
-.input-container {
-  width: 100%;
-  display: flex;
-  justify-content: center;
 }
 
 #word-input {
@@ -106,63 +53,46 @@ body {
   background-color: #fdfdfd;
 }
 
-#speed-container {
-  width: 60%;
-  text-align: center;
-  margin-top: 2vh;
-}
-
-#again-button {
-   width: 200px;
-   cursor: pointer;
-   z-index: 999;
-}
-   
-#speed-slider {
-  width: 100%;
-  margin: 10px 0;
-}
-
-.label {
-  font-family: sans-serif;
-  font-weight: bold;
-  margin-right: 5px;
-}
-
-.value {
-  font-family: 'AuslanFingerspelling', sans-serif;
-  font-weight: bold;
-}
-
-#clap-display img {
-  max-width: 150px;
-  margin-top: 20px;
-}
-
-#score-timer-row {
+#signin-screen {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+  gap: 20px;
+}
+
+#game-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: space-between;
-  width: 100%;
-  padding: 0 20px;
+  height: 100vh;
+  padding: 5vh 0 20vh 0;
   box-sizing: border-box;
 }
 
-.buttons {
+#speed-container {
+  width: 80%;
+  max-width: 400px;
   display: flex;
-  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
-  margin-top: 20px;
+  margin-top: 2vh;
 }
 
-button {
-  padding: 10px 20px;
-  font-size: 1rem;
+#speed-slider {
+  flex-grow: 1;
+}
+
+#again-button {
+  width: 120px;
   cursor: pointer;
-  transition: opacity 0.3s;
-}
-
-button:hover {
-  opacity: 0.8;
+  z-index: 999;
+  background: transparent;
+  border: none;
 }
 
 #score, #timer {
@@ -172,127 +102,66 @@ button:hover {
   margin: 0 10px;
 }
 
-#start-button {
-  position: absolute;
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-  left: 50%;
-  top: 55%;
-  transform: translate(-75%, -60%);
-  width: 150px;
-  height: 150px;
-  z-index: 999;
+#top-bar {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  padding: 0 20px;
+  box-sizing: border-box;
 }
 
-#start-button img {
-  display: block;
-  width: auto;
-  height: 150px;
-}
-
-#finish-btn {
-  position: fixed;
-  top: 20px;
-  right: 20px;
+#start-button img,
+#finishButton,
+#keyboard-btn,
+#again-button img,
+#end-modal-content img {
   width: 100px;
   cursor: pointer;
-  z-index: 1000;
-}
-
-/* Headings */
-h1 {
-  font-size: 2rem;
-  color: white;
-  margin-top: 40px;
-  text-align: center;
-}
-
-h2#levelTitle {
-  margin-top: 20vh;
-  margin-bottom: 20px;
-  font-size: 24px;
-  text-align: center;
-  color: white;
 }
 
 #keyboard-btn {
   position: fixed;
   bottom: 10px;
   right: 10px;
-  max-width: 200px;
   z-index: 2000;
 }
 
 #keyboard-container {
   position: fixed;
-  top: 40%;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) !important;
   background: rgba(255, 255, 255, 0.95);
-  padding: 5px 5px;
-  border-radius: 8px;
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
   z-index: 2500;
   display: none;
   min-width: 800px;
   max-width: 90vw;
-  cursor: move;
   touch-action: none;
-}
-
-.keyboard-modal, #keyboard-header {
-  touch-action: none;
-}
-
-#keyboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: bold;
-  margin-bottom: 5px;
-  cursor: move;
-}
-
-#closeKeyboardBtn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  font-weight: bold;
-  color: #333;
-  z-index: 10;
-  pointer-events: auto; 
 }
 
 .keyboard-row {
   display: flex;
   justify-content: center;
   margin: 2px 0;
-  flex-wrap: nowrap;
 }
 
-.keyboard-key {
-  font-size: 40px;
-  padding: 1px 1px;
-  margin: 1px;
+.key {
+  font-size: 2rem;
+  padding: 5px 10px;
+  margin: 2px;
   background: #eee;
   border: 2px solid #aaa;
-  border-radius: 2px;
+  border-radius: 8px;
+  text-transform: lowercase;
   cursor: pointer;
   user-select: none;
-  text-transform: lowercase;
-  width: 70px;
-  text-align: center;
 }
 
 .key.wide {
   width: 80px;
-}
-
-.key:hover {
-  background: #ccc;
 }
 
 /* -------------------------
@@ -300,53 +169,16 @@ h2#levelTitle {
 ------------------------- */
 
 #end-modal {
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.modal-content {
-  background-color: #fff;
-  padding: 30px 40px;
-  border-radius: 20px;
-  text-align: center;
-  font-family: Arial, sans-serif;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-}
-
-.modal-content h2 {
-  margin-top: 0;
-}
-
-.modal-content button {
-  margin-top: 20px;
-  padding: 10px 20px;
-  font-size: 1rem;
-  border: none;
-  background-color: #4caf50;
-  color: white;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-#end-modal {
-  display: none;
-  position: fixed;
-  top: 0; 
-  left: 0;
-  width: 100%; 
-  height: 100%;
   background: rgba(0, 0, 0, 0.7);
   justify-content: center;
   align-items: center;
-  z-index: 2000;
+  z-index: 3000;
 }
 
 #end-modal-content {
@@ -361,11 +193,6 @@ h2#levelTitle {
   width: 120px;
   margin: 10px;
   cursor: pointer;
-}
-
-#score-display {
-  font-size: 24px;
-  margin-bottom: 20px;
 }
 
 .breathe {
