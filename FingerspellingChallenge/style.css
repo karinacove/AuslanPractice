@@ -44,7 +44,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  height: 100vh;
+  height: 70vh;
   padding-top: 30vh;
   text-align: center;
   position: relative;
@@ -192,7 +192,7 @@ button:hover {
   height: 150px;
 }
 
-#finish-button {
+#finish-btn {
   position: fixed;
   top: 20px;
   right: 20px;
@@ -210,7 +210,7 @@ h1 {
 }
 
 h2#levelTitle {
-  margin-top: 100px;
+  margin-top: 20vh;
   margin-bottom: 20px;
   font-size: 24px;
   text-align: center;
