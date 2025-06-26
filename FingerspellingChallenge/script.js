@@ -12,7 +12,6 @@ if (!studentName || !studentClass) {
 // -------------------------
 // DOM References
 // -------------------------
-const signinScreen = document.getElementById("signin-screen");
 const gameScreen = document.getElementById("game-screen");
 const startButton = document.getElementById("start-button");
 const wordInput = document.getElementById("word-input");
@@ -25,14 +24,13 @@ const finishButton = document.getElementById("finishButton");
 const keyboardBtn = document.getElementById("keyboard-btn");
 const keyboardContainer = document.getElementById("keyboard-container");
 const endModal = document.getElementById("end-modal");
+const endModalContent = document.getElementById("end-modal-content");
 const continueBtn = document.getElementById("continue-btn");
 const againButtonModal = document.getElementById("again-button-modal");
 const menuButton = document.getElementById("menu-button");
 const logoutButton = document.getElementById("logout-button");
-
-const timedSelect = document.getElementById("timed-select");
-const levelupSelect = document.getElementById("levelup-select");
-const lengthSelection = document.getElementById("length-selection");
+const modeOptions = document.querySelectorAll(".mode-option");
+const lengthOptions = document.querySelectorAll(".length-option");
 
 // -------------------------
 // Game State
@@ -57,34 +55,11 @@ let isPaused = false;
 // -------------------------
 fetch("data/wordlist.json")
   .then((response) => response.json())
-  .then((data) => wordBank = data)
+  .then((data) => (wordBank = data))
   .catch((error) => console.error("Error loading word list:", error));
 
 // -------------------------
-// Visual Mode Selection Logic
-// -------------------------
-timedSelect.addEventListener("click", () => {
-  gameMode = "timed";
-  lengthSelection.style.display = "block";
-  startButton.style.display = "none";
-});
-
-levelupSelect.addEventListener("click", () => {
-  gameMode = "levelup";
-  wordLength = 3;
-  lengthSelection.style.display = "none";
-  startButton.style.display = "block";
-});
-
-lengthSelection.addEventListener("click", (e) => {
-  const img = e.target.closest("img[data-length]");
-  if (!img) return;
-  wordLength = parseInt(img.dataset.length);
-  startButton.style.display = "block";
-});
-
-// -------------------------
-// Core Functions
+// Utility Functions
 // -------------------------
 function clearLetters() {
   letterTimeouts.forEach(clearTimeout);
@@ -95,7 +70,7 @@ function clearLetters() {
 function showLetterByLetter(word) {
   clearLetters();
   currentLetterIndex = 0;
-  let delay = 500;
+  let delay = 300; // Initial pause
 
   word.split("").forEach((letter, index) => {
     const timeout = setTimeout(() => {
@@ -105,9 +80,9 @@ function showLetterByLetter(word) {
           if (!isPaused && letterDisplay.textContent === letter.toLowerCase()) {
             letterDisplay.textContent = "";
           }
-        }, 400 - speed);
+        }, 400 - speed); // linger per letter
       }
-    }, delay + index * (400 - speed));
+    }, delay + index * ((400 - speed) + 100)); // Added 0.1s between letters
     letterTimeouts.push(timeout);
   });
 }
@@ -140,7 +115,7 @@ function nextWord() {
 }
 
 function startGame() {
-  signinScreen.style.display = "none";
+  document.getElementById("signin-screen").style.display = "none";
   gameScreen.style.display = "flex";
   score = 0;
   timeLeft = 120;
@@ -161,7 +136,7 @@ function endGame() {
   clearLetters();
   wordInput.style.visibility = "hidden";
   submitResults();
-  showFinishModal();
+  showFinishModal(true);
 }
 
 function submitResults() {
@@ -171,14 +146,15 @@ function submitResults() {
   fetch(formURL, { method: "POST", mode: "no-cors" });
 }
 
-function showFinishModal() {
+function showFinishModal(isGameEnd = false) {
   isPaused = true;
   endModal.style.display = "flex";
   const percentage = correctWords + incorrectWords.length > 0
     ? Math.round((correctWords / (correctWords + incorrectWords.length)) * 100)
     : 100;
-  endModal.querySelector("#score-percentage").textContent = `${percentage}% Correct`;
+  endModalContent.querySelector("#score-percentage").textContent = `${percentage}% Correct`;
   document.getElementById("clap-display").innerHTML = `<img src="Assets/auslan-clap.gif" alt="Clap" />`;
+  againButtonModal.style.display = isGameEnd ? "inline-block" : "none";
 }
 
 function hideFinishModal() {
@@ -187,9 +163,46 @@ function hideFinishModal() {
   wordInput.focus();
 }
 
+function setupKeyboard() {
+  const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
+  keyboardContainer.innerHTML = "";
+  layout.forEach(row => {
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "keyboard-row";
+    row.split("").forEach(letter => {
+      const key = document.createElement("button");
+      key.className = "key";
+      key.textContent = letter;
+      key.addEventListener("click", () => {
+        wordInput.value += letter.toLowerCase();
+        wordInput.dispatchEvent(new Event("input"));
+      });
+      rowDiv.appendChild(key);
+    });
+    keyboardContainer.appendChild(rowDiv);
+  });
+}
+
 // -------------------------
 // Event Listeners
 // -------------------------
+modeOptions.forEach(option => {
+  option.addEventListener("click", () => {
+    modeOptions.forEach(o => o.classList.remove("selected"));
+    option.classList.add("selected");
+    gameMode = option.dataset.mode;
+    document.getElementById("length-container").style.display = gameMode === "timed" ? "block" : "none";
+  });
+});
+
+lengthOptions.forEach(option => {
+  option.addEventListener("click", () => {
+    lengthOptions.forEach(o => o.classList.remove("selected"));
+    option.classList.add("selected");
+    wordLength = parseInt(option.dataset.length);
+  });
+});
+
 startButton.addEventListener("click", startGame);
 
 wordInput.addEventListener("input", () => {
@@ -223,22 +236,18 @@ againButton.addEventListener("click", () => {
   showLetterByLetter(currentWord);
 });
 
-finishButton.addEventListener("click", showFinishModal);
+finishButton.addEventListener("click", () => showFinishModal(false));
 continueBtn.addEventListener("click", hideFinishModal);
+againButtonModal.addEventListener("click", () => window.location.href = "./index.html");
+menuButton.addEventListener("click", () => window.location.href = "../index.html");
+logoutButton.addEventListener("click", () => {
+  localStorage.clear();
+  window.location.href = "../index.html";
+});
 
 keyboardBtn.addEventListener("click", () => {
   keyboardContainer.style.display = keyboardContainer.style.display === "none" ? "block" : "none";
 });
 
-againButtonModal.addEventListener("click", () => {
-  window.location.href = "../FingerspellingChallenge/index.html";
-});
-
-menuButton.addEventListener("click", () => {
-  window.location.href = "../index.html";
-});
-
-logoutButton.addEventListener("click", () => {
-  localStorage.clear();
-  window.location.href = "../index.html";
-});
+// Init
+setupKeyboard();
