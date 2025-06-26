@@ -341,48 +341,61 @@ function setupKeyboard() {
 }
 
 function dragElement(elmnt) {
-  let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
   const header = elmnt.querySelector("#keyboard-header");
+  let startX = 0, startY = 0, initialX = 0, initialY = 0, dragging = false;
 
-  if (header) {
-    header.onmousedown = dragMouseDown;
-    header.ontouchstart = dragMouseDown;
-  }
+  if (!header) return;
 
-  function dragMouseDown(e) {
-    e = e || window.event;
-    if (e.type === "touchstart") {
-      pos3 = e.touches[0].clientX;
-      pos4 = e.touches[0].clientY;
-      document.ontouchmove = elementDrag;
-      document.ontouchend = closeDragElement;
-    } else {
-      pos3 = e.clientX;
-      pos4 = e.clientY;
-      document.onmouseup = closeDragElement;
-      document.onmousemove = elementDrag;
-    }
-  }
+  // Mouse events
+  header.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    dragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    initialX = elmnt.offsetLeft;
+    initialY = elmnt.offsetTop;
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", stopDrag);
+  });
 
-  function elementDrag(e) {
-    e = e || window.event;
-    let clientX = e.type.includes("touch") ? e.touches[0].clientX : e.clientX;
-    let clientY = e.type.includes("touch") ? e.touches[0].clientY : e.clientY;
+  // Touch events
+  header.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    dragging = true;
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+    initialX = elmnt.offsetLeft;
+    initialY = elmnt.offsetTop;
+    document.addEventListener("touchmove", onTouchMove, { passive: false });
+    document.addEventListener("touchend", stopDrag);
+  });
 
-    pos1 = pos3 - clientX;
-    pos2 = pos4 - clientY;
-    pos3 = clientX;
-    pos4 = clientY;
-
-    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+  function onMouseMove(e) {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    elmnt.style.left = `${initialX + dx}px`;
+    elmnt.style.top = `${initialY + dy}px`;
     elmnt.style.transform = "none";
   }
 
-  function closeDragElement() {
-    document.onmouseup = null;
-    document.onmousemove = null;
-    document.ontouchend = null;
-    document.ontouchmove = null;
+  function onTouchMove(e) {
+    if (!dragging) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+    elmnt.style.left = `${initialX + dx}px`;
+    elmnt.style.top = `${initialY + dy}px`;
+    elmnt.style.transform = "none";
+    e.preventDefault(); // prevent page scroll while dragging
+  }
+
+  function stopDrag() {
+    dragging = false;
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", stopDrag);
+    document.removeEventListener("touchmove", onTouchMove);
+    document.removeEventListener("touchend", stopDrag);
   }
 }
