@@ -226,6 +226,10 @@ body {
   touch-action: none;
 }
 
+.keyboard-modal, #keyboard-header {
+  touch-action: none;
+}
+
 #keyboard-header {
   display: flex;
   justify-content: space-between;
