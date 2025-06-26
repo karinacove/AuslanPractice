@@ -30,6 +30,7 @@ const againButtonModal = document.getElementById("again-button-modal");
 const menuButton = document.getElementById("menu-button");
 const logoutButton = document.getElementById("logout-button");
 
+
 // -------------------------
 // Game State
 // -------------------------
@@ -151,6 +152,7 @@ function showFinishModal() {
     ? Math.round((correctWords / (correctWords + incorrectWords.length)) * 100)
     : 100;
   endModal.querySelector("#score-percentage").textContent = `${percentage}% Correct`;
+  document.getElementById("clap-display").innerHTML = `<img src="Assets/auslan-clap.gif" alt="Clap" />`;
 }
 
 function hideFinishModal() {
