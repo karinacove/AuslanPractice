@@ -196,12 +196,6 @@ button:hover {
   z-index: 999;
 }
 
-#finishButton img {
-  display: block;
-  width: auto;
-  height: 100px;
-}
-
 /* Headings */
 h1 {
   font-size: 2rem;
