@@ -30,7 +30,10 @@ const againButtonModal = document.getElementById("again-button-modal");
 const menuButton = document.getElementById("menu-button");
 const logoutButton = document.getElementById("logout-button");
 const modeOptions = document.querySelectorAll(".mode-option");
+const lengthContainer = document.getElementById("length-container");
 const lengthOptions = document.querySelectorAll(".length-option");
+const modeTimed = document.getElementById("mode-timed");
+const modeLevel = document.getElementById("mode-levelup");
 
 // -------------------------
 // Game State
@@ -186,13 +189,20 @@ function setupKeyboard() {
 // -------------------------
 // Event Listeners
 // -------------------------
-modeOptions.forEach(option => {
-  option.addEventListener("click", () => {
-    modeOptions.forEach(o => o.classList.remove("selected"));
-    option.classList.add("selected");
-    gameMode = option.dataset.mode;
-    document.getElementById("length-container").style.display = gameMode === "timed" ? "block" : "none";
-  });
+modeTimed.addEventListener("click", () => {
+  gameMode = "timed";
+  modeTimed.classList.add("selected");
+  modeLevel.classList.remove("selected");
+  lengthContainer.style.display = "block";
+});
+
+modeLevel.addEventListener("click", () => {
+  gameMode = "levelup";
+  modeLevel.classList.add("selected");
+  modeTimed.classList.remove("selected");
+  lengthContainer.style.display = "none";
+  wordLength = 3;
+  startGame();
 });
 
 lengthOptions.forEach(option => {
@@ -200,10 +210,9 @@ lengthOptions.forEach(option => {
     lengthOptions.forEach(o => o.classList.remove("selected"));
     option.classList.add("selected");
     wordLength = parseInt(option.dataset.length);
+    startGame();
   });
 });
-
-startButton.addEventListener("click", startGame);
 
 wordInput.addEventListener("input", () => {
   if (isPaused) return;
