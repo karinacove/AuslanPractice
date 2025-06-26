@@ -192,14 +192,13 @@ button:hover {
   height: 150px;
 }
 
-#finishButton {
+#finish-button {
   position: fixed;
-  right: 20px;
   top: 20px;
+  right: 20px;
   width: 100px;
-  height: 100px;
   cursor: pointer;
-  z-index: 999;
+  z-index: 1000;
 }
 
 /* Headings */
