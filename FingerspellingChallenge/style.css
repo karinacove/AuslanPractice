@@ -120,7 +120,7 @@ body {
   width: 90vw;
   margin: 20px auto;
   box-sizing: border-box;
-  justify-content: center;
+  justify-self: center;
   left: 50%;
   margin-top: 20px;
   align-content: center;
