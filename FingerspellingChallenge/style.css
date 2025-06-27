@@ -125,8 +125,8 @@ body {
 }
 
 #length-container {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: auto auto auto auto;
   gap: 20px;
   padding: 20px;
   max-width: 500px;
