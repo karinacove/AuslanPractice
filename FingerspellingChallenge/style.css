@@ -119,8 +119,7 @@ body {
 }
 
 #length-container {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  flex-wrap: wrap;
   gap: 10px;
   padding: 10px;
   max-width: 500px;
@@ -132,6 +131,7 @@ body {
 
 .length-option {
   width: 120px;
+  height: 120px;
   justify-content: space-evenly;
   cursor: pointer;
   transition: transform 0.2s;
