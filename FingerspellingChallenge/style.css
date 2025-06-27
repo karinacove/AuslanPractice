@@ -248,7 +248,7 @@ body {
 }
 
 .keyboard-key {
-  font-size: 40px;
+  font-size: 60px;
   padding: 1px 1px;
   margin: 1px;
   background: #eee;
@@ -257,7 +257,7 @@ body {
   cursor: pointer;
   user-select: none;
   text-transform: lowercase;
-  width: 70px;
+  width: 100px;
   text-align: center;
 }
 
