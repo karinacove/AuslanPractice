@@ -148,7 +148,7 @@ body {
 }
 
 #again-button {
-   width: 120px;
+   max-width: 120px;
    background: transparent;
    border: none;
 }
