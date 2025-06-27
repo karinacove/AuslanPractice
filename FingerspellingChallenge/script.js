@@ -230,7 +230,20 @@ wordInput.addEventListener("input", () => {
     } else {
       incorrectWords.push(typed);
       wordInput.classList.add("breathe");
-      setTimeout(() => wordInput.classList.remove("breathe"), 300);
+
+      // Bounce again-button
+      const againImg = document.querySelector("#again-button img");
+      if (againImg) {
+        againImg.classList.add("breathe");
+        setTimeout(() => againImg.classList.remove("breathe"), 800);
+      }
+
+      // Clear and respell
+      setTimeout(() => {
+        wordInput.value = "";
+        wordInput.classList.remove("breathe");
+        showLetterByLetter(currentWord);
+      }, 500);
     }
   }
 });
