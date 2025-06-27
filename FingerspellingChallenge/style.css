@@ -44,7 +44,6 @@ body {
   padding: 10px;
   width: 80%;
   max-width: 400px;
-  margin: 10px auto;
   text-align: center;
   display: block;
   border-radius: 20px;
@@ -67,8 +66,8 @@ body {
 
 #slow-icon,
 #fast-icon {
-  width: 120px;
-  height: auto;
+  width: auto;
+  height: 160px;
 }
 
 #top-bar {
