@@ -46,7 +46,7 @@ let score = 0;
 let currentWord = "";
 let currentLetterIndex = 0;
 let letterTimeouts = [];
-let speed = 100;
+let speed = 50;
 let correctWords = 0;
 let gameMode = "";
 let wordLength = 3;
@@ -75,7 +75,7 @@ function clearLetters() {
 function showLetterByLetter(word) {
   clearLetters();
   currentLetterIndex = 0;
-  let delay = 300;
+  let delay = 500;
 
   word.split("").forEach((letter, index) => {
     const timeout = setTimeout(() => {
