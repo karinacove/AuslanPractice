@@ -146,6 +146,12 @@ body {
   z-index: 1000;
 }
 
+#again-button {
+   width: 120px;
+   background: transparent;
+   border: none;
+}
+
 #keyboard-btn {
   position: fixed;
   bottom: 20px;
