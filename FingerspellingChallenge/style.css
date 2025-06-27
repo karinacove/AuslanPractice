@@ -82,8 +82,10 @@ body {
 }
 
 #game-screen {
-  margin-top: 20vh;
+  margin-top: 18vh;
+  margin-bottom: 5vh;
   flex-direction: column;
+  justify-content: space-evenly;
 }
 
 #controls {
