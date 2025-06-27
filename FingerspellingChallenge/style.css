@@ -40,15 +40,17 @@ body {
 }
 
 #word-input {
-  font-size: 2rem;
+  font-size: 1.5rem;
   padding: 10px;
   width: 80%;
   max-width: 400px;
+  margin: 10px auto;
   text-align: center;
   display: block;
   border-radius: 20px;
   border: 2px solid #ffffff;
   background-color: #fdfdfd;
+  order: 1;
 }
 
 #speed-container {
@@ -87,8 +89,10 @@ body {
 #controls {
   display: flex;
   justify-content: center;
-  gap: 10px;
   align-items: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
 .mode-select {
@@ -144,10 +148,11 @@ body {
 }
 
 #again-button {
-   width: 120px;
-   height: auto;
-   background: transparent;
-   border: none;
+  width: 120px;
+  height: auto;
+  background: transparent;
+  border: none;
+  order: 3;
 }
 
 #again-button img {
@@ -189,6 +194,7 @@ body {
 #end-modal-content img {
   width: 120px;
   margin: 10px;
+  background: transparent;
   cursor: pointer;
 }
 
