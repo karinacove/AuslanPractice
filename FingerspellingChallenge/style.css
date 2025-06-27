@@ -122,7 +122,7 @@ body {
   flex-wrap: wrap;
   gap: 10px;
   padding: 10px;
-  max-width: 510px;
+  width: 540px;
   height: 250px;
   margin: 20px auto;
   box-sizing: border-box;
