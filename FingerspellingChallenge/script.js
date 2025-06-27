@@ -46,7 +46,7 @@ let score = 0;
 let currentWord = "";
 let currentLetterIndex = 0;
 let letterTimeouts = [];
-let speed = 60;
+let speed = 100;
 let correctWords = 0;
 let gameMode = "";
 let wordLength = 3;
@@ -132,7 +132,7 @@ function startGame() {
   againButton.style.display = "block";
   updateScore();
   updateTimer();
-  setTimeout(nextWord, 600);
+  setTimeout(nextWord, 400);
 }
 
 function endGame() {
