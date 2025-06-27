@@ -86,7 +86,7 @@ body {
 
 #controls {
   display: flex;
-  justify-content: center contain;
+  justify-content: center;
   gap: 10px;
   max-height: 200px;
   align-items: center;
