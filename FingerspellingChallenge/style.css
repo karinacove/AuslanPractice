@@ -53,6 +53,10 @@ body {
   order: 1;
 }
 
+.word-input {
+     align-self: center;
+}
+
 #speed-container {
   display: flex;
   flex-direction: row;
@@ -91,7 +95,6 @@ body {
   justify-content: center;
   align-items: center;
   flex-direction: row;
-  flex-wrap: wrap;
   gap: 20px;
 }
 
