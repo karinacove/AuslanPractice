@@ -186,6 +186,80 @@ function setupKeyboard() {
     });
     keyboardContainer.appendChild(rowDiv);
   });
+
+  const backspace = document.createElement("button");
+    backspace.textContent = "←";
+    backspace.className = "key wide";
+    backspace.onclick = () => {
+      currentGuess = currentGuess.slice(0, -1);
+      updateWordInput();
+  };
+    controlRow.append(backspace, enter);
+  keyboard.appendChild(controlRow);
+
+  document.getElementById("closeKeyboardBtn").onclick = () => keyboard.style.display = "none";
+
+  dragElement(keyboard);
+}
+
+function dragElement(elmnt) {
+  const header = elmnt.querySelector("#keyboard-header");
+  let startX = 0, startY = 0, initialX = 0, initialY = 0, dragging = false;
+
+  if (!header) return;
+
+  // Mouse events
+  header.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    dragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    initialX = elmnt.offsetLeft;
+    initialY = elmnt.offsetTop;
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", stopDrag);
+  });
+
+  // Touch events
+  header.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    dragging = true;
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+    initialX = elmnt.offsetLeft;
+    initialY = elmnt.offsetTop;
+    document.addEventListener("touchmove", onTouchMove, { passive: false });
+    document.addEventListener("touchend", stopDrag);
+  });
+
+  function onMouseMove(e) {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    elmnt.style.left = `${initialX + dx}px`;
+    elmnt.style.top = `${initialY + dy}px`;
+    elmnt.style.transform = "none";
+  }
+
+  function onTouchMove(e) {
+    if (!dragging) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+    elmnt.style.left = `${initialX + dx}px`;
+    elmnt.style.top = `${initialY + dy}px`;
+    elmnt.style.transform = "none";
+    e.preventDefault(); // prevent page scroll while dragging
+  }
+
+  function stopDrag() {
+    dragging = false;
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", stopDrag);
+    document.removeEventListener("touchmove", onTouchMove);
+    document.removeEventListener("touchend", stopDrag);
+  }
 }
 
 // -------------------------
