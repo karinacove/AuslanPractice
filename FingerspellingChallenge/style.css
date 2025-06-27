@@ -112,7 +112,7 @@ body {
 }
 
 #length-container {
-  display: flex;
+  display: none;
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
@@ -120,7 +120,7 @@ body {
 }
 
 .length-option {
-  width: 75px;
+  width: 60px;
   cursor: pointer;
   transition: transform 0.2s;
 }
@@ -139,6 +139,10 @@ body {
   width: 80px;
   cursor: pointer;
   z-index: 1000;
+}
+
+#again-button img {
+  width: 120px;
 }
 
 #keyboard-btn {
