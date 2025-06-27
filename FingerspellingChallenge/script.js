@@ -132,7 +132,7 @@ function startGame() {
   againButton.style.display = "block";
   updateScore();
   updateTimer();
-  setTimeout(nextWord, 400);
+  setTimeout(nextWord, 600);
 }
 
 function endGame() {
