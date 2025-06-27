@@ -88,7 +88,7 @@ body {
   display: flex;
   justify-content: center;
   gap: 10px;
-  height: 200px;
+  max-height: 200px;
   align-items: center;
 }
 
