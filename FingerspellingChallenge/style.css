@@ -42,17 +42,15 @@ body {
 #word-input {
   font-size: 2rem;
   padding: 10px;
-  width: 80%;
+  width: 80vw;
   max-width: 400px;
   text-align: center;
   border-radius: 20px;
   border: 2px solid #ffffff;
   background-color: #fdfdfd;
   box-sizing: border-box;
-}
-
-.word-input {
-     align-self: center;
+  position: relative;
+  z-index: 1;
 }
 
 #speed-container {
@@ -95,6 +93,18 @@ body {
   gap: 20px; /* 20px space between word-input and again button */
   margin-top: 20px;
   flex-wrap: wrap;
+}
+
+#controls {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+#word-wrapper {
+  position: relative;
 }
 
 .mode-select {
@@ -150,12 +160,17 @@ body {
 }
 
 #again-button {
+  position: absolute;
+  right: -140px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 120px;
   max-height: 120px;
   background: transparent;
   border: none;
   padding: 0;
   margin: 0;
+  z-index: 2;
 }
 
 #again-button img {
