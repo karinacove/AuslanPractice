@@ -204,4 +204,54 @@ wordInput.addEventListener("input", () => {
       }, 60); // slightly longer to ensure render
     });
   }
+
+  // Game mode selection
+modeTimed.addEventListener("click", () => {
+  gameMode = "timed";
+  modeTimed.classList.add("selected");
+  modeLevel.classList.remove("selected");
+  lengthContainer.style.display = "flex";
+});
+
+modeLevel.addEventListener("click", () => {
+  gameMode = "levelup";
+  modeLevel.classList.add("selected");
+  modeTimed.classList.remove("selected");
+  lengthContainer.style.display = "none";
+  wordLength = 3;
+  startGame();
+});
+
+// Length option buttons
+lengthOptions.forEach(option => {
+  option.addEventListener("click", () => {
+    lengthOptions.forEach(o => o.classList.remove("selected"));
+    option.classList.add("selected");
+    wordLength = parseInt(option.dataset.length);
+    startGame();
+  });
+});
+
+// Keyboard toggle
+keyboardBtn.addEventListener("click", () => {
+  keyboardContainer.style.display = keyboardContainer.style.display === "none" ? "block" : "none";
+});
+
+// Finish modal buttons
+finishButton.addEventListener("click", () => showFinishModal(false));
+continueBtn.addEventListener("click", hideFinishModal);
+againButtonModal.addEventListener("click", () => window.location.href = "./index.html");
+menuButton.addEventListener("click", () => window.location.href = "../index.html");
+logoutButton.addEventListener("click", () => {
+  localStorage.clear();
+  window.location.href = "../index.html";
+});
+
+// Replay button
+againButton.addEventListener("click", () => {
+  if (isPaused) return;
+  wordInput.value = "";
+  wordInput.style.visibility = "visible";
+  wordInput.focus();
+  showLetterByLetter(currentWord);
 });
