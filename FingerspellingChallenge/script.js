@@ -116,7 +116,9 @@ function nextWord() {
   }
   const words = wordBank[wordLength] || wordBank[3];
   currentWord = words[Math.floor(Math.random() * words.length)];
-  showLetterByLetter(currentWord);
+
+  // Add a slight delay before starting to spell the word (to avoid font flicker)
+  setTimeout(() => showLetterByLetter(currentWord), 300);
 }
 
 function startGame() {
