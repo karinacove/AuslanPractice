@@ -112,10 +112,16 @@ body {
 }
 
 #length-container {
-  display: none;
-  flex-wrap: wrap;
+  display: grid none;
+  grid-template-columns: repeat(3, minmax(150px, 2fr));
+  gap: 20px;
+  padding: 20px;
+  max-width: 800px;
+  width: 90vw;
+  margin: 20px auto;
+  box-sizing: border-box;
   justify-content: center;
-  gap: 10px;
+  left: 50%;
   margin-top: 20px;
 }
 
