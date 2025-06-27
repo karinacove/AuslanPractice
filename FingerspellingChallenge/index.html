@@ -8,41 +8,34 @@
   <title>Fingerspelling Challenge</title>
 </head>
 <body>
-
-  <!-- Top Buttons -->
   <img id="finishButton" src="Assets/Icons/finish.png" alt="Finish Game" />
   <img id="keyboard-btn" src="Assets/keyboard.png" alt="Keyboard Toggle" />
 
-  <!-- Game Container -->
   <div id="game-container">
-
-    <!-- Sign-in Screen -->
+    <!-- Sign-in screen -->
     <div id="signin-screen">
-      <div class="mode-options">
-        <img src="Assets/Icons/2-min.png" id="mode-timed" class="mode-option" alt="2 Minute Challenge" />
-        <img src="Assets/Icons/level-up.png" id="mode-levelup" class="mode-option" alt="Level Up Challenge" />
+      <div class="mode-select">
+        <img src="Assets/Icons/2-min.png" id="mode-timed" class="mode-option" alt="2 Minute Mode" />
+        <img src="Assets/Icons/level-up.png" id="mode-levelup" class="mode-option" alt="Level Up Mode" />
       </div>
-
-      <div id="length-container" style="display: none;">
-        <div class="length-options">
-          <img src="Assets/Icons/3letters.png" class="length-option" data-length="3" alt="3 Letters" />
-          <img src="Assets/Icons/4letters.png" class="length-option" data-length="4" alt="4 Letters" />
-          <img src="Assets/Icons/5letters.png" class="length-option" data-length="5" alt="5 Letters" />
-          <img src="Assets/Icons/6letters.png" class="length-option" data-length="6" alt="6 Letters" />
-          <img src="Assets/Icons/7letters.png" class="length-option" data-length="7" alt="7 Letters" />
-          <img src="Assets/Icons/8letters.png" class="length-option" data-length="8" alt="8 Letters" />
-          <img src="Assets/Icons/9letters.png" class="length-option" data-length="9" alt="9 Letters" />
-          <img src="Assets/Icons/10letters.png" class="length-option" data-length="10" alt="10 Letters" />
-        </div>
+      <div id="length-container">
+        <img src="Assets/Icons/3letters.png" class="length-option" data-length="3" alt="3 Letters" />
+        <img src="Assets/Icons/4letters.png" class="length-option" data-length="4" alt="4 Letters" />
+        <img src="Assets/Icons/5letters.png" class="length-option" data-length="5" alt="5 Letters" />
+        <img src="Assets/Icons/6letters.png" class="length-option" data-length="6" alt="6 Letters" />
+        <img src="Assets/Icons/7letters.png" class="length-option" data-length="7" alt="7 Letters" />
+        <img src="Assets/Icons/8letters.png" class="length-option" data-length="8" alt="8 Letters" />
+        <img src="Assets/Icons/9letters.png" class="length-option" data-length="9" alt="9 Letters" />
+        <img src="Assets/Icons/10letters.png" class="length-option" data-length="10" alt="10 Letters" />
       </div>
     </div>
 
-    <!-- Game Screen -->
+    <!-- Game screen -->
     <div id="game-screen" style="display: none;">
       <div id="speed-container">
-        <img src="Assets/Icons/slow.png" alt="Slow" style="width: 40px;" />
+        <img src="Assets/Icons/slow.png" id="slow-icon" alt="Slow" />
         <input type="range" id="speed-slider" min="0" max="200" value="100" />
-        <img src="Assets/Icons/fast.png" alt="Fast" style="width: 40px;" />
+        <img src="Assets/Icons/fast.png" id="fast-icon" alt="Fast" />
       </div>
 
       <div id="top-bar">
@@ -52,14 +45,14 @@
 
       <div id="letter-display" class="auslan-font"></div>
 
-      <div id="controls" style="display: flex; flex-direction: column; align-items: center;">
+      <div id="controls">
         <input type="text" id="word-input" placeholder="Type the word" autocomplete="off" />
         <button id="again-button"><img src="Assets/Icons/again.png" alt="Again" /></button>
       </div>
     </div>
   </div>
 
-  <!-- End Modal -->
+  <!-- Modal -->
   <div id="end-modal">
     <div id="end-modal-content">
       <div id="clap-display"></div>
