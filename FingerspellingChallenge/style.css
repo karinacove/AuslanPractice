@@ -40,17 +40,15 @@ body {
 }
 
 #word-input {
-  font-size: 1.5rem;
+  font-size: 2rem;
   padding: 10px;
   width: 80%;
   max-width: 400px;
-  margin: 10px auto;
   text-align: center;
-  display: block;
   border-radius: 20px;
   border: 2px solid #ffffff;
   background-color: #fdfdfd;
-  order: 1;
+  box-sizing: border-box;
 }
 
 .word-input {
@@ -94,8 +92,9 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-direction: row;
-  gap: 20px;
+  gap: 20px; /* 20px space between word-input and again button */
+  margin-top: 20px;
+  flex-wrap: wrap;
 }
 
 .mode-select {
@@ -152,9 +151,11 @@ body {
 
 #again-button {
   width: 120px;
-  height: auto;
+  max-height: 120px;
   background: transparent;
   border: none;
+  padding: 0;
+  margin: 0;
 }
 
 #again-button img {
