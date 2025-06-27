@@ -204,7 +204,7 @@ wordInput.addEventListener("input", () => {
       }, 60); // slightly longer to ensure render
     });
   }
-
+});
   // Game mode selection
 modeTimed.addEventListener("click", () => {
   gameMode = "timed";
