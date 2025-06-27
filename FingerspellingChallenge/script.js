@@ -173,29 +173,35 @@ function hideFinishModal() {
 wordInput.addEventListener("input", () => {
   if (isPaused) return;
   const typed = wordInput.value.toLowerCase();
+
   if (typed.length === currentWord.length) {
-    setTimeout(() => {
-      if (typed === currentWord) {
-        score++;
-        correctWords++;
-        guessedWords.add(currentWord);
-        updateScore();
-        wordInput.value = "";
-        setTimeout(nextWord, 400);
-      } else {
-        incorrectWords.push(typed);
-        wordInput.classList.add("breathe");
-        const againImg = document.querySelector("#again-button img");
-        if (againImg) {
-          againImg.classList.add("breathe");
-          setTimeout(() => againImg.classList.remove("breathe"), 800);
-        }
-        setTimeout(() => {
+    // Let browser paint the final character
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        if (typed === currentWord) {
+          score++;
+          correctWords++;
+          guessedWords.add(currentWord);
+          updateScore();
           wordInput.value = "";
-          wordInput.classList.remove("breathe");
-          showLetterByLetter(currentWord);
-        }, 500);
-      }
-    }, 50); // Small delay so final letter appears before reset
+          setTimeout(nextWord, 600);
+        } else {
+          incorrectWords.push(typed);
+          wordInput.classList.add("breathe");
+
+          const againImg = document.querySelector("#again-button img");
+          if (againImg) {
+            againImg.classList.add("breathe");
+            setTimeout(() => againImg.classList.remove("breathe"), 800);
+          }
+
+          setTimeout(() => {
+            wordInput.value = "";
+            wordInput.classList.remove("breathe");
+            showLetterByLetter(currentWord);
+          }, 500);
+        }
+      }, 60); // slightly longer to ensure render
+    });
   }
 });
