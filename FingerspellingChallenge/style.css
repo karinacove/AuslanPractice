@@ -40,7 +40,7 @@ body {
 }
 
 #word-input {
-  font-size: 1.5rem;
+  font-size: 2rem;
   padding: 10px;
   width: 80%;
   max-width: 400px;
@@ -66,7 +66,7 @@ body {
 
 #slow-icon,
 #fast-icon {
-  width: 40px;
+  width: 120px;
   height: auto;
 }
 
@@ -91,7 +91,7 @@ body {
 }
 
 #again-button img {
-  width: 100px;
+  width: 200px;
 }
 
 .mode-select {
@@ -102,7 +102,7 @@ body {
 }
 
 .mode-option {
-  width: 120px;
+  width: 200px;
   cursor: pointer;
   transition: transform 0.2s;
 }
@@ -136,7 +136,7 @@ body {
   position: fixed;
   top: 20px;
   right: 20px;
-  width: 80px;
+  width: 120px;
   cursor: pointer;
   z-index: 1000;
 }
@@ -147,9 +147,9 @@ body {
 
 #keyboard-btn {
   position: fixed;
-  bottom: 10px;
-  right: 10px;
-  width: 80px;
+  bottom: 20px;
+  right: 20px;
+  width: 160px;
   z-index: 1000;
 }
 
@@ -175,14 +175,14 @@ body {
 }
 
 #end-modal-content img {
-  width: 100px;
+  width: 120px;
   margin: 10px;
   cursor: pointer;
 }
 
 #clap-display img {
   max-width: 150px;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .breathe {
