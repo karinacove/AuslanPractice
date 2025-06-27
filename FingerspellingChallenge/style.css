@@ -126,7 +126,7 @@ body {
 
 #length-container {
   display: flex;
-  flex-direction: rows;
+  flex-direction: row;
   gap: 20px;
   padding: 20px;
   max-width: 500px;
