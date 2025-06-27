@@ -235,7 +235,7 @@ body {
   border-radius: 12px;
   box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
   z-index: 2500;
-  min-width: 600px;
+  min-width: 400px;
   max-width: 90vw;
   cursor: move;
   touch-action: none;
@@ -271,7 +271,7 @@ body {
 }
 
 .keyboard-key {
-  font-size: 60px;
+  font-size: 40px;
   padding: 1px 1px;
   margin: 1px;
   background: #eee;
@@ -280,7 +280,7 @@ body {
   cursor: pointer;
   user-select: none;
   text-transform: lowercase;
-  width: 100px;
+  width: 80px;
   text-align: center;
 }
 
