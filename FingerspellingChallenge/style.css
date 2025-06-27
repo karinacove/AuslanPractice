@@ -88,7 +88,6 @@ body {
   display: flex;
   justify-content: center;
   gap: 10px;
-  max-height: 200px;
   align-items: center;
 }
 
@@ -145,9 +144,17 @@ body {
 }
 
 #again-button {
-   max-width: 120px;
+   width: 120px;
+   height: auto;
    background: transparent;
    border: none;
+}
+
+#again-button img {
+  width: 100%;
+  max-width: 120px;
+  height: auto;
+  display: block;
 }
 
 #keyboard-btn {
