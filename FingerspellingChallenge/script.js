@@ -132,7 +132,6 @@ function startGame() {
   againButton.style.display = "block";
   updateScore();
   updateTimer();
-  startTimer();
   setTimeout(nextWord, 400);
 }
 
@@ -171,12 +170,25 @@ function hideFinishModal() {
 function setupKeyboard() {
   const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
   keyboardContainer.innerHTML = "";
+
+  const header = document.createElement("div");
+  header.id = "keyboard-header";
+  header.textContent = "Keyboard";
+
+  const closeBtn = document.createElement("button");
+  closeBtn.id = "closeKeyboardBtn";
+  closeBtn.innerHTML = "×";
+  closeBtn.onclick = () => keyboardContainer.style.display = "none";
+
+  header.appendChild(closeBtn);
+  keyboardContainer.appendChild(header);
+
   layout.forEach(row => {
     const rowDiv = document.createElement("div");
     rowDiv.className = "keyboard-row";
     row.split("").forEach(letter => {
-      const key = document.createElement("button");
-      key.className = "key";
+      const key = document.createElement("div");
+      key.className = "keyboard-key";
       key.textContent = letter;
       key.addEventListener("click", () => {
         wordInput.value += letter.toLowerCase();
@@ -187,19 +199,21 @@ function setupKeyboard() {
     keyboardContainer.appendChild(rowDiv);
   });
 
-  const backspace = document.createElement("button");
-    backspace.textContent = "←";
-    backspace.className = "key wide";
-    backspace.onclick = () => {
-      currentGuess = currentGuess.slice(0, -1);
-      updateWordInput();
+  const controlRow = document.createElement("div");
+  controlRow.className = "keyboard-row";
+
+  const backspace = document.createElement("div");
+  backspace.textContent = "←";
+  backspace.className = "keyboard-key key wide";
+  backspace.onclick = () => {
+    wordInput.value = wordInput.value.slice(0, -1);
+    wordInput.dispatchEvent(new Event("input"));
   };
-    controlRow.append(backspace, enter);
-  keyboard.appendChild(controlRow);
 
-  document.getElementById("closeKeyboardBtn").onclick = () => keyboard.style.display = "none";
+  controlRow.appendChild(backspace);
+  keyboardContainer.appendChild(controlRow);
 
-  dragElement(keyboard);
+  dragElement(keyboardContainer);
 }
 
 function dragElement(elmnt) {
@@ -208,7 +222,6 @@ function dragElement(elmnt) {
 
   if (!header) return;
 
-  // Mouse events
   header.addEventListener("mousedown", (e) => {
     e.preventDefault();
     dragging = true;
@@ -220,7 +233,6 @@ function dragElement(elmnt) {
     document.addEventListener("mouseup", stopDrag);
   });
 
-  // Touch events
   header.addEventListener("touchstart", (e) => {
     e.preventDefault();
     dragging = true;
@@ -250,7 +262,7 @@ function dragElement(elmnt) {
     elmnt.style.left = `${initialX + dx}px`;
     elmnt.style.top = `${initialY + dy}px`;
     elmnt.style.transform = "none";
-    e.preventDefault(); // prevent page scroll while dragging
+    e.preventDefault();
   }
 
   function stopDrag() {
@@ -269,7 +281,7 @@ modeTimed.addEventListener("click", () => {
   gameMode = "timed";
   modeTimed.classList.add("selected");
   modeLevel.classList.remove("selected");
-  lengthContainer.style.display = "block";
+  lengthContainer.style.display = "flex";
 });
 
 modeLevel.addEventListener("click", () => {
@@ -304,15 +316,11 @@ wordInput.addEventListener("input", () => {
     } else {
       incorrectWords.push(typed);
       wordInput.classList.add("breathe");
-
-      // Bounce again-button
       const againImg = document.querySelector("#again-button img");
       if (againImg) {
         againImg.classList.add("breathe");
         setTimeout(() => againImg.classList.remove("breathe"), 800);
       }
-
-      // Clear and respell
       setTimeout(() => {
         wordInput.value = "";
         wordInput.classList.remove("breathe");
