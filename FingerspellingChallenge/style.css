@@ -79,6 +79,10 @@ body {
   font-weight: bold;
 }
 
+#game-screen {
+  margin-top: 20vh;
+}
+
 #controls {
   display: flex;
   justify-content: center;
