@@ -110,18 +110,15 @@ body {
 }
 
 #length-container {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(120px, 2fr));
+  display: flex;
   gap: 20px;
   padding: 20px;
-  max-width: 800px;
-  width: 90vw;
+  max-width: 500px;
   margin: 20px auto;
   box-sizing: border-box;
-  justify-self: center;
-  left: 50%;
   margin-top: 20px;
-  align-content: center;
+  justify-content: center;
+  align-items: center;
 }
 
 .length-option {
