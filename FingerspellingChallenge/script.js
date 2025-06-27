@@ -34,6 +34,8 @@ const lengthContainer = document.getElementById("length-container");
 const lengthOptions = document.querySelectorAll(".length-option");
 const modeTimed = document.getElementById("mode-timed");
 const modeLevel = document.getElementById("mode-levelup");
+const slowIcon = document.getElementById("slow-icon");
+const fastIcon = document.getElementById("fast-icon");
 
 // -------------------------
 // Game State
@@ -73,7 +75,7 @@ function clearLetters() {
 function showLetterByLetter(word) {
   clearLetters();
   currentLetterIndex = 0;
-  let delay = 300; // Initial pause
+  let delay = 300;
 
   word.split("").forEach((letter, index) => {
     const timeout = setTimeout(() => {
@@ -83,9 +85,9 @@ function showLetterByLetter(word) {
           if (!isPaused && letterDisplay.textContent === letter.toLowerCase()) {
             letterDisplay.textContent = "";
           }
-        }, 400 - speed); // linger per letter
+        }, 400 - speed);
       }
-    }, delay + index * ((400 - speed) + 100)); // Added 0.1s between letters
+    }, delay + index * ((400 - speed) + 100));
     letterTimeouts.push(timeout);
   });
 }
