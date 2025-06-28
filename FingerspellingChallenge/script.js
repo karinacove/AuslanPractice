@@ -46,7 +46,7 @@ let score = 0;
 let currentWord = "";
 let currentLetterIndex = 0;
 let letterTimeouts = [];
-let speed = 50;
+let speed = parseInt(speedSlider.value) || 50;
 let correctWords = 0;
 let gameMode = "";
 let wordLength = 3;
@@ -75,7 +75,10 @@ function clearLetters() {
 function showLetterByLetter(word) {
   clearLetters();
   currentLetterIndex = 0;
-  let delay = 300;
+  speed = parseInt(speedSlider.value) || 100;
+  const displayDuration = Math.max(100, 400 - speed);
+  const letterGap = 100;
+  const delay = 300;
 
   word.split("").forEach((letter, index) => {
     const timeout = setTimeout(() => {
@@ -85,9 +88,9 @@ function showLetterByLetter(word) {
           if (!isPaused && letterDisplay.textContent === letter.toLowerCase()) {
             letterDisplay.textContent = "";
           }
-        }, 400 - speed);
+        }, displayDuration);
       }
-    }, delay + index * ((400 - speed) + 100));
+    }, delay + index * (displayDuration + letterGap));
     letterTimeouts.push(timeout);
   });
 }
@@ -116,7 +119,7 @@ function nextWord() {
   }
   const words = wordBank[wordLength] || wordBank[3];
   currentWord = words[Math.floor(Math.random() * words.length)];
-  setTimeout(() => showLetterByLetter(currentWord), 200); // Small delay for font rendering
+  setTimeout(() => showLetterByLetter(currentWord), 200);
 }
 
 function startGame() {
@@ -167,45 +170,146 @@ function hideFinishModal() {
   wordInput.focus();
 }
 
+function setupKeyboard() {
+  const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
+  keyboardContainer.innerHTML = "";
+
+  const header = document.createElement("div");
+  header.id = "keyboard-header";
+  header.textContent = "Keyboard";
+
+  const closeBtn = document.createElement("button");
+  closeBtn.id = "closeKeyboardBtn";
+  closeBtn.innerHTML = "×";
+  closeBtn.onclick = () => keyboardContainer.style.display = "none";
+
+  header.appendChild(closeBtn);
+  keyboardContainer.appendChild(header);
+
+  layout.forEach(row => {
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "keyboard-row";
+    row.split("").forEach(letter => {
+      const key = document.createElement("div");
+      key.className = "keyboard-key";
+      key.textContent = letter;
+      key.addEventListener("click", () => {
+        wordInput.value += letter.toLowerCase();
+        wordInput.dispatchEvent(new Event("input"));
+      });
+      rowDiv.appendChild(key);
+    });
+    keyboardContainer.appendChild(rowDiv);
+  });
+
+  const controlRow = document.createElement("div");
+  controlRow.className = "keyboard-row";
+
+  const backspace = document.createElement("div");
+  backspace.textContent = "←";
+  backspace.className = "keyboard-key key wide";
+  backspace.onclick = () => {
+    wordInput.value = wordInput.value.slice(0, -1);
+    wordInput.dispatchEvent(new Event("input"));
+  };
+
+  controlRow.appendChild(backspace);
+  keyboardContainer.appendChild(controlRow);
+
+  dragElement(keyboardContainer);
+}
+
+function dragElement(elmnt) {
+  const header = elmnt.querySelector("#keyboard-header");
+  let startX = 0, startY = 0, initialX = 0, initialY = 0, dragging = false;
+
+  if (!header) return;
+
+  header.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    dragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    initialX = elmnt.offsetLeft;
+    initialY = elmnt.offsetTop;
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", stopDrag);
+  });
+
+  header.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    dragging = true;
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+    initialX = elmnt.offsetLeft;
+    initialY = elmnt.offsetTop;
+    document.addEventListener("touchmove", onTouchMove, { passive: false });
+    document.addEventListener("touchend", stopDrag);
+  });
+
+  function onMouseMove(e) {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    elmnt.style.left = `${initialX + dx}px`;
+    elmnt.style.top = `${initialY + dy}px`;
+    elmnt.style.transform = "none";
+  }
+
+  function onTouchMove(e) {
+    if (!dragging) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+    elmnt.style.left = `${initialX + dx}px`;
+    elmnt.style.top = `${initialY + dy}px`;
+    elmnt.style.transform = "none";
+    e.preventDefault();
+  }
+
+  function stopDrag() {
+    dragging = false;
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", stopDrag);
+    document.removeEventListener("touchmove", onTouchMove);
+    document.removeEventListener("touchend", stopDrag);
+  }
+}
+
 // -------------------------
 // Event Listeners
 // -------------------------
 wordInput.addEventListener("input", () => {
   if (isPaused) return;
   const typed = wordInput.value.toLowerCase();
-
   if (typed.length === currentWord.length) {
-    // Let browser paint the final character
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        if (typed === currentWord) {
-          score++;
-          correctWords++;
-          guessedWords.add(currentWord);
-          updateScore();
-          wordInput.value = "";
-          setTimeout(nextWord, 600);
-        } else {
-          incorrectWords.push(typed);
-          wordInput.classList.add("breathe");
-
-          const againImg = document.querySelector("#again-button img");
-          if (againImg) {
-            againImg.classList.add("breathe");
-            setTimeout(() => againImg.classList.remove("breathe"), 800);
-          }
-
-          setTimeout(() => {
-            wordInput.value = "";
-            wordInput.classList.remove("breathe");
-            showLetterByLetter(currentWord);
-          }, 500);
+    setTimeout(() => {
+      if (typed === currentWord) {
+        score++;
+        correctWords++;
+        guessedWords.add(currentWord);
+        updateScore();
+        wordInput.value = "";
+        setTimeout(nextWord, 400);
+      } else {
+        incorrectWords.push(typed);
+        wordInput.classList.add("breathe");
+        const againImg = document.querySelector("#again-button img");
+        if (againImg) {
+          againImg.classList.add("breathe");
+          setTimeout(() => againImg.classList.remove("breathe"), 800);
         }
-      }, 60); // slightly longer to ensure render
-    });
+        setTimeout(() => {
+          wordInput.value = "";
+          wordInput.classList.remove("breathe");
+          showLetterByLetter(currentWord);
+        }, 500);
+      }
+    }, 50);
   }
 });
-  // Game mode selection
+
 modeTimed.addEventListener("click", () => {
   gameMode = "timed";
   modeTimed.classList.add("selected");
@@ -222,7 +326,6 @@ modeLevel.addEventListener("click", () => {
   startGame();
 });
 
-// Length option buttons
 lengthOptions.forEach(option => {
   option.addEventListener("click", () => {
     lengthOptions.forEach(o => o.classList.remove("selected"));
@@ -232,12 +335,10 @@ lengthOptions.forEach(option => {
   });
 });
 
-// Keyboard toggle
 keyboardBtn.addEventListener("click", () => {
   keyboardContainer.style.display = keyboardContainer.style.display === "none" ? "block" : "none";
 });
 
-// Finish modal buttons
 finishButton.addEventListener("click", () => showFinishModal(false));
 continueBtn.addEventListener("click", hideFinishModal);
 againButtonModal.addEventListener("click", () => window.location.href = "./index.html");
@@ -247,7 +348,6 @@ logoutButton.addEventListener("click", () => {
   window.location.href = "../index.html";
 });
 
-// Replay button
 againButton.addEventListener("click", () => {
   if (isPaused) return;
   wordInput.value = "";
@@ -255,3 +355,10 @@ againButton.addEventListener("click", () => {
   wordInput.focus();
   showLetterByLetter(currentWord);
 });
+
+speedSlider.addEventListener("input", () => {
+  speed = parseInt(speedSlider.value);
+});
+
+// Init
+setupKeyboard();
