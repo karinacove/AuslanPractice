@@ -9,8 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const topic = urlParams.get("topic") || "colours";
+  const topic = "colours";
 
   const againBtn = document.getElementById("again-btn");
   const continueBtn = document.getElementById("continue-btn");
@@ -30,59 +29,33 @@ document.addEventListener("DOMContentLoaded", function () {
     loadPage();
   });
 
-  againBtn.addEventListener("click", () => {
-    location.reload();
-  });
-
-  menuBtn.addEventListener("click", () => {
-    window.location.href = "../index.html";
-  });
-
+  againBtn.addEventListener("click", () => location.reload());
+  menuBtn.addEventListener("click", () => (window.location.href = "../index.html"));
   logoutBtn.addEventListener("click", () => {
     localStorage.clear();
     window.location.href = "../index.html";
   });
 
-  const allItems = topic === "alphabet"
-    ? "abcdefghijklmnopqrstuvwxyz".split("")
-    : ["red", "green", "blue", "black", "brown", "purple", "pink", "orange", "white", "yellow"];
+  const allItems = ["red", "green", "blue", "black", "brown", "purple", "pink", "orange", "white", "yellow"];
 
   const levels = [
     { type: "signToImage", decoys: 3 },
     { type: "imageToSign", decoys: 3 },
     { type: "mixed", decoys: 3 },
-    { type: "signToImage", decoys: 9, wideMode: true },
-    { type: "imageToSign", decoys: 9, wideMode: true },
-    { type: "mixed", decoys: 9, wideMode: true }
+    { type: "signToImage", decoys: 6, wideMode: true },
+    { type: "imageToSign", decoys: 6, wideMode: true },
+    { type: "mixed", decoys: 6, wideMode: true }
   ];
 
-  const formEntryIDs = {
-    correct: [
-      "entry.1249394203",
-      "entry.1551220511",
-      "entry.903633326",
-      "entry.497882042",
-      "entry.1591755601",
-      "entry.1996137354"
-    ],
-    incorrect: [
-      "entry.1897227570",
-      "entry.1116300030",
-      "entry.187975538",
-      "entry.1880514176",
-      "entry.552536101",
-      "entry.922308538"
-    ]
-  };
+  const levelAttempts = Array(levels.length).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
+  const pagesPerLevel = 2;
 
   let currentLevel = 0;
   let currentPage = 0;
-  const pagesPerLevel = 3;
-  const levelAttempts = Array(levels.length).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
   let currentLetters = [];
   let correctMatches = 0;
-  let startTime = Date.now();
   let gameEnded = false;
+  let startTime = Date.now();
 
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
@@ -119,11 +92,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function loadPage() {
     const { type, decoys, wideMode } = levels[currentLevel];
 
-    if (wideMode) {
-      document.body.classList.add("wide-mode");
-    } else {
-      document.body.classList.remove("wide-mode");
-    }
+    document.body.classList.toggle("wide-mode", !!wideMode);
 
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
@@ -136,37 +105,28 @@ document.addEventListener("DOMContentLoaded", function () {
       currentLetters = [];
 
       for (let page = 0; page < pagesPerLevel; page++) {
-        let items = baseItems.slice(page * 9, (page + 1) * 9);
-
-        if (topic === "colours" && page === 2) {
-          const used = new Set(items);
-          const missingVowels = vowels.filter(v => !used.has(v));
-          if (missingVowels.length > 0) {
-            items.push(missingVowels[Math.floor(Math.random() * missingVowels.length)]);
-          }
-        }
-
+        const items = baseItems.slice(page * 5, (page + 1) * 5); // 5 colours per page
         currentLetters.push(items);
       }
     }
 
     const lettersThisPage = currentLetters[currentPage];
-    const usedLetters = new Set(lettersThisPage);
+    const usedSet = new Set(lettersThisPage);
 
     lettersThisPage.forEach(letter => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
-      slot.style.backgroundImage = `url('assets/${topic}/clipart/${colour}.png')`;
+      slot.style.backgroundImage = `url('assets/${topic}/clipart/${letter}.png')`;
       gameBoard.appendChild(slot);
     });
 
-    const decoyLetters = shuffle(allItems.filter(l => !usedLetters.has(l))).slice(0, decoys);
+    const decoyLetters = shuffle(allItems.filter(l => !usedSet.has(l))).slice(0, decoys);
     const draggables = shuffle([...lettersThisPage, ...decoyLetters]);
 
     draggables.forEach((letter, index) => {
       const img = document.createElement("img");
-      img.src = `assets/${topic}/signs/sign-${colours}.png`;
+      img.src = `assets/${topic}/signs/sign-${letter}.png`;
       img.className = "draggable";
       img.dataset.letter = letter;
       img.draggable = true;
@@ -176,11 +136,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       img.addEventListener("touchstart", touchStart);
 
-      if (index % 2 === 0) {
-        leftSigns.appendChild(img);
-      } else {
-        rightSigns.appendChild(img);
-      }
+      (index % 2 === 0 ? leftSigns : rightSigns).appendChild(img);
     });
 
     correctMatches = 0;
@@ -197,22 +153,26 @@ document.addEventListener("DOMContentLoaded", function () {
     const src = e.dataTransfer.getData("src");
     const target = e.currentTarget;
     const targetLetter = target.dataset.letter;
+
     if (letter === targetLetter) {
-      if (!levelAttempts[currentLevel].correct.has(colour)) {
-        levelAttempts[currentLevel].correct.add(colour);
+      if (!levelAttempts[currentLevel].correct.has(letter)) {
+        levelAttempts[currentLevel].correct.add(letter);
       }
+
       target.innerHTML = "";
       const overlay = document.createElement("img");
       overlay.src = src;
       overlay.className = "overlay";
       target.appendChild(overlay);
-      document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el => el.remove());
+
+      document.querySelectorAll(`img.draggable[data-letter="${letter}"]`).forEach(el => el.remove());
       correctMatches++;
       showFeedback(true);
 
       if (correctMatches >= currentLetters[currentPage].length) {
         correctMatches = 0;
         currentPage++;
+
         if (currentPage < pagesPerLevel) {
           setTimeout(loadPage, 800);
         } else {
