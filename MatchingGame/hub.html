@@ -60,9 +60,12 @@
         const topic = item.dataset.topic;
         if (topic === 'alphabet') {
           window.location.href = 'alphabet.html';
+        } else if (topic === 'colours') {
+          window.location.href = 'colours.html';
         } else {
           alert(`${topic.charAt(0).toUpperCase() + topic.slice(1)} is coming soon!`);
         }
+
       });
     });
   </script>
