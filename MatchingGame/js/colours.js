@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
   const urlParams = new URLSearchParams(window.location.search);
-  const topic = urlParams.get("topic") || "alphabet";
+  const topic = urlParams.get("topic") || "colours";
 
   const againBtn = document.getElementById("again-btn");
   const continueBtn = document.getElementById("continue-btn");
@@ -46,8 +46,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const allItems = topic === "alphabet"
     ? "abcdefghijklmnopqrstuvwxyz".split("")
     : ["red", "green", "blue", "black", "brown", "purple", "pink", "orange", "white", "yellow"];
-
-  const vowels = ["a", "e", "i", "o", "u"];
 
   const levels = [
     { type: "signToImage", decoys: 3 },
@@ -140,7 +138,7 @@ document.addEventListener("DOMContentLoaded", function () {
       for (let page = 0; page < pagesPerLevel; page++) {
         let items = baseItems.slice(page * 9, (page + 1) * 9);
 
-        if (topic === "alphabet" && page === 2) {
+        if (topic === "colours" && page === 2) {
           const used = new Set(items);
           const missingVowels = vowels.filter(v => !used.has(v));
           if (missingVowels.length > 0) {
@@ -159,7 +157,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
-      slot.style.backgroundImage = `url('assets/${topic}/clipart/${letter}.png')`;
+      slot.style.backgroundImage = `url('assets/${topic}/clipart/${colour}.png')`;
       gameBoard.appendChild(slot);
     });
 
@@ -168,7 +166,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     draggables.forEach((letter, index) => {
       const img = document.createElement("img");
-      img.src = `assets/${topic}/signs/sign-${letter}.png`;
+      img.src = `assets/${topic}/signs/sign-${colours}.png`;
       img.className = "draggable";
       img.dataset.letter = letter;
       img.draggable = true;
@@ -200,15 +198,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const target = e.currentTarget;
     const targetLetter = target.dataset.letter;
     if (letter === targetLetter) {
-      if (!levelAttempts[currentLevel].correct.has(letter)) {
-        levelAttempts[currentLevel].correct.add(letter);
+      if (!levelAttempts[currentLevel].correct.has(colour)) {
+        levelAttempts[currentLevel].correct.add(colour);
       }
       target.innerHTML = "";
       const overlay = document.createElement("img");
       overlay.src = src;
       overlay.className = "overlay";
       target.appendChild(overlay);
-      document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
+      document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el => el.remove());
       correctMatches++;
       showFeedback(true);
 
