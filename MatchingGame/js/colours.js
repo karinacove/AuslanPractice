@@ -131,7 +131,8 @@ document.addEventListener("DOMContentLoaded", function () {
         e.dataTransfer.setData("text/plain", letter);
         e.dataTransfer.setData("src", img.src);
       });
-      img.addEventListener("touchstart", touchStart);
+      // Touch drag support optional; uncomment and define touchStart if needed
+      // img.addEventListener("touchstart", touchStart);
       (index % 2 === 0 ? leftSigns : rightSigns).appendChild(img);
     });
 
