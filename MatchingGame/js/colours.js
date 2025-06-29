@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
   const topic = "colours";
+  const allItems = ["red", "green", "blue", "black", "brown", "purple", "pink", "orange", "white", "yellow"];
 
   const againBtn = document.getElementById("again-btn");
   const continueBtn = document.getElementById("continue-btn");
@@ -35,8 +36,6 @@ document.addEventListener("DOMContentLoaded", function () {
     localStorage.clear();
     window.location.href = "../index.html";
   });
-
-  const allItems = ["red", "green", "blue", "black", "brown", "purple", "pink", "orange", "white", "yellow"];
 
   const levels = [
     { type: "signToImage", decoys: 3 },
@@ -91,7 +90,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function loadPage() {
     const { type, decoys, wideMode } = levels[currentLevel];
-
     document.body.classList.toggle("wide-mode", !!wideMode);
 
     gameBoard.innerHTML = "";
@@ -103,9 +101,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (currentPage === 0) {
       const baseItems = shuffle([...allItems]);
       currentLetters = [];
-
       for (let page = 0; page < pagesPerLevel; page++) {
-        const items = baseItems.slice(page * 5, (page + 1) * 5); // 5 colours per page
+        const items = baseItems.slice(page * 5, (page + 1) * 5);
         currentLetters.push(items);
       }
     }
@@ -135,7 +132,6 @@ document.addEventListener("DOMContentLoaded", function () {
         e.dataTransfer.setData("src", img.src);
       });
       img.addEventListener("touchstart", touchStart);
-
       (index % 2 === 0 ? leftSigns : rightSigns).appendChild(img);
     });
 
@@ -158,13 +154,11 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!levelAttempts[currentLevel].correct.has(letter)) {
         levelAttempts[currentLevel].correct.add(letter);
       }
-
       target.innerHTML = "";
       const overlay = document.createElement("img");
       overlay.src = src;
       overlay.className = "overlay";
       target.appendChild(overlay);
-
       document.querySelectorAll(`img.draggable[data-letter="${letter}"]`).forEach(el => el.remove());
       correctMatches++;
       showFeedback(true);
@@ -172,7 +166,6 @@ document.addEventListener("DOMContentLoaded", function () {
       if (correctMatches >= currentLetters[currentPage].length) {
         correctMatches = 0;
         currentPage++;
-
         if (currentPage < pagesPerLevel) {
           setTimeout(loadPage, 800);
         } else {
