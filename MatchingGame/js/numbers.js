@@ -1,4 +1,4 @@
-// ✅ Fully Corrected Numbers Matching Game JavaScript
+// ✅ Fully Corrected Numbers Matching Game JavaScript with Level 1–3 Rules Refined
 
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
@@ -43,13 +43,13 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   const levelDefinitions = [
-    { start: 0, end: 12, pages: 2, repeat: true },   // Level 1
-    { start: 13, end: 20, pages: 1 },                // Level 2
-    { start: 21, end: 48, pages: 3 },                // Level 3
-    { start: 49, end: 76, pages: 3 },                // Level 4
-    { start: 77, end: 100, pages: 3, repeat: true }, // Level 5
-    { random: true, pages: 3 },                      // Level 6
-    { review: true, pages: 1 }                       // Level 7
+    { start: 0, end: 12, pages: 2, repeat: false },   // Levels 1–3 strictly 0–12
+    { start: 13, end: 20, pages: 1 },                // Levels 4–6
+    { start: 21, end: 48, pages: 3 },                // Levels 7–9
+    { start: 49, end: 76, pages: 3 },                // Levels 10–12
+    { start: 77, end: 100, pages: 3, repeat: true }, // Levels 13–16
+    { random: true, pages: 3 },                      // Levels 17–19
+    { review: true, pages: 1 }                       // Level 20
   ];
 
   let currentLevel = 0;
@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
           currentLevel++;
           currentPage = 0;
-          if (currentLevel >= levelDefinitions.length) {
+          if (currentLevel >= 20) {
             setTimeout(endGame, 800);
           } else {
             setTimeout(loadPage, 800);
@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function loadPage() {
-    const info = levelDefinitions[currentLevel] || {};
+    const info = levelDefinitions[Math.floor(currentLevel / 3)] || {};
     const pageCount = info.pages || 1;
 
     if (currentPage === 0) {
@@ -144,14 +144,7 @@ document.addEventListener("DOMContentLoaded", function () {
         currentLetters.push(sorted.slice(0, 9));
       } else {
         const pool = info.random ? Array.from({ length: 101 }, (_, i) => i) : Array.from({ length: info.end - info.start + 1 }, (_, i) => i + info.start);
-        const chosen = info.repeat ? (() => {
-          let output = [];
-          while (output.length < pageCount * 9) {
-            output.push(...shuffle(pool).slice(0, Math.min(9, pageCount * 9 - output.length)));
-          }
-          return shuffle(output);
-        })() : shuffle(pool).slice(0, pageCount * 9);
-
+        const chosen = shuffle(pool).slice(0, pageCount * 9);
         for (let i = 0; i < pageCount; i++) {
           currentLetters.push(chosen.slice(i * 9, (i + 1) * 9));
         }
@@ -169,14 +162,18 @@ document.addEventListener("DOMContentLoaded", function () {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = `${letter}`;
-      const isSign = Math.random() < 0.5;
+      let isSign;
+      if (currentLevel === 0) isSign = false; // Level 1: Clipart in grid
+      else if (currentLevel === 1) isSign = true; // Level 2: Signs in grid
+      else if (currentLevel === 2) isSign = Math.random() < 0.5; // Level 3: Mixed
+      else isSign = Math.random() < 0.5; // Default behavior for later levels
       slot.style.backgroundImage = `url('assets/numbers/${isSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}')`;
       slotTypes[letter] = isSign;
       gameBoard.appendChild(slot);
     });
 
     const allNumbers = Array.from({ length: 101 }, (_, i) => i);
-    const decoys = shuffle(allNumbers.filter(n => !pageLetters.includes(n))).slice(0, 3);
+    const decoys = shuffle(allNumbers.filter(n => !pageLetters.includes(n) && (currentLevel <= 2 ? n <= 12 : true))).slice(0, 3);
     const draggableLetters = shuffle([...pageLetters, ...decoys]);
 
     draggableLetters.forEach((letter, i) => {
@@ -191,7 +188,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       img.addEventListener("touchstart", touchStart);
 
-      const isOpposite = !slotTypes[letter];
+      const isOpposite = pageLetters.includes(letter) ? !slotTypes[letter] : Math.random() < 0.5;
       img.src = `assets/numbers/${isOpposite ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}`;
 
       const wrap = document.createElement("div");
