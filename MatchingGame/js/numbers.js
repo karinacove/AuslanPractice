@@ -1,7 +1,4 @@
-// ✅ NUMBERS MATCHING GAME JS
-
-// == DOMContentLoaded ==
-document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
 
