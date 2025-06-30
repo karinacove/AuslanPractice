@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const finishBtn = document.getElementById("finish-btn");
 
   if (finishBtn) finishBtn.addEventListener("click", () => {
-    gameEnded = false;
+    gameEnded = true;
     endGame();
   });
 
@@ -110,20 +110,26 @@ document.addEventListener("DOMContentLoaded", function () {
     const lettersThisPage = currentLetters[currentPage];
     const usedSet = new Set(lettersThisPage);
 
+    const isSignToImage = type === "signToImage";
+    const isImageToSign = type === "imageToSign";
+    const isMixed = type === "mixed";
+
+    // Render slots
     lettersThisPage.forEach(letter => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
-      slot.style.backgroundImage = `url('assets/${topic}/clipart/${letter}.png')`;
+      slot.style.backgroundImage = `url('assets/${topic}/${isSignToImage ? "clipart" : "signs"}/${isSignToImage ? letter : `sign-${letter}`}.png')`;
       gameBoard.appendChild(slot);
     });
 
+    // Create draggable items
     const decoyLetters = shuffle(allItems.filter(l => !usedSet.has(l))).slice(0, decoys);
     const draggables = shuffle([...lettersThisPage, ...decoyLetters]);
 
     draggables.forEach((letter, index) => {
       const img = document.createElement("img");
-      img.src = `assets/${topic}/signs/sign-${letter}.png`;
+      img.src = `assets/${topic}/${isSignToImage ? "signs" : "clipart"}/${isSignToImage ? `sign-${letter}` : `${letter}`}.png`;
       img.className = "draggable";
       img.dataset.letter = letter;
       img.draggable = true;
@@ -131,8 +137,6 @@ document.addEventListener("DOMContentLoaded", function () {
         e.dataTransfer.setData("text/plain", letter);
         e.dataTransfer.setData("src", img.src);
       });
-      // Touch drag support optional; uncomment and define touchStart if needed
-      // img.addEventListener("touchstart", touchStart);
       (index % 2 === 0 ? leftSigns : rightSigns).appendChild(img);
     });
 
@@ -183,6 +187,12 @@ document.addEventListener("DOMContentLoaded", function () {
       levelAttempts[currentLevel].incorrect.push(letter);
       showFeedback(false);
     }
+  }
+
+  function endGame() {
+    if (gameEnded) return;
+    gameEnded = true;
+    document.getElementById("end-modal").style.display = "flex";
   }
 
   loadPage();
