@@ -240,7 +240,7 @@ document.addEventListener("DOMContentLoaded", function () {
       slot.dataset.letter = number;
 
       let isSign = mode === "signToImage" ? false : mode === "imageToSign" ? true : Math.random() < 0.5;
-      slot.style.backgroundImage = `url('assets/numbers/${isSign ? `signs/${number}.png` : `clipart/${number}.png`}')`;
+      slot.style.backgroundImage = `url('assets/numbers/${isSign ? `signs/sign-${number}.png` : `clipart/${number}.png`}')`;
       slotTypes[number] = isSign;
       gameBoard.appendChild(slot);
     });
@@ -265,7 +265,7 @@ document.addEventListener("DOMContentLoaded", function () {
         (pageNumbers.includes(number) ? !slotTypes[number] : Math.random() < 0.5) :
         mode === "signToImage" ? true : false;
 
-      img.src = `assets/numbers/${oppositeType ? `signs/${number}.png` : `clipart/${number}.png`}`;
+      img.src = `assets/numbers/${oppositeType ? `signs/sign-${number}.png` : `clipart/${number}.png`}`;
 
       const wrap = document.createElement("div");
       wrap.className = "drag-wrapper";
