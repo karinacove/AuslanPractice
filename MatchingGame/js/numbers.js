@@ -262,8 +262,10 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     for (let i = 0; i < formEntryIDs.correct.length; i++) {
-      entries[formEntryIDs.correct[i]] = Array.from(levelAttempts[i].correct).join(",");
-      entries[formEntryIDs.incorrect[i]] = levelAttempts[i].incorrect.join(",");
+      const correctSorted = Array.from(levelAttempts[i].correct).sort(sortNumbers);
+      const incorrectSorted = levelAttempts[i].incorrect.sort(sortNumbers);
+      entries[formEntryIDs.correct[i]] = correctSorted.join(",");
+      entries[formEntryIDs.incorrect[i]] = incorrectSorted.join(",");
     }
 
     const totalCorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.correct.size, 0);
