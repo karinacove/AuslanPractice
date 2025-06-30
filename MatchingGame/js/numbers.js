@@ -56,11 +56,11 @@ document.addEventListener("DOMContentLoaded", function () {
     { start: 77, end: 100, pages: 3, type: "clipart-grid" },
     { start: 77, end: 100, pages: 3, type: "sign-grid" },
     { start: 77, end: 100, pages: 3, type: "mixed" },
+    { start: 0, end: 100, pages: 3, type: "clipart-grid" },
+    { start: 0, end: 100, pages: 3, type: "sign-grid" },
+    { start: 0, end: 100, pages: 3, type: "mixed" },
     { random: true, pages: 3, type: "mixed" },
     { random: true, pages: 3, type: "mixed" },
-    { random: true, pages: 3, type: "mixed" },
-    { random: true, pages: 3, type: "mixed" },
-    { review: true, pages: 1, type: "mixed" }
   ];
 
   let currentLevel = 0;
