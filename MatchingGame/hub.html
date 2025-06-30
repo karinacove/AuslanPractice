@@ -10,7 +10,7 @@
 <body>
   <div id="student-info" aria-live="polite"></div>
 
-  <img id="logoutBtn" src="assets/logout.png" alt="logout-btn" />
+  <img id="logoutBtn" src="assets/logout.png" alt="Logout" />
 
   <h1>Choose a Game</h1>
 
@@ -36,36 +36,42 @@
   </div>
 
   <script>
-    let studentName = localStorage.getItem("studentName") || "";
-    let studentClass = localStorage.getItem("studentClass") || "";
-
-    const logoutBtn = document.getElementById("logout-btn");
+    const studentName = localStorage.getItem("studentName") || "";
+    const studentClass = localStorage.getItem("studentClass") || "";
     const studentInfoDiv = document.getElementById("student-info");
 
     if (!studentName || !studentClass) {
       alert("Please log in first.");
-      window.location.href = "../index.html"; // Adjust if needed
+      window.location.href = "../index.html";
     } else {
       studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
     }
 
     document.getElementById("logoutBtn").addEventListener("click", () => {
-      localStorage.removeItem("studentName");
-      localStorage.removeItem("studentClass");
-      window.location.href = "../index.html"; // or "login.html" if separate
+      localStorage.clear();
+      window.location.href = "../index.html";
     });
 
     document.querySelectorAll('.topic-item').forEach(item => {
       item.addEventListener('click', () => {
         const topic = item.dataset.topic;
-        if (topic === 'alphabet') {
-          window.location.href = 'alphabet.html';
-        } else if (topic === 'colours') {
-          window.location.href = 'colours.html';
-        } else {
-          alert(`${topic.charAt(0).toUpperCase() + topic.slice(1)} is coming soon!`);
-        }
 
+        switch (topic) {
+          case 'alphabet':
+            window.location.href = 'alphabet.html';
+            break;
+          case 'colours':
+            window.location.href = 'colours.html';
+            break;
+          case 'numbers':
+            window.location.href = 'numbers.html';
+            break;
+          case 'transport':
+            window.location.href = 'transport.html';
+            break;
+          default:
+            alert(`${topic.charAt(0).toUpperCase() + topic.slice(1)} is coming soon!`);
+        }
       });
     });
   </script>
