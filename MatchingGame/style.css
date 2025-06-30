@@ -308,8 +308,11 @@ input, select, button {
 
 /* Slot Styling */
 .slot {
-  width: 150px;
-  height: 150px;
+.slot {
+  width: 120px;
+  height: 120px;
+  max-width: 150px;
+  max-height: 150px;
   border: none;
   background-color: transparent;
   background-size: contain;
