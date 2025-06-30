@@ -1,4 +1,4 @@
-// Numbers Matching Game JavaScript
+// ✅ Updated Numbers Matching Game JavaScript (with corrected Level 1 structure)
 
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
@@ -42,19 +42,19 @@ document.addEventListener("DOMContentLoaded", function () {
     ]
   };
 
-  // Define levels with ranges, pages, and repeat flag
   const levelNumberMap = [
-    { range: [0, 12], pages: 2, repeat: true },       // Levels 1-3
-    { range: [13, 20], pages: 1, repeat: false },     // Levels 4-6
-    { range: [21, 48], pages: 3, repeat: false },     // Levels 7-9
-    { range: [49, 76], pages: 3, repeat: false },     // Levels 10-12
-    { range: [77, 100], pages: 3, repeat: true },     // Levels 13-16
-    { range: [0, 100], pages: 3, repeat: false },     // Levels 17-19
-    { review: true, pages: 1 }                         // Level 20 (review incorrect)
+    { range: [0, 12], pages: 3, repeat: true },  // Ensure 3 pages of 9 numbers total from 0–12
+    { range: [13, 20], pages: 1, repeat: false },
+    { range: [21, 48], pages: 3, repeat: false },
+    { range: [49, 76], pages: 3, repeat: false },
+    { range: [77, 100], pages: 3, repeat: true },
+    { range: [0, 100], pages: 3, repeat: false },
+    { range: [], pages: 1, review: true }
   ];
 
   let currentLevel = 0;
   let currentPage = 0;
+  const levelAttempts = Array(levelNumberMap.length).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
   let currentLetters = [];
   let correctMatches = 0;
   let gameEnded = false;
@@ -65,7 +65,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const rightSigns = document.getElementById("rightSigns");
   const levelTitle = document.getElementById("levelTitle");
 
-  // Feedback image setup
   const feedbackImage = document.createElement("img");
   feedbackImage.id = "feedbackImage";
   Object.assign(feedbackImage.style, {
@@ -79,19 +78,16 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.body.appendChild(feedbackImage);
 
-  // Shuffle helper
   function shuffle(arr) {
     return arr.sort(() => Math.random() - 0.5);
   }
 
-  // Show correct or wrong feedback
   function showFeedback(correct) {
     feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
     feedbackImage.style.display = "block";
     setTimeout(() => feedbackImage.style.display = "none", 1000);
   }
 
-  // Drop handler for drag and drop
   function drop(e) {
     e.preventDefault();
     const letter = e.dataTransfer.getData("text/plain");
