@@ -45,6 +45,10 @@ document.addEventListener("DOMContentLoaded", function () {
     ]
   };
 
+  function sortNumbers(a, b) {
+  return parseInt(a) - parseInt(b);
+  }
+  
   const levelDefinitions = [
     { start: 0, end: 12, pages: 2, type: "clipart-grid" },
     { start: 0, end: 12, pages: 2, type: "sign-grid" },
