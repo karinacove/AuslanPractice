@@ -1,3 +1,5 @@
+// ✅ Fully Corrected and Refined Numbers Matching Game JavaScript with Correct Mixed Mode Pairing and End-of-Game Logic
+
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -16,11 +18,14 @@ document.addEventListener("DOMContentLoaded", function () {
   const modal = document.getElementById("end-modal");
   const finishBtn = document.getElementById("finish-btn");
 
-  if (finishBtn) finishBtn.addEventListener("click", () => endGame());
-  continueBtn.addEventListener("click", () => {
+  if (finishBtn) finishBtn.addEventListener("click", () => {
+    modal.style.display = "flex";
+    gameEnded = true;
+    showResults();
+  });
+  if (continueBtn) continueBtn.addEventListener("click", () => {
     modal.style.display = "none";
     gameEnded = false;
-    loadPage();
   });
   againBtn.addEventListener("click", () => location.reload());
   menuBtn.addEventListener("click", () => window.location.href = "../index.html");
@@ -60,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
     { start: 0, end: 100, pages: 3, type: "sign-grid" },
     { start: 0, end: 100, pages: 3, type: "mixed" },
     { random: true, pages: 3, type: "mixed" },
-    { random: true, pages: 3, type: "mixed" },
+    { review: true, pages: 1, type: "mixed" }
   ];
 
   let currentLevel = 0;
@@ -78,6 +83,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function shuffle(arr) {
     return arr.sort(() => Math.random() - 0.5);
+  }
+
+  function showResults() {
+    endGame();
   }
 
   function loadPage() {
@@ -98,7 +107,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const slotType = info.type;
     const slotMode = slotType.includes("clipart") ? "clipart" : slotType.includes("sign") ? "sign" : null;
-
     const getOppositeMode = m => m === "clipart" ? "sign" : "clipart";
 
     pageLetters.forEach(letter => {
@@ -125,7 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const matchSlot = document.querySelector(`.slot[data-letter='${letter}']`);
         sourceMode = matchSlot ? getOppositeMode(matchSlot.dataset.imageMode) : (Math.random() < 0.5 ? "clipart" : "sign");
       } else {
-        sourceMode = slotMode === "clipart" ? "sign" : "clipart";
+        sourceMode = getOppositeMode(slotMode);
       }
 
       img.src = `assets/numbers/${sourceMode === "clipart" ? `clipart/${letter}.png` : `signs/sign-${letter}.png`}`;
@@ -147,13 +155,14 @@ document.addEventListener("DOMContentLoaded", function () {
       slot.addEventListener("drop", drop);
     });
   }
-  
+
   function drop(e) {
     e.preventDefault();
     const letter = e.dataTransfer.getData("text/plain");
     const src = e.dataTransfer.getData("src");
     const target = e.currentTarget;
     const targetLetter = target.dataset.letter;
+
     if (letter === targetLetter) {
       if (!levelAttempts[currentLevel].correct.has(letter)) {
         levelAttempts[currentLevel].correct.add(letter);
@@ -175,7 +184,8 @@ document.addEventListener("DOMContentLoaded", function () {
           currentLevel++;
           currentPage = 0;
           if (currentLevel >= 20) {
-            setTimeout(endGame, 800);
+            modal.style.display = "flex";
+            showResults();
           } else {
             setTimeout(loadPage, 800);
           }
@@ -187,7 +197,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function touchStart(e) {
-    e.preventDefault();
     const target = e.target;
     const letter = target.dataset.letter;
     const src = target.src;
@@ -226,9 +235,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function endGame() {
-    if (gameEnded) return;
-    gameEnded = true;
-
     const endTime = Date.now();
     const timeTaken = Math.round((endTime - startTime) / 1000);
     const formattedTime = `${Math.floor(timeTaken / 60)} mins ${timeTaken % 60} sec`;
@@ -276,7 +282,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const timeDisplay = document.createElement("p");
     timeDisplay.innerText = `Time: ${formattedTime}`;
     document.getElementById("end-modal-content").appendChild(timeDisplay);
-    modal.style.display = "flex";
   }
 
   loadPage();
