@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
   continueBtn.addEventListener("click", () => {
     modal.style.display = "none";
     gameEnded = false;
+    // Do NOT reset currentLevel or currentPage; just resume from where left off
     loadPage();
   });
 
