@@ -1,5 +1,3 @@
-// ✅ Fully Corrected and Refined Numbers Matching Game JavaScript
-
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -101,11 +99,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const slotType = info.type;
     const slotMode = slotType.includes("clipart") ? "clipart" : slotType.includes("sign") ? "sign" : null;
 
+    const getOppositeMode = m => m === "clipart" ? "sign" : "clipart";
+
     pageLetters.forEach(letter => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = `${letter}`;
-      slot.style.backgroundImage = `url('assets/numbers/${slotMode === "clipart" ? `clipart/${letter}.png` : `signs/sign-${letter}.png`}')`;
+      const imageMode = slotType === "mixed" ? (Math.random() < 0.5 ? "clipart" : "sign") : slotMode;
+      slot.dataset.imageMode = imageMode;
+      slot.style.backgroundImage = `url('assets/numbers/${imageMode === "clipart" ? `clipart/${letter}.png` : `signs/sign-${letter}.png`}')`;
       gameBoard.appendChild(slot);
     });
 
@@ -117,12 +119,22 @@ document.addEventListener("DOMContentLoaded", function () {
       img.className = "draggable";
       img.draggable = true;
       img.dataset.letter = `${letter}`;
-      img.src = `assets/numbers/${slotType === "mixed" ? (Math.random() < 0.5 ? `clipart/${letter}.png` : `signs/sign-${letter}.png`) : (slotMode === "clipart" ? `signs/sign-${letter}.png` : `clipart/${letter}.png`)}`;
+
+      let sourceMode;
+      if (slotType === "mixed") {
+        const matchSlot = document.querySelector(`.slot[data-letter='${letter}']`);
+        sourceMode = matchSlot ? getOppositeMode(matchSlot.dataset.imageMode) : (Math.random() < 0.5 ? "clipart" : "sign");
+      } else {
+        sourceMode = slotMode === "clipart" ? "sign" : "clipart";
+      }
+
+      img.src = `assets/numbers/${sourceMode === "clipart" ? `clipart/${letter}.png` : `signs/sign-${letter}.png`}`;
       img.addEventListener("dragstart", e => {
         e.dataTransfer.setData("text/plain", `${letter}`);
         e.dataTransfer.setData("src", img.src);
       });
       img.addEventListener("touchstart", touchStart);
+
       const wrap = document.createElement("div");
       wrap.className = "drag-wrapper";
       wrap.appendChild(img);
@@ -135,7 +147,7 @@ document.addEventListener("DOMContentLoaded", function () {
       slot.addEventListener("drop", drop);
     });
   }
-
+  
   function drop(e) {
     e.preventDefault();
     const letter = e.dataTransfer.getData("text/plain");
