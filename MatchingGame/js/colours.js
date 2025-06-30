@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(() => feedbackImage.style.display = "none", 1000);
   }
 
-  function loadPage() {
+ function loadPage() {
     const { type, decoys, wideMode } = levels[currentLevel];
     document.body.classList.toggle("wide-mode", !!wideMode);
 
@@ -110,44 +110,51 @@ document.addEventListener("DOMContentLoaded", function () {
     const lettersThisPage = currentLetters[currentPage];
     const usedSet = new Set(lettersThisPage);
 
-    const isSignToImage = type === "signToImage";
-    const isImageToSign = type === "imageToSign";
-    const isMixed = type === "mixed";
+    // Determine slot and draggable image folders based on type
+    let slotFolder, draggableFolder;
+
+    if (type === "signToImage") {
+      slotFolder = "clipart";
+      draggableFolder = "signs";
+    } else if (type === "imageToSign") {
+      slotFolder = "signs";
+      draggableFolder = "clipart";
+    } else if (type === "mixed") {
+      // For mixed, slots are clipart, draggables are signs (answers)
+      slotFolder = "clipart";
+      draggableFolder = "signs";
+    }
 
     // Render slots
     lettersThisPage.forEach(letter => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
-      slot.style.backgroundImage = `url('assets/${topic}/${(isImageToSign || (isMixed && Math.random() > 0.5)) ? "signs/sign-" + letter : "clipart/" + letter}.png')`;
+      slot.style.backgroundImage = `url('assets/${topic}/${slotFolder}/${letter}.png')`;
       gameBoard.appendChild(slot);
     });
 
-    // Create draggable items
+    // Create draggable items (correct answers + decoys)
     const decoyLetters = shuffle(allItems.filter(l => !usedSet.has(l))).slice(0, decoys);
     const draggables = shuffle([...lettersThisPage, ...decoyLetters]);
 
     draggables.forEach((letter, index) => {
       const img = document.createElement("img");
-      img.src = `assets/${topic}/${(isImageToSign || (isMixed && Math.random() > 0.5)) ? "clipart/" + letter : "signs/sign-" + letter}.png`;
+      img.src = `assets/${topic}/${draggableFolder}/${letter}.png`;
       img.className = "draggable";
       img.dataset.letter = letter;
       img.draggable = true;
 
+      // Drag start for mouse
       img.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", letter);
         e.dataTransfer.setData("src", img.src);
       });
 
-      img.addEventListener("touchstart", (e) => {
-        e.preventDefault();
-        const touch = e.touches[0];
-        const dragEvent = new DragEvent("dragstart", {
-          dataTransfer: new DataTransfer()
-        });
-        img.dispatchEvent(dragEvent);
-      });
+      // Touch fallback for drag on touch devices
+      img.addEventListener("touchstart", touchStart, { passive: false });
 
+      // Append to left or right side
       (index % 2 === 0 ? leftSigns : rightSigns).appendChild(img);
     });
 
@@ -158,6 +165,41 @@ document.addEventListener("DOMContentLoaded", function () {
       slot.addEventListener("drop", drop);
     });
   }
+
+  // Touch handlers for drag on touch devices
+  let draggedElement = null;
+
+  function touchStart(e) {
+    e.preventDefault();
+    draggedElement = e.target;
+  }
+
+  document.addEventListener("touchmove", (e) => {
+    if (!draggedElement) return;
+    e.preventDefault();
+    // Optional: You could add dragging visual feedback here
+  }, { passive: false });
+
+  document.addEventListener("touchend", (e) => {
+    if (!draggedElement) return;
+    e.preventDefault();
+    // Find element under touch
+    const touch = e.changedTouches[0];
+    const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (dropTarget && dropTarget.classList.contains("slot")) {
+      // Manually call drop handler
+      const fakeEvent = {
+        preventDefault: () => {},
+        currentTarget: dropTarget,
+        dataTransfer: {
+          getData: () => draggedElement.dataset.letter,
+          src: draggedElement.src
+        }
+      };
+      drop(fakeEvent);
+    }
+    draggedElement = null;
+  }, { passive: false });
 
   function drop(e) {
     e.preventDefault();
@@ -198,6 +240,13 @@ document.addEventListener("DOMContentLoaded", function () {
       levelAttempts[currentLevel].incorrect.push(letter);
       showFeedback(false);
     }
+  }
+
+  if (finishBtn) {
+    finishBtn.addEventListener("click", () => {
+      endGame();
+      modal.style.display = "flex"; // Show modal explicitly on finish
+    });
   }
 
   function endGame() {
