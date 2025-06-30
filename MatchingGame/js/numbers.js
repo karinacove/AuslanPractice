@@ -42,50 +42,44 @@ document.addEventListener("DOMContentLoaded", function () {
     ]
   };
 
-  const levelConfig = [
-    { start: 0, end: 12, pages: 3, repeat: true },      // Levels 1–3
-    { start: 13, end: 20, pages: 1, repeat: false },    // Levels 4–6
-    { start: 21, end: 48, pages: 3, repeat: false },
-    { start: 49, end: 76, pages: 3, repeat: false },
-    { start: 77, end: 100, pages: 3, repeat: true },
-    { start: 0, end: 100, pages: 3, repeat: false },    // Random
-    { review: true, pages: 1 }                          // Review
+  const levelDefinitions = [
+    { start: 0, end: 12, pages: 2, repeat: true },   // Levels 1–3
+    { start: 13, end: 20, pages: 1 },                // Levels 4–6
+    { start: 21, end: 48, pages: 3 },                // Levels 7–9
+    { start: 49, end: 76, pages: 3 },                // Levels 10–12
+    { start: 77, end: 100, pages: 3, repeat: true }, // Levels 13–16
+    { random: true, pages: 3 },                      // Levels 17–19
+    { review: true, pages: 1 }                       // Level 20
   ];
 
   let currentLevel = 0;
   let currentPage = 0;
   let currentLetters = [];
-  let levelAttempts = Array(7).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
   let correctMatches = 0;
-  let startTime = Date.now();
   let gameEnded = false;
+  let startTime = Date.now();
+  const levelAttempts = Array(20).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
 
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
   const rightSigns = document.getElementById("rightSigns");
   const levelTitle = document.getElementById("levelTitle");
 
-  const feedbackImage = document.createElement("img");
-  feedbackImage.id = "feedbackImage";
-  Object.assign(feedbackImage.style, {
-    position: "fixed",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "200px",
-    display: "none",
-    zIndex: "1000"
-  });
-  document.body.appendChild(feedbackImage);
-
   function shuffle(arr) {
     return arr.sort(() => Math.random() - 0.5);
   }
 
   function showFeedback(correct) {
+    const feedbackImage = document.createElement("img");
     feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
-    feedbackImage.style.display = "block";
-    setTimeout(() => feedbackImage.style.display = "none", 1000);
+    feedbackImage.style.position = "fixed";
+    feedbackImage.style.top = "50%";
+    feedbackImage.style.left = "50%";
+    feedbackImage.style.transform = "translate(-50%, -50%)";
+    feedbackImage.style.width = "200px";
+    feedbackImage.style.zIndex = "1000";
+    document.body.appendChild(feedbackImage);
+    setTimeout(() => feedbackImage.remove(), 1000);
   }
 
   function drop(e) {
@@ -115,7 +109,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
           currentLevel++;
           currentPage = 0;
-          if (currentLevel >= levelConfig.length) {
+          if (currentLevel >= 20) {
             setTimeout(endGame, 800);
           } else {
             setTimeout(loadPage, 800);
@@ -134,53 +128,43 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function loadPage() {
-    const info = levelConfig[currentLevel];
-    const wideMode = currentLevel >= 3 && currentLevel <= 5;
-
-    if (wideMode) document.body.classList.add("wide-mode");
-    else document.body.classList.remove("wide-mode");
-
-    gameBoard.innerHTML = "";
-    leftSigns.innerHTML = "";
-    rightSigns.innerHTML = "";
-
-    levelTitle.innerText = `Level ${currentLevel + 1}`;
+    const info = levelDefinitions[Math.floor(currentLevel / 3)] || {};
+    const pageCount = info.pages || 1;
 
     if (currentPage === 0) {
       currentLetters = [];
-
       if (info.review) {
-        const freq = {};
-        for (let i = 0; i < levelAttempts.length - 1; i++) {
-          for (let val of levelAttempts[i].incorrect) {
-            freq[val] = (freq[val] || 0) + 1;
+        const incorrectCounts = {};
+        for (let lvl of levelAttempts) {
+          for (let val of lvl.incorrect) {
+            incorrectCounts[val] = (incorrectCounts[val] || 0) + 1;
           }
         }
-        const sorted = Object.entries(freq)
-          .sort((a, b) => b[1] - a[1])
-          .map(([n]) => parseInt(n))
-          .slice(0, 9);
-        currentLetters.push(sorted);
+        const sorted = Object.entries(incorrectCounts).sort((a, b) => b[1] - a[1]).map(([k]) => parseInt(k));
+        currentLetters.push(sorted.slice(0, 9));
       } else {
-        const { start, end, pages, repeat } = info;
-        const pool = Array.from({ length: end - start + 1 }, (_, i) => i + start);
-        let result = [];
-        if (repeat) {
-          while (result.length < pages * 9) {
-            result.push(...shuffle(pool).slice(0, Math.min(9, pages * 9 - result.length)));
+        const pool = info.random ? Array.from({ length: 101 }, (_, i) => i) : Array.from({ length: info.end - info.start + 1 }, (_, i) => i + info.start);
+        const chosen = info.repeat ? (() => {
+          let output = [];
+          while (output.length < pageCount * 9) {
+            output.push(...shuffle(pool).slice(0, Math.min(9, pageCount * 9 - output.length)));
           }
-        } else {
-          result = shuffle(pool).slice(0, pages * 9);
-        }
-        for (let i = 0; i < pages; i++) {
-          currentLetters.push(result.slice(i * 9, (i + 1) * 9));
+          return shuffle(output);
+        })() : shuffle(pool).slice(0, pageCount * 9);
+
+        for (let i = 0; i < pageCount; i++) {
+          currentLetters.push(chosen.slice(i * 9, (i + 1) * 9));
         }
       }
     }
 
     const pageLetters = currentLetters[currentPage];
-    const slotTypes = {};
+    gameBoard.innerHTML = "";
+    leftSigns.innerHTML = "";
+    rightSigns.innerHTML = "";
+    levelTitle.innerText = `Level ${currentLevel + 1}`;
 
+    const slotTypes = {};
     pageLetters.forEach(letter => {
       const slot = document.createElement("div");
       slot.className = "slot";
@@ -192,8 +176,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     const allNumbers = Array.from({ length: 101 }, (_, i) => i);
-    const decoyLetters = shuffle(allNumbers.filter(l => !pageLetters.includes(l))).slice(0, 3);
-    const draggableLetters = shuffle([...pageLetters, ...decoyLetters]);
+    const decoys = shuffle(allNumbers.filter(n => !pageLetters.includes(n))).slice(0, 3);
+    const draggableLetters = shuffle([...pageLetters, ...decoys]);
 
     draggableLetters.forEach((letter, i) => {
       const img = document.createElement("img");
@@ -213,7 +197,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const wrap = document.createElement("div");
       wrap.className = "drag-wrapper";
       wrap.appendChild(img);
-
       if (i < draggableLetters.length / 2) leftSigns.appendChild(wrap);
       else rightSigns.appendChild(wrap);
     });
@@ -278,13 +261,10 @@ document.addEventListener("DOMContentLoaded", function () {
     form.target = "hidden_iframe";
     form.style.display = "none";
 
-    let iframe = document.querySelector("iframe[name='hidden_iframe']");
-    if (!iframe) {
-      iframe = document.createElement("iframe");
-      iframe.name = "hidden_iframe";
-      iframe.style.display = "none";
-      document.body.appendChild(iframe);
-    }
+    const iframe = document.createElement("iframe");
+    iframe.name = "hidden_iframe";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
 
     const entries = {
       "entry.1387461004": studentName,
@@ -312,7 +292,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     document.body.appendChild(form);
-    iframe.onload = () => console.log("Google Form submitted successfully");
     form.submit();
 
     document.getElementById("score-display").innerText = `Score: ${percent}%`;
