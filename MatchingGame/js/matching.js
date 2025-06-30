@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
     loadPage();
   });
 
+
   againBtn.addEventListener("click", () => {
     location.reload();
   });
