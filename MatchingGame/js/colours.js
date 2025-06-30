@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     draggables.forEach((letter, index) => {
       const img = document.createElement("img");
-      img.src = `assets/${topic}/${draggableFolder}/${letter}.png`;
+      img.src = `assets/${topic}/${isSignToImage ? "signs" : "clipart"}/${isSignToImage ? `sign-${letter}` : `${letter}`}.png`;
       img.className = "draggable";
       img.dataset.letter = letter;
       img.draggable = true;
