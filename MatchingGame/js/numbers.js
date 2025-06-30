@@ -1,5 +1,3 @@
-// ✅ Clean & Corrected Numbers Matching Game JavaScript
-
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
