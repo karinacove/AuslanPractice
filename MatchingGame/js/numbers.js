@@ -41,13 +41,13 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   const levelConfig = [
-    { start: 0, end: 12, pages: 3, repeat: true },      // Level 1–3
-    { start: 13, end: 20, pages: 1, repeat: false },    // Level 4–6
+    { start: 0, end: 12, pages: 3, repeat: true },
+    { start: 13, end: 20, pages: 1, repeat: false },
     { start: 21, end: 48, pages: 3, repeat: false },
     { start: 49, end: 76, pages: 3, repeat: false },
     { start: 77, end: 100, pages: 3, repeat: true },
-    { start: 0, end: 100, pages: 3, repeat: false },    // Randomised
-    { review: true, pages: 1 }                          // Review Level
+    { start: 0, end: 100, pages: 3, repeat: false },
+    { review: true, pages: 1 }
   ];
 
   let currentLevel = 0;
