@@ -4,42 +4,40 @@
 const studentName = localStorage.getItem("studentName") || "";
 const studentClass = localStorage.getItem("studentClass") || "";
 
-const studentInfoDiv = document.getElementById("student-info");
-const gameContainer = document.getElementById("game-container");
-const finishButton = document.getElementById("finish-btn");
-const startBtn = document.getElementById("start-btn");
-
-const endModal = document.getElementById("end-modal");
-const scoreDisplayModal = document.getElementById("score-display");
-const continueBtn = document.getElementById("continue-btn");
-const againBtn = document.getElementById("again-btn");
-const menuBtn = document.getElementById("menu-btn");
-const logoutImg = document.getElementById("logout-btn");
-
 if (!studentName || !studentClass) {
   alert("Please return to the sign-in page.");
   window.location.href = "../index.html";
 }
 
-document.getElementById("student-info").textContent = `👤 ${studentName} (${studentClass})`;
-document.getElementById("vehicle-palette").style.display = "block";
-
-document.body.addEventListener('start-btn', function (e) {
-  e.preventDefault();
-  jobDescription = form.elements['jobDescription'].value;
-  partnerName = form.elements['partnerName'].value;
-
-  form.style.display = 'none';
-  palette.style.display = 'grid';
-  startBtn.style.display = 'inline-block';
-  studentInfo.style.display = 'block';
-  studentInfo.innerText = `${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
-});
+const studentInfo = document.getElementById("student-info");
+const palette = document.getElementById("vehicle-palette");
+const finishBtn = document.getElementById("finish-btn");
+const form = document.getElementById("student-form");
+const startBtn = document.getElementById("start-btn");
+const endModal = document.getElementById("end-modal");
+const againBtn = document.getElementById("again-btn");
+const menuBtn = document.getElementById("menu-btn");
+const logoutBtn = document.getElementById("logout-btn");
 
 let jobDescription = '';
 let partnerName = '';
+
+form.addEventListener("submit", function (e) {
+  e.preventDefault();
+  jobDescription = document.getElementById("jobDescription").value;
+  partnerName = document.getElementById("partnerName").value;
+
+  form.style.display = 'none';
+  palette.style.display = 'grid';
+  finishBtn.style.display = 'inline-block';
+  studentInfo.style.display = 'block';
+  studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
+});
+
+// -------------------------
+// Drag & Drop Vehicle Logic with Touch Support
+// -------------------------
 const MAX_VEHICLES = 12;
-const palette = document.getElementById("vehicle-palette");
 let dragged = null;
 
 function startDrag(e, isTouch = false) {
@@ -104,39 +102,10 @@ document.body.addEventListener('touchstart', e => startDrag(e, true));
 document.body.addEventListener('touchmove', e => moveDrag(e, true));
 document.body.addEventListener('touchend', endDrag);
 
- if (finishButton) {
-    finishButton.addEventListener('click', () => {
-      finishButton.style.display = 'none';
-      finishButtonHandler(true);
-    });
-  }
-
-  // Modal Buttons
-  continueBtn.addEventListener("click", () => {
-    modal.style.display = "none";
-    gameEnded = false;
-    loadPage();
-  });
-
-  againBtn.addEventListener('click', () => {
-    endModal.style.display = 'none';
-    resetGame();
-  });
-
-  menuBtn.addEventListener('click', () => {
-    window.location.href = "../index.html";
-  });
-
-  logoutImg.addEventListener('click', () => {
-    localStorage.removeItem("studentName");
-    localStorage.removeItem("studentClass");
-    window.location.href = "../index.html";
-  });
-
 // -------------------------
-// Submit to Google Form
+// Finish Button: Submit & Show Modal
 // -------------------------
-document.getElementById("submit-button").addEventListener("click", () => {
+finishBtn.addEventListener("click", () => {
   const placedVehicles = document.querySelectorAll(".draggable-wrapper");
   const vehicleData = [];
 
@@ -160,28 +129,36 @@ document.getElementById("submit-button").addEventListener("click", () => {
   const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse";
 
   const formData = new FormData();
-  formData.append("entry.1202364028", "Mrs Cove");             // Teacher
-  formData.append("entry.1957249768", studentClass);           // Class
-  formData.append("entry.436910009", studentName);             // Name
-  formData.append("entry.169376211", "Give");                  // Task type
-  formData.append("entry.1017965571", "1");                    // Task number
-  formData.append("entry.1568301781", vehicleSummary);         // Vehicle positions
+  formData.append("entry.1202364028", "Mrs Cove");
+  formData.append("entry.1957249768", studentClass);
+  formData.append("entry.436910009", studentName);
+  formData.append("entry.169376211", jobDescription);
+  formData.append("entry.1017965571", "1");
+  formData.append("entry.1568301781", vehicleSummary);
 
   fetch(formURL, {
     method: "POST",
     mode: "no-cors",
     body: formData
   }).then(() => {
-    alert("✅ Submission successful!");
+    endModal.classList.add("show");
   }).catch(() => {
     alert("❌ Submission failed. Please try again.");
   });
 });
 
 // -------------------------
-// Logout Button Handling
+// Modal Button Handling
 // -------------------------
-document.getElementById("logoutBtn").addEventListener("click", () => {
+againBtn.addEventListener("click", () => {
+  window.location.reload();
+});
+
+menuBtn.addEventListener("click", () => {
+  window.location.href = "hub.html";
+});
+
+logoutBtn.addEventListener("click", () => {
   localStorage.removeItem("studentName");
   localStorage.removeItem("studentClass");
   window.location.href = "../index.html";
