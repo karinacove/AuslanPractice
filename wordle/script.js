@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = "../index.html";
     });
   }
-  
+
   if (keyboardBtn) {
     keyboardBtn.addEventListener("click", () => {
       const keyboard = document.getElementById("onScreenKeyboard");
@@ -200,13 +200,16 @@ function showEndModal(success) {
   endModal.style.display = "flex";
 
   setTimeout(() => {
-    document.getElementById("again-btn").onclick = () => location.reload();
-    document.getElementById("menu-btn").onclick = () => window.location.href = "../index.html";
-    document.getElementById("logout-btn").onclick = () => {
+    const closeBtn = document.getElementById("again-btn");
+    const menu = document.getElementById("menu-btn");
+    const logout = document.getElementById("logout-btn");
+    if (closeBtn) closeBtn.addEventListener("click", () => location.reload());
+    if (menu) menu.addEventListener("click", () => window.location.href = "../index.html");
+    if (logout) logout.addEventListener("click", () => {
       localStorage.removeItem("studentName");
       localStorage.removeItem("studentClass");
       window.location.href = "../index.html";
-    };
+    });
   }, 0);
 }
 
@@ -335,7 +338,11 @@ function setupKeyboard() {
   controlRow.append(backspace, enter);
   keyboard.appendChild(controlRow);
 
-  document.getElementById("closeKeyboardBtn").onclick = () => keyboard.style.display = "none";
+  const closeBtn = document.getElementById("closeKeyboardBtn");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => keyboard.style.display = "none");
+    closeBtn.addEventListener("touchstart", () => keyboard.style.display = "none", { passive: true });
+  }
 
   dragElement(keyboard);
 }
@@ -346,7 +353,6 @@ function dragElement(elmnt) {
 
   if (!header) return;
 
-  // Mouse events
   header.addEventListener("mousedown", (e) => {
     e.preventDefault();
     dragging = true;
@@ -358,7 +364,6 @@ function dragElement(elmnt) {
     document.addEventListener("mouseup", stopDrag);
   });
 
-  // Touch events
   header.addEventListener("touchstart", (e) => {
     e.preventDefault();
     dragging = true;
@@ -388,7 +393,7 @@ function dragElement(elmnt) {
     elmnt.style.left = `${initialX + dx}px`;
     elmnt.style.top = `${initialY + dy}px`;
     elmnt.style.transform = "none";
-    e.preventDefault(); // prevent page scroll while dragging
+    e.preventDefault();
   }
 
   function stopDrag() {
