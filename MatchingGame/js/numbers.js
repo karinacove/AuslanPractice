@@ -1,5 +1,3 @@
-// ✅ Fully Corrected Numbers Matching Game JavaScript with Level 1–3 Rules Refined
-
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -43,14 +41,28 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   const levelDefinitions = [
-    { start: 0, end: 12, pages: 2, repeat: false },   // Levels 1–3 strictly 0–12
-    { start: 13, end: 20, pages: 1 },                // Levels 4–6
-    { start: 21, end: 48, pages: 3 },                // Levels 7–9
-    { start: 49, end: 76, pages: 3 },                // Levels 10–12
-    { start: 77, end: 100, pages: 3, repeat: true }, // Levels 13–16
-    { random: true, pages: 3 },                      // Levels 17–19
-    { review: true, pages: 1 }                       // Level 20
+    { start: 0, end: 12, pages: 2, type: "clipart-grid" },   // Level 1
+    { start: 0, end: 12, pages: 2, type: "sign-grid" },      // Level 2
+    { start: 0, end: 12, pages: 2, type: "mixed" },          // Level 3
+    { start: 13, end: 20, pages: 1, type: "clipart-grid" },  // Level 4
+    { start: 13, end: 20, pages: 1, type: "sign-grid" },     // Level 5
+    { start: 13, end: 20, pages: 1, type: "mixed" },         // Level 6
+    { start: 21, end: 48, pages: 3, type: "clipart-grid" },  // Level 7
+    { start: 21, end: 48, pages: 3, type: "sign-grid" },     // Level 8
+    { start: 21, end: 48, pages: 3, type: "mixed" },         // Level 9
+    { start: 49, end: 76, pages: 3, type: "clipart-grid" },  // Level 10
+    { start: 49, end: 76, pages: 3, type: "sign-grid" },     // Level 11
+    { start: 49, end: 76, pages: 3, type: "mixed" },         // Level 12
+    { start: 77, end: 100, pages: 3, type: "clipart-grid" }, // Level 13
+    { start: 77, end: 100, pages: 3, type: "sign-grid" },    // Level 14
+    { start: 77, end: 100, pages: 3, type: "mixed" },        // Level 15
+    { start: 77, end: 100, pages: 3, type: "mixed" },        // Level 16
+    { random: true, pages: 3, type: "mixed" },               // Level 17
+    { random: true, pages: 3, type: "mixed" },               // Level 18
+    { random: true, pages: 3, type: "mixed" },               // Level 19
+    { review: true, pages: 1, type: "mixed" }                // Level 20
   ];
+
 
   let currentLevel = 0;
   let currentPage = 0;
