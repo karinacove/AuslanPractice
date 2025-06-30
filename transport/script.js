@@ -22,29 +22,10 @@ const logoutBtn = document.getElementById("logout-btn");
 let jobDescription = '';
 let partnerName = '';
 
-// Add placeholder to inputs
-const jobInput = document.getElementById("jobDescription");
-const partnerInput = document.getElementById("partnerName");
-if (jobInput) jobInput.placeholder = "e.g. give or follow instructions";
-if (partnerInput) partnerInput.placeholder = "Partner's name";
-
-// Ensure optional modal buttons only add listeners if they exist
-if (againBtn) againBtn.addEventListener("click", () => window.location.reload());
-if (menuBtn) menuBtn.addEventListener("click", () => window.location.href = "hub.html");
-if (logoutBtn) logoutBtn.addEventListener("click", () => {
-  localStorage.removeItem("studentName");
-  localStorage.removeItem("studentClass");
-  window.location.href = "../index.html";
-});
-
-startBtn.addEventListener("click", function () {
-  jobDescription = jobInput.value;
-  partnerName = partnerInput.value;
-
-  if (!jobDescription || !partnerName) {
-    alert("Please fill out both the job description and partner name.");
-    return;
-  }
+form.addEventListener("submit", function (e) {
+  e.preventDefault();
+  jobDescription = document.getElementById("jobDescription").value;
+  partnerName = document.getElementById("partnerName").value;
 
   form.style.display = 'none';
   palette.style.display = 'grid';
@@ -86,8 +67,6 @@ function startDrag(e, isTouch = false) {
 
   wrapper.addEventListener('mouseenter', () => flipBtn.style.display = 'block');
   wrapper.addEventListener('mouseleave', () => flipBtn.style.display = 'none');
-
-  wrapper.addEventListener('dblclick', () => wrapper.remove());
 
   document.body.appendChild(wrapper);
   dragged = wrapper;
@@ -166,4 +145,21 @@ finishBtn.addEventListener("click", () => {
   }).catch(() => {
     alert("❌ Submission failed. Please try again.");
   });
+});
+
+// -------------------------
+// Modal Button Handling
+// -------------------------
+againBtn.addEventListener("click", () => {
+  window.location.reload();
+});
+
+menuBtn.addEventListener("click", () => {
+  window.location.href = "hub.html";
+});
+
+logoutBtn.addEventListener("click", () => {
+  localStorage.removeItem("studentName");
+  localStorage.removeItem("studentClass");
+  window.location.href = "../index.html";
 });
