@@ -116,7 +116,8 @@ document.addEventListener("DOMContentLoaded", function () {
     levelTitle.innerText = `Level ${currentLevel + 1}`;
 
     const slotTypes = {};
-    const gridIsSign = type === "sign-grid" || (type === "mixed" && Math.random() < 0.5);
+    const gridIsSign = type === "sign-grid";
+    const draggableIsSign = type === "sign-grid" ? false : type === "clipart-grid" ? true : null;
 
     pageLetters.forEach(letter => {
       const slot = document.createElement("div");
@@ -129,7 +130,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     const allNumbers = Array.from({ length: 101 }, (_, i) => i);
-    const decoys = shuffle(allNumbers.filter(n => !pageLetters.includes(n))).slice(0, 3);
+    const levelRange = info.random || info.review ? allNumbers : pool;
+    const decoys = shuffle(levelRange.filter(n => !pageLetters.includes(n))).slice(0, 3);
     const draggableLetters = shuffle([...pageLetters, ...decoys]);
 
     draggableLetters.forEach((letter, i) => {
@@ -142,8 +144,14 @@ document.addEventListener("DOMContentLoaded", function () {
         e.dataTransfer.setData("src", img.src);
       });
 
-      const isOpposite = pageLetters.includes(letter) ? !slotTypes[letter] : Math.random() < 0.5;
-      img.src = `assets/numbers/${isOpposite ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}`;
+      let useSign;
+      if (draggableIsSign !== null) {
+        useSign = draggableIsSign;
+      } else {
+        useSign = pageLetters.includes(letter) ? !slotTypes[letter] : Math.random() < 0.5;
+      }
+
+      img.src = `assets/numbers/${useSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}`;
 
       const wrap = document.createElement("div");
       wrap.className = "drag-wrapper";
@@ -158,7 +166,7 @@ document.addEventListener("DOMContentLoaded", function () {
       slot.addEventListener("drop", drop);
     });
   }
-
+  
   function touchStart(e) {
     e.preventDefault();
     const target = e.target;
