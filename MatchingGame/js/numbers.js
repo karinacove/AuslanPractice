@@ -41,28 +41,27 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   const levelDefinitions = [
-    { start: 0, end: 12, pages: 2, type: "clipart-grid" },   // Level 1
-    { start: 0, end: 12, pages: 2, type: "sign-grid" },      // Level 2
-    { start: 0, end: 12, pages: 2, type: "mixed" },          // Level 3
-    { start: 13, end: 20, pages: 1, type: "clipart-grid" },  // Level 4
-    { start: 13, end: 20, pages: 1, type: "sign-grid" },     // Level 5
-    { start: 13, end: 20, pages: 1, type: "mixed" },         // Level 6
-    { start: 21, end: 48, pages: 3, type: "clipart-grid" },  // Level 7
-    { start: 21, end: 48, pages: 3, type: "sign-grid" },     // Level 8
-    { start: 21, end: 48, pages: 3, type: "mixed" },         // Level 9
-    { start: 49, end: 76, pages: 3, type: "clipart-grid" },  // Level 10
-    { start: 49, end: 76, pages: 3, type: "sign-grid" },     // Level 11
-    { start: 49, end: 76, pages: 3, type: "mixed" },         // Level 12
-    { start: 77, end: 100, pages: 3, type: "clipart-grid" }, // Level 13
-    { start: 77, end: 100, pages: 3, type: "sign-grid" },    // Level 14
-    { start: 77, end: 100, pages: 3, type: "mixed" },        // Level 15
-    { start: 77, end: 100, pages: 3, type: "mixed" },        // Level 16
-    { random: true, pages: 3, type: "mixed" },               // Level 17
-    { random: true, pages: 3, type: "mixed" },               // Level 18
-    { random: true, pages: 3, type: "mixed" },               // Level 19
-    { review: true, pages: 1, type: "mixed" }                // Level 20
+    { start: 0, end: 12, pages: 2, type: "clipart-grid" },
+    { start: 0, end: 12, pages: 2, type: "sign-grid" },
+    { start: 0, end: 12, pages: 2, type: "mixed" },
+    { start: 13, end: 20, pages: 1, type: "clipart-grid" },
+    { start: 13, end: 20, pages: 1, type: "sign-grid" },
+    { start: 13, end: 20, pages: 1, type: "mixed" },
+    { start: 21, end: 48, pages: 3, type: "clipart-grid" },
+    { start: 21, end: 48, pages: 3, type: "sign-grid" },
+    { start: 21, end: 48, pages: 3, type: "mixed" },
+    { start: 49, end: 76, pages: 3, type: "clipart-grid" },
+    { start: 49, end: 76, pages: 3, type: "sign-grid" },
+    { start: 49, end: 76, pages: 3, type: "mixed" },
+    { start: 77, end: 100, pages: 3, type: "clipart-grid" },
+    { start: 77, end: 100, pages: 3, type: "sign-grid" },
+    { start: 77, end: 100, pages: 3, type: "mixed" },
+    { start: 77, end: 100, pages: 3, type: "mixed" },
+    { random: true, pages: 3, type: "mixed" },
+    { random: true, pages: 3, type: "mixed" },
+    { random: true, pages: 3, type: "mixed" },
+    { review: true, pages: 1, type: "mixed" }
   ];
-
 
   let currentLevel = 0;
   let currentPage = 0;
@@ -81,85 +80,32 @@ document.addEventListener("DOMContentLoaded", function () {
     return arr.sort(() => Math.random() - 0.5);
   }
 
-  function showFeedback(correct) {
-    const feedbackImage = document.createElement("img");
-    feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
-    feedbackImage.style.position = "fixed";
-    feedbackImage.style.top = "50%";
-    feedbackImage.style.left = "50%";
-    feedbackImage.style.transform = "translate(-50%, -50%)";
-    feedbackImage.style.width = "200px";
-    feedbackImage.style.zIndex = "1000";
-    document.body.appendChild(feedbackImage);
-    setTimeout(() => feedbackImage.remove(), 1000);
-  }
-
-  function drop(e) {
-    e.preventDefault();
-    const letter = e.dataTransfer.getData("text/plain");
-    const src = e.dataTransfer.getData("src");
-    const target = e.currentTarget;
-    const targetLetter = target.dataset.letter;
-    if (letter === targetLetter) {
-      if (!levelAttempts[currentLevel].correct.has(letter)) {
-        levelAttempts[currentLevel].correct.add(letter);
-      }
-      target.innerHTML = "";
-      const overlay = document.createElement("img");
-      overlay.src = src;
-      overlay.className = "overlay";
-      target.appendChild(overlay);
-      document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
-      correctMatches++;
-      showFeedback(true);
-
-      if (correctMatches >= currentLetters[currentPage].length) {
-        correctMatches = 0;
-        currentPage++;
-        if (currentPage < currentLetters.length) {
-          setTimeout(loadPage, 800);
-        } else {
-          currentLevel++;
-          currentPage = 0;
-          if (currentLevel >= 20) {
-            setTimeout(endGame, 800);
-          } else {
-            setTimeout(loadPage, 800);
-          }
-        }
-      }
-    } else {
-      levelAttempts[currentLevel].incorrect.push(letter);
-      showFeedback(false);
-      const wrong = document.querySelector(`img.draggable[data-letter='${letter}']`);
-      if (wrong) {
-        wrong.classList.add("shake");
-        setTimeout(() => wrong.classList.remove("shake"), 500);
-      }
-    }
-  }
-
   function loadPage() {
-    const info = levelDefinitions[Math.floor(currentLevel / 3)] || {};
+    const info = levelDefinitions[currentLevel] || {};
     const pageCount = info.pages || 1;
+    const type = info.type || "mixed";
 
-    if (currentPage === 0) {
-      currentLetters = [];
-      if (info.review) {
-        const incorrectCounts = {};
-        for (let lvl of levelAttempts) {
-          for (let val of lvl.incorrect) {
-            incorrectCounts[val] = (incorrectCounts[val] || 0) + 1;
-          }
+    currentLetters = [];
+    let pool = [];
+    if (info.review) {
+      const incorrectCounts = {};
+      for (let lvl of levelAttempts) {
+        for (let val of lvl.incorrect) {
+          incorrectCounts[val] = (incorrectCounts[val] || 0) + 1;
         }
-        const sorted = Object.entries(incorrectCounts).sort((a, b) => b[1] - a[1]).map(([k]) => parseInt(k));
-        currentLetters.push(sorted.slice(0, 9));
+      }
+      const sorted = Object.entries(incorrectCounts).sort((a, b) => b[1] - a[1]).map(([k]) => parseInt(k));
+      currentLetters.push(sorted.slice(0, 9));
+    } else {
+      if (info.random) {
+        pool = Array.from({ length: 101 }, (_, i) => i);
       } else {
-        const pool = info.random ? Array.from({ length: 101 }, (_, i) => i) : Array.from({ length: info.end - info.start + 1 }, (_, i) => i + info.start);
-        const chosen = shuffle(pool).slice(0, pageCount * 9);
-        for (let i = 0; i < pageCount; i++) {
-          currentLetters.push(chosen.slice(i * 9, (i + 1) * 9));
-        }
+        pool = Array.from({ length: info.end - info.start + 1 }, (_, i) => i + info.start);
+      }
+
+      const chosen = shuffle(pool).slice(0, pageCount * 9);
+      for (let i = 0; i < pageCount; i++) {
+        currentLetters.push(chosen.slice(i * 9, (i + 1) * 9));
       }
     }
 
@@ -170,22 +116,20 @@ document.addEventListener("DOMContentLoaded", function () {
     levelTitle.innerText = `Level ${currentLevel + 1}`;
 
     const slotTypes = {};
+    const gridIsSign = type === "sign-grid" || (type === "mixed" && Math.random() < 0.5);
+
     pageLetters.forEach(letter => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = `${letter}`;
-      let isSign;
-      if (currentLevel === 0) isSign = false; // Level 1: Clipart in grid
-      else if (currentLevel === 1) isSign = true; // Level 2: Signs in grid
-      else if (currentLevel === 2) isSign = Math.random() < 0.5; // Level 3: Mixed
-      else isSign = Math.random() < 0.5; // Default behavior for later levels
-      slot.style.backgroundImage = `url('assets/numbers/${isSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}')`;
-      slotTypes[letter] = isSign;
+      const imgType = gridIsSign ? "signs/sign-" : "clipart/";
+      slot.style.backgroundImage = `url('assets/numbers/${imgType}${letter}.png')`;
+      slotTypes[letter] = gridIsSign;
       gameBoard.appendChild(slot);
     });
 
     const allNumbers = Array.from({ length: 101 }, (_, i) => i);
-    const decoys = shuffle(allNumbers.filter(n => !pageLetters.includes(n) && (currentLevel <= 2 ? n <= 12 : true))).slice(0, 3);
+    const decoys = shuffle(allNumbers.filter(n => !pageLetters.includes(n))).slice(0, 3);
     const draggableLetters = shuffle([...pageLetters, ...decoys]);
 
     draggableLetters.forEach((letter, i) => {
@@ -193,12 +137,10 @@ document.addEventListener("DOMContentLoaded", function () {
       img.className = "draggable";
       img.draggable = true;
       img.dataset.letter = `${letter}`;
-
       img.addEventListener("dragstart", e => {
         e.dataTransfer.setData("text/plain", `${letter}`);
         e.dataTransfer.setData("src", img.src);
       });
-      img.addEventListener("touchstart", touchStart);
 
       const isOpposite = pageLetters.includes(letter) ? !slotTypes[letter] : Math.random() < 0.5;
       img.src = `assets/numbers/${isOpposite ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}`;
