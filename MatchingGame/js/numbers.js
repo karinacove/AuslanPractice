@@ -1,3 +1,5 @@
+// ✅ Fully Corrected Numbers Matching Game JavaScript
+
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -20,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
   continueBtn.addEventListener("click", () => {
     modal.style.display = "none";
     gameEnded = false;
-    startGame();
+    loadPage();
   });
   againBtn.addEventListener("click", () => location.reload());
   menuBtn.addEventListener("click", () => window.location.href = "../index.html");
@@ -41,19 +43,19 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   const levelConfig = [
-    { start: 0, end: 12, pages: 3, repeat: true },
-    { start: 13, end: 20, pages: 1, repeat: false },
+    { start: 0, end: 12, pages: 3, repeat: true },      // Levels 1–3
+    { start: 13, end: 20, pages: 1, repeat: false },    // Levels 4–6
     { start: 21, end: 48, pages: 3, repeat: false },
     { start: 49, end: 76, pages: 3, repeat: false },
     { start: 77, end: 100, pages: 3, repeat: true },
-    { start: 0, end: 100, pages: 3, repeat: false },
-    { review: true, pages: 1 }
+    { start: 0, end: 100, pages: 3, repeat: false },    // Random
+    { review: true, pages: 1 }                          // Review
   ];
 
   let currentLevel = 0;
   let currentPage = 0;
   let currentLetters = [];
-  const levelAttempts = Array(7).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
+  let levelAttempts = Array(7).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
   let correctMatches = 0;
   let startTime = Date.now();
   let gameEnded = false;
@@ -320,9 +322,5 @@ document.addEventListener("DOMContentLoaded", function () {
     modal.style.display = "flex";
   }
 
-  function startGame() {
-    loadPage();
-  }
-
-  startGame();
+  loadPage();
 });
