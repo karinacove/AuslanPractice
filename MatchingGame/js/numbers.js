@@ -184,52 +184,60 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function loadPage() {
-    const levelData = levels[currentLevel];
-    const { type: mode, decoys, wideMode } = levelData;
+   // Define per-level number ranges
+const levelNumberMap = [
+  { range: [0, 12], pages: 2, repeat: true },     // Levels 1–3
+  { range: [13, 20], pages: 1, repeat: false },   // Levels 4–6
+  { range: [21, 48], pages: 3, repeat: false },   // Levels 7–9
+  { range: [49, 76], pages: 3, repeat: false },   // Levels 10–12
+  { range: [77, 100], pages: 3, repeat: true },   // Levels 13–16
+  { range: [0, 100], pages: 3, repeat: false },   // Levels 17–19
+  { range: [], pages: 1, review: true }           // Level 20
+];
 
-    if (wideMode) document.body.classList.add("wide-mode");
-    else document.body.classList.remove("wide-mode");
+// Rebuild currentLetters if first page of level
+if (currentPage === 0) {
+  const levelInfo = levelNumberMap[currentLevel];
 
-    gameBoard.innerHTML = "";
-    leftSigns.innerHTML = "";
-    rightSigns.innerHTML = "";
+  currentLetters = [];
 
-    levelTitle.innerText = `Level ${currentLevel + 1}: ` +
-      (mode === "signToImage" ? "Match the Sign to the Picture" :
-        mode === "imageToSign" ? "Match the Picture to the Sign" :
-          "Match Signs and Pictures (Mixed)");
-
-    if (currentPage === 0) {
-      if (levelData.isReviewLevel) {
-        const errorFreq = {};
-        for (let attempt of levelAttempts) {
-          for (let wrong of attempt.incorrect) {
-            errorFreq[wrong] = (errorFreq[wrong] || 0) + 1;
-          }
-        }
-        const sorted = Object.entries(errorFreq)
-          .sort((a, b) => b[1] - a[1])
-          .map(([num]) => parseInt(num))
-          .slice(0, 9);
-        levelData.numbers = sorted;
-      }
-
-      let pool = [...levelData.numbers];
-
-      if (levelData.allowRepeats) {
-        while (pool.length < levelData.totalNeeded) {
-          const add = levelData.numbers[Math.floor(Math.random() * levelData.numbers.length)];
-          if (pool.filter(x => x === add).length < 2) pool.push(add);
-        }
-      } else {
-        pool = shuffle(pool).slice(0, levelData.totalNeeded);
-      }
-
-      currentNumbers = [];
-      for (let p = 0; p < levelData.pages; p++) {
-        currentNumbers.push(pool.slice(p * 9, (p + 1) * 9));
+  if (levelInfo.review) {
+    // Level 20: Use most frequent incorrects
+    let incorrectFreq = {};
+    for (let i = 0; i < levelAttempts.length - 1; i++) {
+      for (let val of levelAttempts[i].incorrect) {
+        incorrectFreq[val] = (incorrectFreq[val] || 0) + 1;
       }
     }
+
+    const sorted = Object.entries(incorrectFreq)
+      .sort((a, b) => b[1] - a[1])
+      .map(([num]) => parseInt(num))
+      .slice(0, 9); // Use top 9 incorrects
+
+    currentLetters.push(sorted);
+  } else {
+    const [start, end] = levelInfo.range;
+    let pool = Array.from({ length: end - start + 1 }, (_, i) => i + start);
+    shuffle(pool);
+
+    let totalNeeded = levelInfo.pages * 9;
+    let result = [];
+
+    if (levelInfo.repeat) {
+      while (result.length < totalNeeded) {
+        result.push(...shuffle(pool).slice(0, Math.min(9, totalNeeded - result.length)));
+      }
+    } else {
+      result = pool.slice(0, totalNeeded);
+    }
+
+    for (let i = 0; i < levelInfo.pages; i++) {
+      currentLetters.push(result.slice(i * 9, (i + 1) * 9));
+    }
+  }
+}
+
 
     const pageNumbers = currentNumbers[currentPage];
     const slotTypes = {};
