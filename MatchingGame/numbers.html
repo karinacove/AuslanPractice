@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auslan Numbers Matching Game</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="js/numbers.js" defer></script>
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+</head>
+<body>
+  <div id="header">
+    <div id="student-info" aria-live="polite"></div>
+    <h1 id="levelTitle">Level 1</h1>
+  </div>
+  
+  <img id="finish-btn" src="assets/finish.png" alt="Finish Game" />
+
+  <div class="layout">
+    <div class="left-signs" id="leftSigns"></div>
+    <div id="gameBoard"></div>
+    <div class="right-signs" id="rightSigns"></div>
+  </div>
+
+  <!-- Modal popup -->
+  <div id="end-modal">
+    <div id="end-modal-content">
+      <p id="score-display">Score: 0</p>
+      <img id="continue-btn" src="assets/continue.png" alt="Continue" />
+      <img id="again-btn" src="assets/again.png" alt="Play Again" />
+      <img id="menu-btn" src="assets/menu.png" alt="Main Menu" />
+      <img id="logout-btn" src="assets/logout.png" alt="Logout" />
+    </div>
+  </div>
+</body>
+</html>
