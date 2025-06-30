@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.letter = letter;
-      slot.style.backgroundImage = `url('assets/${topic}/${isSignToImage ? "clipart" : "signs"}/${isSignToImage ? letter : `sign-${letter}`}.png')`;
+      slot.style.backgroundImage = `url('assets/${topic}/${(isImageToSign || (isMixed && Math.random() > 0.5)) ? "signs/sign-" + letter : "clipart/" + letter}.png')`;
       gameBoard.appendChild(slot);
     });
 
@@ -129,14 +129,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
     draggables.forEach((letter, index) => {
       const img = document.createElement("img");
-      img.src = `assets/${topic}/${isSignToImage ? "signs" : "clipart"}/${isSignToImage ? `sign-${letter}` : `${letter}`}.png`;
+      img.src = `assets/${topic}/${(isImageToSign || (isMixed && Math.random() > 0.5)) ? "clipart/" + letter : "signs/sign-" + letter}.png`;
       img.className = "draggable";
       img.dataset.letter = letter;
       img.draggable = true;
+
       img.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", letter);
         e.dataTransfer.setData("src", img.src);
       });
+
+      img.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const dragEvent = new DragEvent("dragstart", {
+          dataTransfer: new DataTransfer()
+        });
+        img.dispatchEvent(dragEvent);
+      });
+
       (index % 2 === 0 ? leftSigns : rightSigns).appendChild(img);
     });
 
@@ -192,6 +203,47 @@ document.addEventListener("DOMContentLoaded", function () {
   function endGame() {
     if (gameEnded) return;
     gameEnded = true;
+
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSfFakeFormURL1234567890/formResponse";
+    form.target = "_self";
+    form.style.display = "none";
+
+const entries = {
+  name: "entry.1387461004",
+  class: "entry.1309291707",
+  topic: "entry.477642881",
+  correct: "entry.1249394203",
+  incorrect: "entry.1897227570",
+  time: "entry.284718659"
+};
+
+
+    const totalCorrect = levelAttempts.reduce((sum, level) => sum + level.correct.size, 0);
+    const totalIncorrect = levelAttempts.reduce((sum, level) => sum + level.incorrect.length, 0);
+    const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+
+    const data = {
+      [entries.name]: studentName,
+      [entries.class]: studentClass,
+      [entries.topic]: topic,
+      [entries.correct]: totalCorrect,
+      [entries.incorrect]: totalIncorrect,
+      [entries.time]: timeTaken
+    };
+
+    for (const [name, value] of Object.entries(data)) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+
     document.getElementById("end-modal").style.display = "flex";
   }
 
