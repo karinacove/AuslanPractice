@@ -1,5 +1,3 @@
-// ✅ Matching Alphabet Game - Complete Logic with Resume, Finish Handling, and No-Zero Submission
-
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -69,32 +67,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.body.appendChild(feedbackImage);
 
-  if (finishBtn) {
-    finishBtn.addEventListener("click", () => {
-      if (!gameEnded) {
-        endGame();
-      }
-    });
-  }
-
-  continueBtn.addEventListener("click", () => {
-    endModal.style.display = "none";
-    gameEnded = false;
-    loadPage();
-  });
-
-  againBtn.addEventListener("click", () => {
-    location.reload();
-  });
-
-  menuBtn.addEventListener("click", () => {
-    window.location.href = "../index.html";
-  });
-
-  logoutBtn.addEventListener("click", () => {
-    localStorage.clear();
-    window.location.href = "../index.html";
-  });
+  // --- Functions ---
 
   function shuffle(arr) {
     return arr.sort(() => Math.random() - 0.5);
@@ -124,7 +97,7 @@ document.addEventListener("DOMContentLoaded", function () {
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
       correctMatches++;
       showFeedback(true);
-      if (correctMatches >= currentLetters[currentPage].length) {
+      if (correctMatches >= currentLetters.length) {
         correctMatches = 0;
         currentPage++;
         saveProgress();
@@ -216,6 +189,105 @@ document.addEventListener("DOMContentLoaded", function () {
     loadPage();
   }
 
+  function loadPage() {
+    const { type: mode, decoys, wideMode } = levels[currentLevel];
+
+    if (wideMode) {
+      document.body.classList.add("wide-mode");
+    } else {
+      document.body.classList.remove("wide-mode");
+    }
+
+    gameBoard.innerHTML = "";
+    leftSigns.innerHTML = "";
+    rightSigns.innerHTML = "";
+
+    levelTitle.innerText = `Level ${currentLevel + 1}: ` +
+      (mode === "signToImage" ? "Match the Sign to the Picture" :
+        mode === "imageToSign" ? "Match the Picture to the Sign" :
+          "Match Signs and Pictures (Mixed)");
+
+    if (currentPage === 0) {
+      // Prepare letters to use on this level
+      const shuffled = shuffle(allLetters);
+      currentLetters = [];
+      for (let i = 0; i < pagesPerLevel; i++) {
+        currentLetters.push(shuffle(shuffled.slice(i * 5, (i + 1) * 5)));
+      }
+    }
+
+    const pageLetters = currentLetters[currentPage];
+    const usedSet = new Set(pageLetters);
+
+    pageLetters.forEach(letter => {
+      const slot = document.createElement("div");
+      slot.className = "slot";
+      slot.dataset.letter = letter;
+      let showSign = mode === "imageToSign" || (mode === "mixed" && Math.random() < 0.5);
+      slot.style.backgroundImage = `url('assets/alphabet/${showSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}')`;
+      gameBoard.appendChild(slot);
+    });
+
+    const allDecoys = allLetters.filter(l => !usedSet.has(l));
+    const decoyLetters = shuffle(allDecoys).slice(0, decoys);
+    const draggableLetters = shuffle([...pageLetters, ...decoyLetters]);
+
+    draggableLetters.forEach((letter, i) => {
+      const img = document.createElement("img");
+      img.className = "draggable";
+      img.draggable = true;
+      img.dataset.letter = letter;
+
+      img.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text/plain", letter);
+        e.dataTransfer.setData("src", img.src);
+      });
+      img.addEventListener("touchstart", touchStart);
+
+      // Determine opposite for draggable images
+      let opposite = mode === "signToImage" || (mode === "mixed" && !gameBoard.querySelector(`.slot[data-letter='${letter}']`)?.style.backgroundImage.includes("sign-"));
+      img.src = `assets/alphabet/${opposite ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}`;
+
+      const wrap = document.createElement("div");
+      wrap.className = "drag-wrapper";
+      wrap.appendChild(img);
+
+      if (i < draggableLetters.length / 2) {
+        leftSigns.appendChild(wrap);
+      } else {
+        rightSigns.appendChild(wrap);
+      }
+    });
+
+    correctMatches = 0;
+    document.querySelectorAll(".slot").forEach(slot => {
+      slot.addEventListener("dragover", e => e.preventDefault());
+      slot.addEventListener("drop", drop);
+    });
+  }
+
+  // --- Event listeners ---
+  if (finishBtn) {
+    finishBtn.addEventListener("click", () => {
+      if (!gameEnded) {
+        endGame();
+      }
+    });
+  }
+
+  continueBtn.addEventListener("click", () => {
+    endModal.style.display = "none";
+    gameEnded = false;
+    loadPage();
+  });
+
+  againBtn.addEventListener("click", () => location.reload());
+  menuBtn.addEventListener("click", () => window.location.href = "../index.html");
+  logoutBtn.addEventListener("click", () => {
+    localStorage.clear();
+    window.location.href = "../index.html";
+  });
+
   function endGame() {
     if (gameEnded) return;
     gameEnded = true;
@@ -284,6 +356,8 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("end-modal-content").appendChild(timeDisplay);
     modal.style.display = "flex";
   }
+
+  // --- On load ---
 
   const saved = JSON.parse(localStorage.getItem("alphabetGameSave"));
   if (saved && saved.studentName === studentName && saved.studentClass === studentClass) {
