@@ -202,7 +202,8 @@ document.addEventListener("DOMContentLoaded", function () {
       target.appendChild(overlay);
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
       correctMatches++;
-
+      showFeedback(true);
+      
       if (correctMatches >= currentLetters[currentPage].length) {
         correctMatches = 0;
         currentPage++;
@@ -221,6 +222,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     } else {
       levelAttempts[currentLevel].incorrect.push(letter);
+      showFeedback(false);
     }
   }
 
