@@ -15,19 +15,22 @@ document.addEventListener("DOMContentLoaded", function () {
   const logoutBtn = document.getElementById("logout-btn");
   const modal = document.getElementById("end-modal");
   const finishBtn = document.getElementById("finish-btn");
+  const endModal = modal;
 
- if (finishBtn) finishBtn.addEventListener("click", () => {
-    gameEnded = false;
-    endGame();
+  if (finishBtn) finishBtn.addEventListener("click", () => {
+    if (!gameEnded) {
+      endGame();
+    }
   });
-  
+
   continueBtn.addEventListener("click", () => {
-    endModal.style.display = "none";
-    gameEnded = false;
-    startGame();
+    endModal.style.display = "none";
+    gameEnded = false;
+    loadPage();
   });
 
   againBtn.addEventListener("click", () => {
+    localStorage.removeItem("alphabetGameSave");
     location.reload();
   });
 
@@ -38,10 +41,6 @@ document.addEventListener("DOMContentLoaded", function () {
   logoutBtn.addEventListener("click", () => {
     localStorage.clear();
     window.location.href = "../index.html";
-  });
-
-  finishBtn.addEventListener("click", () => {
-    endGame();
   });
 
   const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
@@ -132,21 +131,27 @@ document.addEventListener("DOMContentLoaded", function () {
       correctMatches++;
       showFeedback(true);
 
-     if (correctMatches >= currentLetters[currentPage].length) {
-      correctMatches = 0;
-      currentPage++;
-      if (currentPage < pagesPerLevel) {
-        setTimeout(loadPage, 800);
-      } else {
-        currentLevel++;
-        currentPage = 0;
-        if (currentLevel >= levels.length) {
-          setTimeout(endGame, 800);
-        } else {
+      if (correctMatches >= currentLetters[currentPage].length) {
+        correctMatches = 0;
+        currentPage++;
+
+        saveProgress();
+
+        if (currentPage < pagesPerLevel) {
           setTimeout(loadPage, 800);
+        } else {
+          currentLevel++;
+          currentPage = 0;
+
+          saveProgress();
+
+          if (currentLevel >= levels.length) {
+            setTimeout(endGame, 800);
+          } else {
+            setTimeout(loadPage, 800);
+          }
         }
       }
-    }
     } else {
       levelAttempts[currentLevel].incorrect.push(letter);
       showFeedback(false);
@@ -161,6 +166,9 @@ document.addEventListener("DOMContentLoaded", function () {
   function endGame() {
     if (gameEnded) return;
     gameEnded = true;
+
+    // Remove saved progress as game ended
+    localStorage.removeItem("alphabetGameSave");
 
     const endTime = Date.now();
     const timeTaken = Math.round((endTime - startTime) / 1000);
@@ -235,7 +243,49 @@ document.addEventListener("DOMContentLoaded", function () {
     modal.style.display = "flex";
   }
 
+  function saveProgress() {
+    const data = {
+      studentName,
+      studentClass,
+      currentLevel,
+      currentPage,
+      levelAttempts: levelAttempts.map(l => ({
+        correct: [...l.correct],
+        incorrect: [...l.incorrect]
+      })),
+      currentLetters,
+      startTime,
+      gameEnded
+    };
+    localStorage.setItem("alphabetGameSave", JSON.stringify(data));
+  }
+
+  function restoreProgress(data) {
+    if (data.studentName === studentName && data.studentClass === studentClass) {
+      currentLevel = data.currentLevel;
+      currentPage = data.currentPage;
+      startTime = data.startTime || Date.now();
+      gameEnded = data.gameEnded || false;
+      currentLetters = data.currentLetters || [];
+      data.levelAttempts.forEach((l, i) => {
+        levelAttempts[i].correct = new Set(l.correct);
+        levelAttempts[i].incorrect = [...l.incorrect];
+      });
+      loadPage();
+    }
+  }
+
   function loadPage() {
+    if (gameEnded) {
+      modal.style.display = "flex";
+      return;
+    }
+
+    if (currentLevel >= levels.length) {
+      endGame();
+      return;
+    }
+
     const { type: mode, decoys, wideMode } = levels[currentLevel];
 
     // Toggle wide-mode class on container for levels 4-6
@@ -259,12 +309,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const lettersNeeded = 9;
     const totalLettersNeeded = pagesPerLevel * lettersNeeded; // 27 per level
 
-    // On the first page of a level, precompute letters for all 3 pages
-    if (currentPage === 0) {
+    // On the first page of a level, precompute letters for all 3 pages if not restored
+    if (currentPage === 0 && currentLetters.length === 0) {
       // Make a copy of all letters and shuffle
       const shuffledLetters = shuffle([...allLetters]);
 
-      // Pick lettersNeeded * pagesPerLevel letters for this level
       currentLetters = [];
 
       for (let page = 0; page < pagesPerLevel; page++) {
@@ -364,6 +413,8 @@ document.addEventListener("DOMContentLoaded", function () {
       slot.addEventListener("dragover", e => e.preventDefault());
       slot.addEventListener("drop", drop);
     });
+
+    saveProgress();
   }
 
   function touchStart(e) {
@@ -407,6 +458,17 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("touchend", handleTouchEnd, { passive: false });
   }
 
-  loadPage();
+  // On load: check for saved game and offer resume
+  const saved = JSON.parse(localStorage.getItem("alphabetGameSave"));
+  if (saved && saved.studentName === studentName && saved.studentClass === studentClass && !saved.gameEnded) {
+    if (confirm("Resume your unfinished game?")) {
+      restoreProgress(saved);
+    } else {
+      localStorage.removeItem("alphabetGameSave");
+      loadPage();
+    }
+  } else {
+    loadPage();
+  }
 
 });
