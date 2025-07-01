@@ -50,9 +50,9 @@ document.addEventListener("DOMContentLoaded", function () {
     { type: "signToImage", decoys: 3 },
     { type: "imageToSign", decoys: 3 },
     { type: "mixed", decoys: 3 },
-    { type: "signToImage", decoys: 5, wideMode: true },
-    { type: "imageToSign", decoys: 5, wideMode: true },
-    { type: "mixed", decoys: 5, wideMode: true }
+    { type: "signToImage", decoys: 5 },
+    { type: "imageToSign", decoys: 5 },
+    { type: "mixed", decoys: 5 }
   ];
 
   const formEntryIDs = {
