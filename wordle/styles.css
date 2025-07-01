@@ -213,7 +213,7 @@ body {
 /* On-Screen Keyboard Styling */
 .keyboard-modal {
   position: fixed;
-  top: 40%;
+  bottom: 10%;
   left: 50%;
   transform: translate(-50%, -50%) !important;
   background: rgba(255, 255, 255, 0.95);
