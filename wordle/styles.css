@@ -215,7 +215,7 @@ body {
   position: fixed;
   bottom: 10%;
   left: 50%;
-  transform: translate(-50%, -50%) !important;
+  transform: translate(-50%, 0%) !important;
   background: rgba(255, 255, 255, 0.95);
   padding: 5px 5px;
   border-radius: 8px;
