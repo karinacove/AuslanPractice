@@ -53,12 +53,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const formEntryIDs = {
     correct: [
-      "entry.1249394203", "entry.1551220511", "entry.903633326",
-      "entry.497882042", "entry.1591755601", "entry.1996137354"
+      "entry.1249394203", "entry.1551220511", "entry.903633326", "entry.497882042", "entry.1591755601", "entry.1996137354",
+      "entry.856597282", "entry.552536101", "entry.922308538", "entry.1374012635", "entry.969924717", "entry.1932466289",
+      "entry.1575128943", "entry.554179696", "entry.2030465979", "entry.738514372", "entry.1357122496", "entry.1591067770",
+      "entry.1355599626", "entry.798325880"
     ],
     incorrect: [
-      "entry.1897227570", "entry.1116300030", "entry.187975538",
-      "entry.1880514176", "entry.552536101", "entry.922308538"
+      "entry.1897227570", "entry.1116300030", "entry.187975538", "entry.1880514176", "entry.552536101", "entry.922308538",
+      "entry.1184246193", "entry.985210217", "entry.1120330311", "entry.173771989", "entry.1445957806", "entry.518336131",
+      "entry.817472684", "entry.1826031881", "entry.975184703", "entry.1363193324", "entry.1628651239", "entry.1713469842",
+      "entry.1505983868", "entry.2122202486"
     ]
   };
 
