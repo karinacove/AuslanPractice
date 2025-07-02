@@ -449,45 +449,45 @@ logoutBtn.addEventListener("click", () => {
     leftSigns.innerHTML = "";
     rightSigns.innerHTML = "";
 
-    draggableLetters.forEach((letter, i) => {
-      const img = document.createElement("img");
-      img.className = "draggable";
-      img.draggable = true;
-      img.dataset.letter = letter;
+draggableLetters.forEach((letter, i) => {
+  if (matchedLetters.has(letter)) return; // ✅ Skip already matched
 
-      img.addEventListener("dragstart", e => {
-        e.dataTransfer.setData("text/plain", letter);
-        e.dataTransfer.setData("src", img.src);
-      });
-      img.addEventListener("touchstart", touchStart);
+  const img = document.createElement("img");
+  img.className = "draggable";
+  img.draggable = true;
+  img.dataset.letter = letter;
 
-      // Determine opposite type for draggable (opposite of slot type if letter is correct)
-      let oppositeType;
-      if (mode === "mixed") {
-        if (pageLetters.includes(letter)) {
-          oppositeType = !slotTypes[letter];
-        } else {
-          oppositeType = Math.random() < 0.5; // decoys random
-        }
-      } else if (mode === "signToImage") {
-        oppositeType = true; // draggables are signs
-      } else if (mode === "imageToSign") {
-        oppositeType = false; // draggables are images
-      }
+  img.addEventListener("dragstart", e => {
+    e.dataTransfer.setData("text/plain", letter);
+    e.dataTransfer.setData("src", img.src);
+  });
+  img.addEventListener("touchstart", touchStart);
 
-      img.src = `assets/alphabet/${oppositeType ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}`;
+  let oppositeType;
+  if (mode === "mixed") {
+    if (pageLetters.includes(letter)) {
+      oppositeType = !slotTypes[letter];
+    } else {
+      oppositeType = Math.random() < 0.5;
+    }
+  } else if (mode === "signToImage") {
+    oppositeType = true;
+  } else if (mode === "imageToSign") {
+    oppositeType = false;
+  }
 
-      const wrap = document.createElement("div");
-      wrap.className = "drag-wrapper";
-      wrap.appendChild(img);
+  img.src = `assets/alphabet/${oppositeType ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}`;
 
-      // Distribute roughly half in left, half in right container
-      if (i < draggableLetters.length / 2) {
-        leftSigns.appendChild(wrap);
-      } else {
-        rightSigns.appendChild(wrap);
-      }
-    });
+  const wrap = document.createElement("div");
+  wrap.className = "drag-wrapper";
+  wrap.appendChild(img);
+
+  if (i < draggableLetters.length / 2) {
+    leftSigns.appendChild(wrap);
+  } else {
+    rightSigns.appendChild(wrap);
+  }
+});
 
     correctMatches = 0;
 
