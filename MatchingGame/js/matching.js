@@ -1,3 +1,5 @@
+// ✅ Full Alphabet Matching Game Script with All Logic + Level 20 Incorrect Revisit + Touch Drag Fix
+
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -15,13 +17,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const logoutBtn = document.getElementById("logout-btn");
   const modal = document.getElementById("end-modal");
   const finishBtn = document.getElementById("finish-btn");
-  const endModalContent = document.getElementById("end-modal-content");
-  const scoreDisplay = document.getElementById("score-display");
-
+  const endModal = modal;
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
   const rightSigns = document.getElementById("rightSigns");
   const levelTitle = document.getElementById("levelTitle");
+  const endModalContent = document.getElementById("end-modal-content");
+  const scoreDisplay = document.getElementById("score-display");
 
   let gameEnded = false;
   let currentLevel = 0;
@@ -41,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
     { type: "signToImage", decoys: 9, wideMode: true },
     { type: "imageToSign", decoys: 9, wideMode: true },
     { type: "mixed", decoys: 9, wideMode: true },
-    { type: "incorrectReview", decoys: 6, wideMode: true }
+    { type: "incorrectReview", decoys: 6, wideMode: true } // Level 20
   ];
 
   const formEntryIDs = {
@@ -57,21 +59,14 @@ document.addEventListener("DOMContentLoaded", function () {
     ]
   };
 
-  const levelAttempts = Array(levels.length).fill(null).map(() => ({
-    correct: new Set(),
-    incorrect: []
-  }));
+  const levelAttempts = Array(levels.length).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
 
   const feedbackImage = document.createElement("img");
   feedbackImage.id = "feedbackImage";
   Object.assign(feedbackImage.style, {
-    position: "fixed",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "200px",
-    display: "none",
-    zIndex: "1000"
+    position: "fixed", top: "50%", left: "50%",
+    transform: "translate(-50%, -50%)", width: "200px",
+    display: "none", zIndex: "1000"
   });
   document.body.appendChild(feedbackImage);
 
@@ -123,41 +118,28 @@ document.addEventListener("DOMContentLoaded", function () {
     const src = e.dataTransfer.getData("src");
     const target = e.currentTarget;
     const targetLetter = target.dataset.letter;
-
     if (letter === targetLetter) {
-      if (!levelAttempts[currentLevel].correct.has(letter)) {
-        levelAttempts[currentLevel].correct.add(letter);
-        levelAttempts[currentLevel].incorrect = levelAttempts[currentLevel].incorrect.filter(l => l !== letter);
-      }
+      if (!levelAttempts[currentLevel].correct.has(letter)) levelAttempts[currentLevel].correct.add(letter);
       saveProgress();
-
       target.innerHTML = "";
       const overlay = document.createElement("img");
       overlay.src = src;
       overlay.className = "overlay";
       target.appendChild(overlay);
-
-      // Remove draggable from both sides (left and right)
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
-
       correctMatches++;
       showFeedback(true);
-
       const levelLimit = levels[currentLevel].type === "incorrectReview" ? 1 : pagesPerLevel;
       if (correctMatches >= currentLetters[currentPage].length) {
         correctMatches = 0;
         currentPage++;
-        if (currentPage < levelLimit) {
-          setTimeout(loadPage, 800);
-        } else {
+        if (currentPage < levelLimit) setTimeout(loadPage, 800);
+        else {
           currentLevel++;
           currentPage = 0;
           saveProgress();
-          if (currentLevel >= levels.length) {
-            setTimeout(endGame, 800);
-          } else {
-            setTimeout(loadPage, 800);
-          }
+          if (currentLevel >= levels.length) setTimeout(endGame, 800);
+          else setTimeout(loadPage, 800);
         }
       }
     } else {
@@ -262,7 +244,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let totalAttempts = 0;
     for (let i = 0; i < levels.length; i++) {
       totalCorrect += data.levelAttempts[i]?.correct.length || 0;
-      totalAttempts += (data.levelAttempts[i]?.correct.length || 0) + (data.levelAttempts[i]?.incorrect.length || 0);
+      totalAttempts += totalCorrect + (data.levelAttempts[i]?.incorrect.length || 0);
     }
 
     const percent = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
@@ -317,7 +299,6 @@ document.addEventListener("DOMContentLoaded", function () {
       startTime = data.startTime || Date.now();
       gameEnded = data.gameEnded || false;
       currentLetters = data.currentLetters || [];
-
       data.levelAttempts.forEach((l, i) => {
         levelAttempts[i].correct = new Set(l.correct);
         levelAttempts[i].incorrect = [...l.incorrect];
@@ -352,42 +333,37 @@ document.addEventListener("DOMContentLoaded", function () {
 
     levelTitle.innerText = `Level ${currentLevel + 1}: ` +
       (mode === "signToImage" ? "Match the Sign to the Picture" :
-       mode === "imageToSign" ? "Match the Picture to the Sign" :
-       mode === "mixed" ? "Match Signs and Pictures (Mixed)" :
-       mode === "incorrectReview" ? "Review Incorrect Answers" : "");
+        mode === "imageToSign" ? "Match the Picture to the Sign" :
+          mode === "mixed" ? "Match Signs and Pictures (Mixed)" :
+            mode === "incorrectReview" ? "Review Incorrect Answers" : "");
 
-    // Prepare letters for this page
+    // Handle Level 20 incorrectReview separately
     if (mode === "incorrectReview") {
-      const allIncorrect = [];
-      for (let i = 0; i < levels.length - 1; i++) {
-        allIncorrect.push(...levelAttempts[i].incorrect);
+      // Collect all incorrect answers from previous levels
+      let incorrectLetters = [];
+      for (let i = 0; i < levels.length - 1; i++) { // exclude last level (incorrectReview itself)
+        incorrectLetters = incorrectLetters.concat(levelAttempts[i].incorrect);
       }
-      const uniqueIncorrect = [...new Set(allIncorrect)];
-      let lettersForPage = [];
-      if (uniqueIncorrect.length >= 9) {
-        lettersForPage = uniqueIncorrect.slice(0, 9);
-      } else {
-        const alreadyCorrect = new Set();
-        for (let i = 0; i < levels.length - 1; i++) {
-          levelAttempts[i].correct.forEach(l => alreadyCorrect.add(l));
-        }
-        const availableLetters = allLetters.filter(l => !alreadyCorrect.has(l));
-        const shuffledAvailable = shuffle(availableLetters);
-        lettersForPage = [...uniqueIncorrect, ...shuffledAvailable].slice(0, 9);
+      // Remove duplicates
+      incorrectLetters = [...new Set(incorrectLetters)];
+      // If not enough incorrects, fill with random letters to decoys count
+      if (incorrectLetters.length < decoys + 3) {
+        const needed = decoys + 3 - incorrectLetters.length;
+        const remainingLetters = allLetters.filter(l => !incorrectLetters.includes(l));
+        incorrectLetters = incorrectLetters.concat(shuffle(remainingLetters).slice(0, needed));
       }
-      currentLetters = [lettersForPage];
-      currentPage = 0;
+      currentLetters = [incorrectLetters.slice(0, decoys + 3)];
     } else {
+      // Pick letters for the page: 9 letters per page, no repeats per level page
+      const lettersNeeded = 9;
+      // On first page of a level, precompute letters for all pages if not restored
       if (currentPage === 0 && currentLetters.length === 0) {
-        const lettersNeeded = 9;
-        const totalLettersNeeded = pagesPerLevel * lettersNeeded;
-
         const shuffledLetters = shuffle([...allLetters]);
         currentLetters = [];
-
-        for (let p = 0; p < pagesPerLevel; p++) {
-          let pageLetters = shuffledLetters.slice(p * lettersNeeded, (p + 1) * lettersNeeded);
-          if (p === 2) {
+        for (let page = 0; page < pagesPerLevel; page++) {
+          let pageLetters = shuffledLetters.slice(page * lettersNeeded, (page + 1) * lettersNeeded);
+          // For page 3 (index 2), replace one letter with a vowel not already in the page
+          if (page === 2) {
             const usedSet = new Set(pageLetters);
             const unusedVowels = shuffle(vowels.filter(v => !usedSet.has(v)));
             if (unusedVowels.length > 0) {
@@ -400,10 +376,10 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
 
-    const pageLetters = currentLetters[currentPage];
+    const pageLetters = currentLetters[currentPage] || [];
 
-    // Create slots in gameBoard
-    const slotTypes = {}; // letter => true if sign, false if image
+    // Create slots in the gameBoard for page letters, randomly mix signs/cliparts based on mode
+    const slotTypes = {};
     pageLetters.forEach(letter => {
       const slot = document.createElement("div");
       slot.className = "slot";
@@ -411,175 +387,179 @@ document.addEventListener("DOMContentLoaded", function () {
 
       let isSign;
       if (mode === "signToImage") {
-        isSign = false;
+        isSign = false; // gameBoard shows images
       } else if (mode === "imageToSign") {
-        isSign = true;
+        isSign = true; // gameBoard shows signs
       } else if (mode === "mixed") {
         isSign = Math.random() < 0.5;
       } else if (mode === "incorrectReview") {
-        isSign = Math.random() < 0.5;
+        // For level 20, show signs only on left, images on right (like signToImage)
+        isSign = false;
+      } else {
+        isSign = false;
       }
+
       slotTypes[letter] = isSign;
-      slot.style.backgroundImage = `url('assets/alphabet/${isSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}')`;
+
+      const img = document.createElement("img");
+      img.dataset.letter = letter;
+      img.className = "slot-image";
+
+      if (isSign) {
+        img.src = `assets/signs/${letter}.png`;
+        img.alt = `Sign for ${letter}`;
+      } else {
+        img.src = `assets/clipart/${letter}.png`;
+        img.alt = `Image for ${letter}`;
+      }
+      slot.appendChild(img);
       gameBoard.appendChild(slot);
     });
 
-    // Show overlays for previously matched letters
-    const matchedLetters = new Set(levelAttempts[currentLevel].correct);
-    const slots = gameBoard.querySelectorAll(".slot");
-    slots.forEach(slot => {
-      const letter = slot.dataset.letter;
-      if (matchedLetters.has(letter)) {
-        slot.innerHTML = "";
-        const overlay = document.createElement("img");
-        const isSign = slotTypes[letter];
-        overlay.src = `assets/alphabet/${isSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}`;
-        overlay.className = "overlay";
-        slot.appendChild(overlay);
-      }
-    });
-
-    // Prepare draggables for left and right sides
-    // Depending on mode:
-    // signToImage: left = signs, right = images
-    // imageToSign: left = images, right = signs
-    // mixed: random
-
-    // Letters to use as draggables = pageLetters + decoys (random letters not in pageLetters)
-    const decoyLetters = shuffle(allLetters.filter(l => !pageLetters.includes(l))).slice(0, decoys);
-    const draggableLetters = shuffle([...pageLetters, ...decoyLetters]);
-
-    // Clear left and right
+    // Create draggable items on left and right containers
     leftSigns.innerHTML = "";
     rightSigns.innerHTML = "";
 
-    // Create draggables for each letter and place on left or right depending on mode
-
-    // Helper function to create draggable element
-    function createDraggable(letter, isSign) {
-      const draggable = document.createElement("img");
-      draggable.className = "draggable";
-      draggable.draggable = true;
-      draggable.dataset.letter = letter;
-      draggable.src = `assets/alphabet/${isSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}`;
-
-      draggable.addEventListener("dragstart", e => {
-        e.dataTransfer.setData("text/plain", letter);
-        e.dataTransfer.setData("src", draggable.src);
-      });
-
-      draggable.addEventListener("touchstart", touchStartHandler);
-      draggable.addEventListener("touchmove", touchMoveHandler);
-      draggable.addEventListener("touchend", touchEndHandler);
-
-      return draggable;
+    // Draggables for left or right side depend on mode
+    let draggableSide = [];
+    if (mode === "signToImage" || mode === "incorrectReview") {
+      // left = signs, right = images
+      draggableSide = ["signs", "images"];
+    } else if (mode === "imageToSign") {
+      draggableSide = ["images", "signs"];
+    } else if (mode === "mixed") {
+      draggableSide = ["mixed", "mixed"];
     }
 
-    // Split draggableLetters roughly half and half
-    const half = Math.ceil(draggableLetters.length / 2);
-    const leftLetters = draggableLetters.slice(0, half);
-    const rightLetters = draggableLetters.slice(half);
+    // Compose lists for left and right draggable sets
+    const leftLetters = [];
+    const rightLetters = [];
 
-    leftLetters.forEach(letter => {
-      let isSignForDraggable;
-      if (mode === "signToImage") {
-        isSignForDraggable = true; // left signs
-      } else if (mode === "imageToSign") {
-        isSignForDraggable = false; // left images
-      } else if (mode === "mixed") {
-        isSignForDraggable = Math.random() < 0.5;
-      } else if (mode === "incorrectReview") {
-        isSignForDraggable = Math.random() < 0.5;
+    pageLetters.forEach(letter => {
+      if (draggableSide[0] === "signs") leftLetters.push(letter);
+      else if (draggableSide[0] === "images") leftLetters.push(letter);
+      else if (draggableSide[0] === "mixed") {
+        if (Math.random() < 0.5) leftLetters.push(letter);
+        else rightLetters.push(letter);
       }
-      const d = createDraggable(letter, isSignForDraggable);
-      leftSigns.appendChild(d);
-    });
 
-    rightLetters.forEach(letter => {
-      let isSignForDraggable;
-      if (mode === "signToImage") {
-        isSignForDraggable = false; // right images
-      } else if (mode === "imageToSign") {
-        isSignForDraggable = true; // right signs
-      } else if (mode === "mixed") {
-        isSignForDraggable = Math.random() < 0.5;
-      } else if (mode === "incorrectReview") {
-        isSignForDraggable = Math.random() < 0.5;
+      if (draggableSide[1] === "signs") rightLetters.push(letter);
+      else if (draggableSide[1] === "images") rightLetters.push(letter);
+      else if (draggableSide[1] === "mixed") {
+        if (Math.random() < 0.5) rightLetters.push(letter);
+        else leftLetters.push(letter);
       }
-      const d = createDraggable(letter, isSignForDraggable);
-      rightSigns.appendChild(d);
     });
 
-    // Setup drop targets on slots
-    slots.forEach(slot => {
-      slot.addEventListener("dragover", e => e.preventDefault());
-      slot.addEventListener("drop", drop);
-      slot.addEventListener("touchstart", touchStartHandler);
-      slot.addEventListener("touchmove", touchMoveHandler);
-      slot.addEventListener("touchend", touchEndHandler);
-    });
+    // Remove duplicates in case both sides got the same letter
+    const uniqueLeft = [...new Set(leftLetters)];
+    const uniqueRight = [...new Set(rightLetters)];
 
-    levelTitle.innerText = `Level ${currentLevel + 1} / Page ${currentPage + 1}`;
+    // Add decoys randomly from other letters (not in pageLetters)
+    let decoyLetters = shuffle(allLetters.filter(l => !pageLetters.includes(l)));
+    decoyLetters = decoyLetters.slice(0, decoys);
 
-    saveProgress();
-  }
+    // Add decoys to both sides, split half-half roughly
+    const decoysLeft = decoyLetters.slice(0, Math.ceil(decoys / 2));
+    const decoysRight = decoyLetters.slice(Math.ceil(decoys / 2));
 
-  // Touch drag/drop handlers (basic support)
-  let draggedElement = null;
-  let touchX = 0, touchY = 0;
+    decoysLeft.forEach(l => uniqueLeft.push(l));
+    decoysRight.forEach(l => uniqueRight.push(l));
 
-  function touchStartHandler(e) {
-    e.preventDefault();
-    draggedElement = e.target;
-    if (!draggedElement.classList.contains("draggable")) return;
-    touchX = e.touches[0].clientX;
-    touchY = e.touches[0].clientY;
-  }
+    // Shuffle again so they don't appear sorted
+    const finalLeft = shuffle(uniqueLeft);
+    const finalRight = shuffle(uniqueRight);
 
-  function touchMoveHandler(e) {
-    e.preventDefault();
-    if (!draggedElement) return;
-    const moveX = e.touches[0].clientX - touchX;
-    const moveY = e.touches[0].clientY - touchY;
-    touchX = e.touches[0].clientX;
-    touchY = e.touches[0].clientY;
-    const style = draggedElement.style;
-    style.position = "fixed";
-    style.zIndex = 1000;
-    style.left = (draggedElement.offsetLeft + moveX) + "px";
-    style.top = (draggedElement.offsetTop + moveY) + "px";
-  }
+    // Helper to create draggable img element
+    function createDraggable(letter, isSignSide) {
+      const img = document.createElement("img");
+      img.src = isSignSide ? `assets/signs/${letter}.png` : `assets/clipart/${letter}.png`;
+      img.alt = letter;
+      img.className = "draggable";
+      img.draggable = true;
+      img.dataset.letter = letter;
 
-  function touchEndHandler(e) {
-    e.preventDefault();
-    if (!draggedElement) return;
-
-    // Detect drop target by element under finger
-    const touch = e.changedTouches[0];
-    draggedElement.style.position = "";
-    draggedElement.style.zIndex = "";
-    draggedElement.style.left = "";
-    draggedElement.style.top = "";
-
-    draggedElement.hidden = true;
-    const elem = document.elementFromPoint(touch.clientX, touch.clientY);
-    draggedElement.hidden = false;
-
-    if (elem && elem.classList.contains("slot")) {
-      // Manually trigger drop with DataTransfer
-      const dataTransfer = new DataTransfer();
-      dataTransfer.setData("text/plain", draggedElement.dataset.letter);
-      dataTransfer.setData("src", draggedElement.src);
-      const event = new DragEvent("drop", {
-        dataTransfer
+      img.addEventListener("dragstart", (ev) => {
+        ev.dataTransfer.setData("text/plain", letter);
+        ev.dataTransfer.setData("src", img.src);
       });
-      elem.dispatchEvent(event);
+
+      // Touch drag fix: clone with correct size
+      img.addEventListener("touchstart", function touchStart(e) {
+        e.preventDefault();
+        const target = e.target;
+        const letter = target.dataset.letter;
+        const src = target.src;
+
+        const clone = target.cloneNode(true);
+        clone.style.position = "absolute";
+        clone.style.pointerEvents = "none";
+        clone.style.opacity = "0.7";
+        clone.style.zIndex = "10000";
+
+        const style = window.getComputedStyle(target);
+        clone.style.width = style.width;
+        clone.style.height = style.height;
+
+        document.body.appendChild(clone);
+
+        const cloneWidth = parseFloat(clone.style.width);
+        const cloneHeight = parseFloat(clone.style.height);
+
+        const moveClone = (touch) => {
+          clone.style.left = `${touch.clientX - cloneWidth / 2}px`;
+          clone.style.top = `${touch.clientY - cloneHeight / 2}px`;
+        };
+
+        moveClone(e.touches[0]);
+
+        const handleTouchMove = (ev) => {
+          moveClone(ev.touches[0]);
+        };
+
+        const handleTouchEnd = (ev) => {
+          const touch = ev.changedTouches[0];
+          const el = document.elementFromPoint(touch.clientX, touch.clientY);
+          if (el && el.classList.contains("slot")) drop({
+            preventDefault: () => { },
+            dataTransfer: {
+              getData: (k) => k === "text/plain" ? letter : src
+            },
+            currentTarget: el
+          });
+          document.removeEventListener("touchmove", handleTouchMove);
+          document.removeEventListener("touchend", handleTouchEnd);
+          clone.remove();
+        };
+
+        document.addEventListener("touchmove", handleTouchMove, { passive: false });
+        document.addEventListener("touchend", handleTouchEnd, { passive: false });
+      });
+
+      return img;
     }
 
-    draggedElement = null;
+    finalLeft.forEach(letter => {
+      const isSignSide = (draggableSide[0] === "signs" || (draggableSide[0] === "mixed" && Math.random() < 0.5));
+      const img = createDraggable(letter, isSignSide);
+      leftSigns.appendChild(img);
+    });
+
+    finalRight.forEach(letter => {
+      const isSignSide = (draggableSide[1] === "signs" || (draggableSide[1] === "mixed" && Math.random() < 0.5));
+      const img = createDraggable(letter, isSignSide);
+      rightSigns.appendChild(img);
+    });
+
+    // Add drop event listeners to slots
+    document.querySelectorAll(".slot").forEach(slot => {
+      slot.ondragover = (ev) => ev.preventDefault();
+      slot.ondrop = drop;
+    });
+
+    correctMatches = 0;
   }
 
-  // On page load: restore or start fresh
   const saved = JSON.parse(localStorage.getItem("alphabetGameSave"));
   if (saved && saved.studentName === studentName && saved.studentClass === studentClass && !saved.gameEnded && saved.currentPage >= 0) {
     if (confirm("Resume your unfinished game?")) {
