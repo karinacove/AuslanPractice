@@ -20,14 +20,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (finishBtn) finishBtn.addEventListener("click", () => {
     if (!gameEnded) {
-      modal.style.display = "flex"; // ✅ this is what was missing
+      modal.style.display = "flex";
       endGame();
     }
   });
 
 
   continueBtn.addEventListener("click", () => {
-    endModal.style.display = "none";
+    Modal.style.display = "none";
     gameEnded = false;
     loadPage();
   });
@@ -41,19 +41,18 @@ document.addEventListener("DOMContentLoaded", function () {
     window.location.href = "../index.html";
   });
 
-  logoutBtn.addEventListener("click", () => {
-    const saved = JSON.parse(localStorage.getItem("alphabetGameSave"));
-    if (saved && saved.studentName === studentName && saved.studentClass === studentClass) {
-      sendSavedDataToForm(saved, () => {
-        localStorage.clear();
-        window.location.href = "../index.html";
-      });
-    } else {
+ logoutBtn.addEventListener("click", () => {
+  const saved = JSON.parse(localStorage.getItem("numbersGameSave"));
+  if (saved && saved.studentName === studentName && saved.studentClass === studentClass) {
+    sendSavedDataToForm(saved, () => {
       localStorage.clear();
       window.location.href = "../index.html";
-    }
-  });
-
+    });
+  } else {
+    localStorage.clear();
+    window.location.href = "../index.html";
+  }
+});
   
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
