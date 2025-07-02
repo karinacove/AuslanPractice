@@ -1,3 +1,5 @@
+// ✅ Updated Matching Game Script
+
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -38,19 +40,19 @@ document.addEventListener("DOMContentLoaded", function () {
     window.location.href = "../index.html";
   });
 
-logoutBtn.addEventListener("click", () => {
-  const saved = JSON.parse(localStorage.getItem("alphabetGameSave"));
-  if (saved && saved.studentName === studentName && saved.studentClass === studentClass) {
-    sendSavedDataToForm(saved, () => {
+  logoutBtn.addEventListener("click", () => {
+    const saved = JSON.parse(localStorage.getItem("alphabetGameSave"));
+    if (saved && saved.studentName === studentName && saved.studentClass === studentClass) {
+      sendSavedDataToForm(saved, () => {
+        localStorage.clear();
+        window.location.href = "../index.html";
+      });
+    } else {
       localStorage.clear();
       window.location.href = "../index.html";
-    });
-  } else {
-    localStorage.clear();
-    window.location.href = "../index.html";
-  }
-});
-
+    }
+  });
+  
   const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
   const vowels = ["a", "e", "i", "o", "u"];
 
