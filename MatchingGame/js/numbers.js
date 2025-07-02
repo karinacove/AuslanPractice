@@ -215,104 +215,198 @@ document.addEventListener("DOMContentLoaded", function () {
     saveProgress();
   }
 
-  function loadPage() {
-    if (gameEnded) return;
+function updateScore() {
+  const totalCorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.correct.size, 0);
+  const totalIncorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.incorrect.length, 0);
+  const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
+  document.getElementById("score-display").innerText = `Score: ${percent}%`;
+}
 
-    if (currentLevel >= 20) {
-      endGame();
-      return;
-    }
-
-    const info = levelDefinitions[currentLevel];
-    // Generate pool for this level
-    let pool = [];
-    if (info.random) {
-      pool = Array.from({ length: 101 }, (_, i) => i);
-    } else if (info.review) {
-      // For review, collect incorrect answers from all levels
-      pool = [];
-      for (let lvl = 0; lvl < levelAttempts.length; lvl++) {
-        pool.push(...levelAttempts[lvl].incorrect);
-      }
-      pool = [...new Set(pool)].sort(sortNumbers);
-    } else {
-      pool = Array.from({ length: info.end - info.start + 1 }, (_, i) => i + info.start);
-    }
-
-    // Shuffle and slice the pool to get all items for all pages
-    const totalItems = info.pages * 9;
-    let chosen = shuffle(pool).slice(0, totalItems);
-
-    // Split into pages of 9 items each
-    const pageItems = [];
-    for (let i = 0; i < info.pages; i++) {
-      pageItems.push(chosen.slice(i * 9, (i + 1) * 9));
-    }
-
-    currentLetters = pageItems;
-    currentPageItems = currentLetters[currentPage] || [];
-
-    gameBoard.innerHTML = "";
-    leftSigns.innerHTML = "";
-    rightSigns.innerHTML = "";
-    levelTitle.innerText = `Level ${currentLevel + 1}`;
-
-    const slotType = info.type;
-    const slotMode = slotType.includes("clipart") ? "clipart" : slotType.includes("sign") ? "sign" : null;
-    const getOppositeMode = m => m === "clipart" ? "sign" : "clipart";
-
-    // Create slots for the current page
-    currentPageItems.forEach(letter => {
-      const slot = document.createElement("div");
-      slot.className = "slot";
-      slot.dataset.letter = `${letter}`;
-      const imageMode = slotType === "mixed" ? (Math.random() < 0.5 ? "clipart" : "sign") : slotMode;
-      slot.dataset.imageMode = imageMode;
-      slot.style.backgroundImage = `url('assets/numbers/${imageMode === "clipart" ? `clipart/${letter}.png` : `signs/sign-${letter}.png`}')`;
-      gameBoard.appendChild(slot);
-    });
-
-    // Prepare draggable items (correct + decoys)
-    let decoyPool = pool.filter(n => !currentPageItems.includes(n));
-    let decoys = decoyPool.length >= 3 ? shuffle(decoyPool).slice(0, 3) : decoyPool;
-    const draggableLetters = shuffle([...currentPageItems, ...decoys]);
-
-    draggableLetters.forEach((letter, i) => {
-      const img = document.createElement("img");
-      img.className = "draggable";
-      img.draggable = true;
-      img.dataset.letter = `${letter}`;
-
-      let sourceMode;
-      if (slotType === "mixed") {
-        const matchSlot = document.querySelector(`.slot[data-letter='${letter}']`);
-        sourceMode = matchSlot ? getOppositeMode(matchSlot.dataset.imageMode) : (Math.random() < 0.5 ? "clipart" : "sign");
-      } else {
-        sourceMode = getOppositeMode(slotMode);
-      }
-
-      img.src = `assets/numbers/${sourceMode === "clipart" ? `clipart/${letter}.png` : `signs/sign-${letter}.png`}`;
-      img.addEventListener("dragstart", e => {
-        e.dataTransfer.setData("text/plain", `${letter}`);
-        e.dataTransfer.setData("src", img.src);
-      });
-      img.addEventListener("touchstart", touchStart);
-
-      const wrap = document.createElement("div");
-      wrap.className = "drag-wrapper";
-      wrap.appendChild(img);
-      (i < draggableLetters.length / 2 ? leftSigns : rightSigns).appendChild(wrap);
-    });
-
-    correctMatches = 0;
-    document.querySelectorAll(".slot").forEach(slot => {
-      slot.addEventListener("dragover", e => e.preventDefault());
-      slot.addEventListener("drop", drop);
-    });
-
-    // Save progress after loading page
-    saveProgress();
+function loadPage() {
+  if (gameEnded) {
+    modal.style.display = "flex";
+    return;
   }
+
+  if (currentLevel >= levels.length) {
+    endGame();
+    return;
+  }
+
+  const { type: mode, decoys, wideMode } = levels[currentLevel];
+
+  if (wideMode) {
+    document.body.classList.add("wide-mode");
+  } else {
+    document.body.classList.remove("wide-mode");
+  }
+
+  gameBoard.innerHTML = "";
+  leftSigns.innerHTML = "";
+  rightSigns.innerHTML = "";
+
+  levelTitle.innerText = `Level ${currentLevel + 1}: ` +
+    (mode === "signToImage" ? "Match the Sign to the Picture" :
+      mode === "imageToSign" ? "Match the Picture to the Sign" :
+        mode === "mixed" ? "Match Signs and Pictures (Mixed)" :
+          mode === "incorrectReview" ? "Review Incorrect Answers" : "Level");
+
+  // FIXED: For Level 20 (incorrectReview), build currentLetters from previously incorrect answers or random letters if none
+  if (mode === "incorrectReview") {
+    // Collect incorrect letters from all previous levels
+    let incorrectLetters = [];
+    for (let i = 0; i < levels.length - 1; i++) {
+      incorrectLetters = incorrectLetters.concat(levelAttempts[i].incorrect);
+    }
+    incorrectLetters = [...new Set(incorrectLetters)]; // unique letters
+
+    // If not enough incorrect letters, add random letters to fill page
+    const neededCount = 9;
+    if (incorrectLetters.length < neededCount) {
+      const remainingLetters = allLetters.filter(l => !incorrectLetters.includes(l));
+      incorrectLetters = incorrectLetters.concat(shuffle(remainingLetters).slice(0, neededCount - incorrectLetters.length));
+    }
+
+    currentLetters = [incorrectLetters.slice(0, neededCount)];
+    currentPage = 0;
+  }
+
+  // For other levels, build currentLetters if first page or empty
+  if (mode !== "incorrectReview") {
+    if (currentPage === 0 && (!currentLetters.length || currentLetters.length < pagesPerLevel)) {
+      const lettersNeeded = 9;
+      const totalLettersNeeded = pagesPerLevel * lettersNeeded; // 27 per level
+
+      // Make a copy of all letters and shuffle
+      const shuffledLetters = shuffle([...allLetters]);
+
+      currentLetters = [];
+
+      for (let page = 0; page < pagesPerLevel; page++) {
+        let pageLetters = shuffledLetters.slice(page * lettersNeeded, (page + 1) * lettersNeeded);
+
+        // For page 3 (index 2), replace one letter with a vowel not already in the page
+        if (page === 2) {
+          const usedSet = new Set(pageLetters);
+          const unusedVowels = shuffle(vowels.filter(v => !usedSet.has(v)));
+          if (unusedVowels.length > 0) {
+            // Replace a random letter with this vowel
+            const replaceIdx = Math.floor(Math.random() * pageLetters.length);
+            pageLetters[replaceIdx] = unusedVowels[0];
+          }
+        }
+        currentLetters.push(pageLetters);
+      }
+    }
+  }
+
+  const pageLetters = currentLetters[currentPage];
+
+  // Build slots on gameBoard, slot types stored for opposites
+  const slotTypes = {};
+  gameBoard.innerHTML = "";
+  pageLetters.forEach(letter => {
+    const slot = document.createElement("div");
+    slot.className = "slot";
+    slot.dataset.letter = letter;
+
+    let isSign;
+    if (mode === "signToImage") {
+      isSign = false; // show images on slots
+    } else if (mode === "imageToSign") {
+      isSign = true; // show signs on slots
+    } else if (mode === "mixed") {
+      isSign = Math.random() < 0.5;
+    } else if (mode === "incorrectReview") {
+      // For review, show signs on slots
+      isSign = true;
+    } else {
+      isSign = false;
+    }
+
+    slot.style.backgroundImage = `url('assets/alphabet/${isSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}')`;
+    slotTypes[letter] = isSign;
+    gameBoard.appendChild(slot);
+  });
+
+  // Prefill correct matches overlays
+  const matchedLetters = new Set(levelAttempts[currentLevel].correct);
+  matchedLetters.forEach(letter => {
+    const slot = [...document.querySelectorAll(".slot")].find(s => s.dataset.letter === letter);
+    if (slot) {
+      const overlay = document.createElement("img");
+      const isSign = slot.style.backgroundImage.includes("sign-");
+      overlay.src = `assets/alphabet/${isSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}`;
+      overlay.className = "overlay";
+      slot.innerHTML = "";
+      slot.appendChild(overlay);
+    }
+  });
+
+  // Prepare draggables = correct opposites + decoys
+  const allDecoys = allLetters.filter(l => !pageLetters.includes(l));
+  const decoyLetters = shuffle(allDecoys).slice(0, decoys);
+
+  const draggableLetters = shuffle([...pageLetters, ...decoyLetters]);
+
+  leftSigns.innerHTML = "";
+  rightSigns.innerHTML = "";
+
+  draggableLetters.forEach((letter, i) => {
+    const img = document.createElement("img");
+    img.className = "draggable";
+    img.draggable = true;
+    img.dataset.letter = letter;
+
+    img.addEventListener("dragstart", e => {
+      e.dataTransfer.setData("text/plain", letter);
+      e.dataTransfer.setData("src", img.src);
+    });
+    img.addEventListener("touchstart", touchStart);
+
+    // Determine opposite type for draggable
+    let oppositeType;
+    if (mode === "mixed") {
+      if (pageLetters.includes(letter)) {
+        oppositeType = !slotTypes[letter];
+      } else {
+        oppositeType = Math.random() < 0.5;
+      }
+    } else if (mode === "signToImage") {
+      oppositeType = true;
+    } else if (mode === "imageToSign") {
+      oppositeType = false;
+    } else if (mode === "incorrectReview") {
+      oppositeType = false; // show images for draggable in review (opposite of signs)
+    } else {
+      oppositeType = false;
+    }
+
+    img.src = `assets/alphabet/${oppositeType ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}`;
+
+    const wrap = document.createElement("div");
+    wrap.className = "drag-wrapper";
+    wrap.appendChild(img);
+
+    if (i < draggableLetters.length / 2) {
+      leftSigns.appendChild(wrap);
+    } else {
+      rightSigns.appendChild(wrap);
+    }
+  });
+
+  correctMatches = 0;
+
+  // Add event listeners for slots
+  document.querySelectorAll(".slot").forEach(slot => {
+    slot.addEventListener("dragover", e => e.preventDefault());
+    slot.addEventListener("drop", drop);
+  });
+
+  saveProgress();
+
+  updateScore(); 
+}
 
   function drop(e) {
     e.preventDefault();
