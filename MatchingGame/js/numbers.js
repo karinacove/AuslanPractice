@@ -1,3 +1,5 @@
+// ✅ Full Numbers Matching Game Script with Save/Resume/Logout + Google Form Submission
+
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -15,41 +17,19 @@ document.addEventListener("DOMContentLoaded", function () {
   const logoutBtn = document.getElementById("logout-btn");
   const modal = document.getElementById("end-modal");
   const finishBtn = document.getElementById("finish-btn");
+  const endModalContent = document.getElementById("end-modal-content");
+  const scoreDisplay = document.getElementById("score-display");
+  const gameBoard = document.getElementById("gameBoard");
+  const leftSigns = document.getElementById("leftSigns");
+  const rightSigns = document.getElementById("rightSigns");
+  const levelTitle = document.getElementById("levelTitle");
 
-  const feedbackImage = document.createElement("img");
-  feedbackImage.id = "feedbackImage";
-  Object.assign(feedbackImage.style, {
-    position: "fixed",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "200px",
-    display: "none",
-    zIndex: "1000"
-  });
-  document.body.appendChild(feedbackImage);
-
-  function showFeedback(correct) {
-    feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
-    feedbackImage.style.display = "block";
-    setTimeout(() => feedbackImage.style.display = "none", 1000);
-  }
-
-  if (finishBtn) finishBtn.addEventListener("click", () => {
-    modal.style.display = "flex";
-    gameEnded = true;
-    showResults();
-  });
-  if (continueBtn) continueBtn.addEventListener("click", () => {
-    modal.style.display = "none";
-    gameEnded = false;
-  });
-  againBtn.addEventListener("click", () => location.reload());
-  menuBtn.addEventListener("click", () => window.location.href = "../index.html");
-  logoutBtn.addEventListener("click", () => {
-    localStorage.clear();
-    window.location.href = "../index.html";
-  });
+  let gameEnded = false;
+  let currentLevel = 0;
+  let currentPage = 0;
+  let currentLetters = [];
+  let correctMatches = 0;
+  let startTime = Date.now();
 
   const formEntryIDs = {
     correct: [
@@ -66,52 +46,123 @@ document.addEventListener("DOMContentLoaded", function () {
     ]
   };
 
-  function sortNumbers(a, b) {
-    return parseInt(a) - parseInt(b);
-  }
-  
-  const levelDefinitions = [
-    { start: 0, end: 12, pages: 2, type: "clipart-grid" },
-    { start: 0, end: 12, pages: 2, type: "sign-grid" },
-    { start: 0, end: 12, pages: 2, type: "mixed" },
-    { start: 13, end: 20, pages: 1, type: "clipart-grid" },
-    { start: 13, end: 20, pages: 1, type: "sign-grid" },
-    { start: 13, end: 20, pages: 1, type: "mixed" },
-    { start: 21, end: 48, pages: 3, type: "clipart-grid" },
-    { start: 21, end: 48, pages: 3, type: "sign-grid" },
-    { start: 21, end: 48, pages: 3, type: "mixed" },
-    { start: 49, end: 76, pages: 3, type: "clipart-grid" },
-    { start: 49, end: 76, pages: 3, type: "sign-grid" },
-    { start: 49, end: 76, pages: 3, type: "mixed" },
-    { start: 77, end: 100, pages: 3, type: "clipart-grid" },
-    { start: 77, end: 100, pages: 3, type: "sign-grid" },
-    { start: 77, end: 100, pages: 3, type: "mixed" },
-    { start: 0, end: 100, pages: 3, type: "clipart-grid" },
-    { start: 0, end: 100, pages: 3, type: "sign-grid" },
-    { start: 0, end: 100, pages: 3, type: "mixed" },
-    { random: true, pages: 3, type: "mixed" },
-    { review: true, pages: 1, type: "mixed" }
-  ];
-
-  let currentLevel = 0;
-  let currentPage = 0;
-  let currentLetters = [];
-  let correctMatches = 0;
-  let gameEnded = false;
-  let startTime = Date.now();
   const levelAttempts = Array(20).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
 
-  const gameBoard = document.getElementById("gameBoard");
-  const leftSigns = document.getElementById("leftSigns");
-  const rightSigns = document.getElementById("rightSigns");
-  const levelTitle = document.getElementById("levelTitle");
+  const feedbackImage = document.createElement("img");
+  feedbackImage.id = "feedbackImage";
+  Object.assign(feedbackImage.style, {
+    position: "fixed", top: "50%", left: "50%",
+    transform: "translate(-50%, -50%)", width: "200px",
+    display: "none", zIndex: "1000"
+  });
+  document.body.appendChild(feedbackImage);
 
-  function shuffle(arr) {
-    return arr.sort(() => Math.random() - 0.5);
+  function showFeedback(correct) {
+    feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
+    feedbackImage.style.display = "block";
+    setTimeout(() => feedbackImage.style.display = "none", 1000);
   }
 
-  function showResults() {
-    endGame();
+  function saveProgress() {
+    localStorage.setItem("numbersGameSave", JSON.stringify({
+      studentName,
+      studentClass,
+      currentLevel,
+      currentPage,
+      levelAttempts: levelAttempts.map(lvl => ({
+        correct: Array.from(lvl.correct),
+        incorrect: lvl.incorrect.slice()
+      })),
+      startTime,
+      gameEnded: false
+    }));
+  }
+
+  function restoreProgress(saved) {
+    currentLevel = saved.currentLevel;
+    currentPage = saved.currentPage;
+    startTime = saved.startTime;
+    for (let i = 0; i < saved.levelAttempts.length; i++) {
+      levelAttempts[i].correct = new Set(saved.levelAttempts[i].correct);
+      levelAttempts[i].incorrect = saved.levelAttempts[i].incorrect;
+    }
+  }
+
+  function sendSavedDataToForm(data, callback) {
+    const timeTaken = Math.round((Date.now() - (data.startTime || Date.now())) / 1000);
+    const formattedTime = `${Math.floor(timeTaken / 60)} mins ${timeTaken % 60} sec`;
+
+    const form = document.createElement("form");
+    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+    form.method = "POST";
+    form.target = "hidden_iframe";
+    form.style.display = "none";
+
+    const entries = {
+      "entry.1387461004": data.studentName,
+      "entry.1309291707": data.studentClass,
+      "entry.477642881": "Numbers",
+      "entry.1374858042": formattedTime
+    };
+
+    for (let i = 0; i < formEntryIDs.correct.length; i++) {
+      const correctArr = data.levelAttempts[i]?.correct || [];
+      const incorrectArr = data.levelAttempts[i]?.incorrect || [];
+      entries[formEntryIDs.correct[i]] = correctArr.sort((a, b) => a - b).join(",");
+      entries[formEntryIDs.incorrect[i]] = incorrectArr.sort((a, b) => a - b).join(",");
+    }
+
+    const totalCorrect = data.levelAttempts.reduce((sum, lvl) => sum + (lvl.correct?.length || 0), 0);
+    const totalIncorrect = data.levelAttempts.reduce((sum, lvl) => sum + (lvl.incorrect?.length || 0), 0);
+    const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
+    entries["entry.1996137354"] = `${percent}%`;
+
+    for (const key in entries) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = entries[key];
+      form.appendChild(input);
+    }
+
+    const iframe = document.createElement("iframe");
+    iframe.name = "hidden_iframe";
+    iframe.style.display = "none";
+    iframe.onload = () => callback?.();
+    document.body.appendChild(iframe);
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  logoutBtn.addEventListener("click", () => {
+    const saved = JSON.parse(localStorage.getItem("numbersGameSave"));
+    if (saved && saved.studentName === studentName && saved.studentClass === studentClass) {
+      sendSavedDataToForm(saved, () => {
+        localStorage.clear();
+        window.location.href = "../index.html";
+      });
+    } else {
+      localStorage.clear();
+      window.location.href = "../index.html";
+    }
+  });
+
+  againBtn.addEventListener("click", () => {
+    localStorage.removeItem("numbersGameSave");
+    location.reload();
+  });
+
+  const saved = JSON.parse(localStorage.getItem("numbersGameSave"));
+  if (saved && saved.studentName === studentName && saved.studentClass === studentClass && !saved.gameEnded && saved.currentPage >= 0) {
+    if (confirm("Resume your unfinished game?")) {
+      restoreProgress(saved);
+      loadPage();
+    } else {
+      localStorage.removeItem("numbersGameSave");
+      loadPage();
+    }
+  } else {
+    loadPage();
   }
 
   function loadPage() {
