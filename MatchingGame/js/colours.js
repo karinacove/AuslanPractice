@@ -1,4 +1,4 @@
-// COLOURS VERSION WITH SAVE & RESUME
+// COLOURS VERSION WITH SAVE, RESUME, AND FIXED MATCH COUNT
 
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.body.appendChild(feedbackImage);
 
-  // --- SAVE / LOAD ---
+  // SAVE/LOAD
   function saveProgress() {
     const savedData = {
       currentLevel, currentPage,
@@ -89,7 +89,6 @@ document.addEventListener("DOMContentLoaded", function () {
     localStorage.removeItem("coloursSavedProgress");
   }
 
-  // --- UTILITY ---
   function shuffle(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -114,16 +113,20 @@ document.addEventListener("DOMContentLoaded", function () {
     if (colour === targetColour) {
       if (!levelAttempts[currentLevel].correct.has(colour)) {
         levelAttempts[currentLevel].correct.add(colour);
+        correctMatches = levelAttempts[currentLevel].correct.size;
+
         target.innerHTML = "";
         const overlay = document.createElement("img");
         overlay.src = src;
         overlay.className = "overlay";
         target.appendChild(overlay);
         document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el => el.remove());
-        correctMatches++;
+
         showFeedback(true);
 
-        if (correctMatches >= currentColours[currentPage].length) {
+        const expectedMatches = currentColours[currentPage].length;
+
+        if (correctMatches >= expectedMatches) {
           if (currentLevel === 0 && currentPage === 0) saveProgress();
 
           correctMatches = 0;
@@ -250,7 +253,6 @@ document.addEventListener("DOMContentLoaded", function () {
       let showSign = mode === "imageToSign" || (mode === "mixed" && Math.random() < 0.5);
       slot.style.backgroundImage = `url('assets/colours/${showSign ? `signs/sign-${colour}.png` : `clipart/${colour}.png`}')`;
 
-      // restore matched overlays
       if (levelAttempts[currentLevel].correct.has(colour)) {
         const overlay = document.createElement("img");
         overlay.src = `assets/colours/${showSign ? `clipart/${colour}.png` : `signs/sign-${colour}.png`}`;
@@ -336,7 +338,6 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("touchend", handleTouchEnd, { passive: false });
   }
 
-  // --- Button Events ---
   if (finishBtn) finishBtn.addEventListener("click", () => {
     gameEnded = false;
     endGame();
