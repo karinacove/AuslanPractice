@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", function () {
     { type: "signToImage", decoys: 9, wideMode: true },
     { type: "imageToSign", decoys: 9, wideMode: true },
     { type: "mixed", decoys: 9, wideMode: true },
-    { type: "incorrectReview", decoys: 6, wideMode: true } // Level 20 added here
+    { type: "incorrectReview", decoys: 6, wideMode: true }
   ];
 
   // Google Form entry IDs updated for 7 levels now
@@ -74,7 +74,6 @@ document.addEventListener("DOMContentLoaded", function () {
       "entry.497882042",  // Level 4
       "entry.1591755601",  // Level 5
       "entry.1996137354",  // Level 6
-      "entry.1234567890"   // Level 20 placeholder (update to your actual ID)
     ],
     incorrect: [
       "entry.1897227570", // Level 1
@@ -83,7 +82,6 @@ document.addEventListener("DOMContentLoaded", function () {
       "entry.1880514176", // Level 4
       "entry.552536101",  // Level 5
       "entry.922308538",  // Level 6
-      "entry.0987654321"  // Level 20 placeholder (update to your actual ID)
     ]
   };
 
@@ -145,7 +143,7 @@ document.addEventListener("DOMContentLoaded", function () {
       correctMatches++;
       showFeedback(true);
 
-      // FIXED: Level 20 only has 1 page, others 3 pages
+      // FIXED: Level 7 only has 1 page, others 3 pages
       const levelPageLimit = (levels[currentLevel].type === "incorrectReview") ? 1 : pagesPerLevel;
 
       if (correctMatches >= currentLetters[currentPage].length) {
