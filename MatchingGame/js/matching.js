@@ -471,73 +471,73 @@ document.addEventListener("DOMContentLoaded", function () {
     const finalRight = shuffle(uniqueRight);
 
     // Helper to create draggable img element
-    function createDraggable(letter, isSignSide) {
-      const img = document.createElement("img");
-      img.src = isSignSide ? `assets/signs/${letter}.png` : `assets/clipart/${letter}.png`;
-      img.alt = letter;
-      img.className = "draggable";
-      img.draggable = true;
-      img.dataset.letter = letter;
+  function createDraggable(letter, isSignSide) {
+    const img = document.createElement("img");
+    img.src = isSignSide ? `assets/signs/${letter}.png` : `assets/clipart/${letter}.png`;
+    img.alt = letter;
+    img.className = "draggable";
+    img.draggable = true;
+    img.dataset.letter = letter;
 
-      img.addEventListener("dragstart", (ev) => {
-        ev.dataTransfer.setData("text/plain", letter);
-        ev.dataTransfer.setData("src", img.src);
-      });
+    img.addEventListener("dragstart", (ev) => {
+      ev.dataTransfer.setData("text/plain", letter);
+      ev.dataTransfer.setData("src", img.src);
+    });
 
-      // Touch drag fix: clone with correct size
-      img.addEventListener("touchstart", function touchStart(e) {
-        e.preventDefault();
-        const target = e.target;
-        const letter = target.dataset.letter;
-        const src = target.src;
+    img.addEventListener("touchstart", function touchStart(e) {
+      e.preventDefault();
+      const target = e.target;
+      const letter = target.dataset.letter;
+      const src = target.src;
 
-        const clone = target.cloneNode(true);
-        clone.style.position = "absolute";
-        clone.style.pointerEvents = "none";
-        clone.style.opacity = "0.7";
-        clone.style.zIndex = "10000";
+      const clone = target.cloneNode(true);
+      clone.style.position = "absolute";
+      clone.style.pointerEvents = "none";
+      clone.style.opacity = "0.7";
+      clone.style.zIndex = "10000";
 
-        const style = window.getComputedStyle(target);
-        clone.style.width = style.width;
-        clone.style.height = style.height;
+      // IMPORTANT: get computed styles to set exact width & height
+      const style = window.getComputedStyle(target);
+      clone.style.width = style.width;
+      clone.style.height = style.height;
 
-        document.body.appendChild(clone);
+      document.body.appendChild(clone);
 
-        const cloneWidth = parseFloat(clone.style.width);
-        const cloneHeight = parseFloat(clone.style.height);
+      const cloneWidth = parseFloat(clone.style.width);
+      const cloneHeight = parseFloat(clone.style.height);
 
-        const moveClone = (touch) => {
-          clone.style.left = `${touch.clientX - cloneWidth / 2}px`;
-          clone.style.top = `${touch.clientY - cloneHeight / 2}px`;
-        };
+      const moveClone = (touch) => {
+        clone.style.left = `${touch.clientX - cloneWidth / 2}px`;
+        clone.style.top = `${touch.clientY - cloneHeight / 2}px`;
+      };
 
-        moveClone(e.touches[0]);
+      moveClone(e.touches[0]);
 
-        const handleTouchMove = (ev) => {
-          moveClone(ev.touches[0]);
-        };
+      const handleTouchMove = (ev) => {
+        moveClone(ev.touches[0]);
+      };
 
-        const handleTouchEnd = (ev) => {
-          const touch = ev.changedTouches[0];
-          const el = document.elementFromPoint(touch.clientX, touch.clientY);
-          if (el && el.classList.contains("slot")) drop({
-            preventDefault: () => { },
-            dataTransfer: {
-              getData: (k) => k === "text/plain" ? letter : src
-            },
-            currentTarget: el
-          });
-          document.removeEventListener("touchmove", handleTouchMove);
-          document.removeEventListener("touchend", handleTouchEnd);
-          clone.remove();
-        };
+      const handleTouchEnd = (ev) => {
+        const touch = ev.changedTouches[0];
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (el && el.classList.contains("slot")) drop({
+          preventDefault: () => {},
+          dataTransfer: {
+            getData: (k) => k === "text/plain" ? letter : src
+          },
+          currentTarget: el
+        });
+        document.removeEventListener("touchmove", handleTouchMove);
+        document.removeEventListener("touchend", handleTouchEnd);
+        clone.remove();
+      };
 
-        document.addEventListener("touchmove", handleTouchMove, { passive: false });
-        document.addEventListener("touchend", handleTouchEnd, { passive: false });
-      });
+      document.addEventListener("touchmove", handleTouchMove, { passive: false });
+      document.addEventListener("touchend", handleTouchEnd, { passive: false });
+    });
 
-      return img;
-    }
+    return img;
+  }
 
     finalLeft.forEach(letter => {
       const isSignSide = (draggableSide[0] === "signs" || (draggableSide[0] === "mixed" && Math.random() < 0.5));
