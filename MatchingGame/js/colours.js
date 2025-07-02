@@ -1,4 +1,4 @@
-// COLOURS VERSION WITH SAVE, RESUME, AND FIXED MATCH COUNT
+// COLOURS VERSION WITH PER-PAGE MATCH TRACKING, SAVE, RESUME
 
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
@@ -38,7 +38,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const pagesPerLevel = 2;
   let levelAttempts = Array(levels.length).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
   let currentColours = [];
-  let correctMatches = 0;
+  let correctMatches = 0;          // Total matches in level (can keep for overall)
+  let correctThisPage = 0;         // NEW: matches on current page only
   let startTime = Date.now();
   let gameEnded = false;
 
@@ -103,61 +104,61 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(() => { feedbackImage.style.display = "none"; }, 1000);
   }
 
-function drop(e) {
-  e.preventDefault();
-  const colour = e.dataTransfer.getData("text/plain");
-  const src = e.dataTransfer.getData("src");
-  const target = e.currentTarget;
-  const targetColour = target.dataset.letter;
+  function drop(e) {
+    e.preventDefault();
+    const colour = e.dataTransfer.getData("text/plain");
+    const src = e.dataTransfer.getData("src");
+    const target = e.currentTarget;
+    const targetColour = target.dataset.letter;
 
-  if (colour === targetColour) {
-    if (!levelAttempts[currentLevel].correct.has(colour)) {
-      levelAttempts[currentLevel].correct.add(colour);
-      correctMatches = levelAttempts[currentLevel].correct.size;
+    if (colour === targetColour) {
+      if (!levelAttempts[currentLevel].correct.has(colour)) {
+        levelAttempts[currentLevel].correct.add(colour);
+        correctThisPage++;           // Only increment matches for this page
 
-      target.innerHTML = "";
-      const overlay = document.createElement("img");
-      overlay.src = src;
-      overlay.className = "overlay";
-      target.appendChild(overlay);
-      document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el => el.remove());
+        target.innerHTML = "";
+        const overlay = document.createElement("img");
+        overlay.src = src;
+        overlay.className = "overlay";
+        target.appendChild(overlay);
+        document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el => el.remove());
 
-      showFeedback(true);
+        showFeedback(true);
 
-      // ✅ FIX: Always get the expected number of matches directly from the page slots
-      const expectedMatches = document.querySelectorAll(".slot").length;
+        // Count slots on page for expected matches
+        const expectedMatches = document.querySelectorAll(".slot").length;
 
-      if (correctMatches >= expectedMatches) {
-        if (currentLevel === 0 && currentPage === 0) saveProgress();
+        if (correctThisPage >= expectedMatches) {
+          if (currentLevel === 0 && currentPage === 0) saveProgress();
 
-        correctMatches = 0;
-        currentPage++;
-        if (currentPage < pagesPerLevel) {
-          saveProgress();
-          setTimeout(loadPage, 800);
-        } else {
-          currentLevel++;
-          currentPage = 0;
-          if (currentLevel >= levels.length) {
-            clearProgress();
-            setTimeout(endGame, 800);
-          } else {
+          correctThisPage = 0;      // Reset for next page
+          currentPage++;
+          if (currentPage < pagesPerLevel) {
             saveProgress();
             setTimeout(loadPage, 800);
+          } else {
+            currentLevel++;
+            currentPage = 0;
+            if (currentLevel >= levels.length) {
+              clearProgress();
+              setTimeout(endGame, 800);
+            } else {
+              saveProgress();
+              setTimeout(loadPage, 800);
+            }
           }
         }
       }
-    }
-  } else {
-    levelAttempts[currentLevel].incorrect.push(colour);
-    showFeedback(false);
-    const wrong = document.querySelector(`img.draggable[data-letter='${colour}']`);
-    if (wrong) {
-      wrong.classList.add("shake");
-      setTimeout(() => wrong.classList.remove("shake"), 500);
+    } else {
+      levelAttempts[currentLevel].incorrect.push(colour);
+      showFeedback(false);
+      const wrong = document.querySelector(`img.draggable[data-letter='${colour}']`);
+      if (wrong) {
+        wrong.classList.add("shake");
+        setTimeout(() => wrong.classList.remove("shake"), 500);
+      }
     }
   }
-}
 
   function endGame() {
     if (gameEnded) return;
@@ -254,6 +255,7 @@ function drop(e) {
       let showSign = mode === "imageToSign" || (mode === "mixed" && Math.random() < 0.5);
       slot.style.backgroundImage = `url('assets/colours/${showSign ? `signs/sign-${colour}.png` : `clipart/${colour}.png`}')`;
 
+      // Show overlay if already matched on this level
       if (levelAttempts[currentLevel].correct.has(colour)) {
         const overlay = document.createElement("img");
         overlay.src = `assets/colours/${showSign ? `clipart/${colour}.png` : `signs/sign-${colour}.png`}`;
@@ -295,6 +297,10 @@ function drop(e) {
       }
     });
 
+    // Calculate how many matches are already done this page for resume support
+    correctThisPage = pageColours.filter(colour => levelAttempts[currentLevel].correct.has(colour)).length;
+
+    // Also update total correct matches if you want
     correctMatches = levelAttempts[currentLevel].correct.size;
 
     document.querySelectorAll(".slot").forEach(slot => {
@@ -328,7 +334,7 @@ function drop(e) {
       const touch = ev.changedTouches[0];
       const el = document.elementFromPoint(touch.clientX, touch.clientY);
       if (el && el.classList.contains("slot")) {
-        drop({ preventDefault: () => {}, dataTransfer: { getData: (k) => (k === "text/plain" ? colour : src) }, currentTarget: el });
+        drop({ preventDefault: () => { }, dataTransfer: { getData: (k) => (k === "text/plain" ? colour : src) }, currentTarget: el });
       }
       document.removeEventListener("touchmove", handleTouchMove);
       document.removeEventListener("touchend", handleTouchEnd);
