@@ -1,5 +1,4 @@
-// Numbers Matching Game - Full Complete Script with Save/Resume and Form Submission
-
+// Full Complete Numbers Matching Game Script
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -37,7 +36,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(() => feedbackImage.style.display = "none", 1000);
   }
 
-  // Form field IDs for Google Forms submission for correct and incorrect answers for 20 levels
+  // Google Form Entry IDs
   const formEntryIDs = {
     correct: [
       "entry.1249394203", "entry.1551220511", "entry.903633326", "entry.497882042", "entry.1591755601", "entry.1996137354",
@@ -53,7 +52,10 @@ document.addEventListener("DOMContentLoaded", function () {
     ]
   };
 
-  // Level definitions - number ranges and pages, with types ("clipart-grid", "sign-grid", "mixed")
+  function sortNumbers(a, b) {
+    return parseInt(a) - parseInt(b);
+  }
+
   const levelDefinitions = [
     { start: 0, end: 12, pages: 2, type: "clipart-grid" },
     { start: 0, end: 12, pages: 2, type: "sign-grid" },
@@ -77,68 +79,64 @@ document.addEventListener("DOMContentLoaded", function () {
     { review: true, pages: 1, type: "mixed" }
   ];
 
-  // State variables
   let currentLevel = 0;
   let currentPage = 0;
-  let currentItems = [];
+  let currentLetters = [];
+  let currentPageItems = [];
   let correctMatches = 0;
   let gameEnded = false;
   let startTime = Date.now();
-
-  // Attempts data - store per level correct (Set) and incorrect (Array)
   const levelAttempts = Array(20).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
 
-  // DOM references
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
   const rightSigns = document.getElementById("rightSigns");
   const levelTitle = document.getElementById("levelTitle");
 
-  // Utility shuffle function
   function shuffle(arr) {
     return arr.sort(() => Math.random() - 0.5);
   }
 
-  // Save progress after completing Level 1 Page 0 (i.e. after finishing first page of Level 1)
+  // Save progress to localStorage after Level 1 Page 0 complete or after every page
   function saveProgress() {
-    const saveObj = {
+    const saveData = {
       studentName,
       studentClass,
       currentLevel,
       currentPage,
       levelAttempts: levelAttempts.map(lvl => ({
         correct: Array.from(lvl.correct),
-        incorrect: lvl.incorrect
+        incorrect: lvl.incorrect.slice()
       })),
       startTime
     };
-    localStorage.setItem("numbersGameSave", JSON.stringify(saveObj));
+    localStorage.setItem("numbersGameSave", JSON.stringify(saveData));
   }
 
-  // Load saved progress from localStorage
-  function loadSavedProgress() {
+  // Load saved progress, returns true if progress loaded
+  function loadProgress() {
     const saved = localStorage.getItem("numbersGameSave");
     if (!saved) return false;
+
     try {
       const data = JSON.parse(saved);
       if (data.studentName !== studentName || data.studentClass !== studentClass) return false;
-      if (data.currentLevel >= 20) return false; // Completed all levels, no resume
-      currentLevel = data.currentLevel;
-      currentPage = data.currentPage;
-      // Restore attempts Sets and arrays
-      data.levelAttempts.forEach((lvl, i) => {
-        levelAttempts[i].correct = new Set(lvl.correct);
-        levelAttempts[i].incorrect = lvl.incorrect;
-      });
+
+      currentLevel = data.currentLevel || 0;
+      currentPage = data.currentPage || 0;
+      for (let i = 0; i < data.levelAttempts.length; i++) {
+        levelAttempts[i].correct = new Set(data.levelAttempts[i].correct || []);
+        levelAttempts[i].incorrect = data.levelAttempts[i].incorrect || [];
+      }
       startTime = data.startTime || Date.now();
       return true;
-    } catch {
+    } catch (e) {
       return false;
     }
   }
 
-  // Send saved data to Google Form
-  function sendSavedDataToForm(savedData, callback) {
+  // On logout, send saved data to Google Forms then clear and redirect
+  function sendSavedDataToForm(saved, callback) {
     const form = document.createElement("form");
     form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
     form.method = "POST";
@@ -151,21 +149,25 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.appendChild(iframe);
 
     const entries = {
-      "entry.1387461004": savedData.studentName,
-      "entry.1309291707": savedData.studentClass,
+      "entry.1387461004": saved.studentName,
+      "entry.1309291707": saved.studentClass,
       "entry.477642881": "Numbers",
-      "entry.1374858042": formatTime((Date.now() - savedData.startTime) / 1000)
+      "entry.1374858042": (() => {
+        const now = Date.now();
+        const timeTaken = Math.round((now - saved.startTime) / 1000);
+        return `${Math.floor(timeTaken / 60)} mins ${timeTaken % 60} sec`;
+      })()
     };
 
     for (let i = 0; i < formEntryIDs.correct.length; i++) {
-      const correctSorted = (savedData.levelAttempts[i]?.correct || []).map(Number).sort((a,b)=>a-b);
-      const incorrectSorted = (savedData.levelAttempts[i]?.incorrect || []).map(Number).sort((a,b)=>a-b);
+      const correctSorted = (saved.levelAttempts[i]?.correct || []).slice().sort(sortNumbers);
+      const incorrectSorted = (saved.levelAttempts[i]?.incorrect || []).slice().sort(sortNumbers);
       entries[formEntryIDs.correct[i]] = correctSorted.join(",");
       entries[formEntryIDs.incorrect[i]] = incorrectSorted.join(",");
     }
 
-    const totalCorrect = savedData.levelAttempts.reduce((sum, lvl) => sum + (lvl.correct?.length || 0), 0);
-    const totalIncorrect = savedData.levelAttempts.reduce((sum, lvl) => sum + (lvl.incorrect?.length || 0), 0);
+    const totalCorrect = saved.levelAttempts.reduce((sum, lvl) => sum + (lvl.correct ? lvl.correct.length : 0), 0);
+    const totalIncorrect = saved.levelAttempts.reduce((sum, lvl) => sum + (lvl.incorrect ? lvl.incorrect.length : 0), 0);
     const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
     entries["entry.1996137354"] = `${percent}%`;
 
@@ -180,72 +182,76 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.appendChild(form);
     form.submit();
 
-    // Remove iframe after submission (optional cleanup)
+    // Wait briefly to allow form submit before callback
     setTimeout(() => {
-      iframe.remove();
-      form.remove();
-      if (callback) callback();
-    }, 1000);
+      callback();
+    }, 500);
   }
 
-  // Format seconds to mm mins ss sec string
-  function formatTime(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.round(seconds % 60);
-    return `${mins} mins ${secs} sec`;
+  // Called when game ends or finish clicked
+  function endGame() {
+    gameEnded = true;
+    const endTime = Date.now();
+    const timeTaken = Math.round((endTime - startTime) / 1000);
+    const formattedTime = `${Math.floor(timeTaken / 60)} mins ${timeTaken % 60} sec`;
+
+    modal.style.display = "flex";
+
+    // Display score and time
+    const totalCorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.correct.size, 0);
+    const totalIncorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.incorrect.length, 0);
+    const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
+
+    document.getElementById("score-display").innerText = `Score: ${percent}%`;
+
+    const timeDisplay = document.createElement("p");
+    timeDisplay.innerText = `Time: ${formattedTime}`;
+    const modalContent = document.getElementById("end-modal-content");
+    // Remove old time display if exists
+    const oldTimeDisplay = modalContent.querySelector("p");
+    if (oldTimeDisplay) modalContent.removeChild(oldTimeDisplay);
+    modalContent.appendChild(timeDisplay);
+
+    saveProgress();
   }
 
-  // Show the current page of the current level
   function loadPage() {
     if (gameEnded) return;
 
-    // If saved progress exists and we are on first load, we load saved progress
-    if (currentLevel === 0 && currentPage === 0 && loadSavedProgress()) {
-      // Continue from saved state without reload
+    if (currentLevel >= 20) {
+      endGame();
+      return;
     }
 
     const info = levelDefinitions[currentLevel];
-    let pool;
+    // Generate pool for this level
+    let pool = [];
     if (info.random) {
       pool = Array.from({ length: 101 }, (_, i) => i);
     } else if (info.review) {
-      // Review: collect incorrect answers from all previous levels to show on one page
+      // For review, collect incorrect answers from all levels
       pool = [];
-      levelAttempts.forEach(lvl => {
-        pool = pool.concat(lvl.incorrect);
-      });
-      pool = [...new Set(pool)]; // Unique numbers
+      for (let lvl = 0; lvl < levelAttempts.length; lvl++) {
+        pool.push(...levelAttempts[lvl].incorrect);
+      }
+      pool = [...new Set(pool)].sort(sortNumbers);
     } else {
       pool = Array.from({ length: info.end - info.start + 1 }, (_, i) => i + info.start);
     }
 
-    // Determine the items on this page
-    if (info.review) {
-      currentItems = pool; // All incorrect items combined
-    } else {
-      const chosen = shuffle(pool).slice(0, info.pages * 9);
-      currentItems = [];
-      for (let i = 0; i < info.pages; i++) {
-        currentItems.push(chosen.slice(i * 9, (i + 1) * 9));
-      }
+    // Shuffle and slice the pool to get all items for all pages
+    const totalItems = info.pages * 9;
+    let chosen = shuffle(pool).slice(0, totalItems);
+
+    // Split into pages of 9 items each
+    const pageItems = [];
+    for (let i = 0; i < info.pages; i++) {
+      pageItems.push(chosen.slice(i * 9, (i + 1) * 9));
     }
 
-    if (currentPage >= (info.pages || 1)) {
-      currentPage = 0;
-      currentLevel++;
-      if (currentLevel >= 20) {
-        gameEnded = true;
-        modal.style.display = "flex";
-        endGame();
-        return;
-      }
-      loadPage();
-      return;
-    }
+    currentLetters = pageItems;
+    currentPageItems = currentLetters[currentPage] || [];
 
-    const pageItems = info.review ? currentItems : currentItems[currentPage];
-
-    // Clear previous page
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
     rightSigns.innerHTML = "";
@@ -255,39 +261,39 @@ document.addEventListener("DOMContentLoaded", function () {
     const slotMode = slotType.includes("clipart") ? "clipart" : slotType.includes("sign") ? "sign" : null;
     const getOppositeMode = m => m === "clipart" ? "sign" : "clipart";
 
-    // Add slots for pageItems
-    pageItems.forEach(num => {
+    // Create slots for the current page
+    currentPageItems.forEach(letter => {
       const slot = document.createElement("div");
       slot.className = "slot";
-      slot.dataset.letter = `${num}`;
+      slot.dataset.letter = `${letter}`;
       const imageMode = slotType === "mixed" ? (Math.random() < 0.5 ? "clipart" : "sign") : slotMode;
       slot.dataset.imageMode = imageMode;
-      slot.style.backgroundImage = `url('assets/numbers/${imageMode === "clipart" ? `clipart/${num}.png` : `signs/sign-${num}.png`}')`;
+      slot.style.backgroundImage = `url('assets/numbers/${imageMode === "clipart" ? `clipart/${letter}.png` : `signs/sign-${letter}.png`}')`;
       gameBoard.appendChild(slot);
     });
 
-    // Prepare draggable images with decoys
-    let decoyPool = pool.filter(n => !pageItems.includes(n));
+    // Prepare draggable items (correct + decoys)
+    let decoyPool = pool.filter(n => !currentPageItems.includes(n));
     let decoys = decoyPool.length >= 3 ? shuffle(decoyPool).slice(0, 3) : decoyPool;
-    const draggableLetters = shuffle([...pageItems, ...decoys]);
+    const draggableLetters = shuffle([...currentPageItems, ...decoys]);
 
-    draggableLetters.forEach((num, i) => {
+    draggableLetters.forEach((letter, i) => {
       const img = document.createElement("img");
       img.className = "draggable";
       img.draggable = true;
-      img.dataset.letter = `${num}`;
+      img.dataset.letter = `${letter}`;
 
       let sourceMode;
       if (slotType === "mixed") {
-        const matchSlot = document.querySelector(`.slot[data-letter='${num}']`);
+        const matchSlot = document.querySelector(`.slot[data-letter='${letter}']`);
         sourceMode = matchSlot ? getOppositeMode(matchSlot.dataset.imageMode) : (Math.random() < 0.5 ? "clipart" : "sign");
       } else {
         sourceMode = getOppositeMode(slotMode);
       }
 
-      img.src = `assets/numbers/${sourceMode === "clipart" ? `clipart/${num}.png` : `signs/sign-${num}.png`}`;
+      img.src = `assets/numbers/${sourceMode === "clipart" ? `clipart/${letter}.png` : `signs/sign-${letter}.png`}`;
       img.addEventListener("dragstart", e => {
-        e.dataTransfer.setData("text/plain", `${num}`);
+        e.dataTransfer.setData("text/plain", `${letter}`);
         e.dataTransfer.setData("src", img.src);
       });
       img.addEventListener("touchstart", touchStart);
@@ -304,12 +310,8 @@ document.addEventListener("DOMContentLoaded", function () {
       slot.addEventListener("drop", drop);
     });
 
-    // Save progress after completing Level 1 Page 0 (i.e. page 0 on level 1 means currentLevel=1, currentPage=0)
-    // So we check if previous page just completed was Level 1 Page 0
-    // Save progress when loading next page after Level 1 Page 0
-    if (currentLevel > 1 || (currentLevel === 1 && currentPage > 0)) {
-      saveProgress();
-    }
+    // Save progress after loading page
+    saveProgress();
   }
 
   function drop(e) {
@@ -332,10 +334,10 @@ document.addEventListener("DOMContentLoaded", function () {
       correctMatches++;
       showFeedback(true);
 
-      if (correctMatches >= (levelDefinitions[currentLevel].pages * 9 || 9)) {
+      if (correctMatches >= currentPageItems.length) {
         correctMatches = 0;
         currentPage++;
-        if (currentPage < currentItems.length) {
+        if (currentPage < currentLetters.length) {
           setTimeout(loadPage, 800);
         } else {
           currentLevel++;
@@ -355,7 +357,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Touch support for drag/drop
   function touchStart(e) {
     const target = e.target;
     const letter = target.dataset.letter;
@@ -379,7 +380,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const touch = ev.changedTouches[0];
       const el = document.elementFromPoint(touch.clientX, touch.clientY);
       if (el && el.classList.contains("slot")) drop({
-        preventDefault: () => {},
+        preventDefault: () => { },
         dataTransfer: {
           getData: k => k === "text/plain" ? letter : src
         },
@@ -394,77 +395,17 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("touchend", handleTouchEnd, { passive: false });
   }
 
-  // End game and submit data to Google Form
-  function endGame() {
-    gameEnded = true;
-    const endTime = Date.now();
-    const timeTaken = Math.round((endTime - startTime) / 1000);
-
-    const form = document.createElement("form");
-    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
-    form.method = "POST";
-    form.target = "hidden_iframe";
-    form.style.display = "none";
-
-    const iframe = document.createElement("iframe");
-    iframe.name = "hidden_iframe";
-    iframe.style.display = "none";
-    document.body.appendChild(iframe);
-
-    const totalCorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.correct.size, 0);
-    const totalIncorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.incorrect.length, 0);
-    const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
-
-    // Basic info
-    const entries = {
-      "entry.1387461004": studentName,
-      "entry.1309291707": studentClass,
-      "entry.477642881": "Numbers",
-      "entry.1374858042": formatTime(timeTaken),
-      "entry.1996137354": `${percent}%`
-    };
-
-    // Per-level correct/incorrect answers
-    for (let i = 0; i < formEntryIDs.correct.length; i++) {
-      entries[formEntryIDs.correct[i]] = Array.from(levelAttempts[i].correct).sort((a,b)=>a-b).join(",");
-      entries[formEntryIDs.incorrect[i]] = levelAttempts[i].incorrect.sort((a,b)=>a-b).join(",");
-    }
-
-    for (const key in entries) {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = key;
-      input.value = entries[key];
-      form.appendChild(input);
-    }
-
-    document.body.appendChild(form);
-    form.submit();
-
-    // Cleanup
-    setTimeout(() => {
-      iframe.remove();
-      form.remove();
-      localStorage.removeItem("numbersGameSave");
-    }, 1000);
-  }
-
-  // Initial load
-  if (!loadSavedProgress()) {
-    currentLevel = 0;
-    currentPage = 0;
-  }
-  loadPage();
-
-  // Button listeners
+  // Event listeners for buttons
   finishBtn.addEventListener("click", () => {
     modal.style.display = "flex";
+    gameEnded = true;
     endGame();
   });
 
   continueBtn.addEventListener("click", () => {
     modal.style.display = "none";
-    if (!gameEnded) loadPage();
+    gameEnded = false;
+    loadPage();
   });
 
   againBtn.addEventListener("click", () => {
@@ -473,7 +414,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   menuBtn.addEventListener("click", () => {
-    localStorage.removeItem("numbersGameSave");
     window.location.href = "../index.html";
   });
 
@@ -489,4 +429,11 @@ document.addEventListener("DOMContentLoaded", function () {
       window.location.href = "../index.html";
     }
   });
+
+  // Initialize game
+  if (!loadProgress()) {
+    currentLevel = 0;
+    currentPage = 0;
+  }
+  loadPage();
 });
