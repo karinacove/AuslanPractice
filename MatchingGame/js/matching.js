@@ -38,10 +38,18 @@ document.addEventListener("DOMContentLoaded", function () {
     window.location.href = "../index.html";
   });
 
-  logoutBtn.addEventListener("click", () => {
+logoutBtn.addEventListener("click", () => {
+  const saved = JSON.parse(localStorage.getItem("alphabetGameSave"));
+  if (saved && saved.studentName === studentName && saved.studentClass === studentClass) {
+    sendSavedDataToForm(saved, () => {
+      localStorage.clear();
+      window.location.href = "../index.html";
+    });
+  } else {
     localStorage.clear();
     window.location.href = "../index.html";
-  });
+  }
+});
 
   const allLetters = "abcdefghijklmnopqrstuvwxyz".split("");
   const vowels = ["a", "e", "i", "o", "u"];
@@ -122,7 +130,8 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!levelAttempts[currentLevel].correct.has(letter)) {
         levelAttempts[currentLevel].correct.add(letter);
       }
-      target.innerHTML = "";
+     saveProgress();
+     target.innerHTML = "";
       const overlay = document.createElement("img");
       overlay.src = src;
       overlay.className = "overlay";
@@ -135,7 +144,6 @@ document.addEventListener("DOMContentLoaded", function () {
         correctMatches = 0;
         currentPage++;
 
-        saveProgress();
 
         if (currentPage < pagesPerLevel) {
           setTimeout(loadPage, 800);
@@ -243,6 +251,66 @@ document.addEventListener("DOMContentLoaded", function () {
     modal.style.display = "flex";
   }
 
+  function sendSavedDataToForm(data, callback) {
+  const timeTaken = Math.round((Date.now() - (data.startTime || Date.now())) / 1000);
+  const formattedTime = `${Math.floor(timeTaken / 60)} mins ${timeTaken % 60} sec`;
+
+  const form = document.createElement("form");
+  form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+  form.method = "POST";
+  form.target = "hidden_iframe";
+  form.style.display = "none";
+
+  const entries = {
+    "entry.1387461004": data.studentName,
+    "entry.1309291707": data.studentClass,
+    "entry.477642881": "Alphabet",
+    "entry.1374858042": formattedTime
+  };
+
+  for (let i = 0; i < levels.length; i++) {
+    const correctArr = data.levelAttempts[i]?.correct || [];
+    const incorrectArr = data.levelAttempts[i]?.incorrect || [];
+
+    entries[formEntryIDs.correct[i]] = correctArr.sort().join("");
+    entries[formEntryIDs.incorrect[i]] = incorrectArr.sort().join("");
+  }
+
+  let totalCorrect = 0;
+  let totalAttempts = 0;
+  for (let i = 0; i < levels.length; i++) {
+    totalCorrect += data.levelAttempts[i]?.correct.length || 0;
+    totalAttempts += (data.levelAttempts[i]?.correct.length || 0) + (data.levelAttempts[i]?.incorrect.length || 0);
+  }
+
+  const percent = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
+  entries["entry.1996137354"] = `${percent}%`;
+
+  for (const key in entries) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = key;
+    input.value = entries[key];
+    form.appendChild(input);
+  }
+
+  let iframe = document.querySelector("iframe[name='hidden_iframe']");
+  if (!iframe) {
+    iframe = document.createElement("iframe");
+    iframe.name = "hidden_iframe";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+  }
+
+  iframe.onload = () => {
+    console.log("✅ Saved progress submitted on logout");
+    if (callback) callback();
+  };
+
+  document.body.appendChild(form);
+  form.submit();
+}
+  
   function saveProgress() {
     const data = {
       studentName,
@@ -459,16 +527,22 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // On load: check for saved game and offer resume
-  const saved = JSON.parse(localStorage.getItem("alphabetGameSave"));
-  if (saved && saved.studentName === studentName && saved.studentClass === studentClass && !saved.gameEnded) {
-    if (confirm("Resume your unfinished game?")) {
-      restoreProgress(saved);
-    } else {
-      localStorage.removeItem("alphabetGameSave");
-      loadPage();
-    }
+const saved = JSON.parse(localStorage.getItem("alphabetGameSave"));
+if (
+  saved &&
+  saved.studentName === studentName &&
+  saved.studentClass === studentClass &&
+  !saved.gameEnded &&
+  saved.currentPage > 0 // ✅ Only resume if at least 1 page complete
+) {
+  if (confirm("Resume your unfinished game?")) {
+    restoreProgress(saved);
   } else {
+    localStorage.removeItem("alphabetGameSave");
     loadPage();
   }
+} else {
+  loadPage();
+}
 
 });
