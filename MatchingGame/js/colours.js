@@ -1,6 +1,5 @@
-// COLOURS VERSION
+// COLOURS VERSION WITH SAVE & RESUME
 
-// --- DOMContentLoaded Event ---
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -19,33 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const modal = document.getElementById("end-modal");
   const finishBtn = document.getElementById("finish-btn");
 
-  if (finishBtn) finishBtn.addEventListener("click", () => {
-    gameEnded = false;
-    endGame();
-  });
-
-  continueBtn.addEventListener("click", () => {
-    modal.style.display = "none";
-    gameEnded = false;
-    // Do NOT reset currentLevel or currentPage; just resume from where left off
-    loadPage();
-  });
-
-  againBtn.addEventListener("click", () => {
-    location.reload();
-  });
-
-  menuBtn.addEventListener("click", () => {
-    window.location.href = "../index.html";
-  });
-
-  logoutBtn.addEventListener("click", () => {
-    localStorage.clear();
-    window.location.href = "../index.html";
-  });
-
   const allColours = ["red", "blue", "green", "yellow", "orange", "purple", "pink", "brown", "black", "white"];
-
   const levels = [
     { type: "signToImage", decoys: 3 },
     { type: "imageToSign", decoys: 3 },
@@ -56,20 +29,14 @@ document.addEventListener("DOMContentLoaded", function () {
   ];
 
   const formEntryIDs = {
-    correct: [
-      "entry.1249394203", "entry.1551220511", "entry.903633326",
-      "entry.497882042", "entry.1591755601", "entry.1996137354"
-    ],
-    incorrect: [
-      "entry.1897227570", "entry.1116300030", "entry.187975538",
-      "entry.1880514176", "entry.552536101", "entry.922308538"
-    ]
+    correct: ["entry.1249394203", "entry.1551220511", "entry.903633326", "entry.497882042", "entry.1591755601", "entry.1996137354"],
+    incorrect: ["entry.1897227570", "entry.1116300030", "entry.187975538", "entry.1880514176", "entry.552536101", "entry.922308538"]
   };
 
   let currentLevel = 0;
   let currentPage = 0;
   const pagesPerLevel = 2;
-  const levelAttempts = Array(levels.length).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
+  let levelAttempts = Array(levels.length).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
   let currentColours = [];
   let correctMatches = 0;
   let startTime = Date.now();
@@ -89,6 +56,40 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.body.appendChild(feedbackImage);
 
+  // --- SAVE / LOAD ---
+  function saveProgress() {
+    const savedData = {
+      currentLevel, currentPage,
+      levelAttempts: levelAttempts.map(lvl => ({
+        correct: Array.from(lvl.correct),
+        incorrect: lvl.incorrect
+      })),
+      currentColours,
+      startTime
+    };
+    localStorage.setItem("coloursSavedProgress", JSON.stringify(savedData));
+  }
+
+  function loadProgress() {
+    const data = localStorage.getItem("coloursSavedProgress");
+    if (data) {
+      const parsed = JSON.parse(data);
+      currentLevel = parsed.currentLevel;
+      currentPage = parsed.currentPage;
+      levelAttempts = parsed.levelAttempts.map(lvl => ({
+        correct: new Set(lvl.correct),
+        incorrect: lvl.incorrect
+      }));
+      currentColours = parsed.currentColours;
+      startTime = parsed.startTime;
+    }
+  }
+
+  function clearProgress() {
+    localStorage.removeItem("coloursSavedProgress");
+  }
+
+  // --- UTILITY ---
   function shuffle(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -113,30 +114,33 @@ document.addEventListener("DOMContentLoaded", function () {
     if (colour === targetColour) {
       if (!levelAttempts[currentLevel].correct.has(colour)) {
         levelAttempts[currentLevel].correct.add(colour);
-      }
-      target.innerHTML = "";
-      const overlay = document.createElement("img");
-      overlay.src = src;
-      overlay.className = "overlay";
-      target.appendChild(overlay);
+        target.innerHTML = "";
+        const overlay = document.createElement("img");
+        overlay.src = src;
+        overlay.className = "overlay";
+        target.appendChild(overlay);
+        document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el => el.remove());
+        correctMatches++;
+        showFeedback(true);
 
-      document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el => el.remove());
+        if (correctMatches >= currentColours[currentPage].length) {
+          if (currentLevel === 0 && currentPage === 0) saveProgress();
 
-      correctMatches++;
-      showFeedback(true);
-
-      if (correctMatches >= currentColours[currentPage].length) {
-        correctMatches = 0;
-        currentPage++;
-        if (currentPage < pagesPerLevel) {
-          setTimeout(loadPage, 800);
-        } else {
-          currentLevel++;
-          currentPage = 0;
-          if (currentLevel >= levels.length) {
-            setTimeout(endGame, 800);
-          } else {
+          correctMatches = 0;
+          currentPage++;
+          if (currentPage < pagesPerLevel) {
+            saveProgress();
             setTimeout(loadPage, 800);
+          } else {
+            currentLevel++;
+            currentPage = 0;
+            if (currentLevel >= levels.length) {
+              clearProgress();
+              setTimeout(endGame, 800);
+            } else {
+              saveProgress();
+              setTimeout(loadPage, 800);
+            }
           }
         }
       }
@@ -207,7 +211,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     document.body.appendChild(form);
-    iframe.onload = () => console.log("Google Form submitted successfully");
+    iframe.onload = () => console.log("Google Form submitted");
     form.submit();
 
     document.getElementById("score-display").innerText = `Score: ${percent}%`;
@@ -215,6 +219,85 @@ document.addEventListener("DOMContentLoaded", function () {
     timeDisplay.innerText = `Time: ${formattedTime}`;
     document.getElementById("end-modal-content").appendChild(timeDisplay);
     modal.style.display = "flex";
+  }
+
+  function loadPage() {
+    const { type: mode, decoys } = levels[currentLevel];
+    gameBoard.innerHTML = "";
+    leftSigns.innerHTML = "";
+    rightSigns.innerHTML = "";
+
+    levelTitle.innerText = `Level ${currentLevel + 1}: ` +
+      (mode === "signToImage" ? "Match the Sign to the Picture" :
+        mode === "imageToSign" ? "Match the Picture to the Sign" :
+        "Match Signs and Pictures (Mixed)");
+
+    if (currentPage === 0 && currentColours.length === 0) {
+      const shuffled = shuffle([...allColours]);
+      currentColours = [];
+      for (let i = 0; i < pagesPerLevel; i++) {
+        currentColours.push(shuffle(shuffled.slice(i * 5, (i + 1) * 5)));
+      }
+    }
+
+    const pageColours = currentColours[currentPage];
+    const usedSet = new Set(pageColours);
+
+    pageColours.forEach(colour => {
+      const slot = document.createElement("div");
+      slot.className = "slot";
+      slot.dataset.letter = colour;
+      let showSign = mode === "imageToSign" || (mode === "mixed" && Math.random() < 0.5);
+      slot.style.backgroundImage = `url('assets/colours/${showSign ? `signs/sign-${colour}.png` : `clipart/${colour}.png`}')`;
+
+      // restore matched overlays
+      if (levelAttempts[currentLevel].correct.has(colour)) {
+        const overlay = document.createElement("img");
+        overlay.src = `assets/colours/${showSign ? `clipart/${colour}.png` : `signs/sign-${colour}.png`}`;
+        overlay.className = "overlay";
+        slot.appendChild(overlay);
+      }
+
+      gameBoard.appendChild(slot);
+    });
+
+    const allDecoys = allColours.filter(c => !usedSet.has(c));
+    const decoyColours = shuffle(allDecoys).slice(0, decoys);
+    const draggableColours = shuffle([...pageColours, ...decoyColours])
+      .filter(colour => !levelAttempts[currentLevel].correct.has(colour));
+
+    draggableColours.forEach((colour, i) => {
+      const img = document.createElement("img");
+      img.className = "draggable";
+      img.draggable = true;
+      img.dataset.letter = colour;
+
+      img.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text/plain", colour);
+        e.dataTransfer.setData("src", img.src);
+      });
+      img.addEventListener("touchstart", touchStart);
+
+      let opposite = mode === "signToImage" || (mode === "mixed" && !gameBoard.querySelector(`.slot[data-letter='${colour}']`)?.style.backgroundImage.includes("sign-"));
+      img.src = `assets/colours/${opposite ? `signs/sign-${colour}.png` : `clipart/${colour}.png`}`;
+
+      const wrap = document.createElement("div");
+      wrap.className = "drag-wrapper";
+      wrap.appendChild(img);
+
+      if (i < draggableColours.length / 2) {
+        leftSigns.appendChild(wrap);
+      } else {
+        rightSigns.appendChild(wrap);
+      }
+    });
+
+    correctMatches = levelAttempts[currentLevel].correct.size;
+
+    document.querySelectorAll(".slot").forEach(slot => {
+      slot.addEventListener("dragover", e => e.preventDefault());
+      slot.addEventListener("drop", drop);
+    });
   }
 
   function touchStart(e) {
@@ -253,80 +336,31 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("touchend", handleTouchEnd, { passive: false });
   }
 
-  function loadPage() {
-    const { type: mode, decoys, wideMode } = levels[currentLevel];
+  // --- Button Events ---
+  if (finishBtn) finishBtn.addEventListener("click", () => {
+    gameEnded = false;
+    endGame();
+  });
 
-    if (wideMode) {
-      document.body.classList.add("wide-mode");
-    } else {
-      document.body.classList.remove("wide-mode");
+  continueBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+    gameEnded = false;
+    loadPage();
+  });
+
+  againBtn.addEventListener("click", () => location.reload());
+  menuBtn.addEventListener("click", () => window.location.href = "../index.html");
+
+  logoutBtn.addEventListener("click", () => {
+    if (localStorage.getItem("coloursSavedProgress")) {
+      loadProgress();
+      endGame();
     }
+    clearProgress();
+    localStorage.clear();
+    window.location.href = "../index.html";
+  });
 
-    gameBoard.innerHTML = "";
-    leftSigns.innerHTML = "";
-    rightSigns.innerHTML = "";
-
-    levelTitle.innerText = `Level ${currentLevel + 1}: ` +
-      (mode === "signToImage" ? "Match the Sign to the Picture" :
-       mode === "imageToSign" ? "Match the Picture to the Sign" :
-       "Match Signs and Pictures (Mixed)");
-
-    if (currentPage === 0) {
-      const shuffled = shuffle([...allColours]);
-      currentColours = [];
-      for (let i = 0; i < pagesPerLevel; i++) {
-        currentColours.push(shuffle(shuffled.slice(i * 5, (i + 1) * 5)));
-      }
-    }
-
-    const pageColours = currentColours[currentPage];
-    const usedSet = new Set(pageColours);
-
-    pageColours.forEach(colour => {
-      const slot = document.createElement("div");
-      slot.className = "slot";
-      slot.dataset.letter = colour;
-      let showSign = mode === "imageToSign" || (mode === "mixed" && Math.random() < 0.5);
-      slot.style.backgroundImage = `url('assets/colours/${showSign ? `signs/sign-${colour}.png` : `clipart/${colour}.png`}')`;
-      gameBoard.appendChild(slot);
-    });
-
-    const allDecoys = allColours.filter(c => !usedSet.has(c));
-    const decoyColours = shuffle(allDecoys).slice(0, decoys);
-    const draggableColours = shuffle([...pageColours, ...decoyColours]);
-
-    draggableColours.forEach((colour, i) => {
-      const img = document.createElement("img");
-      img.className = "draggable";
-      img.draggable = true;
-      img.dataset.letter = colour;
-
-      img.addEventListener("dragstart", e => {
-        e.dataTransfer.setData("text/plain", colour);
-        e.dataTransfer.setData("src", img.src);
-      });
-      img.addEventListener("touchstart", touchStart);
-
-      let opposite = mode === "signToImage" || (mode === "mixed" && !gameBoard.querySelector(`.slot[data-letter='${colour}']`)?.style.backgroundImage.includes("sign-"));
-      img.src = `assets/colours/${opposite ? `signs/sign-${colour}.png` : `clipart/${colour}.png`}`;
-
-      const wrap = document.createElement("div");
-      wrap.className = "drag-wrapper";
-      wrap.appendChild(img);
-
-      if (i < draggableColours.length / 2) {
-        leftSigns.appendChild(wrap);
-      } else {
-        rightSigns.appendChild(wrap);
-      }
-    });
-
-    correctMatches = 0;
-    document.querySelectorAll(".slot").forEach(slot => {
-      slot.addEventListener("dragover", e => e.preventDefault());
-      slot.addEventListener("drop", drop);
-    });
-  }
-
+  if (localStorage.getItem("coloursSavedProgress")) loadProgress();
   loadPage();
 });
