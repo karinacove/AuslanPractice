@@ -103,60 +103,61 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(() => { feedbackImage.style.display = "none"; }, 1000);
   }
 
-  function drop(e) {
-    e.preventDefault();
-    const colour = e.dataTransfer.getData("text/plain");
-    const src = e.dataTransfer.getData("src");
-    const target = e.currentTarget;
-    const targetColour = target.dataset.letter;
+function drop(e) {
+  e.preventDefault();
+  const colour = e.dataTransfer.getData("text/plain");
+  const src = e.dataTransfer.getData("src");
+  const target = e.currentTarget;
+  const targetColour = target.dataset.letter;
 
-    if (colour === targetColour) {
-      if (!levelAttempts[currentLevel].correct.has(colour)) {
-        levelAttempts[currentLevel].correct.add(colour);
-        correctMatches = levelAttempts[currentLevel].correct.size;
+  if (colour === targetColour) {
+    if (!levelAttempts[currentLevel].correct.has(colour)) {
+      levelAttempts[currentLevel].correct.add(colour);
+      correctMatches = levelAttempts[currentLevel].correct.size;
 
-        target.innerHTML = "";
-        const overlay = document.createElement("img");
-        overlay.src = src;
-        overlay.className = "overlay";
-        target.appendChild(overlay);
-        document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el => el.remove());
+      target.innerHTML = "";
+      const overlay = document.createElement("img");
+      overlay.src = src;
+      overlay.className = "overlay";
+      target.appendChild(overlay);
+      document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el => el.remove());
 
-        showFeedback(true);
+      showFeedback(true);
 
-        const expectedMatches = currentColours[currentPage].length;
+      // ✅ FIX: Always get the expected number of matches directly from the page slots
+      const expectedMatches = document.querySelectorAll(".slot").length;
 
-        if (correctMatches >= expectedMatches) {
-          if (currentLevel === 0 && currentPage === 0) saveProgress();
+      if (correctMatches >= expectedMatches) {
+        if (currentLevel === 0 && currentPage === 0) saveProgress();
 
-          correctMatches = 0;
-          currentPage++;
-          if (currentPage < pagesPerLevel) {
+        correctMatches = 0;
+        currentPage++;
+        if (currentPage < pagesPerLevel) {
+          saveProgress();
+          setTimeout(loadPage, 800);
+        } else {
+          currentLevel++;
+          currentPage = 0;
+          if (currentLevel >= levels.length) {
+            clearProgress();
+            setTimeout(endGame, 800);
+          } else {
             saveProgress();
             setTimeout(loadPage, 800);
-          } else {
-            currentLevel++;
-            currentPage = 0;
-            if (currentLevel >= levels.length) {
-              clearProgress();
-              setTimeout(endGame, 800);
-            } else {
-              saveProgress();
-              setTimeout(loadPage, 800);
-            }
           }
         }
       }
-    } else {
-      levelAttempts[currentLevel].incorrect.push(colour);
-      showFeedback(false);
-      const wrong = document.querySelector(`img.draggable[data-letter='${colour}']`);
-      if (wrong) {
-        wrong.classList.add("shake");
-        setTimeout(() => wrong.classList.remove("shake"), 500);
-      }
+    }
+  } else {
+    levelAttempts[currentLevel].incorrect.push(colour);
+    showFeedback(false);
+    const wrong = document.querySelector(`img.draggable[data-letter='${colour}']`);
+    if (wrong) {
+      wrong.classList.add("shake");
+      setTimeout(() => wrong.classList.remove("shake"), 500);
     }
   }
+}
 
   function endGame() {
     if (gameEnded) return;
