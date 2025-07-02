@@ -149,22 +149,21 @@ continueBtn.addEventListener("click", () => {
     document.getElementById("score-display").innerText = `Score: ${percent}%`;
   }
 
-  function saveProgress() {
-    if (currentLevel === 0 && currentPage === 1) {
-      const saveData = {
-        studentName,
-        studentClass,
-        currentLevel,
-        currentPage,
-        levelAttempts: levelAttempts.map(lvl => ({
-          correct: Array.from(lvl.correct),
-          incorrect: lvl.incorrect
-        })),
-        timestamp: Date.now()
-      };
-      localStorage.setItem("numbersGameSave", JSON.stringify(saveData));
-    }
-  }
+function saveProgress() {
+  const saveData = {
+    studentName,
+    studentClass,
+    currentLevel,
+    currentPage,
+    levelAttempts: levelAttempts.map(lvl => ({
+      correct: Array.from(lvl.correct),
+      incorrect: lvl.incorrect
+    })),
+    timestamp: Date.now()
+  };
+  localStorage.setItem("numbersGameSave", JSON.stringify(saveData));
+}
+
 
   function restoreProgress() {
     const saveData = JSON.parse(localStorage.getItem("numbersGameSave"));
