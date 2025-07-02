@@ -158,6 +158,20 @@ h2#levelTitle {
   font-size: 0.9rem;
 }
 
+#score-display {
+  position: fixed;
+  top: 50px;
+  left: 20px;
+  background: #28a745;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-family: sans-serif;
+  z-index: 1000;
+  font-size: 0.9rem;
+}
+
 /* Start Button */
 #start-button {
   position: absolute;
