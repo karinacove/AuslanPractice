@@ -305,52 +305,54 @@ function createBalloon(colour, number, isCorrect) {
     background.style.backgroundImage = `url('assets/background/background_${bgIndex}.png')`;
   }
   
-  function endGame(early = false) {
-    clearInterval(balloonInterval);
-    clearInterval(correctBalloonInterval);
-    clearBalloons();
+function endGame(early = false) {
+  clearInterval(balloonInterval);
+  clearInterval(correctBalloonInterval);
+  clearBalloons();
 
-    const percentage = totalClicks > 0 ? Math.round((correctAnswers / totalClicks) * 100) : 0;
-    const correctList = [...correctAnswersList].sort().join(', ');
-    const incorrectList = [...incorrectAnswersList].sort().join(', ');
+  const percentage = totalClicks > 0 ? Math.round((correctAnswers / totalClicks) * 100) : 0;
+  const correctList = [...correctAnswersList].sort().join(', ');
+  const incorrectList = [...incorrectAnswersList].sort().join(', ');
 
-    // Update modal score display
-    scoreDisplayModal.textContent = `Score: ${score} (${percentage}%)`;
+  // Update modal score display
+  scoreDisplayModal.textContent = `Score: ${score} (${percentage}%)`;
 
-    // Submit results to Google Form silently
-    const form = document.createElement('form');
-    form.action = 'https://docs.google.com/forms/d/e/1FAIpQLSeHCxQ4czHbx1Gdv649vlr5-Dz9-4DQu5M5OcIfC46WlL-6Qw/formResponse';
-    form.method = 'POST';
-    form.target = 'hidden_iframe';
-    form.style.display = 'none';
+  // Submit results to Google Form silently
+  const form = document.createElement('form');
+  form.action = 'https://docs.google.com/forms/d/e/1FAIpQLSeHCxQ4czHbx1Gdv649vlr5-Dz9-4DQu5M5OcIfC46WlL-6Qw/formResponse';
+  form.method = 'POST';
+  form.target = 'hidden_iframe';
+  form.style.display = 'none';
 
-    const entries = {
-      'entry.1609572894': studentName,
-      'entry.1168342531': studentClass,
-      'entry.91913727': score,
-      'entry.63569940': totalClicks,
-      'entry.1746910343': correctList,
-      'entry.1748975026': incorrectList
-    };
+  const entries = {
+    'entry.1609572894': studentName,
+    'entry.1168342531': studentClass,
+    'entry.91913727': score,
+    'entry.63569940': totalClicks,
+    'entry.1746910343': correctList,
+    'entry.1748975026': incorrectList
+  };
 
-    for (let key in entries) {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = key;
-      input.value = entries[key];
-      form.appendChild(input);
-    }
-
-    const iframe = document.createElement('iframe');
-    iframe.name = 'hidden_iframe';
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-    document.body.appendChild(form);
-    form.submit();
-
-    // Show modal
-    endModal.style.display = 'flex';
+  for (let key in entries) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = key;
+    input.value = entries[key];
+    form.appendChild(input);
   }
+
+  const iframe = document.createElement('iframe');
+  iframe.name = 'hidden_iframe';
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+  document.body.appendChild(form);
+  form.submit();
+
+  // ⏱ Delay modal display to ensure form submits first
+  setTimeout(() => {
+    endModal.style.display = 'flex';
+  }, 400);
+}
 
   function resetGame() {
     finishBtn.style.display = 'block';
