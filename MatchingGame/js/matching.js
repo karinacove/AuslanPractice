@@ -312,6 +312,7 @@ logoutBtn.addEventListener("click", () => {
 }
   
   function saveProgress() {
+    if (currentLevel === 0 && currentPage === 0 && correctMatches === 0) return;
     const data = {
       studentName,
       studentClass,
@@ -356,7 +357,6 @@ logoutBtn.addEventListener("click", () => {
 
     const { type: mode, decoys, wideMode } = levels[currentLevel];
 
-    // Toggle wide-mode class on container for levels 4-6
     if (wideMode) {
       document.body.classList.add("wide-mode");
     } else {
@@ -423,6 +423,21 @@ logoutBtn.addEventListener("click", () => {
       gameBoard.appendChild(slot);
     });
 
+    // Prefill any correct matches already made
+    const matchedLetters = new Set(levelAttempts[currentLevel].correct);
+    matchedLetters.forEach(letter => {
+      const slot = [...document.querySelectorAll(".slot")].find(s => s.dataset.letter === letter);
+      if (slot) {
+        const overlay = document.createElement("img");
+        const isSign = slot.style.backgroundImage.includes("sign-");
+        overlay.src = `assets/alphabet/${isSign ? `signs/sign-${letter}.png` : `clipart/${letter}.png`}`;
+        overlay.className = "overlay";
+        slot.innerHTML = ""; // Clear placeholder
+        slot.appendChild(overlay);
+      }
+    });
+
+    
     // Prepare draggables: correct answers are opposite of slot type, decoys random of both types
     const allDecoys = allLetters.filter(l => !pageLetters.includes(l));
     const decoyLetters = shuffle(allDecoys).slice(0, decoys);
