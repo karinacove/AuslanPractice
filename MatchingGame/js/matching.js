@@ -486,6 +486,88 @@ document.addEventListener("DOMContentLoaded", function () {
       entries[formEntryIDs.incorrect[i]] = incorrectArr.join("");
     }
 
-    let totalCorrect = 0;
+       let totalCorrect = 0;
     let totalAttempts = 0;
-    for (let i = 0; i
+    for (let i = 0; i < levels.length; i++) {
+      totalCorrect += levelAttempts[i].correct.size;
+      totalAttempts += levelAttempts[i].correct.size + levelAttempts[i].incorrect.length;
+    }
+
+    const percent = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
+    entries["entry.1996137354"] = `${percent}%`;
+
+    // Append inputs to form
+    for (const key in entries) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = entries[key];
+      form.appendChild(input);
+    }
+
+    iframe.onload = () => {
+      // Show end modal with results summary
+      modal.style.display = "flex";
+      levelTitle.innerText = `Game Completed! Your Score: ${percent}% Correct in ${formattedTime}`;
+    };
+
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  // --- Button Event Listeners ---
+  if (finishBtn) {
+    finishBtn.addEventListener("click", () => {
+      if (!gameEnded) endGame();
+    });
+  }
+
+  if (continueBtn) {
+    continueBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+      gameEnded = false;
+      loadPage();
+    });
+  }
+
+  if (againBtn) {
+    againBtn.addEventListener("click", () => {
+      localStorage.removeItem("alphabetGameSave");
+      location.reload();
+    });
+  }
+
+  if (menuBtn) {
+    menuBtn.addEventListener("click", () => {
+      window.location.href = "../index.html";
+    });
+  }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      const saved = JSON.parse(localStorage.getItem("alphabetGameSave"));
+      if (saved && saved.studentName === studentName && saved.studentClass === studentClass) {
+        sendSavedDataToForm(saved, () => {
+          localStorage.clear();
+          window.location.href = "../index.html";
+        });
+      } else {
+        localStorage.clear();
+        window.location.href = "../index.html";
+      }
+    });
+  }
+
+  // --- On page load: Restore or start fresh ---
+  const saved = JSON.parse(localStorage.getItem("alphabetGameSave"));
+  if (saved && saved.studentName === studentName && saved.studentClass === studentClass && !saved.gameEnded && saved.currentPage > 0) {
+    if (confirm("Resume your unfinished game?")) {
+      restoreProgress(saved);
+    } else {
+      localStorage.removeItem("alphabetGameSave");
+      loadPage();
+    }
+  } else {
+    loadPage();
+  }
+});
