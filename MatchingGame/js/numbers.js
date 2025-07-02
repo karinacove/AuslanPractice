@@ -20,9 +20,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (finishBtn) finishBtn.addEventListener("click", () => {
     if (!gameEnded) {
+      modal.style.display = "flex"; // ✅ this is what was missing
       endGame();
     }
   });
+
 
   continueBtn.addEventListener("click", () => {
     endModal.style.display = "none";
