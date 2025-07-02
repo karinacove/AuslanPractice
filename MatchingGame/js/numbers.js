@@ -26,11 +26,25 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
 
-  continueBtn.addEventListener("click", () => {
-    Modal.style.display = "none";
-    gameEnded = false;
-    loadPage();
-  });
+continueBtn.addEventListener("click", () => {
+  const saved = JSON.parse(localStorage.getItem("numbersGameSave"));
+  if (
+    saved &&
+    saved.studentName === studentName &&
+    saved.studentClass === studentClass
+  ) {
+    currentLevel = saved.currentLevel;
+    currentPage = saved.currentPage;
+    saved.levelAttempts.forEach((lvl, i) => {
+      levelAttempts[i].correct = new Set(lvl.correct);
+      levelAttempts[i].incorrect = lvl.incorrect;
+    });
+  }
+
+  modal.style.display = "none";
+  gameEnded = false;
+  loadPage();
+});
 
   againBtn.addEventListener("click", () => {
     localStorage.removeItem("alphabetGameSave");
