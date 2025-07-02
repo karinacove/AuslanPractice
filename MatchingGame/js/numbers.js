@@ -1,3 +1,5 @@
+// Numbers Matching Game - Full Complete Script with Save/Resume and Form Submission
+
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -35,40 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(() => feedbackImage.style.display = "none", 1000);
   }
 
-  finishBtn.addEventListener("click", () => {
-    modal.style.display = "flex";
-    gameEnded = true;
-    endGame();
-  });
-
-  continueBtn.addEventListener("click", () => {
-    modal.style.display = "none";
-    gameEnded = false;
-    loadPage();
-  });
-
-  againBtn.addEventListener("click", () => {
-    localStorage.removeItem("numbersGameSave");
-    location.reload();
-  });
-
-  menuBtn.addEventListener("click", () => {
-    window.location.href = "../index.html";
-  });
-
-  logoutBtn.addEventListener("click", () => {
-    const saved = JSON.parse(localStorage.getItem("numbersGameSave"));
-    if (saved && saved.studentName === studentName && saved.studentClass === studentClass) {
-      sendSavedDataToForm(saved, () => {
-        localStorage.clear();
-        window.location.href = "../index.html";
-      });
-    } else {
-      localStorage.clear();
-      window.location.href = "../index.html";
-    }
-  });
-
+  // Form field IDs for Google Forms submission for correct and incorrect answers for 20 levels
   const formEntryIDs = {
     correct: [
       "entry.1249394203", "entry.1551220511", "entry.903633326", "entry.497882042", "entry.1591755601", "entry.1996137354",
@@ -84,7 +53,7 @@ document.addEventListener("DOMContentLoaded", function () {
     ]
   };
 
-  // Game variables
+  // Level definitions - number ranges and pages, with types ("clipart-grid", "sign-grid", "mixed")
   const levelDefinitions = [
     { start: 0, end: 12, pages: 2, type: "clipart-grid" },
     { start: 0, end: 12, pages: 2, type: "sign-grid" },
@@ -108,49 +77,31 @@ document.addEventListener("DOMContentLoaded", function () {
     { review: true, pages: 1, type: "mixed" }
   ];
 
+  // State variables
   let currentLevel = 0;
   let currentPage = 0;
-  let currentLetters = [];
+  let currentItems = [];
   let correctMatches = 0;
   let gameEnded = false;
   let startTime = Date.now();
-  // Each level stores { correct: Set(), incorrect: Array() }
+
+  // Attempts data - store per level correct (Set) and incorrect (Array)
   const levelAttempts = Array(20).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
 
+  // DOM references
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
   const rightSigns = document.getElementById("rightSigns");
   const levelTitle = document.getElementById("levelTitle");
 
-  // Shuffle helper
+  // Utility shuffle function
   function shuffle(arr) {
     return arr.sort(() => Math.random() - 0.5);
   }
 
-  // Load saved progress if present
-  function loadSavedGame() {
-    const saved = JSON.parse(localStorage.getItem("numbersGameSave"));
-    if (
-      saved &&
-      saved.studentName === studentName &&
-      saved.studentClass === studentClass &&
-      !saved.gameEnded
-    ) {
-      currentLevel = saved.currentLevel;
-      currentPage = saved.currentPage;
-      levelAttempts.forEach((lvl, i) => {
-        lvl.correct = new Set(saved.levelAttempts[i].correct);
-        lvl.incorrect = saved.levelAttempts[i].incorrect.slice();
-      });
-      startTime = saved.startTime || Date.now();
-      return true;
-    }
-    return false;
-  }
-
-  // Save progress function
+  // Save progress after completing Level 1 Page 0 (i.e. after finishing first page of Level 1)
   function saveProgress() {
-    const saveData = {
+    const saveObj = {
       studentName,
       studentClass,
       currentLevel,
@@ -159,13 +110,34 @@ document.addEventListener("DOMContentLoaded", function () {
         correct: Array.from(lvl.correct),
         incorrect: lvl.incorrect
       })),
-      startTime,
-      gameEnded
+      startTime
     };
-    localStorage.setItem("numbersGameSave", JSON.stringify(saveData));
+    localStorage.setItem("numbersGameSave", JSON.stringify(saveObj));
   }
 
-  // Function to send saved data to Google Form
+  // Load saved progress from localStorage
+  function loadSavedProgress() {
+    const saved = localStorage.getItem("numbersGameSave");
+    if (!saved) return false;
+    try {
+      const data = JSON.parse(saved);
+      if (data.studentName !== studentName || data.studentClass !== studentClass) return false;
+      if (data.currentLevel >= 20) return false; // Completed all levels, no resume
+      currentLevel = data.currentLevel;
+      currentPage = data.currentPage;
+      // Restore attempts Sets and arrays
+      data.levelAttempts.forEach((lvl, i) => {
+        levelAttempts[i].correct = new Set(lvl.correct);
+        levelAttempts[i].incorrect = lvl.incorrect;
+      });
+      startTime = data.startTime || Date.now();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // Send saved data to Google Form
   function sendSavedDataToForm(savedData, callback) {
     const form = document.createElement("form");
     form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
@@ -182,26 +154,18 @@ document.addEventListener("DOMContentLoaded", function () {
       "entry.1387461004": savedData.studentName,
       "entry.1309291707": savedData.studentClass,
       "entry.477642881": "Numbers",
+      "entry.1374858042": formatTime((Date.now() - savedData.startTime) / 1000)
     };
 
-    const endTime = Date.now();
-    const timeTaken = Math.round((endTime - savedData.startTime) / 1000);
-    const formattedTime = `${Math.floor(timeTaken / 60)} mins ${timeTaken % 60} sec`;
-    entries["entry.1374858042"] = formattedTime;
-
     for (let i = 0; i < formEntryIDs.correct.length; i++) {
-      const correctSorted = savedData.levelAttempts[i]
-        ? savedData.levelAttempts[i].correct.slice().sort((a, b) => a - b)
-        : [];
-      const incorrectSorted = savedData.levelAttempts[i]
-        ? savedData.levelAttempts[i].incorrect.slice().sort((a, b) => a - b)
-        : [];
+      const correctSorted = (savedData.levelAttempts[i]?.correct || []).map(Number).sort((a,b)=>a-b);
+      const incorrectSorted = (savedData.levelAttempts[i]?.incorrect || []).map(Number).sort((a,b)=>a-b);
       entries[formEntryIDs.correct[i]] = correctSorted.join(",");
       entries[formEntryIDs.incorrect[i]] = incorrectSorted.join(",");
     }
 
-    const totalCorrect = savedData.levelAttempts.reduce((sum, lvl) => sum + (lvl.correct ? lvl.correct.length : 0), 0);
-    const totalIncorrect = savedData.levelAttempts.reduce((sum, lvl) => sum + (lvl.incorrect ? lvl.incorrect.length : 0), 0);
+    const totalCorrect = savedData.levelAttempts.reduce((sum, lvl) => sum + (lvl.correct?.length || 0), 0);
+    const totalIncorrect = savedData.levelAttempts.reduce((sum, lvl) => sum + (lvl.incorrect?.length || 0), 0);
     const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
     entries["entry.1996137354"] = `${percent}%`;
 
@@ -216,118 +180,114 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.appendChild(form);
     form.submit();
 
-    iframe.onload = () => {
-      callback && callback();
+    // Remove iframe after submission (optional cleanup)
+    setTimeout(() => {
       iframe.remove();
       form.remove();
-    };
+      if (callback) callback();
+    }, 1000);
   }
 
-  // Show results modal and summary
-  function endGame() {
-    gameEnded = true;
-    saveProgress();
-
-    const endTime = Date.now();
-    const timeTaken = Math.round((endTime - startTime) / 1000);
-    const formattedTime = `${Math.floor(timeTaken / 60)} mins ${timeTaken % 60} sec`;
-
-    const totalCorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.correct.size, 0);
-    const totalIncorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.incorrect.length, 0);
-    const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
-
-    document.getElementById("score-display").innerText = `Score: ${percent}%`;
-
-    const timeDisplay = document.createElement("p");
-    timeDisplay.innerText = `Time: ${formattedTime}`;
-    const endModalContent = document.getElementById("end-modal-content");
-    endModalContent.appendChild(timeDisplay);
-
-    // Submit data
-    sendSavedDataToForm({
-      studentName,
-      studentClass,
-      levelAttempts: levelAttempts.map(lvl => ({
-        correct: Array.from(lvl.correct),
-        incorrect: lvl.incorrect
-      })),
-      startTime,
-      gameEnded: true,
-      currentLevel,
-      currentPage
-    });
+  // Format seconds to mm mins ss sec string
+  function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.round(seconds % 60);
+    return `${mins} mins ${secs} sec`;
   }
 
-  // Load current page with slots and draggables
+  // Show the current page of the current level
   function loadPage() {
-    const info = levelDefinitions[currentLevel];
-    if (!info) return;
+    if (gameEnded) return;
 
-    const pool = info.random
-      ? Array.from({ length: 101 }, (_, i) => i)
-      : Array.from({ length: (info.end - info.start + 1) }, (_, i) => i + info.start);
-
-    const chosen = shuffle(pool).slice(0, info.pages * 9);
-
-    const pageItems = [];
-    for (let i = 0; i < info.pages; i++) {
-      pageItems.push(chosen.slice(i * 9, (i + 1) * 9));
+    // If saved progress exists and we are on first load, we load saved progress
+    if (currentLevel === 0 && currentPage === 0 && loadSavedProgress()) {
+      // Continue from saved state without reload
     }
-    currentLetters = pageItems;
 
-    const pageLetters = currentLetters[currentPage];
-    if (!pageLetters) return;
+    const info = levelDefinitions[currentLevel];
+    let pool;
+    if (info.random) {
+      pool = Array.from({ length: 101 }, (_, i) => i);
+    } else if (info.review) {
+      // Review: collect incorrect answers from all previous levels to show on one page
+      pool = [];
+      levelAttempts.forEach(lvl => {
+        pool = pool.concat(lvl.incorrect);
+      });
+      pool = [...new Set(pool)]; // Unique numbers
+    } else {
+      pool = Array.from({ length: info.end - info.start + 1 }, (_, i) => i + info.start);
+    }
 
+    // Determine the items on this page
+    if (info.review) {
+      currentItems = pool; // All incorrect items combined
+    } else {
+      const chosen = shuffle(pool).slice(0, info.pages * 9);
+      currentItems = [];
+      for (let i = 0; i < info.pages; i++) {
+        currentItems.push(chosen.slice(i * 9, (i + 1) * 9));
+      }
+    }
+
+    if (currentPage >= (info.pages || 1)) {
+      currentPage = 0;
+      currentLevel++;
+      if (currentLevel >= 20) {
+        gameEnded = true;
+        modal.style.display = "flex";
+        endGame();
+        return;
+      }
+      loadPage();
+      return;
+    }
+
+    const pageItems = info.review ? currentItems : currentItems[currentPage];
+
+    // Clear previous page
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
     rightSigns.innerHTML = "";
-    levelTitle.innerText = `Level ${currentLevel + 1} - Page ${currentPage + 1}`;
+    levelTitle.innerText = `Level ${currentLevel + 1}`;
 
     const slotType = info.type;
     const slotMode = slotType.includes("clipart") ? "clipart" : slotType.includes("sign") ? "sign" : null;
-    const getOppositeMode = m => (m === "clipart" ? "sign" : "clipart");
+    const getOppositeMode = m => m === "clipart" ? "sign" : "clipart";
 
-    pageLetters.forEach((letter) => {
+    // Add slots for pageItems
+    pageItems.forEach(num => {
       const slot = document.createElement("div");
       slot.className = "slot";
-      slot.dataset.letter = `${letter}`;
-      const imageMode =
-        slotType === "mixed" ? (Math.random() < 0.5 ? "clipart" : "sign") : slotMode;
+      slot.dataset.letter = `${num}`;
+      const imageMode = slotType === "mixed" ? (Math.random() < 0.5 ? "clipart" : "sign") : slotMode;
       slot.dataset.imageMode = imageMode;
-      slot.style.backgroundImage = `url('assets/numbers/${
-        imageMode === "clipart" ? `clipart/${letter}.png` : `signs/sign-${letter}.png`
-      }')`;
+      slot.style.backgroundImage = `url('assets/numbers/${imageMode === "clipart" ? `clipart/${num}.png` : `signs/sign-${num}.png`}')`;
       gameBoard.appendChild(slot);
     });
 
-    let decoyPool = pool.filter((n) => !pageLetters.includes(n));
+    // Prepare draggable images with decoys
+    let decoyPool = pool.filter(n => !pageItems.includes(n));
     let decoys = decoyPool.length >= 3 ? shuffle(decoyPool).slice(0, 3) : decoyPool;
+    const draggableLetters = shuffle([...pageItems, ...decoys]);
 
-    const draggableLetters = shuffle([...pageLetters, ...decoys]);
-
-    draggableLetters.forEach((letter, i) => {
+    draggableLetters.forEach((num, i) => {
       const img = document.createElement("img");
       img.className = "draggable";
       img.draggable = true;
-      img.dataset.letter = `${letter}`;
+      img.dataset.letter = `${num}`;
 
       let sourceMode;
       if (slotType === "mixed") {
-        const matchSlot = document.querySelector(`.slot[data-letter='${letter}']`);
-        sourceMode = matchSlot
-          ? getOppositeMode(matchSlot.dataset.imageMode)
-          : Math.random() < 0.5
-          ? "clipart"
-          : "sign";
+        const matchSlot = document.querySelector(`.slot[data-letter='${num}']`);
+        sourceMode = matchSlot ? getOppositeMode(matchSlot.dataset.imageMode) : (Math.random() < 0.5 ? "clipart" : "sign");
       } else {
         sourceMode = getOppositeMode(slotMode);
       }
 
-      img.src = `assets/numbers/${
-        sourceMode === "clipart" ? `clipart/${letter}.png` : `signs/sign-${letter}.png`
-      }`;
-      img.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("text/plain", `${letter}`);
+      img.src = `assets/numbers/${sourceMode === "clipart" ? `clipart/${num}.png` : `signs/sign-${num}.png`}`;
+      img.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text/plain", `${num}`);
         e.dataTransfer.setData("src", img.src);
       });
       img.addEventListener("touchstart", touchStart);
@@ -339,14 +299,15 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     correctMatches = 0;
-
-    document.querySelectorAll(".slot").forEach((slot) => {
-      slot.addEventListener("dragover", (e) => e.preventDefault());
+    document.querySelectorAll(".slot").forEach(slot => {
+      slot.addEventListener("dragover", e => e.preventDefault());
       slot.addEventListener("drop", drop);
     });
 
-    // Save progress after completing Level 1 Page 0 (first page first level)
-    if (currentLevel === 0 && currentPage === 0) {
+    // Save progress after completing Level 1 Page 0 (i.e. page 0 on level 1 means currentLevel=1, currentPage=0)
+    // So we check if previous page just completed was Level 1 Page 0
+    // Save progress when loading next page after Level 1 Page 0
+    if (currentLevel > 1 || (currentLevel === 1 && currentPage > 0)) {
       saveProgress();
     }
   }
@@ -367,24 +328,23 @@ document.addEventListener("DOMContentLoaded", function () {
       overlay.src = src;
       overlay.className = "overlay";
       target.appendChild(overlay);
-      document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach((el) => el.remove());
+      document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
       correctMatches++;
       showFeedback(true);
 
-      if (correctMatches >= currentLetters[currentPage].length) {
+      if (correctMatches >= (levelDefinitions[currentLevel].pages * 9 || 9)) {
         correctMatches = 0;
         currentPage++;
-        if (currentPage < currentLetters.length) {
-          saveProgress();
+        if (currentPage < currentItems.length) {
           setTimeout(loadPage, 800);
         } else {
           currentLevel++;
           currentPage = 0;
           if (currentLevel >= 20) {
             modal.style.display = "flex";
-            showResults();
+            gameEnded = true;
+            endGame();
           } else {
-            saveProgress();
             setTimeout(loadPage, 800);
           }
         }
@@ -395,6 +355,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  // Touch support for drag/drop
   function touchStart(e) {
     const target = e.target;
     const letter = target.dataset.letter;
@@ -407,24 +368,23 @@ document.addEventListener("DOMContentLoaded", function () {
     clone.style.zIndex = "10000";
     document.body.appendChild(clone);
 
-    const moveClone = (touch) => {
+    const moveClone = touch => {
       clone.style.left = `${touch.clientX - clone.width / 2}px`;
       clone.style.top = `${touch.clientY - clone.height / 2}px`;
     };
     moveClone(e.touches[0]);
 
-    const handleTouchMove = (ev) => moveClone(ev.touches[0]);
-    const handleTouchEnd = (ev) => {
+    const handleTouchMove = ev => moveClone(ev.touches[0]);
+    const handleTouchEnd = ev => {
       const touch = ev.changedTouches[0];
       const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (el && el.classList.contains("slot"))
-        drop({
-          preventDefault: () => {},
-          dataTransfer: {
-            getData: (k) => (k === "text/plain" ? letter : src)
-          },
-          currentTarget: el
-        });
+      if (el && el.classList.contains("slot")) drop({
+        preventDefault: () => {},
+        dataTransfer: {
+          getData: k => k === "text/plain" ? letter : src
+        },
+        currentTarget: el
+      });
       document.removeEventListener("touchmove", handleTouchMove);
       document.removeEventListener("touchend", handleTouchEnd);
       clone.remove();
@@ -434,15 +394,99 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("touchend", handleTouchEnd, { passive: false });
   }
 
-  function showResults() {
-    endGame();
+  // End game and submit data to Google Form
+  function endGame() {
+    gameEnded = true;
+    const endTime = Date.now();
+    const timeTaken = Math.round((endTime - startTime) / 1000);
+
+    const form = document.createElement("form");
+    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+    form.method = "POST";
+    form.target = "hidden_iframe";
+    form.style.display = "none";
+
+    const iframe = document.createElement("iframe");
+    iframe.name = "hidden_iframe";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+
+    const totalCorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.correct.size, 0);
+    const totalIncorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.incorrect.length, 0);
+    const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
+
+    // Basic info
+    const entries = {
+      "entry.1387461004": studentName,
+      "entry.1309291707": studentClass,
+      "entry.477642881": "Numbers",
+      "entry.1374858042": formatTime(timeTaken),
+      "entry.1996137354": `${percent}%`
+    };
+
+    // Per-level correct/incorrect answers
+    for (let i = 0; i < formEntryIDs.correct.length; i++) {
+      entries[formEntryIDs.correct[i]] = Array.from(levelAttempts[i].correct).sort((a,b)=>a-b).join(",");
+      entries[formEntryIDs.incorrect[i]] = levelAttempts[i].incorrect.sort((a,b)=>a-b).join(",");
+    }
+
+    for (const key in entries) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = entries[key];
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+
+    // Cleanup
+    setTimeout(() => {
+      iframe.remove();
+      form.remove();
+      localStorage.removeItem("numbersGameSave");
+    }, 1000);
   }
 
-  // On load, check saved game to resume
-  if (!loadSavedGame()) {
-    loadPage();
-  } else {
-    // Show continue modal if saved game exists and is incomplete
-    modal.style.display = "flex";
+  // Initial load
+  if (!loadSavedProgress()) {
+    currentLevel = 0;
+    currentPage = 0;
   }
+  loadPage();
+
+  // Button listeners
+  finishBtn.addEventListener("click", () => {
+    modal.style.display = "flex";
+    endGame();
+  });
+
+  continueBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+    if (!gameEnded) loadPage();
+  });
+
+  againBtn.addEventListener("click", () => {
+    localStorage.removeItem("numbersGameSave");
+    location.reload();
+  });
+
+  menuBtn.addEventListener("click", () => {
+    localStorage.removeItem("numbersGameSave");
+    window.location.href = "../index.html";
+  });
+
+  logoutBtn.addEventListener("click", () => {
+    const saved = JSON.parse(localStorage.getItem("numbersGameSave"));
+    if (saved && saved.studentName === studentName && saved.studentClass === studentClass) {
+      sendSavedDataToForm(saved, () => {
+        localStorage.clear();
+        window.location.href = "../index.html";
+      });
+    } else {
+      localStorage.clear();
+      window.location.href = "../index.html";
+    }
+  });
 });
