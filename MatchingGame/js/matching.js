@@ -18,9 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const endModal = modal;
 
   if (finishBtn) finishBtn.addEventListener("click", () => {
-    if (!gameEnded) {
-      endGame();
-    }
+    endGame(); // Always call endGame, even if gameEnded was true
   });
 
   continueBtn.addEventListener("click", () => {
