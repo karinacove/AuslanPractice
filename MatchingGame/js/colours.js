@@ -28,10 +28,25 @@ document.addEventListener("DOMContentLoaded", function () {
     { type: "mixed", decoys: 5 }
   ];
 
-  const formEntryIDs = {
-    correct: ["entry.1249394203", "entry.1551220511", "entry.903633326", "entry.497882042", "entry.1591755601", "entry.1996137354"],
-    incorrect: ["entry.1897227570", "entry.1116300030", "entry.187975538", "entry.1880514176", "entry.552536101", "entry.922308538"]
-  };
+
+ const formEntryIDs = {
+  correct: [
+    "entry.1249394203", // Level 1 Correct
+    "entry.1551220511", // Level 2 Correct
+    "entry.903633326",  // Level 3 Correct
+    "entry.497882042",  // Level 4 Correct
+    "entry.1591755601", // Level 5 Correct
+    "entry.856597282"   // Level 6 Correct 
+  ],
+  incorrect: [
+    "entry.1897227570", // Level 1 Incorrect
+    "entry.1116300030", // Level 2 Incorrect
+    "entry.187975538",  // Level 3 Incorrect
+    "entry.1880514176", // Level 4 Incorrect
+    "entry.552536101",  // Level 5 Incorrect
+    "entry.922308538"   // Level 6 Incorrect
+  ]
+};
 
   let currentLevel = 0;
   let currentPage = 0;
@@ -168,64 +183,68 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function endGame() {
-    if (gameEnded) return;
-    gameEnded = true;
+function endGame() {
+  if (gameEnded) return;
+  gameEnded = true;
 
-    const endTime = Date.now();
-    const timeTaken = Math.round((endTime - startTime) / 1000);
-    const minutes = Math.floor(timeTaken / 60);
-    const seconds = timeTaken % 60;
-    const formattedTime = `${minutes} mins ${seconds} sec`;
+  const endTime = Date.now();
+  const timeTaken = Math.round((endTime - startTime) / 1000);
+  const minutes = Math.floor(timeTaken / 60);
+  const seconds = timeTaken % 60;
+  const formattedTime = `${minutes} mins ${seconds} sec`;
 
-    const form = document.createElement("form");
-    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
-    form.method = "POST";
-    form.target = "hidden_iframe";
-    form.style.display = "none";
+  const form = document.createElement("form");
+  form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+  form.method = "POST";
+  form.target = "hidden_iframe";
+  form.style.display = "none";
 
-    let iframe = document.querySelector("iframe[name='hidden_iframe']");
-    if (!iframe) {
-      iframe = document.createElement("iframe");
-      iframe.name = "hidden_iframe";
-      iframe.style.display = "none";
-      document.body.appendChild(iframe);
-    }
+  let iframe = document.querySelector("iframe[name='hidden_iframe']");
+  if (!iframe) {
+    iframe = document.createElement("iframe");
+    iframe.name = "hidden_iframe";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+  }
 
-    const entries = {
-      "entry.1387461004": studentName,
-      "entry.1309291707": studentClass,
-      "entry.477642881": "Colours",
-      "entry.1374858042": formattedTime
-    };
+  const entries = {
+    "entry.1387461004": studentName,
+    "entry.1309291707": studentClass,
+    "entry.477642881": "Colours", // Subject
+    "entry.1374858042": formattedTime // Time Taken
+  };
 
-    for (let i = 0; i < levels.length; i++) {
-      const correctArr = Array.from(levelAttempts[i].correct).sort();
-      const incorrectArr = levelAttempts[i].incorrect.sort();
-      entries[formEntryIDs.correct[i]] = correctArr.join(", ");
-      entries[formEntryIDs.incorrect[i]] = incorrectArr.map(c => `*${c}*`).join(", ");
-    }
+  // Loop through levels and collect correct/incorrect
+  for (let i = 0; i < levels.length; i++) {
+    const correctArr = Array.from(levelAttempts[i].correct).sort();
+    const incorrectArr = levelAttempts[i].incorrect.sort();
+    entries[formEntryIDs.correct[i]] = correctArr.join(", ");
+    entries[formEntryIDs.incorrect[i]] = incorrectArr.map(c => `*${c}*`).join(", ");
+  }
 
-    let totalCorrect = 0;
-    let totalAttempts = 0;
-    for (let i = 0; i < levels.length; i++) {
-      totalCorrect += levelAttempts[i].correct.size;
-      totalAttempts += levelAttempts[i].correct.size + levelAttempts[i].incorrect.length;
-    }
-    const percent = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
-    entries["entry.1996137354"] = `${percent}%`;
+  // Calculate and submit percentage
+  let totalCorrect = 0;
+  let totalAttempts = 0;
+  for (let i = 0; i < levels.length; i++) {
+    totalCorrect += levelAttempts[i].correct.size;
+    totalAttempts += levelAttempts[i].correct.size + levelAttempts[i].incorrect.length;
+  }
+  const percent = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
+  entries["entry.1996137354"] = `${percent}%`; // Percentage Score
 
-    for (const key in entries) {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = key;
-      input.value = entries[key];
-      form.appendChild(input);
-    }
+  // Append all entries to the form
+  for (const key in entries) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = key;
+    input.value = entries[key];
+    form.appendChild(input);
+  }
 
-    document.body.appendChild(form);
-    iframe.onload = () => console.log("Google Form submitted");
-    form.submit();
+  document.body.appendChild(form);
+  iframe.onload = () => console.log("Google Form submitted");
+  form.submit();
+}
 
     document.getElementById("score-display").innerText = `Score: ${percent}%`;
     const timeDisplay = document.createElement("p");
