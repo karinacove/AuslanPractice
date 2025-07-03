@@ -362,9 +362,17 @@ lengthOptions.forEach(option => {
   });
 });
 
-keyboardBtn.addEventListener("click", () => {
-  keyboardContainer.style.display = keyboardContainer.style.display === "none" ? "block" : "none";
+function toggleKeyboard() {
+  keyboardContainer.style.display =
+    keyboardContainer.style.display === "none" ? "block" : "none";
+}
+
+keyboardBtn.addEventListener("click", toggleKeyboard);
+keyboardBtn.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  toggleKeyboard();
 });
+
 
 finishButton.addEventListener("click", () => showFinishModal(false));
 continueBtn.addEventListener("click", hideFinishModal);
