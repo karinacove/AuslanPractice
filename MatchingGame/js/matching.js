@@ -116,6 +116,13 @@ document.addEventListener("DOMContentLoaded", function () {
     return arr.sort(() => Math.random() - 0.5);
   }
 
+  function updateScore() {
+    const totalCorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.correct.size, 0);
+    const totalIncorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.incorrect.length, 0);
+    const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
+    document.getElementById("score-display").innerText = `Score: ${percent}%`;
+  }
+  
   function showFeedback(correct) {
     feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
     feedbackImage.style.display = "block";
