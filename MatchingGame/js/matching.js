@@ -194,7 +194,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const minutes = Math.floor(timeTaken / 60);
     const seconds = timeTaken % 60;
     const formattedTime = `${minutes} mins ${seconds} sec`;
-
+    const currentPosition = `L${currentLevel + 1}P${currentPage + 1}`;
+    
     const form = document.createElement("form");
     form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
     form.method = "POST";
@@ -214,6 +215,7 @@ document.addEventListener("DOMContentLoaded", function () {
       "entry.1309291707": studentClass,
       "entry.477642881": "Alphabet",
       "entry.1374858042": formattedTime
+      "entry.750436458": currentPosition // Current Level
     };
 
     for (let i = 0; i < levels.length; i++) {
