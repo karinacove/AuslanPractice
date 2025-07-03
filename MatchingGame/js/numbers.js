@@ -55,18 +55,22 @@ continueBtn.addEventListener("click", () => {
     window.location.href = "../index.html";
   });
 
- logoutBtn.addEventListener("click", () => {
-  const saved = JSON.parse(localStorage.getItem("numbersGameSave"));
-  if (saved && saved.studentName === studentName && saved.studentClass === studentClass) {
-    sendSavedDataToForm(saved, () => {
-      localStorage.clear();
-      window.location.href = "../index.html";
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      const saved = JSON.parse(localStorage.getItem("numbersGameSave"));
+      if (saved && saved.studentName === studentName && saved.studentClass === studentClass) {
+        gameEnded = true;
+        endGame();
+        setTimeout(() => {
+          localStorage.clear();
+          window.location.href = "../index.html";
+        }, 1000);
+      } else {
+        localStorage.clear();
+        window.location.href = "../index.html";
+      }
     });
-  } else {
-    localStorage.clear();
-    window.location.href = "../index.html";
   }
-});
   
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
