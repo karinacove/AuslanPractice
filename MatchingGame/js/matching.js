@@ -74,6 +74,7 @@ document.addEventListener("DOMContentLoaded", function () {
       "entry.1880514176", // Level 4
       "entry.497882042",  // Level 5
       "entry.1591755601",  // Level 6
+      "entry.1374012635", // Level 7
     ],
     incorrect: [
       "entry.1249394203", // Level 1
@@ -82,6 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
       "entry.856597282",  // Level 4
       "entry.552536101",  // Level 5
       "entry.922308538",  // Level 6
+      "entry.969924717", // Level 7
     ]
   };
 
