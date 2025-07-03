@@ -131,6 +131,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el => el.remove());
 
         showFeedback(true);
+        updateScore()
 
         // Count slots on page for expected matches
         const expectedMatches = document.querySelectorAll(".slot").length;
@@ -309,6 +310,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Also update total correct matches if you want
     correctMatches = levelAttempts[currentLevel].correct.size;
+
+    updateScore();
 
     document.querySelectorAll(".slot").forEach(slot => {
       slot.addEventListener("dragover", e => e.preventDefault());
