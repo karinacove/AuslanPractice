@@ -173,7 +173,7 @@ function hideFinishModal() {
 }
 
 function setupKeyboard() {
-  const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM←"];
+  const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
   keyboardContainer.innerHTML = "";
 
   const header = document.createElement("div");
