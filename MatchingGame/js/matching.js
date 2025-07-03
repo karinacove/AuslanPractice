@@ -68,18 +68,18 @@ document.addEventListener("DOMContentLoaded", function () {
   // Google Form entry IDs updated for 7 levels now
   const formEntryIDs = {
     correct: [
-      "entry.1249394203", // Level 1
-      "entry.1551220511", // Level 2
-      "entry.903633326",  // Level 3
-      "entry.497882042",  // Level 4
-      "entry.1591755601",  // Level 5
-      "entry.1996137354",  // Level 6
-    ],
-    incorrect: [
       "entry.1897227570", // Level 1
       "entry.1116300030", // Level 2
       "entry.187975538",  // Level 3
       "entry.1880514176", // Level 4
+      "entry.497882042",  // Level 5
+      "entry.1591755601",  // Level 6
+    ],
+    incorrect: [
+      "entry.1249394203", // Level 1
+      "entry.1551220511", // Level 2
+      "entry.903633326",  // Level 3
+      "entry.856597282",  // Level 4
       "entry.552536101",  // Level 5
       "entry.922308538",  // Level 6
     ]
