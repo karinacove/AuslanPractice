@@ -173,7 +173,7 @@ function hideFinishModal() {
 }
 
 function setupKeyboard() {
-  const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
+  const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM←"];
   keyboardContainer.innerHTML = "";
 
   const header = document.createElement("div");
@@ -207,6 +207,13 @@ function setupKeyboard() {
   const controlRow = document.createElement("div");
   controlRow.className = "keyboard-row";
 
+  const footer = document.createElement("div");
+  footer.id = "keyboard-footer";
+  footer.style.height = "16px";
+  footer.style.background = "#eee";
+  footer.style.cursor = "move";
+  keyboardContainer.appendChild(footer);
+
   const backspace = document.createElement("div");
   backspace.textContent = "←";
   backspace.className = "keyboard-key key wide";
@@ -215,39 +222,36 @@ function setupKeyboard() {
     wordInput.dispatchEvent(new Event("input"));
   };
 
-  controlRow.appendChild(backspace);
-  keyboardContainer.appendChild(controlRow);
-
-  dragElement(keyboardContainer);
+  dragElement(keyboardContainer, ["#keyboard-header", "#keyboard-footer"]);
 }
 
-function dragElement(elmnt) {
-  const header = elmnt.querySelector("#keyboard-header");
+function dragElement(elmnt, handleSelectors = ["#keyboard-header"]) {
+  const handles = handleSelectors.map(sel => elmnt.querySelector(sel)).filter(Boolean);
   let startX = 0, startY = 0, initialX = 0, initialY = 0, dragging = false;
 
-  if (!header) return;
+  handles.forEach(handle => {
+    handle.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      dragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      initialX = elmnt.offsetLeft;
+      initialY = elmnt.offsetTop;
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", stopDrag);
+    });
 
-  header.addEventListener("mousedown", (e) => {
-    e.preventDefault();
-    dragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    initialX = elmnt.offsetLeft;
-    initialY = elmnt.offsetTop;
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", stopDrag);
-  });
-
-  header.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    dragging = true;
-    const touch = e.touches[0];
-    startX = touch.clientX;
-    startY = touch.clientY;
-    initialX = elmnt.offsetLeft;
-    initialY = elmnt.offsetTop;
-    document.addEventListener("touchmove", onTouchMove, { passive: false });
-    document.addEventListener("touchend", stopDrag);
+    handle.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      dragging = true;
+      startX = touch.clientX;
+      startY = touch.clientY;
+      initialX = elmnt.offsetLeft;
+      initialY = elmnt.offsetTop;
+      document.addEventListener("touchmove", onTouchMove, { passive: false });
+      document.addEventListener("touchend", stopDrag);
+    });
   });
 
   function onMouseMove(e) {
@@ -278,6 +282,7 @@ function dragElement(elmnt) {
     document.removeEventListener("touchend", stopDrag);
   }
 }
+
 
 // -------------------------
 // Event Listeners
