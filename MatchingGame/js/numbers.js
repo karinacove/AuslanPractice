@@ -297,9 +297,17 @@ function saveProgress() {
   }
 
   function endGame() {
+    if (gameEnded) return;
+    gameEnded = true;
+
     const endTime = Date.now();
     const timeTaken = Math.round((endTime - startTime) / 1000);
     const formattedTime = `${Math.floor(timeTaken / 60)} mins ${timeTaken % 60} sec`;
+    const currentPosition = `L${currentLevel + 1}P${currentPage + 1}`;
+
+    const totalCorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.correct.size, 0);
+    const totalIncorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.incorrect.length, 0);
+    const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
 
     const form = document.createElement("form");
     form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
@@ -307,17 +315,21 @@ function saveProgress() {
     form.target = "hidden_iframe";
     form.style.display = "none";
 
-    const iframe = document.createElement("iframe");
-    iframe.name = "hidden_iframe";
-    iframe.style.display = "none";
-    document.body.appendChild(iframe);
+    let iframe = document.querySelector("iframe[name='hidden_iframe']");
+    if (!iframe) {
+      iframe = document.createElement("iframe");
+      iframe.name = "hidden_iframe";
+      iframe.style.display = "none";
+      document.body.appendChild(iframe);
+    }
 
     const entries = {
       "entry.1387461004": studentName,
       "entry.1309291707": studentClass,
       "entry.477642881": "Numbers",
       "entry.1374858042": formattedTime,
-      "entry.750436458": currentPosition // Current Level
+      "entry.750436458": currentPosition,
+      "entry.1996137354": `${percent}%`
     };
 
     for (let i = 0; i < 20; i++) {
@@ -327,12 +339,6 @@ function saveProgress() {
       entries[formEntryIDs.incorrect[i]] = incorrect.join(",");
     }
 
-    const totalCorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.correct.size, 0);
-    const totalIncorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.incorrect.length, 0);
-    const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
-    entries["entry.1996137354"] = `${percent}%`;
-    const currentPosition = `L${currentLevel + 1}P${currentPage + 1}`;
-    
     for (const key in entries) {
       const input = document.createElement("input");
       input.type = "hidden";
@@ -349,7 +355,6 @@ function saveProgress() {
     timeDisplay.innerText = `Time: ${formattedTime}`;
     document.getElementById("end-modal-content").appendChild(timeDisplay);
   }
-
   function loadPage() {
     const info = levelDefinitions[currentLevel];
     const pool = info.random ? Array.from({ length: 101 }, (_, i) => i) : Array.from({ length: info.end - info.start + 1 }, (_, i) => i + info.start);
