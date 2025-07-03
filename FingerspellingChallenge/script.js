@@ -188,21 +188,35 @@ function setupKeyboard() {
   header.appendChild(closeBtn);
   keyboardContainer.appendChild(header);
 
-  layout.forEach(row => {
-    const rowDiv = document.createElement("div");
-    rowDiv.className = "keyboard-row";
-    row.split("").forEach(letter => {
-      const key = document.createElement("div");
-      key.className = "keyboard-key";
-      key.textContent = letter;
-      key.addEventListener("click", () => {
-        wordInput.value += letter.toLowerCase();
-        wordInput.dispatchEvent(new Event("input"));
-      });
-      rowDiv.appendChild(key);
+ layout.forEach((row, rowIndex) => {
+  const rowDiv = document.createElement("div");
+  rowDiv.className = "keyboard-row";
+
+  row.split("").forEach(letter => {
+    const key = document.createElement("div");
+    key.className = "keyboard-key";
+    key.textContent = letter;
+    key.addEventListener("click", () => {
+      wordInput.value += letter.toLowerCase();
+      wordInput.dispatchEvent(new Event("input"));
     });
-    keyboardContainer.appendChild(rowDiv);
+    rowDiv.appendChild(key);
   });
+
+  // Add backspace next to the M key on the last row
+  if (rowIndex === layout.length - 1) {
+    const backspace = document.createElement("div");
+    backspace.textContent = "←";
+    backspace.className = "keyboard-key key wide";
+    backspace.onclick = () => {
+      wordInput.value = wordInput.value.slice(0, -1);
+      wordInput.dispatchEvent(new Event("input"));
+    };
+    rowDiv.appendChild(backspace);
+  }
+
+  keyboardContainer.appendChild(rowDiv);
+});
 
   const controlRow = document.createElement("div");
   controlRow.className = "keyboard-row";
