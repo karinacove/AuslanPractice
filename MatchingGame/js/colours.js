@@ -183,29 +183,29 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-function endGame() {
-  if (gameEnded) return;
-  gameEnded = true;
+  function endGame() {
+    if (gameEnded) return;
+    gameEnded = true;
 
-  const endTime = Date.now();
-  const timeTaken = Math.round((endTime - startTime) / 1000);
-  const minutes = Math.floor(timeTaken / 60);
-  const seconds = timeTaken % 60;
-  const formattedTime = `${minutes} mins ${seconds} sec`;
+    const endTime = Date.now();
+    const timeTaken = Math.round((endTime - startTime) / 1000);
+    const minutes = Math.floor(timeTaken / 60);
+    const seconds = timeTaken % 60;
+    const formattedTime = `${minutes} mins ${seconds} sec`;
 
-  const form = document.createElement("form");
-  form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
-  form.method = "POST";
-  form.target = "hidden_iframe";
-  form.style.display = "none";
+    const form = document.createElement("form");
+    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+    form.method = "POST";
+    form.target = "hidden_iframe";
+    form.style.display = "none";
 
-  let iframe = document.querySelector("iframe[name='hidden_iframe']");
-  if (!iframe) {
-    iframe = document.createElement("iframe");
-    iframe.name = "hidden_iframe";
-    iframe.style.display = "none";
-    document.body.appendChild(iframe);
-  }
+    let iframe = document.querySelector("iframe[name='hidden_iframe']");
+    if (!iframe) {
+      iframe = document.createElement("iframe");
+      iframe.name = "hidden_iframe";
+      iframe.style.display = "none";
+      document.body.appendChild(iframe);
+    }
 
   const entries = {
     "entry.1387461004": studentName,
@@ -244,13 +244,12 @@ function endGame() {
   document.body.appendChild(form);
   iframe.onload = () => console.log("Google Form submitted");
   form.submit();
-}
-
-    document.getElementById("score-display").innerText = `Score: ${percent}%`;
-    const timeDisplay = document.createElement("p");
-    timeDisplay.innerText = `Time: ${formattedTime}`;
-    document.getElementById("end-modal-content").appendChild(timeDisplay);
-    modal.style.display = "flex";
+  
+  document.getElementById("score-display").innerText = `Score: ${percent}%`;
+  const timeDisplay = document.createElement("p");
+  timeDisplay.innerText = `Time: ${formattedTime}`;
+  document.getElementById("end-modal-content").appendChild(timeDisplay);
+  modal.style.display = "flex";
   }
 
   function loadPage() {
