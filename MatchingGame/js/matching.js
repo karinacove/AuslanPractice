@@ -38,14 +38,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
   logoutBtn.addEventListener("click", () => {
     const saved = JSON.parse(localStorage.getItem("alphabetGameSave"));
-    if (saved && saved.studentName === studentName && saved.studentClass === studentClass) {
-      sendSavedDataToForm(saved, () => {
-        localStorage.clear();
-        window.location.href = "../index.html";
-      });
+    if (
+      saved &&
+      saved.studentName === studentName &&
+      saved.studentClass === studentClass &&
+      !saved.gameEnded &&
+      (saved.currentPage > 0 || saved.currentLevel > 0)
+    ) {
+      if (confirm("Resume your unfinished game?")) {
+        restoreProgress(saved); // ✅ Restores all necessary values
+      } else {
+        localStorage.removeItem("alphabetGameSave");
+        loadPage();
+      }
     } else {
-      localStorage.clear();
-      window.location.href = "../index.html";
+      loadPage(); // ✅ Safe to call if no saved game exists
     }
   });
 
