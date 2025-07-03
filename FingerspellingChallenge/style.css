@@ -180,6 +180,8 @@ body {
   right: 20px;
   width: 160px;
   z-index: 1000;
+  touch-action: manipulation;
+  cursor: pointer;
 }
 
 #end-modal {
