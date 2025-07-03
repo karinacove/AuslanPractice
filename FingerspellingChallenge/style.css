@@ -237,7 +237,7 @@ body {
   z-index: 2500;
   min-width: 320px;
   max-width: 90vw;
-  height: 240px;
+  height: 180px;
   overflow: hidden;
   cursor: move;
   touch-action: none;
