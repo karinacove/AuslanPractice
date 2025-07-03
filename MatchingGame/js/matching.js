@@ -214,6 +214,7 @@ document.addEventListener("DOMContentLoaded", function () {
       "entry.1387461004": studentName,
       "entry.1309291707": studentClass,
       "entry.477642881": "Alphabet",
+      "entry.1996137354": percent,
       "entry.1374858042": formattedTime,
       "entry.750436458": currentPosition // Current Level
     };
@@ -277,6 +278,7 @@ document.addEventListener("DOMContentLoaded", function () {
       "entry.1387461004": data.studentName,
       "entry.1309291707": data.studentClass,
       "entry.477642881": "Alphabet",
+      "entry.750436458": percent,
       "entry.1374858042": formattedTime
     };
 
