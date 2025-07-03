@@ -46,7 +46,7 @@ let score = 0;
 let currentWord = "";
 let currentLetterIndex = 0;
 let letterTimeouts = [];
-let speed = parseInt(speedSlider.value) || 50;
+let speed = parseInt(speedSlider.value) || 100;
 let correctWords = 0;
 let gameMode = "";
 let wordLength = 3;
@@ -75,9 +75,11 @@ function clearLetters() {
 function showLetterByLetter(word) {
   clearLetters();
   currentLetterIndex = 0;
-  speed = parseInt(speedSlider.value) || 100;
-  const displayDuration = Math.max(100, 400 - speed);
-  const letterGap = 100;
+  const sliderValue = parseInt(speedSlider.value) || 100;
+  const maxDelay = 1200; // slowest
+  const minDelay = 80;   // fastest
+  const displayDuration = Math.max(minDelay, maxDelay - sliderValue * 5);
+  const letterGap = Math.max(40, displayDuration / 3);
   const delay = 300;
 
   word.split("").forEach((letter, index) => {
