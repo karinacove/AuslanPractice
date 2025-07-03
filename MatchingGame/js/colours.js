@@ -35,16 +35,16 @@ document.addEventListener("DOMContentLoaded", function () {
     "entry.1116300030", // Level 2 Correct
     "entry.187975538",  // Level 3 Correct
     "entry.1880514176", // Level 4 Correct
-    "entry.552536101",  // Level 5 Correct
-    "entry.922308538"   // Level 6 Correct  
+    "entry.497882042",  // Level 5 Correct
+    "entry.1591755601"   // Level 6 Correct  
   ],
   incorrect: [
     "entry.1249394203", // Level 1 Inorrect
     "entry.1551220511", // Level 2 Incorrect
     "entry.903633326",  // Level 3 Incorrect
-    "entry.497882042",  // Level 4 Incorrect
-    "entry.1591755601", // Level 5 Incorrect
-    "entry.856597282"   // Level 6 Incorrect 
+    "entry.856597282",  // Level 4 Incorrect
+    "entry.552536101", // Level 5 Incorrect
+    "entry.922308538"   // Level 6 Incorrect 
   ]
 };
 
