@@ -85,20 +85,52 @@ continueBtn.addEventListener("click", () => {
   let startTime = Date.now();
   const levelAttempts = Array(20).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
 
-  const formEntryIDs = {
-    correct: [
-      "entry.1249394203", "entry.1551220511", "entry.903633326", "entry.497882042", "entry.1591755601", "entry.1996137354",
-      "entry.856597282", "entry.552536101", "entry.922308538", "entry.1374012635", "entry.969924717", "entry.1932466289",
-      "entry.1575128943", "entry.554179696", "entry.2030465979", "entry.738514372", "entry.1357122496", "entry.1591067770",
-      "entry.1355599626", "entry.798325880"
-    ],
-    incorrect: [
-      "entry.1897227570", "entry.1116300030", "entry.187975538", "entry.1880514176", "entry.552536101", "entry.922308538",
-      "entry.1184246193", "entry.985210217", "entry.1120330311", "entry.173771989", "entry.1445957806", "entry.518336131",
-      "entry.817472684", "entry.1826031881", "entry.975184703", "entry.1363193324", "entry.1628651239", "entry.1713469842",
-      "entry.1505983868", "entry.2122202486"
-    ]
-  };
+const formEntryIDs = {
+  correct: [
+    "entry.1249394203", // Level 1
+    "entry.1551220511", // Level 2
+    "entry.903633326",  // Level 3
+    "entry.497882042",  // Level 4
+    "entry.1591755601", // Level 5
+    "entry.1996137354", // Level 6
+    "entry.856597282",  // Level 7
+    "entry.552536101",  // Level 8
+    "entry.922308538",  // Level 9
+    "entry.1374012635", // Level 10
+    "entry.969924717",  // Level 11
+    "entry.1932466289", // Level 12
+    "entry.1575128943", // Level 13
+    "entry.554179696",  // Level 14
+    "entry.2030465979", // Level 15
+    "entry.738514372",  // Level 16
+    "entry.1357122496", // Level 17
+    "entry.1591067770", // Level 18
+    "entry.1355599626", // Level 19
+    "entry.798325880"   // Level 20
+  ],
+  incorrect: [
+    "entry.1897227570", // Level 1
+    "entry.1116300030", // Level 2
+    "entry.187975538",  // Level 3
+    "entry.1880514176", // Level 4
+    "entry.1184246193", // Level 5
+    "entry.985210217",  // Level 6
+    "entry.1120330311", // Level 7
+    "entry.173771989",  // Level 8
+    "entry.1445957806", // Level 9
+    "entry.518336131",  // Level 10
+    "entry.817472684",  // Level 11
+    "entry.1826031881", // Level 12
+    "entry.975184703",  // Level 13
+    "entry.1363193324", // Level 14
+    "entry.1628651239", // Level 15
+    "entry.1713469842", // Level 16
+    "entry.1505983868", // Level 17
+    "entry.2122202486", // Level 18
+    "entry.1744154495", // Level 19
+    "entry.1745996786"  // Level 20
+  ]
+};
 
   const levelDefinitions = [
     { start: 0, end: 12, pages: 2, type: "clipart-grid" },
@@ -286,11 +318,11 @@ function saveProgress() {
       "entry.1374858042": formattedTime
     };
 
-    for (let i = 0; i < formEntryIDs.correct.length; i++) {
-      const correctSorted = Array.from(levelAttempts[i].correct).sort((a, b) => a - b);
-      const incorrectSorted = levelAttempts[i].incorrect.sort((a, b) => a - b);
-      entries[formEntryIDs.correct[i]] = correctSorted.join(",");
-      entries[formEntryIDs.incorrect[i]] = incorrectSorted.join(",");
+    for (let i = 0; i < 20; i++) {
+      const correct = Array.from(levelAttempts[i].correct).sort((a, b) => a - b);
+      const incorrect = levelAttempts[i].incorrect.sort((a, b) => a - b);
+      entries[formEntryIDs.correct[i]] = correct.join(",");
+      entries[formEntryIDs.incorrect[i]] = incorrect.join(",");
     }
 
     const totalCorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.correct.size, 0);
