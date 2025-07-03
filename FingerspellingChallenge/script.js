@@ -215,6 +215,15 @@ function setupKeyboard() {
   }
 
   keyboardContainer.appendChild(rowDiv);
+  
+  key.addEventListener("click", () => {
+  wordInput.value += letter.toLowerCase();
+  wordInput.dispatchEvent(new Event("input"));
+
+  // Trigger pop animation
+  key.classList.add("pop");
+  setTimeout(() => key.classList.remove("pop"), 150);
+  });
 });
 
   const controlRow = document.createElement("div");
