@@ -149,6 +149,7 @@ document.addEventListener("DOMContentLoaded", function () {
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
       correctMatches++;
       showFeedback(true);
+      updateScore()
 
       // FIXED: Level 7 only has 1 page, others 3 pages
       const levelPageLimit = (levels[currentLevel].type === "incorrectReview") ? 1 : pagesPerLevel;
@@ -537,6 +538,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     saveProgress();
+    updateScore();
   }
 
   // FIXED: touch drag clone size to prevent huge image on touchstart
