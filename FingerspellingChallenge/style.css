@@ -291,7 +291,7 @@ body {
 }
 
 .keyboard-key {
-  transition: transform 0.1s ease;
+  transition: transform 0.15s ease;
 }
 
 .keyboard-key.pop {
