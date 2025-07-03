@@ -222,7 +222,7 @@ function setupKeyboard() {
     };
     rowDiv.appendChild(backspace);
   }
-});
+};
 
   const controlRow = document.createElement("div");
   controlRow.className = "keyboard-row";
