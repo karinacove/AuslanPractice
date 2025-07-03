@@ -288,6 +288,7 @@ body {
 
 .key.wide {
   width: 80px;
+}
 
 .keyboard-key {
   transition: transform 0.1s ease;
@@ -295,8 +296,6 @@ body {
 
 .keyboard-key.pop {
   transform: scale(1.3);
-}
-
 }
 
 .key:hover {
