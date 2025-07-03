@@ -214,7 +214,7 @@ document.addEventListener("DOMContentLoaded", function () {
       "entry.1387461004": studentName,
       "entry.1309291707": studentClass,
       "entry.477642881": "Alphabet",
-      "entry.1374858042": formattedTime
+      "entry.1374858042": formattedTime,
       "entry.750436458": currentPosition // Current Level
     };
 
