@@ -178,7 +178,6 @@ function setupKeyboard() {
 
   const header = document.createElement("div");
   header.id = "keyboard-header";
-  header.textContent = "Keyboard";
 
   const closeBtn = document.createElement("button");
   closeBtn.id = "closeKeyboardBtn";
