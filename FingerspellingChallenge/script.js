@@ -187,7 +187,7 @@ function setupKeyboard() {
   header.appendChild(closeBtn);
   keyboardContainer.appendChild(header);
 
- layout.forEach((row, rowIndex) => {
+  layout.forEach(row => {
   const rowDiv = document.createElement("div");
   rowDiv.className = "keyboard-row";
 
@@ -195,12 +195,21 @@ function setupKeyboard() {
     const key = document.createElement("div");
     key.className = "keyboard-key";
     key.textContent = letter;
+
     key.addEventListener("click", () => {
       wordInput.value += letter.toLowerCase();
       wordInput.dispatchEvent(new Event("input"));
+
+      // Add pop animation
+      key.classList.add("pop");
+      setTimeout(() => key.classList.remove("pop"), 150);
     });
+
     rowDiv.appendChild(key);
   });
+
+  keyboardContainer.appendChild(rowDiv);
+});
 
   // Add backspace next to the M key on the last row
   if (rowIndex === layout.length - 1) {
@@ -213,17 +222,6 @@ function setupKeyboard() {
     };
     rowDiv.appendChild(backspace);
   }
-
-  keyboardContainer.appendChild(rowDiv);
-  
-  key.addEventListener("click", () => {
-  wordInput.value += letter.toLowerCase();
-  wordInput.dispatchEvent(new Event("input"));
-
-  // Trigger pop animation
-  key.classList.add("pop");
-  setTimeout(() => key.classList.remove("pop"), 150);
-  });
 });
 
   const controlRow = document.createElement("div");
