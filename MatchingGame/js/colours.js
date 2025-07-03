@@ -57,6 +57,13 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.body.appendChild(feedbackImage);
 
+    function updateScore() {
+    const totalCorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.correct.size, 0);
+    const totalIncorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.incorrect.length, 0);
+    const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
+    document.getElementById("score-display").innerText = `Score: ${percent}%`;
+  }
+  
   // SAVE/LOAD
   function saveProgress() {
     const savedData = {
