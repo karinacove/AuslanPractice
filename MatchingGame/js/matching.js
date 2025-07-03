@@ -190,86 +190,83 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function endGame() {
-    if (gameEnded) return;
-    gameEnded = true;
+function endGame() {
+  if (gameEnded) return;
+  gameEnded = true;
 
-    localStorage.removeItem("alphabetGameSave");
+  localStorage.removeItem("alphabetGameSave");
 
-    const endTime = Date.now();
-    const timeTaken = Math.round((endTime - startTime) / 1000);
-    const minutes = Math.floor(timeTaken / 60);
-    const seconds = timeTaken % 60;
-    const formattedTime = `${minutes} mins ${seconds} sec`;
-    const currentPosition = `L${currentLevel + 1}P${currentPage + 1}`;
-    
-    const form = document.createElement("form");
-    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
-    form.method = "POST";
-    form.target = "hidden_iframe";
-    form.style.display = "none";
+  const endTime = Date.now();
+  const timeTaken = Math.round((endTime - startTime) / 1000);
+  const minutes = Math.floor(timeTaken / 60);
+  const seconds = timeTaken % 60;
+  const formattedTime = `${minutes} mins ${seconds} sec`;
+  const currentPosition = `L${currentLevel + 1}P${currentPage + 1}`;
 
-    let iframe = document.querySelector("iframe[name='hidden_iframe']");
-    if (!iframe) {
-      iframe = document.createElement("iframe");
-      iframe.name = "hidden_iframe";
-      iframe.style.display = "none";
-      document.body.appendChild(iframe);
-    }
-
-    const entries = {
-      "entry.1387461004": studentName,
-      "entry.1309291707": studentClass,
-      "entry.477642881": "Alphabet",
-      "entry.1996137354": percent,
-      "entry.1374858042": formattedTime,
-      "entry.750436458": currentPosition // Current Level
-    };
-
-    for (let i = 0; i < levels.length; i++) {
-      const correctArr = Array.from(levelAttempts[i].correct);
-      correctArr.sort();
-      const incorrectArr = [...levelAttempts[i].incorrect];
-      incorrectArr.sort();
-
-      entries[formEntryIDs.correct[i]] = correctArr.join("");
-      entries[formEntryIDs.incorrect[i]] = incorrectArr.join("");
-    }
-
-    let totalCorrect = 0;
-    let totalAttempts = 0;
-    for (let i = 0; i < levels.length; i++) {
-      totalCorrect += levelAttempts[i].correct.size;
-      totalAttempts += levelAttempts[i].correct.size + levelAttempts[i].incorrect.length;
-    }
-    const percent = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
-    entries["entry.1996137354"] = `${percent}%`;
-
-    for (const key in entries) {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = key;
-      input.value = entries[key];
-      form.appendChild(input);
-    }
-
-    document.body.appendChild(form);
-
-    // Debug log
-    console.log("Submitting Google Form with data:", entries);
-
-    iframe.onload = () => {
-      console.log("Google Form submitted successfully");
-    };
-
-    form.submit();
-
-    document.getElementById("score-display").innerText = `Score: ${percent}%`;
-    const timeDisplay = document.createElement("p");
-    timeDisplay.innerText = `Time: ${formattedTime}`;
-    document.getElementById("end-modal-content").appendChild(timeDisplay);
-    modal.style.display = "flex";
+  // ✅ Moved percent calculation earlier
+  let totalCorrect = 0;
+  let totalAttempts = 0;
+  for (let i = 0; i < levels.length; i++) {
+    totalCorrect += levelAttempts[i].correct.size;
+    totalAttempts += levelAttempts[i].correct.size + levelAttempts[i].incorrect.length;
   }
+  const percent = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
+
+  const form = document.createElement("form");
+  form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+  form.method = "POST";
+  form.target = "hidden_iframe";
+  form.style.display = "none";
+
+  let iframe = document.querySelector("iframe[name='hidden_iframe']");
+  if (!iframe) {
+    iframe = document.createElement("iframe");
+    iframe.name = "hidden_iframe";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+  }
+
+  const entries = {
+    "entry.1387461004": studentName,
+    "entry.1309291707": studentClass,
+    "entry.477642881": "Alphabet",
+    "entry.1996137354": `${percent}%`,
+    "entry.1374858042": formattedTime,
+    "entry.750436458": currentPosition
+  };
+
+  for (let i = 0; i < levels.length; i++) {
+    const correctArr = Array.from(levelAttempts[i].correct);
+    correctArr.sort();
+    const incorrectArr = [...levelAttempts[i].incorrect];
+    incorrectArr.sort();
+
+    entries[formEntryIDs.correct[i]] = correctArr.join("");
+    entries[formEntryIDs.incorrect[i]] = incorrectArr.join("");
+  }
+
+  for (const key in entries) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = key;
+    input.value = entries[key];
+    form.appendChild(input);
+  }
+
+  document.body.appendChild(form);
+
+  iframe.onload = () => {
+    console.log("✅ Google Form submitted");
+  };
+
+  form.submit();
+
+  document.getElementById("score-display").innerText = `Score: ${percent}%`;
+  const timeDisplay = document.createElement("p");
+  timeDisplay.innerText = `Time: ${formattedTime}`;
+  document.getElementById("end-modal-content").appendChild(timeDisplay);
+  modal.style.display = "flex";
+}
 
   function sendSavedDataToForm(data, callback) {
     const timeTaken = Math.round((Date.now() - (data.startTime || Date.now())) / 1000);
