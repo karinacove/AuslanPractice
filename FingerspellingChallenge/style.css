@@ -234,9 +234,9 @@ body {
   border-radius: 12px;
   box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
   z-index: 2500;
-  min-width: 320px;
+  min-width: 300px;
   max-width: 90vw;
-  min-height: 180px;
+  min-height: 200px;
   overflow: hidden;
   cursor: move;
   touch-action: none;
