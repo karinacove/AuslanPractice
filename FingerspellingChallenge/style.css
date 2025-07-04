@@ -229,9 +229,6 @@ body {
 
 #keyboard-container {
   position: absolute;
-  top: 60%;
-  left: 50%;
-  transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.95);
   padding: 10px;
   border-radius: 12px;
