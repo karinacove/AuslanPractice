@@ -187,46 +187,43 @@ function setupKeyboard() {
   header.appendChild(closeBtn);
   keyboardContainer.appendChild(header);
 
-  layout.forEach(row => {
-  const rowDiv = document.createElement("div");
-  rowDiv.className = "keyboard-row";
+  layout.forEach((row, rowIndex) => {
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "keyboard-row";
 
-  row.split("").forEach(letter => {
-    const key = document.createElement("div");
-    key.className = "keyboard-key";
-    key.textContent = letter;
+    row.split("").forEach(letter => {
+      const key = document.createElement("div");
+      key.className = "keyboard-key";
+      key.textContent = letter;
 
-    key.addEventListener("click", () => {
-      wordInput.value += letter.toLowerCase();
-      wordInput.dispatchEvent(new Event("input"));
+      key.addEventListener("click", () => {
+        wordInput.value += letter.toLowerCase();
+        wordInput.dispatchEvent(new Event("input"));
 
-      // Add pop animation
-      key.classList.add("pop");
-      setTimeout(() => key.classList.remove("pop"), 150);
+        // Add pop animation
+        key.classList.add("pop");
+        setTimeout(() => key.classList.remove("pop"), 150);
+      });
+
+      rowDiv.appendChild(key);
+
+      // Add backspace right after 'M' on last row
+      if (rowIndex === 2 && letter === "M") {
+        const backspace = document.createElement("div");
+        backspace.textContent = "←";
+        backspace.className = "keyboard-key key wide";
+        backspace.onclick = () => {
+          wordInput.value = wordInput.value.slice(0, -1);
+          wordInput.dispatchEvent(new Event("input"));
+        };
+        rowDiv.appendChild(backspace);
+      }
     });
 
-    rowDiv.appendChild(key);
+    keyboardContainer.appendChild(rowDiv);
   });
 
-  keyboardContainer.appendChild(rowDiv);
-});
-
-  // Add backspace next to the M key on the last row
-  if (rowIndex === layout.length - 1) {
-    const backspace = document.createElement("div");
-    backspace.textContent = "←";
-    backspace.className = "keyboard-key key wide";
-    backspace.onclick = () => {
-      wordInput.value = wordInput.value.slice(0, -1);
-      wordInput.dispatchEvent(new Event("input"));
-    };
-    rowDiv.appendChild(backspace);
-  }
-};
-
-  const controlRow = document.createElement("div");
-  controlRow.className = "keyboard-row";
-
+  // Add draggable footer
   const footer = document.createElement("div");
   footer.id = "keyboard-footer";
   footer.style.height = "16px";
@@ -234,15 +231,8 @@ function setupKeyboard() {
   footer.style.cursor = "move";
   keyboardContainer.appendChild(footer);
 
-  const backspace = document.createElement("div");
-  backspace.textContent = "←";
-  backspace.className = "keyboard-key key wide";
-  backspace.onclick = () => {
-    wordInput.value = wordInput.value.slice(0, -1);
-    wordInput.dispatchEvent(new Event("input"));
-  };
-
   dragElement(keyboardContainer, ["#keyboard-header", "#keyboard-footer"]);
+}
 
 function dragElement(elmnt, handleSelectors = ["#keyboard-header"]) {
   const handles = handleSelectors.map(sel => elmnt.querySelector(sel)).filter(Boolean);
