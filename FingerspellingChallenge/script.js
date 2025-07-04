@@ -344,9 +344,18 @@ lengthOptions.forEach(option => {
   });
 });
 
-function toggleKeyboard() {
-  keyboardContainer.style.display =
-    keyboardContainer.style.display === "none" ? "block" : "none";
+function toggleKeyboard(e) {
+  e.preventDefault();
+  if (keyboardContainer.style.display === "none") {
+    keyboardContainer.style.display = "block";
+
+    // Set initial position when showing
+    keyboardContainer.style.top = "60%";
+    keyboardContainer.style.left = "50%";
+    keyboardContainer.style.transform = "translate(-50%, -50%)";
+  } else {
+    keyboardContainer.style.display = "none";
+  }
 }
 
 keyboardBtn.addEventListener("click", toggleKeyboard);
