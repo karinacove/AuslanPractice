@@ -176,15 +176,9 @@ function setupKeyboard() {
   const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
   keyboardContainer.innerHTML = "";
 
+  // Header (no close button)
   const header = document.createElement("div");
   header.id = "keyboard-header";
-
-  const closeBtn = document.createElement("button");
-  closeBtn.id = "closeKeyboardBtn";
-  closeBtn.innerHTML = "×";
-  closeBtn.onclick = () => keyboardContainer.style.display = "none";
-
-  header.appendChild(closeBtn);
   keyboardContainer.appendChild(header);
 
   layout.forEach((row, rowIndex) => {
@@ -200,14 +194,13 @@ function setupKeyboard() {
         wordInput.value += letter.toLowerCase();
         wordInput.dispatchEvent(new Event("input"));
 
-        // Add pop animation
         key.classList.add("pop");
         setTimeout(() => key.classList.remove("pop"), 150);
       });
 
       rowDiv.appendChild(key);
 
-      // Add backspace right after 'M' on last row
+      // Add backspace next to M
       if (rowIndex === 2 && letter === "M") {
         const backspace = document.createElement("div");
         backspace.textContent = "←";
@@ -223,7 +216,7 @@ function setupKeyboard() {
     keyboardContainer.appendChild(rowDiv);
   });
 
-  // Add draggable footer
+  // Footer drag handle
   const footer = document.createElement("div");
   footer.id = "keyboard-footer";
   footer.style.height = "16px";
@@ -357,11 +350,13 @@ function toggleKeyboard() {
 }
 
 keyboardBtn.addEventListener("click", toggleKeyboard);
-keyboardBtn.addEventListener("touchstart", (e) => {
-  e.preventDefault();
-  toggleKeyboard();
-});
+keyboardBtn.addEventListener("touchstart", toggleKeyboard);
 
+function toggleKeyboard(e) {
+  e.preventDefault(); // prevent ghost click
+  keyboardContainer.style.display = 
+    keyboardContainer.style.display === "none" ? "block" : "none";
+}
 
 finishButton.addEventListener("click", () => showFinishModal(false));
 continueBtn.addEventListener("click", hideFinishModal);
