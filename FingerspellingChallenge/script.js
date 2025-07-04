@@ -243,7 +243,6 @@ function setupKeyboard() {
   };
 
   dragElement(keyboardContainer, ["#keyboard-header", "#keyboard-footer"]);
-}
 
 function dragElement(elmnt, handleSelectors = ["#keyboard-header"]) {
   const handles = handleSelectors.map(sel => elmnt.querySelector(sel)).filter(Boolean);
