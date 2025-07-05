@@ -179,6 +179,9 @@ function setupKeyboard() {
   // Header (no close button)
   const header = document.createElement("div");
   header.id = "keyboard-header";
+  header.style.height = "16px";
+  header.style.background = "#eee";
+  header.style.cursor = "move";
   keyboardContainer.appendChild(header);
 
   layout.forEach((row, rowIndex) => {
