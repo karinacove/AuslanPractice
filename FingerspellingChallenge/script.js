@@ -285,7 +285,6 @@ function dragElement(elmnt, handleSelectors = ["#keyboard-header"]) {
   }
 }
 
-
 // -------------------------
 // Event Listeners
 // -------------------------
@@ -344,27 +343,19 @@ lengthOptions.forEach(option => {
   });
 });
 
+keyboardBtn.addEventListener("click", toggleKeyboard);
+keyboardBtn.addEventListener("touchstart", toggleKeyboard);
+
 function toggleKeyboard(e) {
   e.preventDefault();
   if (keyboardContainer.style.display === "none") {
     keyboardContainer.style.display = "block";
-
-    // Set initial position when showing
-    keyboardContainer.style.top = "60%";
+    keyboardContainer.style.top = "50%";
     keyboardContainer.style.left = "50%";
     keyboardContainer.style.transform = "translate(-50%, -50%)";
   } else {
     keyboardContainer.style.display = "none";
   }
-}
-
-keyboardBtn.addEventListener("click", toggleKeyboard);
-keyboardBtn.addEventListener("touchstart", toggleKeyboard);
-
-function toggleKeyboard(e) {
-  e.preventDefault(); // prevent ghost click
-  keyboardContainer.style.display = 
-    keyboardContainer.style.display === "none" ? "block" : "none";
 }
 
 finishButton.addEventListener("click", () => showFinishModal(false));
