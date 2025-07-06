@@ -184,6 +184,10 @@ body {
   z-index: 1000;
 }
 
+#countdown-video {
+  max-width: 120px;
+}
+
 #keyboard-btn {
   position: fixed;
   bottom: 20px;
