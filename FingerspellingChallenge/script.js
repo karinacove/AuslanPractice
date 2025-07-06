@@ -137,6 +137,20 @@ function startGame() {
   againButton.style.display = "block";
   updateScore();
   updateTimer();
+
+  const timerDisplay = document.getElementById("countdown-video");
+  const levelImage = document.getElementById("level-image");
+
+  if (gameMode === "timed") {
+    timerDisplay.style.display = "block";
+    levelImage.style.display = "none";
+    startTimer(); // Only start timer in timed mode
+  } else {
+    timerDisplay.style.display = "none";
+    levelImage.src = `Assets/levels/level${wordLength}.png`;
+    levelImage.style.display = "block";
+  }
+
   setTimeout(nextWord, 400);
 }
 
