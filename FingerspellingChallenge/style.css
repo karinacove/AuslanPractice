@@ -35,7 +35,6 @@ body {
   margin: 10px auto;
   align-items: center;
   justify-items: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Column 1: Timer or Score */
