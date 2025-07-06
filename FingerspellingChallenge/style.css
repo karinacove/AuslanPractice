@@ -11,6 +11,7 @@ body {
   background-attachment: fixed;
   background-color: #5b65a9;
   overflow-x: hidden;
+  color: white;
 }
 
 @font-face {
@@ -22,6 +23,7 @@ body {
   font-family: 'AuslanFingerspelling', sans-serif;
   font-size: 6rem;
   text-align: center;
+  color: white;
 }
 
 #game-grid {
@@ -56,6 +58,7 @@ body {
   text-align: center;
   font-size: 1.5rem;
   font-weight: bold;
+  color: black;
 }
 
 #score-label {
@@ -70,6 +73,7 @@ body {
   font-size: 6rem;
   text-align: center;
   font-family: 'AuslanFingerspelling';
+  color: white;
 }
 
 /* Columns 2–4, Row 3: Word Input */
