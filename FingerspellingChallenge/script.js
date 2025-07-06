@@ -1,386 +1,324 @@
-// -------------------------
-// Initial Setup & User Info
-// -------------------------
-let studentName = localStorage.getItem("studentName") || "";
-let studentClass = localStorage.getItem("studentClass") || "";
+/* -------------------------
+   Fingerspelling Game Styles
+---------------------------- */
 
-if (!studentName || !studentClass) {
-  alert("Please log in first.");
-  window.location.href = "../index.html";
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 2px;
+  background: url('Assets/fingerspelling-background.png') no-repeat center center;
+  background-size: contain;
+  background-attachment: fixed;
+  background-color: #5b65a9;
+  overflow-x: hidden;
+  color: white;
 }
 
-// -------------------------
-// DOM References
-// -------------------------
-const gameScreen = document.getElementById("game-screen");
-const startButton = document.getElementById("start-button");
-const wordInput = document.getElementById("word-input");
-const speedSlider = document.getElementById("speed-slider");
-const timerDisplay = document.querySelector("#timer .value");
-const scoreDisplay = document.querySelector("#score .value");
-const letterDisplay = document.getElementById("letter-display");
-const againButton = document.getElementById("again-button");
-const finishButton = document.getElementById("finishButton");
-const keyboardBtn = document.getElementById("keyboard-btn");
-const keyboardContainer = document.getElementById("keyboard-container");
-const endModal = document.getElementById("end-modal");
-const endModalContent = document.getElementById("end-modal-content");
-const continueBtn = document.getElementById("continue-btn");
-const againButtonModal = document.getElementById("again-button-modal");
-const menuButton = document.getElementById("menu-button");
-const logoutButton = document.getElementById("logout-button");
-const modeOptions = document.querySelectorAll(".mode-option");
-const lengthContainer = document.getElementById("length-container");
-const lengthOptions = document.querySelectorAll(".length-option");
-const modeTimed = document.getElementById("mode-timed");
-const modeLevel = document.getElementById("mode-levelup");
-const slowIcon = document.getElementById("slow-icon");
-const fastIcon = document.getElementById("fast-icon");
-
-// -------------------------
-// Game State
-// -------------------------
-let timer;
-let timeLeft = 120;
-let score = 0;
-let currentWord = "";
-let currentLetterIndex = 0;
-let letterTimeouts = [];
-let speed = parseInt(speedSlider.value) || 100;
-let correctWords = 0;
-let gameMode = "";
-let wordLength = 3;
-let guessedWords = new Set();
-let incorrectWords = [];
-let wordBank = {};
-let isPaused = false;
-
-// -------------------------
-// Load Word Bank
-// -------------------------
-fetch("data/wordlist.json")
-  .then((response) => response.json())
-  .then((data) => (wordBank = data))
-  .catch((error) => console.error("Error loading word list:", error));
-
-// -------------------------
-// Utility Functions
-// -------------------------
-function clearLetters() {
-  letterTimeouts.forEach(clearTimeout);
-  letterTimeouts = [];
-  letterDisplay.textContent = "";
+@font-face {
+  font-family: 'AuslanFingerspelling';
+  src: url('Assets/Font/Auslan%20Finger%20Spelling.otf') format('opentype');
 }
 
-function showLetterByLetter(word) {
-  clearLetters();
-  currentLetterIndex = 0;
-  const sliderValue = parseInt(speedSlider.value) || 100;
-  const maxDelay = 1200; // slowest
-  const minDelay = 80;   // fastest
-  const displayDuration = Math.max(minDelay, maxDelay - sliderValue * 5);
-  const letterGap = Math.max(40, displayDuration / 3);
-  const delay = 300;
-
-  word.split("").forEach((letter, index) => {
-    const timeout = setTimeout(() => {
-      if (!isPaused) {
-        letterDisplay.textContent = letter.toLowerCase();
-        setTimeout(() => {
-          if (!isPaused && letterDisplay.textContent === letter.toLowerCase()) {
-            letterDisplay.textContent = "";
-          }
-        }, displayDuration);
-      }
-    }, delay + index * (displayDuration + letterGap));
-    letterTimeouts.push(timeout);
-  });
+.auslan-font {
+  font-family: 'AuslanFingerspelling', sans-serif;
+  font-size: 6rem;
+  text-align: center;
+  color: white;
 }
 
-function updateScore() {
-  scoreDisplay.textContent = score;
+#game-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 10px;
+  width: 70vw;
+  max-width: 900px;
+  height: 50vh;
+  margin: 10px auto;
+  align-items: center;
+  justify-items: center;
 }
 
-function updateTimer() {
-  timerDisplay.textContent = timeLeft;
+/* Column 1: Timer/Countdown/Score */
+#side-panel {
+  grid-column: 1 / 2;
+  grid-row: 1 / 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
 }
 
-function startTimer() {
-  timer = setInterval(() => {
-    if (!isPaused) {
-      timeLeft--;
-      updateTimer();
-      if (timeLeft <= 0) endGame();
-    }
-  }, 1000);
+#score-container {
+  background: white;
+  border: 2px solid #444;
+  border-radius: 10px;
+  padding: 10px 20px;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: black;
 }
 
-function nextWord() {
-  if (gameMode === "levelup" && correctWords > 0 && correctWords % 10 === 0 && wordLength < 10) {
-    wordLength++;
-  }
-  const words = wordBank[wordLength] || wordBank[3];
-  currentWord = words[Math.floor(Math.random() * words.length)];
-  setTimeout(() => showLetterByLetter(currentWord), 200);
+#score-label {
+  font-size: 1rem;
+  margin-bottom: 5px;
 }
 
-function startGame() {
-  document.getElementById("signin-screen").style.display = "none";
-  gameScreen.style.display = "flex";
-  score = 0;
-  timeLeft = 120;
-  correctWords = 0;
-  guessedWords.clear();
-  incorrectWords = [];
-  wordInput.value = "";
-  wordInput.focus();
-  againButton.style.display = "block";
-  updateScore();
-  updateTimer();
-  setTimeout(nextWord, 400);
+/* Columns 2–4, Rows 1–2: Letter Display */
+#letter-display {
+  grid-column: 2 / 5;
+  grid-row: 1 / 3;
+  font-size: 6rem;
+  text-align: center;
+  font-family: 'AuslanFingerspelling';
+  color: white;
 }
 
-function endGame() {
-  clearInterval(timer);
-  clearLetters();
-  wordInput.style.visibility = "hidden";
-  submitResults();
-  showFinishModal(true);
+/* Columns 2–4, Row 3: Word Input */
+#word-input {
+  grid-column: 2 / 5;
+  grid-row: 3 / 4;
+  width: 100%;
+  font-size: 2rem;
+  text-align: center;
+  padding: 10px;
+  border-radius: 10px;
+  border: 2px solid #ccc;
 }
 
-function submitResults() {
-  const correct = Array.from(guessedWords).join(", ");
-  const wrong = incorrectWords.join(", ");
-  const formURL = `https://docs.google.com/forms/d/e/1FAIpQLSfOFWu8FcUR3bOwg0mo_3Kb2O7p4m0TLvfUpZjx0zdzqKac4Q/formResponse?entry.423692452=${encodeURIComponent(studentName)}&entry.1307864012=${encodeURIComponent(studentClass)}&entry.468778567=${encodeURIComponent(gameMode)}&entry.1083699348=${score}&entry.746947164=${encodeURIComponent(correct)}&entry.1534005804=${encodeURIComponent(wrong)}&entry.1974555000=${encodeURIComponent(speedSlider.value)}`;
-  fetch(formURL, { method: "POST", mode: "no-cors" });
+/* Column 5: Again Button */
+#again-button {
+  grid-column: 5 / 6;
+  grid-row: 1 / 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-function showFinishModal(isGameEnd = false) {
-  isPaused = true;
-  endModal.style.display = "flex";
-  const percentage = correctWords + incorrectWords.length > 0
-    ? Math.round((correctWords / (correctWords + incorrectWords.length)) * 100)
-    : 100;
-  endModalContent.querySelector("#score-percentage").textContent = `${percentage}% Correct`;
-  document.getElementById("clap-display").innerHTML = `<img src="Assets/auslan-clap.gif" alt="Clap" />`;
-  againButtonModal.style.display = isGameEnd ? "inline-block" : "none";
+#again-button img {
+  max-width: 120px;
+  display: block;
+  cursor: pointer;
 }
 
-function hideFinishModal() {
-  isPaused = false;
-  endModal.style.display = "none";
-  wordInput.focus();
+#speed-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
 }
 
-function setupKeyboard() {
-  const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
-  keyboardContainer.innerHTML = "";
-
-  // Header (no close button)
-  const header = document.createElement("div");
-  header.id = "keyboard-header";
-  header.style.height = "16px";
-  header.style.background = "#eee";
-  header.style.cursor = "move";
-  keyboardContainer.appendChild(header);
-
-  layout.forEach((row, rowIndex) => {
-    const rowDiv = document.createElement("div");
-    rowDiv.className = "keyboard-row";
-
-    row.split("").forEach(letter => {
-      const key = document.createElement("div");
-      key.className = "keyboard-key";
-      key.textContent = letter;
-
-      key.addEventListener("click", () => {
-        wordInput.value += letter.toLowerCase();
-        wordInput.dispatchEvent(new Event("input"));
-
-        key.classList.add("pop");
-        setTimeout(() => key.classList.remove("pop"), 150);
-      });
-
-      rowDiv.appendChild(key);
-
-      // Add backspace next to M
-      if (rowIndex === 2 && letter === "M") {
-        const backspace = document.createElement("div");
-        backspace.textContent = "←";
-        backspace.className = "keyboard-key key wide";
-        backspace.onclick = () => {
-          wordInput.value = wordInput.value.slice(0, -1);
-          wordInput.dispatchEvent(new Event("input"));
-        };
-        rowDiv.appendChild(backspace);
-      }
-    });
-
-    keyboardContainer.appendChild(rowDiv);
-  });
-
-  // Footer drag handle
-  const footer = document.createElement("div");
-  footer.id = "keyboard-footer";
-  footer.style.height = "16px";
-  footer.style.background = "#eee";
-  footer.style.cursor = "move";
-  keyboardContainer.appendChild(footer);
-
-  dragElement(keyboardContainer, ["#keyboard-header", "#keyboard-footer"]);
+#speed-slider {
+  width: 40%;
 }
 
-function dragElement(elmnt, handleSelectors = ["#keyboard-header"]) {
-  const handles = handleSelectors.map(sel => elmnt.querySelector(sel)).filter(Boolean);
-  let startX = 0, startY = 0, initialX = 0, initialY = 0, dragging = false;
-
-  handles.forEach(handle => {
-    handle.addEventListener("mousedown", (e) => {
-      e.preventDefault();
-      dragging = true;
-      startX = e.clientX;
-      startY = e.clientY;
-      initialX = elmnt.offsetLeft;
-      initialY = elmnt.offsetTop;
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", stopDrag);
-    });
-
-    handle.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      const touch = e.touches[0];
-      dragging = true;
-      startX = touch.clientX;
-      startY = touch.clientY;
-      initialX = elmnt.offsetLeft;
-      initialY = elmnt.offsetTop;
-      document.addEventListener("touchmove", onTouchMove, { passive: false });
-      document.addEventListener("touchend", stopDrag);
-    });
-  });
-
-  function onMouseMove(e) {
-    if (!dragging) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    elmnt.style.left = `${initialX + dx}px`;
-    elmnt.style.top = `${initialY + dy}px`;
-    elmnt.style.transform = "none";
-  }
-
-  function onTouchMove(e) {
-    if (!dragging) return;
-    const touch = e.touches[0];
-    const dx = touch.clientX - startX;
-    const dy = touch.clientY - startY;
-    elmnt.style.left = `${initialX + dx}px`;
-    elmnt.style.top = `${initialY + dy}px`;
-    elmnt.style.transform = "none";
-    e.preventDefault();
-  }
-
-  function stopDrag() {
-    dragging = false;
-    document.removeEventListener("mousemove", onMouseMove);
-    document.removeEventListener("mouseup", stopDrag);
-    document.removeEventListener("touchmove", onTouchMove);
-    document.removeEventListener("touchend", stopDrag);
-  }
+#slow-icon,
+#fast-icon {
+  width: auto;
+  height: 120px;
 }
 
-// -------------------------
-// Event Listeners
-// -------------------------
-wordInput.addEventListener("input", () => {
-  if (isPaused) return;
-  const typed = wordInput.value.toLowerCase();
-  if (typed.length === currentWord.length) {
-    setTimeout(() => {
-      if (typed === currentWord) {
-        score++;
-        correctWords++;
-        guessedWords.add(currentWord);
-        updateScore();
-        wordInput.value = "";
-        setTimeout(nextWord, 400);
-      } else {
-        incorrectWords.push(typed);
-        wordInput.classList.add("breathe");
-        const againImg = document.querySelector("#again-button img");
-        if (againImg) {
-          againImg.classList.add("breathe");
-          setTimeout(() => againImg.classList.remove("breathe"), 800);
-        }
-        setTimeout(() => {
-          wordInput.value = "";
-          wordInput.classList.remove("breathe");
-          showLetterByLetter(currentWord);
-        }, 500);
-      }
-    }, 50);
-  }
-});
-
-modeTimed.addEventListener("click", () => {
-  gameMode = "timed";
-  modeTimed.classList.add("selected");
-  modeLevel.classList.remove("selected");
-  lengthContainer.style.display = "flex";
-});
-
-modeLevel.addEventListener("click", () => {
-  gameMode = "levelup";
-  modeLevel.classList.add("selected");
-  modeTimed.classList.remove("selected");
-  lengthContainer.style.display = "none";
-  wordLength = 3;
-  startGame();
-});
-
-lengthOptions.forEach(option => {
-  option.addEventListener("click", () => {
-    lengthOptions.forEach(o => o.classList.remove("selected"));
-    option.classList.add("selected");
-    wordLength = parseInt(option.dataset.length);
-    startGame();
-  });
-});
-
-keyboardBtn.addEventListener("click", toggleKeyboard);
-keyboardBtn.addEventListener("touchstart", toggleKeyboard);
-
-function toggleKeyboard(e) {
-  e.preventDefault();
-  if (keyboardContainer.style.display === "none") {
-    keyboardContainer.style.display = "block";
-    keyboardContainer.style.top = "50%";
-    keyboardContainer.style.left = "50%";
-    keyboardContainer.style.transform = "translate(-50%, -50%)";
-  } else {
-    keyboardContainer.style.display = "none";
-  }
+#top-bar {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin: 10px 0;
+  color: white;
+  font-weight: bold;
 }
 
-finishButton.addEventListener("click", () => showFinishModal(false));
-continueBtn.addEventListener("click", hideFinishModal);
-againButtonModal.addEventListener("click", () => window.location.href = "./index.html");
-menuButton.addEventListener("click", () => window.location.href = "../index.html");
-logoutButton.addEventListener("click", () => {
-  localStorage.clear();
-  window.location.href = "../index.html";
-});
+#game-screen {
+  margin-top: 18vh;
+  margin-bottom: 10vh;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
 
-againButton.addEventListener("click", () => {
-  if (isPaused) return;
-  wordInput.value = "";
-  wordInput.style.visibility = "visible";
-  wordInput.focus();
-  showLetterByLetter(currentWord);
-});
+#controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px; 
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
 
-speedSlider.addEventListener("input", () => {
-  speed = parseInt(speedSlider.value);
-});
+#word-wrapper {
+  position: relative;
+}
 
-// Init
-setupKeyboard();
+.mode-select {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20vh;
+}
+
+.mode-option {
+  width: 200px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.mode-option:hover {
+  transform: scale(1.1);
+}
+
+#length-container {
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px;
+  width: 540px;
+  height: 250px;
+  margin: 20px auto;
+  box-sizing: border-box;
+  justify-items: center;
+}
+
+.length-option {
+  width: 120px;
+  height: 120px;
+  justify-content: space-evenly;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.length-option:hover,
+.length-option.selected {
+  transform: scale(1.1);
+  border: 3px solid yellow;
+  border-radius: 10px;
+}
+
+#finishButton {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 120px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+#countdown-video {
+  max-width: 120px;
+}
+
+#keyboard-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 160px;
+  z-index: 1000;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+#end-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+#end-modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+#end-modal-content img {
+  width: 120px;
+  margin: 10px;
+  background: transparent;
+  cursor: pointer;
+}
+
+#clap-display img {
+  max-width: 150px;
+  margin-top: 10px;
+}
+
+.breathe {
+  animation: breathe 0.8s ease-in-out;
+}
+
+@keyframes breathe {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+#keyboard-container {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 10px;
+  border-radius: 12px;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
+  z-index: 2500;
+  min-width: 300px;
+  max-width: 90vw;
+  min-height: 200px;
+  overflow: hidden;
+  cursor: move;
+  touch-action: none;
+  display: none;
+}
+
+#keyboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  margin-bottom: 1px;
+  cursor: move;
+  touch-action: none;
+}
+
+.keyboard-row {
+  display: flex;
+  justify-content: center;
+  margin: 2px 0;
+  flex-wrap: nowrap;
+}
+
+.keyboard-key {
+  font-size: 40px;
+  padding: 1px 1px;
+  margin: 1px;
+  background: #eee;
+  border: 2px solid #aaa;
+  border-radius: 2px;
+  cursor: pointer;
+  user-select: none;
+  text-transform: lowercase;
+  width: 80px;
+  text-align: center;
+}
+
+.key.wide {
+  width: 100px;
+}
+
+.keyboard-key {
+  transition: transform 0.15s ease;
+}
+
+.keyboard-key.pop {
+  transform: scale(1.3);
+}
+
+.key:hover {
+  background: #ccc;
+}
