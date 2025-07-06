@@ -30,47 +30,54 @@
       </div>
     </div>
 
-    <!-- Game screen -->
-    <div id="game-screen" style="display: none;">
-      <div id="speed-container">
-        <img src="Assets/Icons/slow.png" id="slow-icon" alt="Slow" />
-        <input type="range" id="speed-slider" min="0" max="200" value="100" />
-        <img src="Assets/Icons/fast.png" id="fast-icon" alt="Fast" />
-      </div>
-
-      <div id="top-bar">
-        <div id="timer"><span class="label">Time:</span> <span class="value">120</span></div>
-        <div id="score"><span class="label">Score:</span> <span class="value">0</span></div>
-      </div>
-
-      <div id="letter-display" class="auslan-font"></div>
-
-      <div id="controls">
-        <div id="word-wrapper">
-          <input id="word-input" type="text" />
-          <button id="again-button">
-            <img src="Assets/Icons/again.png" alt="Again" />
-          </button>
-        </div>
-      </div>
-    </div>
-  
-
-  <!-- Modal -->
-  <div id="end-modal">
-    <div id="end-modal-content">
-      <div id="clap-display"></div>
-      <p id="score-percentage">0% Correct</p>
-      <img id="continue-btn" src="Assets/Icons/continue.png" alt="Continue" />
-      <img id="again-button-modal" src="Assets/Icons/again.png" alt="Again" />
-      <img id="menu-button" src="Assets/Icons/menu.png" alt="Menu" />
-      <img id="logout-button" src="Assets/Icons/logout.png" alt="Logout" />
-    </div>
+<!-- Game screen -->
+<div id="game-screen" style="display: none;">
+  <!-- Speed control -->
+  <div id="speed-container">
+    <img src="Assets/Icons/slow.png" id="slow-icon" alt="Slow" />
+    <input type="range" id="speed-slider" min="0" max="200" value="100" />
+    <img src="Assets/Icons/fast.png" id="fast-icon" alt="Fast" />
   </div>
 
-  <!-- On-screen keyboard -->
-  <div id="keyboard-container"></div>
+  <!-- Grid Layout -->
+  <div id="game-grid">
+    <!-- Column 1: Timer/Countdown/Score Panel -->
+    <div id="side-panel">
+      <video id="countdown-video" src="Assets/countdown.mp4" muted autoplay playsinline></video>
+      <div id="score-container">
+        <div id="score-label">Score</div>
+        <div id="score" class="value">0</div>
+      </div>
+    </div>
 
-  <script src="script.js" defer></script>
+    <!-- Letter Display (Columns 2–4, Rows 1–2) -->
+    <div id="letter-display" class="auslan-font">A</div>
+
+    <!-- Word Input (Columns 2–4, Row 3) -->
+    <input id="word-input" type="text" autocomplete="off" />
+
+    <!-- Again Button (Column 5, All Rows) -->
+    <div id="again-button">
+      <img src="Assets/Icons/again.png" alt="Again" />
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="end-modal">
+  <div id="end-modal-content">
+    <div id="clap-display"></div>
+    <p id="score-percentage">0% Correct</p>
+    <img id="continue-btn" src="Assets/Icons/continue.png" alt="Continue" />
+    <img id="again-button-modal" src="Assets/Icons/again.png" alt="Again" />
+    <img id="menu-button" src="Assets/Icons/menu.png" alt="Menu" />
+    <img id="logout-button" src="Assets/Icons/logout.png" alt="Logout" />
+  </div>
+</div>
+
+<!-- On-screen keyboard -->
+<div id="keyboard-container"></div>
+
+<script src="script.js" defer></script>
 </body>
 </html>
