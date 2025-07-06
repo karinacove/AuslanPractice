@@ -39,7 +39,7 @@ body {
   justify-items: center;
 }
 
-/* Column 1: Timer/Countdown/Score */
+/* Column 1: Timer/Countdown/Score or Level Image */
 #side-panel {
   grid-column: 1 / 2;
   grid-row: 1 / 4;
@@ -64,6 +64,16 @@ body {
 #score-label {
   font-size: 1rem;
   margin-bottom: 5px;
+}
+
+#countdown-video {
+  max-width: 120px;
+  display: none; /* Initially hidden */
+}
+
+#level-image {
+  max-width: 120px;
+  display: none; /* Initially hidden */
 }
 
 /* Columns 2–4, Rows 1–2: Letter Display */
@@ -201,10 +211,6 @@ body {
   width: 120px;
   cursor: pointer;
   z-index: 1000;
-}
-
-#countdown-video {
-  max-width: 120px;
 }
 
 #keyboard-btn {
