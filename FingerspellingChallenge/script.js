@@ -98,11 +98,10 @@ function showLetterByLetter(word) {
 }
 
 function updateScore() {
-  scoreDisplay.textContent = score; // Optional if you still want text
   const scoreImage = document.getElementById("score-image");
   if (scoreImage) {
-    const safeScore = Math.min(score, 99); // prevent numbers beyond your image set
-    scoreImage.src = `Assets/score/${safeScore}.png`;
+    const cappedScore = Math.min(score, 80);
+    scoreImage.src = `Assets/score/${cappedScore}.png`;
   }
 }
 
