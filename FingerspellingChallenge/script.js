@@ -36,6 +36,10 @@ const modeTimed = document.getElementById("mode-timed");
 const modeLevel = document.getElementById("mode-levelup");
 const slowIcon = document.getElementById("slow-icon");
 const fastIcon = document.getElementById("fast-icon");
+const scoreImage = document.getElementById("score-image");
+if (scoreImage) {
+  scoreImage.src = `Assets/score/${score}.png`;
+}
 
 // -------------------------
 // Game State
