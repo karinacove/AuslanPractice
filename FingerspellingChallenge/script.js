@@ -13,11 +13,8 @@ if (!studentName || !studentClass) {
 // DOM References
 // -------------------------
 const gameScreen = document.getElementById("game-screen");
-const startButton = document.getElementById("start-button");
 const wordInput = document.getElementById("word-input");
 const speedSlider = document.getElementById("speed-slider");
-//const timerDisplay = document.querySelector("#timer .value");
-const scoreDisplay = document.querySelector("#score .value");
 const letterDisplay = document.getElementById("letter-display");
 const againButton = document.getElementById("again-button");
 const finishButton = document.getElementById("finishButton");
@@ -37,12 +34,13 @@ const modeLevel = document.getElementById("mode-levelup");
 const slowIcon = document.getElementById("slow-icon");
 const fastIcon = document.getElementById("fast-icon");
 const scoreImage = document.getElementById("score-image");
+const countdownVideo = document.getElementById("countdown-video");
 
 // -------------------------
 // Game State
 // -------------------------
-//let timer;
-//let timeLeft = 120;
+let timer;
+let timeLeft = 120;
 let score = 0;
 let currentWord = "";
 let currentLetterIndex = 0;
@@ -77,8 +75,8 @@ function showLetterByLetter(word) {
   clearLetters();
   currentLetterIndex = 0;
   const sliderValue = parseInt(speedSlider.value) || 100;
-  const maxDelay = 1200; // slowest
-  const minDelay = 80;   // fastest
+  const maxDelay = 1200;
+  const minDelay = 80;
   const displayDuration = Math.max(minDelay, maxDelay - sliderValue * 5);
   const letterGap = Math.max(40, displayDuration / 3);
   const delay = 300;
@@ -99,22 +97,16 @@ function showLetterByLetter(word) {
 }
 
 function updateScore() {
-  const scoreImage = document.getElementById("score-image");
   if (scoreImage) {
     const cappedScore = Math.min(score, 80);
     scoreImage.src = `Assets/score/${cappedScore}.png`;
   }
 }
 
-//function updateTimer() {
-//  timerDisplay.textContent = timeLeft;
-//}
-
 function startTimer() {
   timer = setInterval(() => {
     if (!isPaused) {
       timeLeft--;
-      updateTimer();
       if (timeLeft <= 0) endGame();
     }
   }, 1000);
@@ -132,6 +124,7 @@ function nextWord() {
 function startGame() {
   document.getElementById("signin-screen").style.display = "none";
   gameScreen.style.display = "flex";
+
   score = 0;
   timeLeft = 120;
   correctWords = 0;
@@ -141,19 +134,12 @@ function startGame() {
   wordInput.focus();
   againButton.style.display = "block";
   updateScore();
- // updateTimer();
-
-  const timerDisplay = document.getElementById("countdown-video");
-  const levelImage = document.getElementById("level-image");
 
   if (gameMode === "timed") {
-    timerDisplay.style.display = "block";
-    levelImage.style.display = "none";
-    startTimer(); // Only start timer in timed mode
+    countdownVideo.style.display = "block";
+    startTimer();
   } else {
-    timerDisplay.style.display = "none";
-    levelImage.src = `Assets/levels/level${wordLength}.png`;
-    levelImage.style.display = "block";
+    countdownVideo.style.display = "none";
   }
 
   setTimeout(nextWord, 400);
@@ -195,7 +181,6 @@ function setupKeyboard() {
   const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
   keyboardContainer.innerHTML = "";
 
-  // Header (no close button)
   const header = document.createElement("div");
   header.id = "keyboard-header";
   header.style.height = "16px";
@@ -215,14 +200,12 @@ function setupKeyboard() {
       key.addEventListener("click", () => {
         wordInput.value += letter.toLowerCase();
         wordInput.dispatchEvent(new Event("input"));
-
         key.classList.add("pop");
         setTimeout(() => key.classList.remove("pop"), 150);
       });
 
       rowDiv.appendChild(key);
 
-      // Add backspace next to M
       if (rowIndex === 2 && letter === "M") {
         const backspace = document.createElement("div");
         backspace.textContent = "←";
@@ -238,7 +221,6 @@ function setupKeyboard() {
     keyboardContainer.appendChild(rowDiv);
   });
 
-  // Footer drag handle
   const footer = document.createElement("div");
   footer.id = "keyboard-footer";
   footer.style.height = "16px";
@@ -307,9 +289,6 @@ function dragElement(elmnt, handleSelectors = ["#keyboard-header"]) {
   }
 }
 
-// -------------------------
-// Event Listeners
-// -------------------------
 wordInput.addEventListener("input", () => {
   if (isPaused) return;
   const typed = wordInput.value.toLowerCase();
@@ -381,8 +360,7 @@ function toggleKeyboard(e) {
 }
 
 finishButton.addEventListener("click", () => showFinishModal(false));
-continueBtn.addEventListener("click", hideFinishModal);
-againButtonModal.addEventListener("click", () => window.location.href = "./index.html");
+continueBtn.addEventListener("click", hideFinishModal);\nagainButtonModal.addEventListener("click", () => window.location.href = "./index.html");
 menuButton.addEventListener("click", () => window.location.href = "../index.html");
 logoutButton.addEventListener("click", () => {
   localStorage.clear();
@@ -401,5 +379,4 @@ speedSlider.addEventListener("input", () => {
   speed = parseInt(speedSlider.value);
 });
 
-// Init
 setupKeyboard();
