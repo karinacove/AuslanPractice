@@ -16,7 +16,7 @@ const gameScreen = document.getElementById("game-screen");
 const startButton = document.getElementById("start-button");
 const wordInput = document.getElementById("word-input");
 const speedSlider = document.getElementById("speed-slider");
-const timerDisplay = document.querySelector("#timer .value");
+//const timerDisplay = document.querySelector("#timer .value");
 const scoreDisplay = document.querySelector("#score .value");
 const letterDisplay = document.getElementById("letter-display");
 const againButton = document.getElementById("again-button");
@@ -40,8 +40,8 @@ const fastIcon = document.getElementById("fast-icon");
 // -------------------------
 // Game State
 // -------------------------
-let timer;
-let timeLeft = 120;
+//let timer;
+//let timeLeft = 120;
 let score = 0;
 let currentWord = "";
 let currentLetterIndex = 0;
@@ -105,9 +105,9 @@ function updateScore() {
   }
 }
 
-function updateTimer() {
-  timerDisplay.textContent = timeLeft;
-}
+//function updateTimer() {
+//  timerDisplay.textContent = timeLeft;
+//}
 
 function startTimer() {
   timer = setInterval(() => {
@@ -140,7 +140,7 @@ function startGame() {
   wordInput.focus();
   againButton.style.display = "block";
   updateScore();
-  updateTimer();
+ // updateTimer();
 
   const timerDisplay = document.getElementById("countdown-video");
   const levelImage = document.getElementById("level-image");
