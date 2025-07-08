@@ -26,6 +26,15 @@ body {
   color: white;
 }
 
+#game-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin-top: 18vh;
+  margin-bottom: 10vh;
+}
+
 #game-grid {
   display: grid;
   grid-template-columns: auto 1fr 1fr 1fr auto;
