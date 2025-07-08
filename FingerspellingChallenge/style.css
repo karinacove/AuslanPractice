@@ -135,7 +135,8 @@ body {
 }
 
 #speed-slider {
-  width: 60%;
+   min-width: 240px;
+   width: 60%;
 }
 
 #slow-icon,
