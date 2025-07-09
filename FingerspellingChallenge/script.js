@@ -122,7 +122,12 @@ function nextWord() {
     wordLength++;
   }
   const words = wordBank[wordLength] || wordBank[3];
-  currentWord = words[Math.floor(Math.random() * words.length)];
+  const filteredWords = words.filter(w => !guessedWords.has(w));
+  if (filteredWords.length === 0) {
+    endGame();
+    return;
+  }
+  currentWord = filteredWords[Math.floor(Math.random() * filteredWords.length)];
   setTimeout(() => showLetterByLetter(currentWord), 200);
 }
 
@@ -171,11 +176,16 @@ function showFinishModal(isGameEnd = false) {
   const percentage = correctWords + incorrectWords.length > 0
     ? Math.round((correctWords / (correctWords + incorrectWords.length)) * 100)
     : 100;
+  const minutes = Math.floor((120 - timeLeft) / 60);
+  const seconds = (120 - timeLeft) % 60;
+
   endModalContent.querySelector("#score-percentage").textContent = `${percentage}% Correct`;
   scoreText.textContent = `Score: ${score}`;
   timeText.textContent = `Time: ${minutes} mins ${seconds} sec`;
-  document.getElementById("clap-display").innerHTML = `<img src="Assets/auslan-clap.gif" alt="Clap" />`;
-  againButtonModal.style.display = isGameEnd ? "inline-block" : "none";
+  document.getElementById("clap-display").innerHTML = isGameEnd ? `<img src="Assets/auslan-clap.gif" alt="Clap" />` : "";
+
+  againButtonModal.style.display = "inline-block";
+  menuButton.style.display = "inline-block";
   continueBtn.style.display = isGameEnd ? "none" : "inline-block";
 }
 
