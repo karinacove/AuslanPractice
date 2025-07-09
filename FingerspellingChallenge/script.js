@@ -35,6 +35,8 @@ const slowIcon = document.getElementById("slow-icon");
 const fastIcon = document.getElementById("fast-icon");
 const scoreImage = document.getElementById("score-image");
 const countdownVideo = document.getElementById("countdown-video");
+const scoreText = document.getElementById("score-text");
+const timeText = document.getElementById("time-text");
 
 // -------------------------
 // Game State
@@ -74,9 +76,9 @@ function clearLetters() {
 function showLetterByLetter(word) {
   clearLetters();
   currentLetterIndex = 0;
-  const sliderValue = parseInt(speedSlider.value) || 100;
+  const sliderValue = parseInt(speedSlider.value) || 200;
   const maxDelay = 1200;
-  const minDelay = 80;
+  const minDelay = 40;
   const displayDuration = Math.max(minDelay, maxDelay - sliderValue * 5);
   const letterGap = Math.max(40, displayDuration / 3);
   const delay = 300;
@@ -100,6 +102,9 @@ function updateScore() {
   if (scoreImage) {
     const cappedScore = Math.min(score, 80);
     scoreImage.src = `Assets/score/${cappedScore}.png`;
+  }
+  if (score >= 80 && gameMode === "levelup") {
+    endGame();
   }
 }
 
@@ -167,8 +172,11 @@ function showFinishModal(isGameEnd = false) {
     ? Math.round((correctWords / (correctWords + incorrectWords.length)) * 100)
     : 100;
   endModalContent.querySelector("#score-percentage").textContent = `${percentage}% Correct`;
+  scoreText.textContent = `Score: ${score}`;
+  timeText.textContent = `Time: ${120 - timeLeft}s`;
   document.getElementById("clap-display").innerHTML = `<img src="Assets/auslan-clap.gif" alt="Clap" />`;
   againButtonModal.style.display = isGameEnd ? "inline-block" : "none";
+  continueBtn.style.display = isGameEnd ? "none" : "inline-block";
 }
 
 function hideFinishModal() {
