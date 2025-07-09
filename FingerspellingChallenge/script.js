@@ -173,7 +173,7 @@ function showFinishModal(isGameEnd = false) {
     : 100;
   endModalContent.querySelector("#score-percentage").textContent = `${percentage}% Correct`;
   scoreText.textContent = `Score: ${score}`;
-  timeText.textContent = `Time: ${120 - timeLeft}s`;
+  timeText.textContent = `Time: ${minutes} mins ${seconds} sec`;
   document.getElementById("clap-display").innerHTML = `<img src="Assets/auslan-clap.gif" alt="Clap" />`;
   againButtonModal.style.display = isGameEnd ? "inline-block" : "none";
   continueBtn.style.display = isGameEnd ? "none" : "inline-block";
