@@ -8,7 +8,7 @@ body {
   padding: 2px;
   background: url('Assets/fingerspelling-background.png') no-repeat;
   background-repeat: no-repeat;
-  background-position: right top;
+  background-position: center top;
   background-size: contain;
   background-attachment: fixed;
   background-color: #5b65a9;
