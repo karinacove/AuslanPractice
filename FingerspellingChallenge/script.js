@@ -360,7 +360,8 @@ function toggleKeyboard(e) {
 }
 
 finishButton.addEventListener("click", () => showFinishModal(false));
-continueBtn.addEventListener("click", hideFinishModal);\nagainButtonModal.addEventListener("click", () => window.location.href = "./index.html");
+continueBtn.addEventListener("click", hideFinishModal);
+againButtonModal.addEventListener("click", () => window.location.href = "./index.html");
 menuButton.addEventListener("click", () => window.location.href = "../index.html");
 logoutButton.addEventListener("click", () => {
   localStorage.clear();
