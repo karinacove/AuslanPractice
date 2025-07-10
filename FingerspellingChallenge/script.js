@@ -377,8 +377,19 @@ function toggleKeyboard(e) {
   }
 }
 
-finishButton.addEventListener("click", () => showFinishModal(false));
-continueBtn.addEventListener("click", hideFinishModal);
+finishButton.addEventListener("click", () => {
+  isPaused = true;
+  if (gameMode === "timed" && countdownVideo && !countdownVideo.paused) {
+    countdownVideo.pause();
+  }
+  showFinishModal(false);
+});
+continueBtn.addEventListener("click", () => {
+  hideFinishModal();
+  if (gameMode === "timed" && countdownVideo && countdownVideo.paused) {
+    countdownVideo.play();
+  }
+});
 againButtonModal.addEventListener("click", () => window.location.href = "./index.html");
 menuButton.addEventListener("click", () => window.location.href = "../index.html");
 logoutButton.addEventListener("click", () => {
