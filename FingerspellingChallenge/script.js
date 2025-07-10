@@ -109,6 +109,7 @@ function updateScore() {
 }
 
 function startTimer() {
+  clearInterval(timer);
   timer = setInterval(() => {
     if (!isPaused) {
       timeLeft--;
@@ -141,12 +142,15 @@ function startGame() {
   guessedWords.clear();
   incorrectWords = [];
   wordInput.value = "";
+  wordInput.style.visibility = "visible";
   wordInput.focus();
   againButton.style.display = "block";
   updateScore();
 
   if (gameMode === "timed") {
     countdownVideo.style.display = "block";
+    countdownVideo.currentTime = 0;
+    countdownVideo.play();
     startTimer();
   } else {
     countdownVideo.style.display = "none";
@@ -193,6 +197,9 @@ function hideFinishModal() {
   isPaused = false;
   endModal.style.display = "none";
   wordInput.focus();
+  if (gameMode === "timed" && countdownVideo.paused) {
+    countdownVideo.play();
+  }
 }
 
 function setupKeyboard() {
@@ -307,6 +314,10 @@ function dragElement(elmnt, handleSelectors = ["#keyboard-header"]) {
   }
 }
 
+// -------------------------
+// Event Listeners
+// -------------------------
+
 wordInput.addEventListener("input", () => {
   if (isPaused) return;
   const typed = wordInput.value.toLowerCase();
@@ -384,14 +395,16 @@ finishButton.addEventListener("click", () => {
   }
   showFinishModal(false);
 });
-continueBtn.addEventListener("click", () => {
-  hideFinishModal();
-  if (gameMode === "timed" && countdownVideo && countdownVideo.paused) {
-    countdownVideo.play();
-  }
+
+continueBtn.addEventListener("click", hideFinishModal);
+
+againButtonModal.addEventListener("click", () => {
+  isPaused = false;
+  startGame();
 });
-againButtonModal.addEventListener("click", () => window.location.href = "./index.html");
+
 menuButton.addEventListener("click", () => window.location.href = "../index.html");
+
 logoutButton.addEventListener("click", () => {
   localStorage.clear();
   window.location.href = "../index.html";
@@ -407,6 +420,13 @@ againButton.addEventListener("click", () => {
 
 speedSlider.addEventListener("input", () => {
   speed = parseInt(speedSlider.value);
+});
+
+// Auto-end game when video ends
+countdownVideo.addEventListener("ended", () => {
+  if (gameMode === "timed") {
+    endGame();
+  }
 });
 
 setupKeyboard();
