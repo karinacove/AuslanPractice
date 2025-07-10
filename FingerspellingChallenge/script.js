@@ -396,7 +396,13 @@ finishButton.addEventListener("click", () => {
   showFinishModal(false);
 });
 
-continueBtn.addEventListener("click", hideFinishModal);
+continueBtn.addEventListener("click", () => {
+  hideFinishModal();
+  if (gameMode === "timed" && countdownVideo && countdownVideo.paused) {
+    countdownVideo.play();
+  }
+  showLetterByLetter(currentWord); // 👈 Add this line
+});
 
 againButtonModal.addEventListener("click", () => {
   isPaused = false;
