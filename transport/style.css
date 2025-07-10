@@ -1,223 +1,74 @@
-/* Base Layout */
-* {
-  box-sizing: border-box;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auslan Transport Activity</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+</head>
+<body>
+  <!-- Student info top-left -->
+  <div id="student-info"></div>
 
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-  overflow: hidden;
-  background: url('assets/Map.png') no-repeat left center fixed;
-  background-size: contain;
-  background-color: #c8f5c8;
-}
+  <!-- Sign-in form -->
+  <form id="student-form">
+    <label for="jobDescription">Job Description:</label>
+    <input type="text" id="jobDescription" name="jobDescription" placeholder="'Give' or 'Follow' instructions" required />
 
-/* Overlay container if used elsewhere */
-#overlay {
-  width: 100%;
-  max-width: 800px;
-  margin-top: 20px;
-}
+    <label for="partnerName">Partner Name:</label>
+    <input type="text" id="partnerName" name="partnerName" required />
 
-/* Map Display */
-#map-container {
-  position: relative;
-  margin: 20px auto;
-  width: 800px;
-  height: 600px;
-  background: #ccc;
-  border: 2px solid #444;
-  overflow: hidden;
-  border-radius: 12px;
-}
+    <button type="submit" id="start-btn">
+      <img src="assets/start.png" alt="Start" />
+    </button>
+  </form>
 
-#map-container img#map {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+  <!-- Finish button (top-right) -->
+  <img id="finish-btn" src="assets/finish.png" alt="Finish" />
 
-/* Vehicle Palette */
-#vehicle-palette {
-  position: absolute;
-  top: 0px;
-  right: 5px;
-  display: none;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
-  background: rgba(255, 255, 255, 0.8);
-  padding: 2px;
-  border-radius: 2px;
-  height: 100vh;
-  width: 280px;
-  overflow-y: auto;
-  justify-items: center;
-  align-content: center;
-}
+  <!-- Main layout: map and palette side-by-side -->
+  <div id="main-layout">
+    <div id="map-container"></div>
 
-#vehicle-palette img {
-  width: 80px;
-  height: auto;
-  cursor: grab;
-  transition: transform 0.2s;
-}
+    <div id="vehicle-palette">
+      <img src="assets/Blue Car.png" alt="BlueCar" class="draggable" />
+      <img src="assets/Green Car.png" alt="GreenCar" class="draggable" />
+      <img src="assets/Yellow Car.png" alt="YellowCar" class="draggable" />
+      <img src="assets/White Van.png" alt="WhiteVan" class="draggable" />
+      <img src="assets/Blue Van.png" alt="BlueVan" class="draggable" />
+      <img src="assets/Green Boat.png" alt="GreenBoat" class="draggable" />
+      <img src="assets/Yellow Boat.png" alt="YellowBoat" class="draggable" />
+      <img src="assets/Purple Train.png" alt="PurpleTrain" class="draggable" />
+      <img src="assets/Red Train.png" alt="RedTrain" class="draggable" />
+      <img src="assets/Green Tram.png" alt="GreenTram" class="draggable" />
+      <img src="assets/Yellow Tram.png" alt="YellowTram" class="draggable" />
+      <img src="assets/Blue Bus.png" alt="BlueBus" class="draggable" />
+      <img src="assets/Yellow Bus.png" alt="YellowBus" class="draggable" />
+      <img src="assets/Pink Plane.png" alt="PinkPlane" class="draggable" />
+      <img src="assets/Blue Plane.png" alt="BluePlane" class="draggable" />
+      <img src="assets/Red Truck.png" alt="RedTruck" class="draggable" />
+      <img src="assets/Blue Truck.png" alt="BlueTruck" class="draggable" />
+      <img src="assets/Green Bike.png" alt="GreenBike" class="draggable" />
+      <img src="assets/Purple Bike.png" alt="PurpleBike" class="draggable" />
+      <img src="assets/Girl and Dog.png" alt="GirlDog" class="draggable" />
+      <img src="assets/Red Helicopter.png" alt="RedHelicopter" class="draggable" />
+      <img src="assets/Green Helicopter.png" alt="GreenHelicopter" class="draggable" />
+      <img src="assets/Green Motorbike.png" alt="GreenMotorbike" class="draggable" />
+      <img src="assets/Red Motorbike.png" alt="RedMotorbike" class="draggable" />
+      <img src="assets/Man and Dog.png" alt="ManDog" class="draggable" />
+      <img src="assets/Two People Walking.png" alt="TwoPeopleWalking" class="draggable" />
+      <img src="assets/Pink Caravan.png" alt="PinkCaravan" class="draggable" />
+    </div>
+  </div>
 
-#vehicle-palette img:active {
-  cursor: grabbing;
-  transform: scale(1.1);
-}
+  <!-- Modal at end -->
+  <div id="end-modal">
+    <img src="assets/again.png" id="again-btn" alt="Play Again" />
+    <img src="assets/menu.png" id="menu-btn" alt="Menu" />
+    <img src="assets/logout.png" id="logout-btn" alt="Logout" />
+  </div>
 
-/* Vehicle Placement */
-.dropped-vehicle {
-  position: absolute;
-  pointer-events: none;
-}
-
-/* Flip Button */
-.flip-btn {
-  position: absolute;
-  bottom: 50%;
-  left: 50%;
-  font-size: 18px;
-  background: rgba(255, 255, 255, 0.7);
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  padding: 2px 6px;
-  z-index: 1001;
-}
-
-.draggable-wrapper {
-  position: absolute;
-  z-index: 1000;
-  cursor: grab;
-}
-
-.draggable-wrapper img.draggable {
-  width: 80px;
-  height: auto;
-  pointer-events: auto;
-}
-
-
-.draggable-wrapper:hover .flip-btn {
-  display: block;
-}
-
-.draggable-wrapper img.flipped-horizontal {
-  transform: scaleX(-1);
-}
-
-.flipped-horizontal {
-  transform: scaleX(-1);
-  transition: transform 0.3s ease;
-}
-
-/* Student Info Box */
-#student-info {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  background: #28a745;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 10px;
-  max-width: 320px;
-  font-weight: bold;
-  z-index: 1000;
-  display: none;
-}
-
-/* Form Styling */
-#student-form {
-  position: absolute;
-  top: 20%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.95);
-  padding: 30px;
-  border-radius: 12px;
-  z-index: 10;
-  width: 300px;
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-  gap: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-#student-form label {
-  margin-bottom: 6px;
-  font-weight: bold;
-  color: #333;
-}
-
-#student-form input {
-  padding: 10px;
-  font-size: 1rem;
-  border: 1px solid #999;
-  border-radius: 6px;
-  text-align: center;
-  width: 100%;
-}
-
-#start-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  align-self: center;
-}
-
-#start-btn img {
-  width: 120px;
-  height: auto;
-  display: block;
-}
-
-/* Finish Button */
-#finish-btn {
-  position: fixed;
-  bottom: 10px;
-  left: 10px;
-  width: 100px;
-  cursor: pointer;
-  z-index: 1000;
-}
-
-#finish-btn:hover {
-  background-color: #218838;
-}
-
-/* End Modal */
-#end-modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.7);
-  align-items: center;
-  justify-content: center;
-  flex-direction: row;
-  gap: 20px;
-  z-index: 999;
-}
-
-#end-modal img {
-  margin: 10px;
-  cursor: pointer;
-  width: 120px;
-  height: auto;
-}
-
-#end-modal.show {
-  display: flex;
-}
+  <script src="script.js"></script>
+</body>
+</html>
