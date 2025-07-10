@@ -42,7 +42,7 @@ html, body {
 /* Vehicle Palette */
 #vehicle-palette {
   position: absolute;
-  top: 0;
+  top: 30px;
   right: 5px;
   display: none;
   grid-template-columns: repeat(3, 1fr);
