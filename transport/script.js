@@ -45,29 +45,36 @@ function startDrag(e, isTouch = false) {
   if (!target.classList.contains('draggable') || target.parentElement !== palette) return;
   if (document.querySelectorAll('body > .draggable-wrapper').length >= MAX_VEHICLES) return;
 
+  // Create wrapper for new vehicle
   const wrapper = document.createElement('div');
   wrapper.classList.add('draggable-wrapper');
   wrapper.style.position = 'absolute';
   wrapper.style.zIndex = 1000;
 
+  // Clone the vehicle image
   const clone = target.cloneNode(true);
-  clone.classList.add("dropped-vehicle");
-  clone.style.pointerEvents = 'none';
+  clone.classList.add("draggable");
+  clone.style.width = "80px";
+  clone.style.height = "auto";
+  clone.style.pointerEvents = 'auto';
   wrapper.appendChild(clone);
 
+  // Create flip button
   const flipBtn = document.createElement('button');
   flipBtn.className = 'flip-btn';
   flipBtn.innerHTML = '↔';
   flipBtn.style.display = 'none';
+
   flipBtn.onclick = (ev) => {
     ev.stopPropagation();
     clone.classList.toggle('flipped-horizontal');
   };
-  wrapper.appendChild(flipBtn);
 
+  // Show/hide flip button on hover
   wrapper.addEventListener('mouseenter', () => flipBtn.style.display = 'block');
   wrapper.addEventListener('mouseleave', () => flipBtn.style.display = 'none');
 
+  wrapper.appendChild(flipBtn);
   document.body.appendChild(wrapper);
   dragged = wrapper;
 
@@ -80,6 +87,11 @@ function startDrag(e, isTouch = false) {
   dragged.style.top = (clientY - dragged.offsetY) + 'px';
 
   e.preventDefault();
+
+  // Allow double-click deletion
+  wrapper.addEventListener("dblclick", () => {
+    wrapper.remove();
+  });
 }
 
 function moveDrag(e, isTouch = false) {
@@ -95,9 +107,12 @@ function endDrag() {
   dragged = null;
 }
 
+// Mouse events
 document.body.addEventListener('mousedown', e => startDrag(e, false));
 document.body.addEventListener('mousemove', e => moveDrag(e, false));
 document.body.addEventListener('mouseup', endDrag);
+
+// Touch events
 document.body.addEventListener('touchstart', e => startDrag(e, true));
 document.body.addEventListener('touchmove', e => moveDrag(e, true));
 document.body.addEventListener('touchend', endDrag);
