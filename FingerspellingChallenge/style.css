@@ -20,7 +20,7 @@ body {
 }
 
 .auslan-font {
-  font-family: 'AuslanFingerspelling', sans-serif;
+  font-family: 'AuslanFingerspelling';
   font-size: 6rem;
   text-align: center;
   color: white;
