@@ -133,9 +133,9 @@ html, body {
 /* Form Styling */
 #student-form {
   position: absolute;
-  top: 50%;
+  top: 20%;
   left: 50%;
-  transform: translateX(-50% -50%);
+  transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.95);
   padding: 30px;
   border-radius: 12px;
@@ -143,6 +143,7 @@ html, body {
   width: 300px;
   display: flex;
   flex-direction: column;
+  text-align: center;
   gap: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
