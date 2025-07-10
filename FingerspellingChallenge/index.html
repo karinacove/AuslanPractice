@@ -41,24 +41,28 @@
 
       <!-- Grid Layout -->
       <div id="game-grid">
-        <!-- Column 1: Timer/Countdown/Score Panel -->
-        <div id="side-panel">
-          <video id="countdown-video" src="Assets/countdown.mp4" muted autoplay playsinline></video>
-          <img id="score-image" src="Assets/score/0.png" alt="Score" style="max-height: 120px;" />
-        </div>
+      <!-- Column 1: Score or Level -->
+      <div id="side-details">
+        <img id="score-image" src="Assets/score/0.png" alt="Score" style="max-height: 120px;" />
+      </div>
 
-        <!-- Letter Display -->
-        <div id="letter-display" class="auslan-font">A</div>
+      <!-- Column 2: Timer or Countdown -->
+      <div id="side-panel">
+        <video id="countdown-video" src="Assets/countdown.mp4" muted autoplay playsinline></video>
+      </div>
 
-        <!-- Word Input -->
-        <input id="word-input" type="text" autocomplete="off" />
+      <!-- Letter Display -->
+      <div id="letter-display" class="auslan-font">A</div>
 
-        <!-- Again Button -->
-        <div id="again-button">
-          <img src="Assets/Icons/again.png" alt="Again" />
-        </div>
+      <!-- Word Input -->
+      <input id="word-input" type="text" autocomplete="off" />
+
+      <!-- Again Button -->
+      <div id="again-button">
+        <img src="Assets/Icons/again.png" alt="Again" />
       </div>
     </div>
+  </div>
 
     <!-- Modal -->
     <div id="end-modal">
