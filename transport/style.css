@@ -1,4 +1,4 @@
-/* Base Layout */
+/* Reset and Base Styles */
 * {
   box-sizing: border-box;
 }
@@ -8,53 +8,41 @@ html, body {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
+  background-color: #c8f5c8;
   overflow: hidden;
-  background: url('assets/Map.png') no-repeat left center fixed;
+}
+
+/* Main Layout (map + palette side-by-side) */
+#main-layout {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Map Area */
+#map-container {
+  flex: 1;
+  background: url('assets/Map.png') no-repeat center center;
   background-size: contain;
   background-color: #c8f5c8;
-}
-
-/* Overlay container if used elsewhere */
-#overlay {
-  width: 100%;
-  max-width: 800px;
-  margin-top: 20px;
-}
-
-/* Map Display */
-#map-container {
-  position: relative;
-  margin: 20px auto;
-  width: 800px;
-  height: 600px;
-  background: #ccc;
-  border: 2px solid #444;
-  overflow: hidden;
-  border-radius: 12px;
-}
-
-#map-container img#map {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  background-position: left center;
 }
 
 /* Vehicle Palette */
 #vehicle-palette {
-  position: absolute;
-  top: 0px;
-  right: 5px;
   display: none;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
-  background: rgba(255, 255, 255, 0.8);
-  padding: 2px;
-  border-radius: 2px;
   height: 100vh;
   width: 280px;
   overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.9);
   justify-items: center;
-  align-content: center;
+  align-content: start;
 }
 
 #vehicle-palette img {
@@ -69,24 +57,11 @@ html, body {
   transform: scale(1.1);
 }
 
-/* Vehicle Placement */
+/* Dragged Vehicles */
 .dropped-vehicle {
-  position: absolute;
+  width: 80px;
+  height: auto;
   pointer-events: none;
-}
-
-/* Flip Button */
-.flip-btn {
-  position: absolute;
-  bottom: 50%;
-  left: 50%;
-  font-size: 18px;
-  background: rgba(255, 255, 255, 0.7);
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  padding: 2px 6px;
-  z-index: 1001;
 }
 
 .draggable-wrapper {
@@ -101,11 +76,6 @@ html, body {
   pointer-events: auto;
 }
 
-
-.draggable-wrapper:hover .flip-btn {
-  display: block;
-}
-
 .draggable-wrapper img.flipped-horizontal {
   transform: scaleX(-1);
 }
@@ -115,7 +85,26 @@ html, body {
   transition: transform 0.3s ease;
 }
 
-/* Student Info Box */
+/* Flip Button */
+.flip-btn {
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  font-size: 18px;
+  background: rgba(255, 255, 255, 0.7);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 2px 6px;
+  z-index: 1001;
+  display: none;
+}
+
+.draggable-wrapper:hover .flip-btn {
+  display: block;
+}
+
+/* Student Info Top-Left */
 #student-info {
   position: fixed;
   top: 20px;
@@ -130,12 +119,12 @@ html, body {
   display: none;
 }
 
-/* Form Styling */
+/* Student Sign-In Form */
 #student-form {
   position: absolute;
-  top: 20%;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   background: rgba(255, 255, 255, 0.95);
   padding: 30px;
   border-radius: 12px;
@@ -148,13 +137,7 @@ html, body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
 #student-form label {
-  margin-bottom: 6px;
   font-weight: bold;
   color: #333;
 }
@@ -181,7 +164,7 @@ html, body {
   display: block;
 }
 
-/* Finish Button */
+/* Finish Button (bottom left) */
 #finish-btn {
   position: fixed;
   bottom: 10px;
@@ -189,10 +172,6 @@ html, body {
   width: 100px;
   cursor: pointer;
   z-index: 1000;
-}
-
-#finish-btn:hover {
-  background-color: #218838;
 }
 
 /* End Modal */
@@ -220,4 +199,31 @@ html, body {
 
 #end-modal.show {
   display: flex;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  #main-layout {
+    flex-direction: column;
+  }
+
+  #vehicle-palette {
+    width: 100%;
+    height: 180px;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    overflow-x: auto;
+    overflow-y: hidden;
+    justify-content: start;
+    align-content: center;
+  }
+
+  #vehicle-palette img {
+    width: 70px;
+  }
+
+  #map-container {
+    flex: 1;
+    height: calc(100vh - 200px);
+    background-position: center center;
+  }
 }
