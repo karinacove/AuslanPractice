@@ -1,18 +1,27 @@
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  background: #f4f4f4;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* Base Layout */
+* {
+  box-sizing: border-box;
 }
 
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+  background: url('assets/Map.png') no-repeat left center fixed;
+  background-size: contain;
+  background-color: #c8f5c8;
+}
+
+/* Overlay container if used elsewhere */
 #overlay {
   width: 100%;
   max-width: 800px;
   margin-top: 20px;
 }
 
+/* Map Display */
 #map-container {
   position: relative;
   margin: 20px auto;
@@ -30,16 +39,26 @@ body {
   object-fit: cover;
 }
 
+/* Vehicle Palette */
 #vehicle-palette {
-  margin: 5px;
-  top: 40px;
-  display: flex;
-  justify-content: center;
-  gap: 8px;
+  position: absolute;
+  top: 0;
+  right: 5px;
+  display: none;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2px;
+  border-radius: 2px;
+  height: 100vh;
+  width: 280px;
+  overflow-y: auto;
+  justify-items: center;
+  align-content: start;
 }
 
 #vehicle-palette img {
-  width: max 100px;
+  width: 80px;
   height: auto;
   cursor: grab;
   transition: transform 0.2s;
@@ -50,60 +69,14 @@ body {
   transform: scale(1.1);
 }
 
+/* Vehicle Placement */
 .dropped-vehicle {
   position: absolute;
   width: 40px;
   pointer-events: none;
 }
 
-#student-form {
-  display: flex;
-  gap: 10px;
-  margin: 20px auto;
-}
-
-#student-form input {
-  padding: 10px;
-  border: 1px solid #999;
-  border-radius: 6px;
-}
-
-#student-form button {
-  padding: 10px 20px;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-#student-form button:hover {
-  background-color: #005fa3;
-}
-
-#submit-button {
-  display: none;
-}
-
-#finish-btn {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  width: 100px;
-  padding: 12px;
-  background-color: #28a745;
-  color: white;
-  font-size: 1rem;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  z-index: 1001;
-}
-
-#finish-btn:hover {
-  background-color: #218838;
-}
-
+/* Flip Button */
 .flip-btn {
   position: absolute;
   bottom: 50%;
@@ -134,6 +107,92 @@ body {
   transition: transform 0.3s ease;
 }
 
+/* Student Info Box */
+#student-info {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: #28a745;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+  max-width: 320px;
+  font-weight: bold;
+  z-index: 1000;
+  display: none;
+}
+
+/* Form Styling */
+#student-form {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 30px;
+  border-radius: 12px;
+  z-index: 10;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+#student-form label {
+  margin-bottom: 6px;
+  font-weight: bold;
+  color: #333;
+}
+
+#student-form input {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #999;
+  border-radius: 6px;
+  width: 100%;
+}
+
+#start-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  align-self: center;
+}
+
+#start-btn img {
+  width: 120px;
+  height: auto;
+  display: block;
+}
+
+/* Finish Button */
+#finish-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 100px;
+  padding: 12px;
+  background-color: #28a745;
+  color: white;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 1001;
+  display: none;
+}
+
+#finish-btn:hover {
+  background-color: #218838;
+}
+
+/* End Modal */
 #end-modal {
   display: none;
   position: fixed;
@@ -145,6 +204,7 @@ body {
   align-items: center;
   justify-content: center;
   flex-direction: row;
+  gap: 20px;
   z-index: 999;
 }
 
@@ -153,4 +213,8 @@ body {
   cursor: pointer;
   width: 120px;
   height: auto;
+}
+
+#end-modal.show {
+  display: flex;
 }
