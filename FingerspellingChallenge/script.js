@@ -142,19 +142,17 @@ function startGame() {
   guessedWords.clear();
   incorrectWords = [];
   wordInput.value = "";
-  wordInput.style.visibility = "visible";
   wordInput.focus();
   againButton.style.display = "block";
   updateScore();
 
   if (gameMode === "timed") {
     countdownVideo.style.display = "block";
-    countdownVideo.currentTime = 0;
-    countdownVideo.play();
-    startTimer();
   } else {
     countdownVideo.style.display = "none";
   }
+
+  startTimer(); // ✅ Always start the timer for both modes
 
   setTimeout(nextWord, 400);
 }
