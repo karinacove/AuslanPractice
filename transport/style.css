@@ -54,7 +54,7 @@ html, body {
   width: 280px;
   overflow-y: auto;
   justify-items: center;
-  align-content: start;
+  align-content: center;
 }
 
 #vehicle-palette img {
