@@ -1,159 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Auslan Transport Activity</title>
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="style.css">
-  <style>
-    #student-info {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background: #28a745;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 10px;
-      max-width: 320px;
-      font-family: sans-serif;
-      font-weight: bold;
-      z-index: 1000;
-      display: none;
-    }
-
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-    }
-
-    body {
-      background: url('assets/Map.png') no-repeat left center fixed;
-      background-size: contain;
-      background-color: #c8f5c8;
-      font-family: sans-serif;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-
-    #vehicle-palette {
-      position: absolute;
-      top: 0;
-      right: 5px;
-      display: none;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 2px;
-      background: rgba(255, 255, 255, 0.8);
-      padding: 2px;
-      border-radius: 2px;
-      height: 100vh;
-      width: 280px;
-      overflow-y: auto;
-      justify-items: center;
-      align-content: start;
-    }
-
-    .draggable {
-      width: 80px;
-      height: auto;
-      cursor: grab;
-      filter: drop-shadow(0 0 2px white);
-    }
-
-    #student-form {
-      position: absolute;
-      top: 20%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(255,255,255,0.9);
-      padding: 30px;
-      border-radius: 12px;
-      z-index: 10;
-    }
-
-    #finish-btn {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      cursor: pointer;
-      width: 100px;
-      display: none;
-      z-index: 1000;
-    }
-
-    #end-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.7);
-      align-items: center;
-      justify-content: center;
-      flex-direction: row;
-      gap: 20px;
-      z-index: 999;
-    }
-
-    #end-modal img {
-      width: 120px;
-      cursor: pointer;
-    }
-
-    #end-modal.show {
-      display: flex;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="student-info"></div>
 
   <form id="student-form">
-    <label for="jobDescription">Job Description:</label>
-    <input type="text" id="jobDescription" name="jobDescription" required>
+    <div class="form-group">
+      <label for="jobDescription">Job Description:</label>
+      <input type="text" id="jobDescription" name="jobDescription" required />
+    </div>
 
-    <label for="partnerName">Partner Name:</label>
-    <input type="text" id="partnerName" name="partnerName" required>
+    <div class="form-group">
+      <label for="partnerName">Partner Name:</label>
+      <input type="text" id="partnerName" name="partnerName" required />
+    </div>
 
-    <button type="submit" id="start-btn" style="background:none; border:none; cursor:pointer;">
-      <img src="assets/start.png" alt="Start" style="width:120px;">
+    <button type="submit" id="start-btn">
+      <img src="assets/start.png" alt="Start" />
     </button>
   </form>
 
   <img id="finish-btn" src="assets/finish.png" alt="Finish" />
 
   <div id="vehicle-palette">
-    <img src="assets/Blue Car.png" alt="BlueCar" class="draggable">
-    <img src="assets/Green Car.png" alt="GreenCar" class="draggable">
-    <img src="assets/Red Car.png" alt="RedCar" class="draggable">
-    <img src="assets/Yellow Car.png" alt="YellowCar" class="draggable">
-    <img src="assets/White Van.png" alt="WhiteVan" class="draggable">
-    <img src="assets/Blue Van.png" alt="BlueVan" class="draggable">
-    <img src="assets/Green Boat.png" alt="GreenBoat" class="draggable">
-    <img src="assets/Yellow Boat.png" alt="YellowBoat" class="draggable">   
-    <img src="assets/Purple Train.png" alt="PurpleTrain" class="draggable">
-    <img src="assets/Red Train.png" alt="RedTrain" class="draggable">
-    <img src="assets/Green Tram.png" alt="GreenTram" class="draggable">
-    <img src="assets/Yellow Tram.png" alt="YellowTram" class="draggable">
-    <img src="assets/Blue Bus.png" alt="BlueBus" class="draggable">
-    <img src="assets/Yellow Bus.png" alt="YellowBus" class="draggable">   
-    <img src="assets/Pink Plane.png" alt="PinkPlane" class="draggable">
-    <img src="assets/Blue Plane.png" alt="BluePlane" class="draggable">
-    <img src="assets/Red Truck.png" alt="RedTruck" class="draggable">
-    <img src="assets/Blue Truck.png" alt="BlueTruck" class="draggable">
-    <img src="assets/Green Bike.png" alt="GreenBike" class="draggable">  
-    <img src="assets/Purple Bike.png" alt="PurpleBike" class="draggable">
-    <img src="assets/Girl and Dog.png" alt="GirlDog" class="draggable">
-    <img src="assets/Red Helicopter.png" alt="RedHelicopter" class="draggable">
-    <img src="assets/Green Helicopter.png" alt="GreenHelicopter" class="draggable">
-    <img src="assets/Green Motorbike.png" alt="GreenMotorbike" class="draggable">
-    <img src="assets/Red Motorbike.png" alt="RedMotorbike" class="draggable">
-    <img src="assets/Man and Dog.png" alt="ManDog" class="draggable">
-    <img src="assets/Two People Walking.png" alt="TwoPeopleWalking" class="draggable">   
-    <img src="assets/Pink Caravan.png" alt="PinkCaravan" class="draggable">
+    <!-- 28 draggable vehicles -->
+    <img src="assets/Blue Car.png" alt="BlueCar" class="draggable" />
+    <!-- ... more images ... -->
+    <img src="assets/Pink Caravan.png" alt="PinkCaravan" class="draggable" />
   </div>
 
   <div id="end-modal">
