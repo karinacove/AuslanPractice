@@ -25,7 +25,6 @@ const endModalContent = document.getElementById("end-modal-content");
 const continueBtn = document.getElementById("continue-btn");
 const againButtonModal = document.getElementById("again-button-modal");
 const menuButton = document.getElementById("menu-button");
-const logoutButton = document.getElementById("logout-button");
 const modeOptions = document.querySelectorAll(".mode-option");
 const lengthContainer = document.getElementById("length-container");
 const lengthOptions = document.querySelectorAll(".length-option");
@@ -408,11 +407,6 @@ againButtonModal.addEventListener("click", () => {
 });
 
 menuButton.addEventListener("click", () => window.location.href = "../index.html");
-
-logoutButton.addEventListener("click", () => {
-  localStorage.clear();
-  window.location.href = "../index.html";
-});
 
 againButton.addEventListener("click", () => {
   if (isPaused) return;
