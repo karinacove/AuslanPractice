@@ -72,7 +72,6 @@ html, body {
 /* Vehicle Placement */
 .dropped-vehicle {
   position: absolute;
-  width: 40px;
   pointer-events: none;
 }
 
@@ -92,7 +91,16 @@ html, body {
 
 .draggable-wrapper {
   position: absolute;
+  z-index: 1000;
+  cursor: grab;
 }
+
+.draggable-wrapper img.draggable {
+  width: 80px;
+  height: auto;
+  pointer-events: auto;
+}
+
 
 .draggable-wrapper:hover .flip-btn {
   display: block;
