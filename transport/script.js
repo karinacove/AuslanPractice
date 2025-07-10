@@ -112,10 +112,10 @@ document.body.addEventListener('mousedown', e => startDrag(e, false));
 document.body.addEventListener('mousemove', e => moveDrag(e, false));
 document.body.addEventListener('mouseup', endDrag);
 
-// Touch events
-document.body.addEventListener('touchstart', e => startDrag(e, true));
-document.body.addEventListener('touchmove', e => moveDrag(e, true));
-document.body.addEventListener('touchend', endDrag);
+// Touch events with passive:false to allow preventDefault
+document.body.addEventListener('touchstart', e => startDrag(e, true), { passive: false });
+document.body.addEventListener('touchmove', e => moveDrag(e, true), { passive: false });
+document.body.addEventListener('touchend', endDrag, { passive: false });
 
 // -------------------------
 // Finish Button: Submit & Show Modal
