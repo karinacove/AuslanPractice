@@ -160,6 +160,7 @@ function endGame() {
   clearInterval(timer);
   clearLetters();
   wordInput.style.visibility = "hidden";
+  countdownVideo.pause();
   submitResults();
   showFinishModal(true);
 }
