@@ -156,7 +156,31 @@ finishBtn.addEventListener("click", () => {
     mode: "no-cors",
     body: formData
   }).then(() => {
+    // Inject content into the modal
+    endModal.innerHTML = `
+      <div style="text-align: center; color: white; font-size: 1.5rem;">
+        ✅ ${vehicleData.length} vehicle${vehicleData.length !== 1 ? 's' : ''} submitted.
+      </div>
+      <img id="continue-btn" src="assets/continue.png" alt="Continue">
+      <img id="again-btn" src="assets/again.png" alt="Try Again">
+      <img id="menu-btn" src="assets/menu.png" alt="Menu">
+    `;
     endModal.classList.add("show");
+
+    // Button actions
+    document.getElementById("again-btn").addEventListener("click", () => {
+      window.location.reload();
+    });
+
+    document.getElementById("menu-btn").addEventListener("click", () => {
+      window.location.href = "hub.html";
+    });
+
+    document.getElementById("continue-btn").addEventListener("click", () => {
+      // Optional: resume from saved state, or just reload
+      window.location.reload(); // Replace if resume logic exists
+    });
+
   }).catch(() => {
     alert("❌ Submission failed. Please try again.");
   });
