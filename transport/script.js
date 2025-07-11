@@ -202,13 +202,6 @@ menuBtn.addEventListener("click", () => {
   window.location.href = "hub.html";
 });
 
-logoutBtn.addEventListener("click", () => {
-  localStorage.removeItem("studentName");
-  localStorage.removeItem("studentClass");
-  localStorage.removeItem("vehiclePlacements");
-  window.location.href = "../index.html";
-});
-
 continueBtn.addEventListener("click", () => {
   endModal.classList.remove("show");
 });
