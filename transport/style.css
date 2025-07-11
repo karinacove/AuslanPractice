@@ -104,6 +104,23 @@ html, body {
   display: block;
 }
 
+/* Glow effect for placed vehicles on the map */
+.draggable-wrapper {
+  position: absolute;
+  z-index: 1000;
+  cursor: grab;
+  /* Add subtle glowing outline */
+  box-shadow: 0 0 8px 3px rgba(40, 167, 69, 0.7); /* green glow */
+  border-radius: 8px; /* soft rounded corners to smooth the glow */
+  transition: box-shadow 0.3s ease;
+}
+
+/* Optional: intensify glow on hover */
+.draggable-wrapper:hover {
+  box-shadow: 0 0 12px 5px rgba(40, 167, 69, 0.9);
+}
+
+
 /* Student Info Top-Left */
 #student-info {
   position: fixed;
