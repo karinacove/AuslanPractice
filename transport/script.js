@@ -19,6 +19,7 @@ const againBtn = document.getElementById("again-btn");
 const menuBtn = document.getElementById("menu-btn");
 const logoutBtn = document.getElementById("logout-btn");
 const continueBtn = document.getElementById("continue-btn");
+const previewImage = document.getElementById("preview-screenshot");
 
 let jobDescription = '';
 let partnerName = '';
@@ -33,6 +34,11 @@ form.addEventListener("submit", function (e) {
   finishBtn.style.display = 'inline-block';
   studentInfo.style.display = 'block';
   studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
+
+  const savedData = JSON.parse(localStorage.getItem("savedVehicles"));
+  if (savedData) {
+    showModal(true);
+  }
 });
 
 // -------------------------
@@ -48,10 +54,12 @@ function startDrag(e, isTouch = false) {
 
   const wrapper = document.createElement('div');
   wrapper.classList.add('draggable-wrapper');
+  wrapper.style.position = 'absolute';
+  wrapper.style.zIndex = 1000;
 
   const clone = target.cloneNode(true);
   clone.classList.add("dropped-vehicle");
-  clone.style.pointerEvents = 'auto';
+  clone.style.pointerEvents = 'none';
   wrapper.appendChild(clone);
 
   const flipBtn = document.createElement('button');
@@ -66,6 +74,7 @@ function startDrag(e, isTouch = false) {
 
   wrapper.addEventListener('mouseenter', () => flipBtn.style.display = 'block');
   wrapper.addEventListener('mouseleave', () => flipBtn.style.display = 'none');
+  wrapper.addEventListener('dblclick', () => wrapper.remove());
 
   document.body.appendChild(wrapper);
   dragged = wrapper;
@@ -78,7 +87,7 @@ function startDrag(e, isTouch = false) {
   dragged.style.left = (clientX - dragged.offsetX) + 'px';
   dragged.style.top = (clientY - dragged.offsetY) + 'px';
 
-  e.preventDefault?.();
+  e.preventDefault();
 }
 
 function moveDrag(e, isTouch = false) {
@@ -94,52 +103,10 @@ function endDrag() {
   dragged = null;
 }
 
-document.body.addEventListener('mousedown', e => startDrag(e, false));
-document.body.addEventListener('mousemove', e => moveDrag(e, false));
+['mousedown', 'touchstart'].forEach(type => document.body.addEventListener(type, e => startDrag(e, type === 'touchstart'), { passive: false }));
+['mousemove', 'touchmove'].forEach(type => document.body.addEventListener(type, e => moveDrag(e, type === 'touchmove'), { passive: false }));
 document.body.addEventListener('mouseup', endDrag);
-document.body.addEventListener('touchstart', e => startDrag(e, true), { passive: false });
-document.body.addEventListener('touchmove', e => moveDrag(e, true), { passive: false });
 document.body.addEventListener('touchend', endDrag);
-
-// -------------------------
-// Load saved vehicles
-// -------------------------
-function loadSavedVehicles() {
-  const saved = localStorage.getItem("vehiclePlacements");
-  if (!saved) return;
-
-  const vehicles = JSON.parse(saved);
-  vehicles.forEach(v => {
-    const img = new Image();
-    img.src = `assets/${v.name}.png`;
-    img.className = 'draggable dropped-vehicle';
-    if (v.flipped) img.classList.add('flipped-horizontal');
-
-    const wrapper = document.createElement("div");
-    wrapper.className = "draggable-wrapper";
-    wrapper.style.left = v.x;
-    wrapper.style.top = v.y;
-    wrapper.appendChild(img);
-
-    const flipBtn = document.createElement("button");
-    flipBtn.className = "flip-btn";
-    flipBtn.innerHTML = "↔";
-    flipBtn.style.display = "none";
-
-    flipBtn.onclick = (ev) => {
-      ev.stopPropagation();
-      img.classList.toggle("flipped-horizontal");
-    };
-
-    wrapper.appendChild(flipBtn);
-    wrapper.addEventListener("mouseenter", () => flipBtn.style.display = "block");
-    wrapper.addEventListener("mouseleave", () => flipBtn.style.display = "none");
-
-    document.body.appendChild(wrapper);
-  });
-}
-
-loadSavedVehicles();
 
 // -------------------------
 // Finish Button: Submit & Show Modal
@@ -159,15 +126,10 @@ finishBtn.addEventListener("click", () => {
     });
   });
 
-  // Save vehicle data to localStorage
-  localStorage.setItem("vehiclePlacements", JSON.stringify(vehicleData));
-
-  // Hide placed vehicles
-  placedVehicles.forEach(wrapper => wrapper.style.display = "none");
-
-  // Submit to Google Form
-  vehicleData.sort((a, b) => a.name.localeCompare(b.name));
-  const vehicleSummary = vehicleData.map(v => `${v.name} at (${v.x}, ${v.y})${v.flipped ? " [flipped]" : ""}`).join("; ");
+  const vehicleCount = vehicleData.length;
+  const vehicleSummary = vehicleData.map(v =>
+    `${v.name} at (${v.x}, ${v.y})${v.flipped ? " [flipped]" : ""}`
+  ).join("; ");
 
   const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse";
   const formData = new FormData();
@@ -175,7 +137,7 @@ finishBtn.addEventListener("click", () => {
   formData.append("entry.1957249768", studentClass);
   formData.append("entry.436910009", studentName);
   formData.append("entry.169376211", jobDescription);
-  formData.append("entry.1017965571", vehicleData.length.toString());
+  formData.append("entry.1017965571", vehicleCount);
   formData.append("entry.1568301781", vehicleSummary);
 
   fetch(formURL, {
@@ -183,25 +145,94 @@ finishBtn.addEventListener("click", () => {
     mode: "no-cors",
     body: formData
   }).then(() => {
-    document.getElementById("vehicle-count").textContent = `${vehicleData.length} vehicles submitted.`;
-    endModal.classList.add("show");
+    showModal();
   }).catch(() => {
     alert("❌ Submission failed. Please try again.");
   });
 });
 
+function showModal(isReload = false) {
+  endModal.classList.add("show");
+  document.querySelectorAll('.draggable-wrapper').forEach(el => el.style.display = 'none');
+  const canvas = document.createElement('canvas');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(document.body, 0, 0);
+  previewImage.src = canvas.toDataURL();
+  previewImage.style.display = 'block';
+
+  if (isReload) {
+    againBtn.style.display = 'inline';
+    menuBtn.style.display = 'inline';
+    continueBtn.style.display = 'inline';
+  }
+}
+
 // -------------------------
 // Modal Button Handling
 // -------------------------
 againBtn.addEventListener("click", () => {
-  localStorage.removeItem("vehiclePlacements");
+  localStorage.removeItem("savedVehicles");
   window.location.reload();
 });
 
 menuBtn.addEventListener("click", () => {
+  localStorage.removeItem("savedVehicles");
   window.location.href = "hub.html";
 });
 
 continueBtn.addEventListener("click", () => {
+  const placedVehicles = document.querySelectorAll(".draggable-wrapper");
+  const saved = [];
+  placedVehicles.forEach(wrapper => {
+    const img = wrapper.querySelector("img");
+    saved.push({
+      src: img.src,
+      left: wrapper.style.left,
+      top: wrapper.style.top,
+      flipped: img.classList.contains("flipped-horizontal")
+    });
+  });
+  localStorage.setItem("savedVehicles", JSON.stringify(saved));
   endModal.classList.remove("show");
+  document.querySelectorAll('.draggable-wrapper').forEach(el => el.style.display = 'block');
+  previewImage.style.display = 'none';
+});
+
+// -------------------------
+// Load Saved Vehicles if Exist
+// -------------------------
+window.addEventListener("DOMContentLoaded", () => {
+  const saved = JSON.parse(localStorage.getItem("savedVehicles"));
+  if (saved) {
+    saved.forEach(data => {
+      const wrapper = document.createElement("div");
+      wrapper.classList.add("draggable-wrapper");
+      wrapper.style.left = data.left;
+      wrapper.style.top = data.top;
+
+      const img = document.createElement("img");
+      img.src = data.src;
+      img.className = "draggable dropped-vehicle";
+      if (data.flipped) img.classList.add("flipped-horizontal");
+      wrapper.appendChild(img);
+
+      const flipBtn = document.createElement('button');
+      flipBtn.className = 'flip-btn';
+      flipBtn.innerHTML = '↔';
+      flipBtn.style.display = 'none';
+      flipBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        img.classList.toggle('flipped-horizontal');
+      };
+
+      wrapper.appendChild(flipBtn);
+      wrapper.addEventListener('mouseenter', () => flipBtn.style.display = 'block');
+      wrapper.addEventListener('mouseleave', () => flipBtn.style.display = 'none');
+      wrapper.addEventListener('dblclick', () => wrapper.remove());
+
+      document.body.appendChild(wrapper);
+    });
+  }
 });
