@@ -23,6 +23,13 @@ const vehicleCountText = document.getElementById("vehicle-count");
 const downloadBtn = document.getElementById("download-btn");
 const uploadInfo = document.getElementById("upload-info");
 
+// New elements for modal rows & upload
+const row1 = document.getElementById("row-1"); // top row: preview + download
+const row2 = document.getElementById("row-2"); // vehicle count + continue
+const row3 = document.getElementById("row-3"); // upload, again, menu
+const uploadBtn = document.getElementById("upload-btn");
+const uploadInput = document.getElementById("upload-input");
+
 let jobDescription = '';
 let partnerName = '';
 
@@ -142,6 +149,14 @@ finishBtn.addEventListener("click", () => {
   uploadInfo.innerHTML = `🖼️ If asked, upload your map below.<br>⬇️ Or click the button to save it.`;
   downloadBtn.style.display = 'inline-block';
 
+  // Show row 1 and 2, hide row 3 on modal open
+  row1.style.display = "flex";
+  row2.style.display = "flex";
+  row3.style.display = "none";
+  againBtn.style.display = "none";
+  menuBtn.style.display = "none";
+  continueBtn.style.display = "inline-block";
+
   const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse";
 
   const formData = new FormData();
@@ -162,6 +177,9 @@ finishBtn.addEventListener("click", () => {
   });
 });
 
+// -------------------------
+// Screenshot functions
+// -------------------------
 function captureScreenshot() {
   return html2canvas(document.body).then(canvas => canvas.toDataURL("image/png"));
 }
@@ -176,6 +194,15 @@ function downloadScreenshot() {
     a.href = dataUrl;
     a.download = "map_screenshot.png";
     a.click();
+
+    // After download, change modal stage:
+    row1.style.display = "none";      // hide map preview + download
+    row2.style.display = "flex";      // keep vehicle count + continue
+    row3.style.display = "flex";      // show upload + (again/menu hidden initially)
+    uploadBtn.style.display = "inline-block";
+    againBtn.style.display = "none";
+    menuBtn.style.display = "none";
+    continueBtn.style.display = "none"; // hide continue to avoid confusion
   });
 }
 
@@ -184,6 +211,23 @@ downloadBtn.addEventListener("click", downloadScreenshot);
 // -------------------------
 // Modal Button Handling
 // -------------------------
+uploadBtn.addEventListener("click", () => {
+  uploadInput.click();
+});
+
+uploadInput.addEventListener("change", (e) => {
+  if (uploadInput.files.length > 0) {
+    // You could validate file type here if you want
+
+    // Hide upload button and show again/menu buttons
+    uploadBtn.style.display = "none";
+    againBtn.style.display = "inline-block";
+    menuBtn.style.display = "inline-block";
+
+    alert("Image uploaded! You can now play again or return to the menu.");
+  }
+});
+
 againBtn.addEventListener("click", () => {
   localStorage.removeItem("savedVehicles");
   window.location.reload();
