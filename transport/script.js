@@ -18,6 +18,7 @@ const endModal = document.getElementById("end-modal");
 const againBtn = document.getElementById("again-btn");
 const menuBtn = document.getElementById("menu-btn");
 const logoutBtn = document.getElementById("logout-btn");
+const continueBtn = document.getElementById("continue-btn");
 
 let jobDescription = '';
 let partnerName = '';
@@ -45,36 +46,27 @@ function startDrag(e, isTouch = false) {
   if (!target.classList.contains('draggable') || target.parentElement !== palette) return;
   if (document.querySelectorAll('body > .draggable-wrapper').length >= MAX_VEHICLES) return;
 
-  // Create wrapper for new vehicle
   const wrapper = document.createElement('div');
   wrapper.classList.add('draggable-wrapper');
-  wrapper.style.position = 'absolute';
-  wrapper.style.zIndex = 1000;
 
-  // Clone the vehicle image
   const clone = target.cloneNode(true);
-  clone.classList.add("draggable");
-  clone.style.width = "80px";
-  clone.style.height = "auto";
+  clone.classList.add("dropped-vehicle");
   clone.style.pointerEvents = 'auto';
   wrapper.appendChild(clone);
 
-  // Create flip button
   const flipBtn = document.createElement('button');
   flipBtn.className = 'flip-btn';
   flipBtn.innerHTML = '↔';
   flipBtn.style.display = 'none';
-
   flipBtn.onclick = (ev) => {
     ev.stopPropagation();
     clone.classList.toggle('flipped-horizontal');
   };
+  wrapper.appendChild(flipBtn);
 
-  // Show/hide flip button on hover
   wrapper.addEventListener('mouseenter', () => flipBtn.style.display = 'block');
   wrapper.addEventListener('mouseleave', () => flipBtn.style.display = 'none');
 
-  wrapper.appendChild(flipBtn);
   document.body.appendChild(wrapper);
   dragged = wrapper;
 
@@ -86,12 +78,7 @@ function startDrag(e, isTouch = false) {
   dragged.style.left = (clientX - dragged.offsetX) + 'px';
   dragged.style.top = (clientY - dragged.offsetY) + 'px';
 
-  e.preventDefault();
-
-  // Allow double-click deletion
-  wrapper.addEventListener("dblclick", () => {
-    wrapper.remove();
-  });
+  e.preventDefault?.();
 }
 
 function moveDrag(e, isTouch = false) {
@@ -107,15 +94,52 @@ function endDrag() {
   dragged = null;
 }
 
-// Mouse events
 document.body.addEventListener('mousedown', e => startDrag(e, false));
 document.body.addEventListener('mousemove', e => moveDrag(e, false));
 document.body.addEventListener('mouseup', endDrag);
-
-// Touch events with passive:false to allow preventDefault
 document.body.addEventListener('touchstart', e => startDrag(e, true), { passive: false });
 document.body.addEventListener('touchmove', e => moveDrag(e, true), { passive: false });
-document.body.addEventListener('touchend', endDrag, { passive: false });
+document.body.addEventListener('touchend', endDrag);
+
+// -------------------------
+// Load saved vehicles
+// -------------------------
+function loadSavedVehicles() {
+  const saved = localStorage.getItem("vehiclePlacements");
+  if (!saved) return;
+
+  const vehicles = JSON.parse(saved);
+  vehicles.forEach(v => {
+    const img = new Image();
+    img.src = `assets/${v.name}.png`;
+    img.className = 'draggable dropped-vehicle';
+    if (v.flipped) img.classList.add('flipped-horizontal');
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "draggable-wrapper";
+    wrapper.style.left = v.x;
+    wrapper.style.top = v.y;
+    wrapper.appendChild(img);
+
+    const flipBtn = document.createElement("button");
+    flipBtn.className = "flip-btn";
+    flipBtn.innerHTML = "↔";
+    flipBtn.style.display = "none";
+
+    flipBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      img.classList.toggle("flipped-horizontal");
+    };
+
+    wrapper.appendChild(flipBtn);
+    wrapper.addEventListener("mouseenter", () => flipBtn.style.display = "block");
+    wrapper.addEventListener("mouseleave", () => flipBtn.style.display = "none");
+
+    document.body.appendChild(wrapper);
+  });
+}
+
+loadSavedVehicles();
 
 // -------------------------
 // Finish Button: Submit & Show Modal
@@ -135,20 +159,23 @@ finishBtn.addEventListener("click", () => {
     });
   });
 
-  vehicleData.sort((a, b) => a.name.localeCompare(b.name));
+  // Save vehicle data to localStorage
+  localStorage.setItem("vehiclePlacements", JSON.stringify(vehicleData));
 
-  const vehicleSummary = vehicleData.map(v =>
-    `${v.name} at (${v.x}, ${v.y})${v.flipped ? " [flipped]" : ""}`
-  ).join("; ");
+  // Hide placed vehicles
+  placedVehicles.forEach(wrapper => wrapper.style.display = "none");
+
+  // Submit to Google Form
+  vehicleData.sort((a, b) => a.name.localeCompare(b.name));
+  const vehicleSummary = vehicleData.map(v => `${v.name} at (${v.x}, ${v.y})${v.flipped ? " [flipped]" : ""}`).join("; ");
 
   const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse";
-
   const formData = new FormData();
   formData.append("entry.1202364028", "Mrs Cove");
   formData.append("entry.1957249768", studentClass);
   formData.append("entry.436910009", studentName);
   formData.append("entry.169376211", jobDescription);
-  formData.append("entry.1017965571", "1");
+  formData.append("entry.1017965571", vehicleData.length.toString());
   formData.append("entry.1568301781", vehicleSummary);
 
   fetch(formURL, {
@@ -156,31 +183,8 @@ finishBtn.addEventListener("click", () => {
     mode: "no-cors",
     body: formData
   }).then(() => {
-    // Inject content into the modal
-    endModal.innerHTML = `
-      <div style="text-align: center; color: white; font-size: 1.5rem;">
-        ✅ ${vehicleData.length} vehicle${vehicleData.length !== 1 ? 's' : ''} submitted.
-      </div>
-      <img id="continue-btn" src="assets/continue.png" alt="Continue">
-      <img id="again-btn" src="assets/again.png" alt="Try Again">
-      <img id="menu-btn" src="assets/menu.png" alt="Menu">
-    `;
+    document.getElementById("vehicle-count").textContent = `${vehicleData.length} vehicles submitted.`;
     endModal.classList.add("show");
-
-    // Button actions
-    document.getElementById("again-btn").addEventListener("click", () => {
-      window.location.reload();
-    });
-
-    document.getElementById("menu-btn").addEventListener("click", () => {
-      window.location.href = "hub.html";
-    });
-
-    document.getElementById("continue-btn").addEventListener("click", () => {
-      // Optional: resume from saved state, or just reload
-      window.location.reload(); // Replace if resume logic exists
-    });
-
   }).catch(() => {
     alert("❌ Submission failed. Please try again.");
   });
@@ -190,6 +194,7 @@ finishBtn.addEventListener("click", () => {
 // Modal Button Handling
 // -------------------------
 againBtn.addEventListener("click", () => {
+  localStorage.removeItem("vehiclePlacements");
   window.location.reload();
 });
 
@@ -200,5 +205,10 @@ menuBtn.addEventListener("click", () => {
 logoutBtn.addEventListener("click", () => {
   localStorage.removeItem("studentName");
   localStorage.removeItem("studentClass");
+  localStorage.removeItem("vehiclePlacements");
   window.location.href = "../index.html";
+});
+
+continueBtn.addEventListener("click", () => {
+  endModal.classList.remove("show");
 });
