@@ -20,6 +20,8 @@ const menuBtn = document.getElementById("menu-btn");
 const continueBtn = document.getElementById("continue-btn");
 const previewImg = document.getElementById("map-preview");
 const vehicleCountText = document.getElementById("vehicle-count");
+const downloadBtn = document.getElementById("download-btn");
+const uploadInfo = document.getElementById("upload-info");
 
 let jobDescription = '';
 let partnerName = '';
@@ -36,7 +38,6 @@ form.addEventListener("submit", function (e) {
   studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
 
   if (localStorage.getItem("savedVehicles")) {
-    restoreVehicles();
     endModal.classList.add("show");
     restorePreview();
     vehicleCountText.textContent = `${JSON.parse(localStorage.getItem("savedVehicles")).length} vehicles previously placed.`;
@@ -61,7 +62,7 @@ function startDrag(e, isTouch = false) {
 
   const clone = target.cloneNode(true);
   clone.classList.add("dropped-vehicle");
-  clone.classList.add("draggable");
+  clone.style.pointerEvents = 'none';
   wrapper.appendChild(clone);
 
   const flipBtn = document.createElement('button');
@@ -76,8 +77,6 @@ function startDrag(e, isTouch = false) {
 
   wrapper.addEventListener('mouseenter', () => flipBtn.style.display = 'block');
   wrapper.addEventListener('mouseleave', () => flipBtn.style.display = 'none');
-
-  wrapper.ondblclick = () => wrapper.remove();
 
   document.body.appendChild(wrapper);
   dragged = wrapper;
@@ -138,30 +137,27 @@ finishBtn.addEventListener("click", () => {
   ).join("; ");
 
   vehicleCountText.textContent = `${vehicleData.length} vehicles submitted.`;
+  captureScreenshot().then(dataUrl => previewImg.src = dataUrl);
 
-  document.querySelectorAll(".draggable-wrapper").forEach(el => el.style.display = 'none');
+  uploadInfo.innerHTML = `🖼️ If asked, upload your map below.<br>⬇️ Or click the button to save it.`;
+  downloadBtn.style.display = 'inline-block';
 
-  captureScreenshot().then(dataUrl => {
-    previewImg.src = dataUrl;
+  const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse";
 
-    const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse";
+  const formData = new FormData();
+  formData.append("entry.1202364028", "Mrs Cove");
+  formData.append("entry.1957249768", studentClass);
+  formData.append("entry.436910009", studentName);
+  formData.append("entry.169376211", jobDescription);
+  formData.append("entry.1017965571", "1");
+  formData.append("entry.1568301781", vehicleSummary);
 
-    const formData = new FormData();
-    formData.append("entry.1202364028", "Mrs Cove");
-    formData.append("entry.1957249768", studentClass);
-    formData.append("entry.436910009", studentName);
-    formData.append("entry.169376211", jobDescription);
-    formData.append("entry.1017965571", "1");
-    formData.append("entry.1568301781", vehicleSummary);
-    // Screenshots can't be attached directly — this line is illustrative
-    // formData.append("entry.screenshot", dataUrl); <-- not supported by Google Forms
-
-    fetch(formURL, {
-      method: "POST",
-      mode: "no-cors",
-      body: formData
-    });
-
+  fetch(formURL, {
+    method: "POST",
+    mode: "no-cors",
+    body: formData
+  }).then(() => {
+    document.querySelectorAll(".draggable-wrapper").forEach(el => el.style.display = 'none');
     endModal.classList.add("show");
   });
 });
@@ -173,6 +169,17 @@ function captureScreenshot() {
 function restorePreview() {
   captureScreenshot().then(dataUrl => previewImg.src = dataUrl);
 }
+
+function downloadScreenshot() {
+  captureScreenshot().then(dataUrl => {
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = "map_screenshot.png";
+    a.click();
+  });
+}
+
+downloadBtn.addEventListener("click", downloadScreenshot);
 
 // -------------------------
 // Modal Button Handling
@@ -203,40 +210,3 @@ continueBtn.addEventListener("click", () => {
   endModal.classList.remove("show");
   document.querySelectorAll(".draggable-wrapper").forEach(el => el.style.display = 'block');
 });
-
-// -------------------------
-// Restore saved vehicle positions if continuing
-// -------------------------
-function restoreVehicles() {
-  const saved = JSON.parse(localStorage.getItem("savedVehicles") || "[]");
-  saved.forEach(data => {
-    const wrapper = document.createElement("div");
-    wrapper.classList.add("draggable-wrapper");
-    wrapper.style.position = "absolute";
-    wrapper.style.left = data.left;
-    wrapper.style.top = data.top;
-    wrapper.style.zIndex = 1000;
-
-    const img = document.createElement("img");
-    img.src = data.src;
-    img.className = "dropped-vehicle draggable";
-    if (data.flipped) img.classList.add("flipped-horizontal");
-
-    const flipBtn = document.createElement("button");
-    flipBtn.className = "flip-btn";
-    flipBtn.innerHTML = "↔";
-    flipBtn.style.display = "none";
-    flipBtn.onclick = (ev) => {
-      ev.stopPropagation();
-      img.classList.toggle("flipped-horizontal");
-    };
-
-    wrapper.addEventListener("mouseenter", () => flipBtn.style.display = "block");
-    wrapper.addEventListener("mouseleave", () => flipBtn.style.display = "none");
-    wrapper.ondblclick = () => wrapper.remove();
-
-    wrapper.appendChild(img);
-    wrapper.appendChild(flipBtn);
-    document.body.appendChild(wrapper);
-  });
-}
