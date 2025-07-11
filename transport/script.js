@@ -190,19 +190,30 @@ function restorePreview() {
 
 function downloadScreenshot() {
   captureScreenshot().then(dataUrl => {
-    const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = "map_screenshot.png";
-    a.click();
-
-    // After download, change modal stage:
-    row1.style.display = "none";      // hide map preview + download
-    row2.style.display = "flex";      // keep vehicle count + continue
-    row3.style.display = "flex";      // show upload + (again/menu hidden initially)
-    uploadBtn.style.display = "inline-block";
-    againBtn.style.display = "none";
-    menuBtn.style.display = "none";
-    continueBtn.style.display = "none"; // hide continue to avoid confusion
+    // Send image to Google Apps Script Web App
+    fetch("https://script.google.com/macros/s/AKfycbzQFM9jcNCDPVg70SzmQ3hZIYahhDbTQXJ4UyqaTby81hTMWMmgxCtPX9nZxqHVfs_Mew/exec", {
+      method: "POST",
+      body: JSON.stringify({ image: dataUrl }),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
+    .then(response => response.json())
+    .then(result => {
+      if (result.status === "success") {
+        alert("✅ Screenshot uploaded to Google Drive!");
+        // Skip upload step and show Again/Menu buttons
+        document.getElementById("row-3").style.display = "flex";
+        document.getElementById("upload-btn").style.display = "none";
+        document.getElementById("again-btn").style.display = "inline-block";
+        document.getElementById("menu-btn").style.display = "inline-block";
+      } else {
+        alert("❌ Upload failed: " + result.message);
+      }
+    })
+    .catch(err => {
+      alert("❌ Upload error: " + err.message);
+    });
   });
 }
 
