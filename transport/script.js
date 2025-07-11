@@ -146,9 +146,7 @@ finishBtn.addEventListener("click", () => {
     body: formData
   }).then(() => {
     showModal();
-  }).catch(() => {
-    alert("❌ Submission failed. Please try again.");
-  });
+  })
 });
 
 function showModal(isReload = false) {
