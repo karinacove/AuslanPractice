@@ -17,9 +17,9 @@ const startBtn = document.getElementById("start-btn");
 const endModal = document.getElementById("end-modal");
 const againBtn = document.getElementById("again-btn");
 const menuBtn = document.getElementById("menu-btn");
-const logoutBtn = document.getElementById("logout-btn");
 const continueBtn = document.getElementById("continue-btn");
-const previewImage = document.getElementById("preview-screenshot");
+const previewImg = document.getElementById("map-preview");
+const vehicleCountText = document.getElementById("vehicle-count");
 
 let jobDescription = '';
 let partnerName = '';
@@ -35,9 +35,11 @@ form.addEventListener("submit", function (e) {
   studentInfo.style.display = 'block';
   studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
 
-  const savedData = JSON.parse(localStorage.getItem("savedVehicles"));
-  if (savedData) {
-    showModal(true);
+  if (localStorage.getItem("savedVehicles")) {
+    restoreVehicles();
+    endModal.classList.add("show");
+    restorePreview();
+    vehicleCountText.textContent = `${JSON.parse(localStorage.getItem("savedVehicles")).length} vehicles previously placed.`;
   }
 });
 
@@ -59,7 +61,7 @@ function startDrag(e, isTouch = false) {
 
   const clone = target.cloneNode(true);
   clone.classList.add("dropped-vehicle");
-  clone.style.pointerEvents = 'none';
+  clone.classList.add("draggable");
   wrapper.appendChild(clone);
 
   const flipBtn = document.createElement('button');
@@ -74,7 +76,8 @@ function startDrag(e, isTouch = false) {
 
   wrapper.addEventListener('mouseenter', () => flipBtn.style.display = 'block');
   wrapper.addEventListener('mouseleave', () => flipBtn.style.display = 'none');
-  wrapper.addEventListener('dblclick', () => wrapper.remove());
+
+  wrapper.ondblclick = () => wrapper.remove();
 
   document.body.appendChild(wrapper);
   dragged = wrapper;
@@ -103,9 +106,11 @@ function endDrag() {
   dragged = null;
 }
 
-['mousedown', 'touchstart'].forEach(type => document.body.addEventListener(type, e => startDrag(e, type === 'touchstart'), { passive: false }));
-['mousemove', 'touchmove'].forEach(type => document.body.addEventListener(type, e => moveDrag(e, type === 'touchmove'), { passive: false }));
+document.body.addEventListener('mousedown', e => startDrag(e, false));
+document.body.addEventListener('mousemove', e => moveDrag(e, false));
 document.body.addEventListener('mouseup', endDrag);
+document.body.addEventListener('touchstart', e => startDrag(e, true), { passive: false });
+document.body.addEventListener('touchmove', e => moveDrag(e, true), { passive: false });
 document.body.addEventListener('touchend', endDrag);
 
 // -------------------------
@@ -126,45 +131,47 @@ finishBtn.addEventListener("click", () => {
     });
   });
 
-  const vehicleCount = vehicleData.length;
+  vehicleData.sort((a, b) => a.name.localeCompare(b.name));
+
   const vehicleSummary = vehicleData.map(v =>
     `${v.name} at (${v.x}, ${v.y})${v.flipped ? " [flipped]" : ""}`
   ).join("; ");
 
-  const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse";
-  const formData = new FormData();
-  formData.append("entry.1202364028", "Mrs Cove");
-  formData.append("entry.1957249768", studentClass);
-  formData.append("entry.436910009", studentName);
-  formData.append("entry.169376211", jobDescription);
-  formData.append("entry.1017965571", vehicleCount);
-  formData.append("entry.1568301781", vehicleSummary);
+  vehicleCountText.textContent = `${vehicleData.length} vehicles submitted.`;
 
-  fetch(formURL, {
-    method: "POST",
-    mode: "no-cors",
-    body: formData
-  }).then(() => {
-    showModal();
-  })
+  document.querySelectorAll(".draggable-wrapper").forEach(el => el.style.display = 'none');
+
+  captureScreenshot().then(dataUrl => {
+    previewImg.src = dataUrl;
+
+    const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse";
+
+    const formData = new FormData();
+    formData.append("entry.1202364028", "Mrs Cove");
+    formData.append("entry.1957249768", studentClass);
+    formData.append("entry.436910009", studentName);
+    formData.append("entry.169376211", jobDescription);
+    formData.append("entry.1017965571", "1");
+    formData.append("entry.1568301781", vehicleSummary);
+    // Screenshots can't be attached directly — this line is illustrative
+    // formData.append("entry.screenshot", dataUrl); <-- not supported by Google Forms
+
+    fetch(formURL, {
+      method: "POST",
+      mode: "no-cors",
+      body: formData
+    });
+
+    endModal.classList.add("show");
+  });
 });
 
-function showModal(isReload = false) {
-  endModal.classList.add("show");
-  document.querySelectorAll('.draggable-wrapper').forEach(el => el.style.display = 'none');
-  const canvas = document.createElement('canvas');
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(document.body, 0, 0);
-  previewImage.src = canvas.toDataURL();
-  previewImage.style.display = 'block';
+function captureScreenshot() {
+  return html2canvas(document.body).then(canvas => canvas.toDataURL("image/png"));
+}
 
-  if (isReload) {
-    againBtn.style.display = 'inline';
-    menuBtn.style.display = 'inline';
-    continueBtn.style.display = 'inline';
-  }
+function restorePreview() {
+  captureScreenshot().then(dataUrl => previewImg.src = dataUrl);
 }
 
 // -------------------------
@@ -181,56 +188,55 @@ menuBtn.addEventListener("click", () => {
 });
 
 continueBtn.addEventListener("click", () => {
-  const placedVehicles = document.querySelectorAll(".draggable-wrapper");
-  const saved = [];
-  placedVehicles.forEach(wrapper => {
+  const vehicleData = [];
+  document.querySelectorAll(".draggable-wrapper").forEach(wrapper => {
     const img = wrapper.querySelector("img");
-    saved.push({
+    vehicleData.push({
       src: img.src,
       left: wrapper.style.left,
       top: wrapper.style.top,
       flipped: img.classList.contains("flipped-horizontal")
     });
   });
-  localStorage.setItem("savedVehicles", JSON.stringify(saved));
+
+  localStorage.setItem("savedVehicles", JSON.stringify(vehicleData));
   endModal.classList.remove("show");
-  document.querySelectorAll('.draggable-wrapper').forEach(el => el.style.display = 'block');
-  previewImage.style.display = 'none';
+  document.querySelectorAll(".draggable-wrapper").forEach(el => el.style.display = 'block');
 });
 
 // -------------------------
-// Load Saved Vehicles if Exist
+// Restore saved vehicle positions if continuing
 // -------------------------
-window.addEventListener("DOMContentLoaded", () => {
-  const saved = JSON.parse(localStorage.getItem("savedVehicles"));
-  if (saved) {
-    saved.forEach(data => {
-      const wrapper = document.createElement("div");
-      wrapper.classList.add("draggable-wrapper");
-      wrapper.style.left = data.left;
-      wrapper.style.top = data.top;
+function restoreVehicles() {
+  const saved = JSON.parse(localStorage.getItem("savedVehicles") || "[]");
+  saved.forEach(data => {
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("draggable-wrapper");
+    wrapper.style.position = "absolute";
+    wrapper.style.left = data.left;
+    wrapper.style.top = data.top;
+    wrapper.style.zIndex = 1000;
 
-      const img = document.createElement("img");
-      img.src = data.src;
-      img.className = "draggable dropped-vehicle";
-      if (data.flipped) img.classList.add("flipped-horizontal");
-      wrapper.appendChild(img);
+    const img = document.createElement("img");
+    img.src = data.src;
+    img.className = "dropped-vehicle draggable";
+    if (data.flipped) img.classList.add("flipped-horizontal");
 
-      const flipBtn = document.createElement('button');
-      flipBtn.className = 'flip-btn';
-      flipBtn.innerHTML = '↔';
-      flipBtn.style.display = 'none';
-      flipBtn.onclick = (ev) => {
-        ev.stopPropagation();
-        img.classList.toggle('flipped-horizontal');
-      };
+    const flipBtn = document.createElement("button");
+    flipBtn.className = "flip-btn";
+    flipBtn.innerHTML = "↔";
+    flipBtn.style.display = "none";
+    flipBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      img.classList.toggle("flipped-horizontal");
+    };
 
-      wrapper.appendChild(flipBtn);
-      wrapper.addEventListener('mouseenter', () => flipBtn.style.display = 'block');
-      wrapper.addEventListener('mouseleave', () => flipBtn.style.display = 'none');
-      wrapper.addEventListener('dblclick', () => wrapper.remove());
+    wrapper.addEventListener("mouseenter", () => flipBtn.style.display = "block");
+    wrapper.addEventListener("mouseleave", () => flipBtn.style.display = "none");
+    wrapper.ondblclick = () => wrapper.remove();
 
-      document.body.appendChild(wrapper);
-    });
-  }
-});
+    wrapper.appendChild(img);
+    wrapper.appendChild(flipBtn);
+    document.body.appendChild(wrapper);
+  });
+}
