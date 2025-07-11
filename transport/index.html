@@ -63,17 +63,27 @@
   </div>
 
   <!-- Modal at end -->
-<div id="end-modal">
-  <img id="map-preview" alt="Map Preview" style="max-width: 100%; display: block; margin-top: 1rem;" />
-  <div id="upload-info" style="margin-top: 0.5rem; font-size: 1rem; color: #333;"></div>
-  <div id="vehicle-count" style="margin-top: 0.5rem; font-weight: bold;"></div>
-  
-  <img id="continue-btn" src="assets/continue.png" alt="Continue" />
-  <img id="download-btn" src="assets/download.png" alt="Download" />
-  <img src="assets/again.png" id="again-btn" alt="Play Again" />
-  <img src="assets/menu.png" id="menu-btn" alt="Menu" />
-</div>
+<div id="end-modal" class="modal">
+  <!-- Row 1: Map preview and download -->
+  <div class="modal-row" id="row-1" style="display: flex; justify-content: space-between; align-items: center;">
+    <img id="map-preview" alt="Map Preview" style="max-width: 45%; border: 1px solid #ccc;" />
+    <img id="download-btn" src="assets/download.png" alt="Download" style="cursor: pointer;" />
+  </div>
 
+  <!-- Row 2: Vehicle count and continue button -->
+  <div class="modal-row" id="row-2" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+    <div id="vehicle-count" style="font-weight: bold;"></div>
+    <img id="continue-btn" src="assets/continue.png" alt="Continue" style="cursor: pointer;" />
+  </div>
+
+  <!-- Row 3: Upload, again, menu buttons (hidden initially) -->
+  <div class="modal-row" id="row-3" style="display: none; justify-content: space-around; margin-top: 1rem;">
+    <input type="file" id="upload-input" accept="image/*" style="display:none;" />
+    <button id="upload-btn" style="cursor: pointer;">Upload Image</button>
+    <img src="assets/again.png" id="again-btn" alt="Play Again" style="cursor: pointer; display: none;" />
+    <img src="assets/menu.png" id="menu-btn" alt="Menu" style="cursor: pointer; display: none;" />
+  </div>
+</div>
 
   <script src="script.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
