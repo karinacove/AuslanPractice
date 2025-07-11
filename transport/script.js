@@ -190,10 +190,19 @@ function restorePreview() {
 
 function downloadScreenshot() {
   captureScreenshot().then(dataUrl => {
-    // Send image to Google Apps Script Web App
+    const now = new Date();
+    const timestamp = now.toISOString().replace(/T/, '_').replace(/:/g, '-').split('.')[0]; // YYYY-MM-DD_HH-MM-SS
+
+    const fileName = `${timestamp}_${studentName}_${studentClass}_${jobDescription}_with_${partnerName}.png`
+      .replace(/\s+/g, '_')      // replace spaces with underscores
+      .replace(/[^\w\-\.]/g, ''); // remove unsafe characters
+
     fetch("https://script.google.com/macros/s/AKfycbzQFM9jcNCDPVg70SzmQ3hZIYahhDbTQXJ4UyqaTby81hTMWMmgxCtPX9nZxqHVfs_Mew/exec", {
       method: "POST",
-      body: JSON.stringify({ image: dataUrl }),
+      body: JSON.stringify({
+        image: dataUrl,
+        filename: fileName
+      }),
       headers: {
         "Content-Type": "application/json"
       }
@@ -202,11 +211,7 @@ function downloadScreenshot() {
     .then(result => {
       if (result.status === "success") {
         alert("✅ Screenshot uploaded to Google Drive!");
-        // Skip upload step and show Again/Menu buttons
         document.getElementById("row-3").style.display = "flex";
-        document.getElementById("upload-btn").style.display = "none";
-        document.getElementById("again-btn").style.display = "inline-block";
-        document.getElementById("menu-btn").style.display = "inline-block";
       } else {
         alert("❌ Upload failed: " + result.message);
       }
@@ -216,6 +221,7 @@ function downloadScreenshot() {
     });
   });
 }
+
 
 downloadBtn.addEventListener("click", downloadScreenshot);
 
