@@ -1,71 +1,248 @@
-// Global Variables
-let placedCount = 0;
-let studentName = localStorage.getItem("studentName") || "";
-let studentClass = localStorage.getItem("studentClass") || "";
+document.addEventListener("DOMContentLoaded", function () {
+  // -------------------------
+  // Student Sign-in Handling
+  // -------------------------
+  const studentName = localStorage.getItem("studentName") || "";
+  const studentClass = localStorage.getItem("studentClass") || "";
 
-// DOM Elements
-const finishButton = document.getElementById("finish-button");
-const modal = document.getElementById("modal");
-const againBtn = document.getElementById("again-btn");
-const menuBtn = document.getElementById("menu-btn");
-const downloadBtn = document.getElementById("download-btn");
-const previewImg = document.getElementById("preview-img");
-const gameUI = document.getElementById("game-ui");
-const vehiclePalette = document.getElementById("vehicle-palette");
+  if (!studentName || !studentClass) {
+    window.location.href = "../index.html";
+    return;
+  }
 
-// Ensure student is signed in
-if (!studentName || !studentClass) {
-  alert("Please return to the sign-in page.");
-  window.location.href = "index.html";
-}
+  const studentInfo = document.getElementById("student-info");
+  const palette = document.getElementById("vehicle-palette");
+  const finishBtn = document.getElementById("finish-btn");
+  const form = document.getElementById("student-form");
+  const endModal = document.getElementById("end-modal");
+  const againBtn = document.getElementById("again-btn");
+  const menuBtn = document.getElementById("menu-btn");
+  const continueBtn = document.getElementById("continue-btn");
+  const previewImg = document.getElementById("map-preview");
+  const vehicleCountText = document.getElementById("vehicle-count");
+  const downloadBtn = document.getElementById("download-btn");
+  const row1 = document.getElementById("row-1");
+  const row2 = document.getElementById("row-2");
+  const row3 = document.getElementById("row-3");
 
-// Finish Button Clicked
-finishButton.addEventListener("click", () => {
-  captureScreenshot();
-});
+  let jobDescription = "";
+  let partnerName = "";
 
-// Screenshot capture + upload function
-function captureScreenshot() {
-  html2canvas(document.body).then(canvas => {
-    const imageBase64 = canvas.toDataURL("image/png").split(",")[1]; // Remove data:image prefix
-    const previewURL = canvas.toDataURL("image/png");
-    previewImg.src = previewURL;
-    modal.classList.remove("hidden");
+  if (endModal) endModal.classList.remove("show");
 
-    // Rename file: YYYYMMDD-Class-Name-instructions-partner.png
-    const now = new Date();
-    const dateString = now.toISOString().slice(0,10).replace(/-/g, "");
-    const fileName = `${dateString}-${studentClass}-${studentName}-instructions-partner.png`;
+  if (form) {
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      jobDescription = document.getElementById("jobDescription").value;
+      partnerName = document.getElementById("partnerName").value;
 
-    // Setup download button (optional backup)
-    downloadBtn.onclick = () => {
-      const link = document.createElement("a");
-      link.download = fileName;
-      link.href = previewURL;
-      link.click();
-    };
-
-    // Auto-upload to Google Drive
-    fetch("https://script.google.com/macros/s/AKfycbyIpF3yI4PHakjaAkuyjLCwEGxmzMQa6ePgb0crTclxDBstCIuzzf1OMm7wNk3TP_wObQ/exec", {
-      method: "POST",
-      body: JSON.stringify({
-        imageBase64: imageBase64,
-        filename: fileName
-      }),
-      headers: {
-        "Content-Type": "application/json"
+      form.style.display = "none";
+      if (palette) palette.style.display = "grid";
+      if (finishBtn) finishBtn.style.display = "inline-block";
+      if (studentInfo) {
+        studentInfo.style.display = "block";
+        studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
       }
-    }).then(response => response.text())
-      .then(result => console.log("Upload result:", result))
-      .catch(error => console.error("Upload error:", error));
-  });
-}
 
-// Modal buttons
-againBtn.addEventListener("click", () => {
-  window.location.reload();
-});
+      if (localStorage.getItem("savedVehicles")) {
+        if (endModal) endModal.classList.add("show");
+        restorePreview();
+        if (vehicleCountText) {
+          vehicleCountText.textContent = `${JSON.parse(localStorage.getItem("savedVehicles")).length} vehicles previously placed.`;
+        }
+      }
+    });
+  }
 
-menuBtn.addEventListener("click", () => {
-  window.location.href = "hub.html";
+  // -------------------------
+  // Drag & Drop Vehicle Logic with Touch Support
+  // -------------------------
+  const MAX_VEHICLES = 12;
+  let dragged = null;
+
+  function startDrag(e, isTouch = false) {
+    const target = isTouch ? e.targetTouches[0].target : e.target;
+    if (!target.classList.contains("draggable") || target.parentElement !== palette) return;
+    if (document.querySelectorAll("body > .draggable-wrapper").length >= MAX_VEHICLES) return;
+
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("draggable-wrapper");
+    wrapper.style.position = "absolute";
+    wrapper.style.zIndex = 1000;
+
+    const clone = target.cloneNode(true);
+    clone.classList.add("dropped-vehicle");
+    clone.style.pointerEvents = "none";
+    wrapper.appendChild(clone);
+
+    const flipBtn = document.createElement("button");
+    flipBtn.className = "flip-btn";
+    flipBtn.innerHTML = "↔";
+    flipBtn.style.display = "none";
+    flipBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      clone.classList.toggle("flipped-horizontal");
+    };
+    wrapper.appendChild(flipBtn);
+
+    wrapper.addEventListener("mouseenter", () => (flipBtn.style.display = "block"));
+    wrapper.addEventListener("mouseleave", () => (flipBtn.style.display = "none"));
+
+    document.body.appendChild(wrapper);
+    dragged = wrapper;
+
+    const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
+    const clientY = isTouch ? e.targetTouches[0].clientY : e.clientY;
+
+    dragged.offsetX = 40;
+    dragged.offsetY = 40;
+    dragged.style.left = clientX - dragged.offsetX + "px";
+    dragged.style.top = clientY - dragged.offsetY + "px";
+
+    e.preventDefault();
+  }
+
+  function moveDrag(e, isTouch = false) {
+    if (!dragged) return;
+    const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
+    const clientY = isTouch ? e.targetTouches[0].clientY : e.clientY;
+    dragged.style.left = clientX - dragged.offsetX + "px";
+    dragged.style.top = clientY - dragged.offsetY + "px";
+  }
+
+  function endDrag() {
+    if (dragged) dragged.style.zIndex = "";
+    dragged = null;
+  }
+
+  document.body.addEventListener("mousedown", (e) => startDrag(e, false));
+  document.body.addEventListener("mousemove", (e) => moveDrag(e, false));
+  document.body.addEventListener("mouseup", endDrag);
+  document.body.addEventListener("touchstart", (e) => startDrag(e, true), { passive: false });
+  document.body.addEventListener("touchmove", (e) => moveDrag(e, true), { passive: false });
+  document.body.addEventListener("touchend", endDrag);
+
+  // -------------------------
+  // Finish Button
+  // -------------------------
+  if (finishBtn) {
+    finishBtn.addEventListener("click", () => {
+      const placedVehicles = document.querySelectorAll(".draggable-wrapper");
+      const vehicleData = [];
+
+      placedVehicles.forEach((wrapper) => {
+        const img = wrapper.querySelector("img");
+        const isFlipped = img.classList.contains("flipped-horizontal");
+        vehicleData.push({
+          name: img.src.split("/").pop().split(".")[0],
+          x: wrapper.style.left,
+          y: wrapper.style.top,
+          flipped: isFlipped
+        });
+      });
+
+      vehicleData.sort((a, b) => a.name.localeCompare(b.name));
+
+      const vehicleSummary = vehicleData
+        .map((v) => `${v.name} at (${v.x}, ${v.y})${v.flipped ? " [flipped]" : ""}`)
+        .join("; ");
+
+      if (vehicleCountText) vehicleCountText.textContent = `${vehicleData.length} vehicles submitted.`;
+
+      // Capture screenshot and upload with rename
+      captureScreenshot().then((dataUrl) => {
+        if (previewImg) previewImg.src = dataUrl;
+
+        // Format filename: YYYYMMDD_StudentName_StudentClass_JobDescription_with_Partner.png
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
+        const safeJobDesc = jobDescription.replace(/\s+/g, '_').replace(/[^\w\-]/g, '');
+        const safePartner = partnerName.replace(/\s+/g, '_').replace(/[^\w\-]/g, '');
+        const safeStudentName = studentName.replace(/\s+/g, '_').replace(/[^\w\-]/g, '');
+        const safeStudentClass = studentClass.replace(/\s+/g, '_').replace(/[^\w\-]/g, '');
+
+        const fileName = `${dateStr}_${safeStudentName}_${safeStudentClass}_${safeJobDesc}_with_${safePartner}.png`;
+
+        // Upload screenshot to Google Drive via Apps Script
+        fetch("https://script.google.com/macros/s/AKfycbyIpF3yI4PHakjaAkuyjLCwEGxmzMQa6ePgb0crTclxDBstCIuzzf1OMm7wNk3TP_wObQ/exec", {
+          method: "POST",
+          body: JSON.stringify({ image: dataUrl, filename: fileName }),
+          headers: { "Content-Type": "application/json" }
+        }).then(() => {
+          // You could add success feedback here if desired
+        }).catch(() => {
+          // You could add error feedback here if desired
+        });
+      });
+
+      // Submit data to Google Form
+      const formData = new FormData();
+      formData.append("entry.1202364028", "Mrs Cove");
+      formData.append("entry.1957249768", studentClass);
+      formData.append("entry.436910009", studentName);
+      formData.append("entry.169376211", jobDescription);
+      formData.append("entry.1017965571", "1");
+      formData.append("entry.1568301781", vehicleSummary);
+
+      fetch("https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse", {
+        method: "POST",
+        mode: "no-cors",
+        body: formData
+      }).then(() => {
+        // Hide placed vehicles
+        document.querySelectorAll(".draggable-wrapper").forEach((el) => (el.style.display = "none"));
+        // Show end modal & update UI rows/buttons
+        if (endModal) endModal.classList.add("show");
+        if (row1) row1.style.display = "none";
+        if (row2) row2.style.display = "none";
+        if (row3) row3.style.display = "flex";
+        if (againBtn) againBtn.style.display = "inline-block";
+        if (menuBtn) menuBtn.style.display = "inline-block";
+        if (continueBtn) continueBtn.style.display = "none";
+      });
+    });
+  }
+
+  function captureScreenshot() {
+    return html2canvas(document.body).then((canvas) => canvas.toDataURL("image/png"));
+  }
+
+  function restorePreview() {
+    captureScreenshot().then((dataUrl) => {
+      if (previewImg) previewImg.src = dataUrl;
+    });
+  }
+
+  if (againBtn) {
+    againBtn.addEventListener("click", () => {
+      localStorage.removeItem("savedVehicles");
+      window.location.reload();
+    });
+  }
+
+  if (menuBtn) {
+    menuBtn.addEventListener("click", () => {
+      localStorage.removeItem("savedVehicles");
+      window.location.href = "hub.html";
+    });
+  }
+
+  if (continueBtn) {
+    continueBtn.addEventListener("click", () => {
+      const vehicleData = [];
+      document.querySelectorAll(".draggable-wrapper").forEach((wrapper) => {
+        const img = wrapper.querySelector("img");
+        vehicleData.push({
+          src: img.src,
+          left: wrapper.style.left,
+          top: wrapper.style.top,
+          flipped: img.classList.contains("flipped-horizontal")
+        });
+      });
+
+      localStorage.setItem("savedVehicles", JSON.stringify(vehicleData));
+      if (endModal) endModal.classList.remove("show");
+      document.querySelectorAll(".draggable-wrapper").forEach((el) => (el.style.display = "block"));
+    });
+  }
 });
