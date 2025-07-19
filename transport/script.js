@@ -1,7 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // -------------------------
-  // Student Sign-in Handling
-  // -------------------------
   const studentName = localStorage.getItem("studentName") || "";
   const studentClass = localStorage.getItem("studentClass") || "";
 
@@ -45,6 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       if (localStorage.getItem("savedVehicles")) {
+        restoreVehiclesFromStorage();
         if (endModal) endModal.classList.add("show");
         restorePreview();
         if (vehicleCountText) {
@@ -54,9 +52,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // -------------------------
-  // Drag & Drop Vehicle Logic with Touch Support
-  // -------------------------
   const MAX_VEHICLES = 12;
   let dragged = null;
 
@@ -122,9 +117,6 @@ document.addEventListener("DOMContentLoaded", function () {
   document.body.addEventListener("touchmove", (e) => moveDrag(e, true), { passive: false });
   document.body.addEventListener("touchend", endDrag);
 
-  // -------------------------
-  // Finish Button
-  // -------------------------
   if (finishBtn) {
     finishBtn.addEventListener("click", () => {
       const placedVehicles = document.querySelectorAll(".draggable-wrapper");
@@ -162,31 +154,31 @@ document.addEventListener("DOMContentLoaded", function () {
           method: "POST",
           body: JSON.stringify({ image: dataUrl, filename: fileName }),
           headers: { "Content-Type": "application/json" }
-        });
+        }).catch(() => console.warn("Image upload failed."));
+
+        const formData = new FormData();
+        formData.append("entry.1202364028", "Mrs Cove");
+        formData.append("entry.1957249768", studentClass);
+        formData.append("entry.436910009", studentName);
+        formData.append("entry.169376211", jobDescription);
+        formData.append("entry.1017965571", "1");
+        formData.append("entry.1568301781", vehicleSummary);
+
+        fetch("https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse", {
+          method: "POST",
+          mode: "no-cors",
+          body: formData
+        }).catch(() => console.warn("Form submission failed."));
       });
 
-      const formData = new FormData();
-      formData.append("entry.1202364028", "Mrs Cove");
-      formData.append("entry.1957249768", studentClass);
-      formData.append("entry.436910009", studentName);
-      formData.append("entry.169376211", jobDescription);
-      formData.append("entry.1017965571", "1");
-      formData.append("entry.1568301781", vehicleSummary);
-
-      fetch("https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse", {
-        method: "POST",
-        mode: "no-cors",
-        body: formData
-      }).then(() => {
-        document.querySelectorAll(".draggable-wrapper").forEach((el) => (el.style.display = "none"));
-        if (endModal) endModal.classList.add("show");
-        if (row1) row1.style.display = "none";
-        if (row2) row2.style.display = "none";
-        if (row3) row3.style.display = "flex";
-        if (againBtn) againBtn.style.display = "inline-block";
-        if (menuBtn) menuBtn.style.display = "inline-block";
-        if (continueBtn) continueBtn.style.display = "none";
-      });
+      document.querySelectorAll(".draggable-wrapper").forEach((el) => (el.style.display = "none"));
+      if (endModal) endModal.classList.add("show");
+      if (row1) row1.style.display = "none";
+      if (row2) row2.style.display = "none";
+      if (row3) row3.style.display = "flex";
+      if (againBtn) againBtn.style.display = "inline-block";
+      if (menuBtn) menuBtn.style.display = "inline-block";
+      if (continueBtn) continueBtn.style.display = "none";
     });
   }
 
@@ -197,6 +189,28 @@ document.addEventListener("DOMContentLoaded", function () {
   function restorePreview() {
     captureScreenshot().then((dataUrl) => {
       if (previewImg) previewImg.src = dataUrl;
+    });
+  }
+
+  function restoreVehiclesFromStorage() {
+    const saved = JSON.parse(localStorage.getItem("savedVehicles"));
+    if (!saved || saved.length > MAX_VEHICLES) return;
+
+    saved.forEach((data) => {
+      const wrapper = document.createElement("div");
+      wrapper.classList.add("draggable-wrapper");
+      wrapper.style.left = data.left;
+      wrapper.style.top = data.top;
+      wrapper.style.position = "absolute";
+      wrapper.style.zIndex = "1000";
+
+      const img = document.createElement("img");
+      img.src = data.src;
+      img.classList.add("dropped-vehicle");
+      if (data.flipped) img.classList.add("flipped-horizontal");
+
+      wrapper.appendChild(img);
+      document.body.appendChild(wrapper);
     });
   }
 
@@ -230,6 +244,16 @@ document.addEventListener("DOMContentLoaded", function () {
       localStorage.setItem("savedVehicles", JSON.stringify(vehicleData));
       if (endModal) endModal.classList.remove("show");
       document.querySelectorAll(".draggable-wrapper").forEach((el) => (el.style.display = "block"));
+    });
+  }
+
+  if (downloadBtn) {
+    downloadBtn.addEventListener("click", () => {
+      const dataUrl = previewImg.src;
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = "Auslan_Transport_Map.png";
+      a.click();
     });
   }
 });
