@@ -30,6 +30,71 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (endModal) endModal.classList.remove("show");
 
+  // --- DAILY SAVED DATA CHECK & CLEARING ---
+  const savedDataJSON = localStorage.getItem("savedVehicles");
+  let savedData = null;
+
+  if (savedDataJSON) {
+    try {
+      savedData = JSON.parse(savedDataJSON);
+    } catch (e) {
+      // corrupt data, clear it
+      localStorage.removeItem("savedVehicles");
+      savedData = null;
+    }
+  }
+
+  // Helper to check if two dates (YYYY-MM-DD) are the same day
+  function isSameDay(dateStr1, dateStr2) {
+    return dateStr1 === dateStr2;
+  }
+
+  // Get today's date as YYYY-MM-DD
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  // Check savedData date
+  if (savedData && savedData.savedDate) {
+    if (!isSameDay(savedData.savedDate, todayStr)) {
+      // Old data, clear it
+      localStorage.removeItem("savedVehicles");
+      savedData = null;
+    }
+  } else if (savedData) {
+    // If no savedDate property, clear to be safe
+    localStorage.removeItem("savedVehicles");
+    savedData = null;
+  }
+
+  // Now savedData is either null or fresh from today
+
+  if (savedData) {
+    // Show modal, restore preview, vehicle count, etc.
+    if (endModal) {
+      endModal.classList.add("show");
+    }
+    restorePreview();
+
+    if (vehicleCountText) {
+      vehicleCountText.textContent = `${savedData.vehicles.length} vehicles previously placed.`;
+    }
+
+    // Hide form and show palette and finish button
+    if (form) form.style.display = "none";
+    if (palette) palette.style.display = "grid";
+    if (finishBtn) finishBtn.style.display = "inline-block";
+    if (studentInfo) {
+      studentInfo.style.display = "block";
+      studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
+    }
+  } else {
+    // No saved data, so ensure form is visible and hide palette & finish btn
+    if (form) form.style.display = "block";
+    if (palette) palette.style.display = "none";
+    if (finishBtn) finishBtn.style.display = "none";
+    if (studentInfo) studentInfo.style.display = "none";
+    if (endModal) endModal.classList.remove("show");
+  }
+
   if (form) {
     form.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -48,7 +113,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (endModal) endModal.classList.add("show");
         restorePreview();
         if (vehicleCountText) {
-          vehicleCountText.textContent = `${JSON.parse(localStorage.getItem("savedVehicles")).length} vehicles previously placed.`;
+          vehicleCountText.textContent = `${JSON.parse(localStorage.getItem("savedVehicles")).vehicles.length} vehicles previously placed.`;
         }
       }
     });
@@ -137,7 +202,7 @@ document.addEventListener("DOMContentLoaded", function () {
           name: img.src.split("/").pop().split(".")[0],
           x: wrapper.style.left,
           y: wrapper.style.top,
-          flipped: isFlipped
+          flipped: isFlipped,
         });
       });
 
@@ -149,33 +214,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (vehicleCountText) vehicleCountText.textContent = `${vehicleData.length} vehicles submitted.`;
 
-      // Capture screenshot and upload with rename
       captureScreenshot().then((dataUrl) => {
         if (previewImg) previewImg.src = dataUrl;
 
-        // Format filename: YYYYMMDD_StudentName_StudentClass_JobDescription_with_Partner.png
         const now = new Date();
-        const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
-        const safeJobDesc = jobDescription.replace(/\s+/g, '_').replace(/[^\w\-]/g, '');
-        const safePartner = partnerName.replace(/\s+/g, '_').replace(/[^\w\-]/g, '');
-        const safeStudentName = studentName.replace(/\s+/g, '_').replace(/[^\w\-]/g, '');
-        const safeStudentClass = studentClass.replace(/\s+/g, '_').replace(/[^\w\-]/g, '');
+        const timestamp = now.toISOString().replace(/T/, "_").replace(/:/g, "-").split(".")[0];
+        const fileName = `${timestamp}_${studentName}_${studentClass}_${jobDescription}_with_${partnerName}.png`
+          .replace(/\s+/g, "_")
+          .replace(/[^\w\-\.]/g, "");
 
-        const fileName = `${dateStr}_${safeStudentName}_${safeStudentClass}_${safeJobDesc}_with_${safePartner}.png`;
-
-        // Upload screenshot to Google Drive via Apps Script
-        fetch("https://script.google.com/macros/s/AKfycbyIpF3yI4PHakjaAkuyjLCwEGxmzMQa6ePgb0crTclxDBstCIuzzf1OMm7wNk3TP_wObQ/exec", {
-          method: "POST",
-          body: JSON.stringify({ image: dataUrl, filename: fileName }),
-          headers: { "Content-Type": "application/json" }
-        }).then(() => {
-          // You could add success feedback here if desired
-        }).catch(() => {
-          // You could add error feedback here if desired
-        });
+        fetch(
+          "https://script.google.com/macros/s/AKfycbzQFM9jcNCDPVg70SzmQ3hZIYahhDbTQXJ4UyqaTby81hTMWMmgxCtPX9nZxqHVfs_Mew/exec",
+          {
+            method: "POST",
+            body: JSON.stringify({ image: dataUrl, filename: fileName }),
+            headers: { "Content-Type": "application/json" },
+          }
+        );
       });
 
-      // Submit data to Google Form
       const formData = new FormData();
       formData.append("entry.1202364028", "Mrs Cove");
       formData.append("entry.1957249768", studentClass);
@@ -187,11 +244,9 @@ document.addEventListener("DOMContentLoaded", function () {
       fetch("https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse", {
         method: "POST",
         mode: "no-cors",
-        body: formData
+        body: formData,
       }).then(() => {
-        // Hide placed vehicles
         document.querySelectorAll(".draggable-wrapper").forEach((el) => (el.style.display = "none"));
-        // Show end modal & update UI rows/buttons
         if (endModal) endModal.classList.add("show");
         if (row1) row1.style.display = "none";
         if (row2) row2.style.display = "none";
@@ -236,11 +291,18 @@ document.addEventListener("DOMContentLoaded", function () {
           src: img.src,
           left: wrapper.style.left,
           top: wrapper.style.top,
-          flipped: img.classList.contains("flipped-horizontal")
+          flipped: img.classList.contains("flipped-horizontal"),
         });
       });
 
-      localStorage.setItem("savedVehicles", JSON.stringify(vehicleData));
+      // Save with date
+      localStorage.setItem(
+        "savedVehicles",
+        JSON.stringify({
+          savedDate: todayStr,
+          vehicles: vehicleData,
+        })
+      );
       if (endModal) endModal.classList.remove("show");
       document.querySelectorAll(".draggable-wrapper").forEach((el) => (el.style.display = "block"));
     });
