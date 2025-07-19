@@ -1,54 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Auslan Transport</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div id="signin-form">
-      <h2>Auslan Transport Map</h2>
-      <input type="text" id="partner-name" placeholder="Partner's Name" />
-      <input type="text" id="job-description" placeholder="Job Description" />
-      <button id="start-button">Start</button>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auslan Transport Activity</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+</head>
+<body>
+  <!-- Student info top-left -->
+  <div id="student-info"></div>
+
+  <!-- Sign-in form -->
+  <form id="student-form">
+    <label for="jobDescription">Job Description:</label>
+    <input type="text" id="jobDescription" name="jobDescription" placeholder="'Give' or 'Follow' instructions" required />
+
+    <label for="partnerName">Partner Name:</label>
+    <input type="text" id="partnerName" name="partnerName" required />
+
+    <button type="submit" id="start-btn">
+      <img src="assets/start.png" alt="Start" />
+    </button>
+  </form>
+
+  <!-- Finish button (top-right) -->
+  <img id="finish-btn" src="assets/finish.png" alt="Finish" />
+
+  <!-- Main layout: map and palette side-by-side -->
+  <div id="main-layout">
+    <div id="map-container"></div>
+
+    <div id="vehicle-palette">
+      <img src="assets/Blue Car.png" alt="BlueCar" class="draggable" />
+      <img src="assets/Green Car.png" alt="GreenCar" class="draggable" />
+      <img src="assets/Yellow Car.png" alt="YellowCar" class="draggable" />
+      <img src="assets/White Van.png" alt="WhiteVan" class="draggable" />
+      <img src="assets/Blue Van.png" alt="BlueVan" class="draggable" />
+      <img src="assets/Green Boat.png" alt="GreenBoat" class="draggable" />
+      <img src="assets/Yellow Boat.png" alt="YellowBoat" class="draggable" />
+      <img src="assets/Purple Train.png" alt="PurpleTrain" class="draggable" />
+      <img src="assets/Red Train.png" alt="RedTrain" class="draggable" />
+      <img src="assets/Green Tram.png" alt="GreenTram" class="draggable" />
+      <img src="assets/Yellow Tram.png" alt="YellowTram" class="draggable" />
+      <img src="assets/Blue Bus.png" alt="BlueBus" class="draggable" />
+      <img src="assets/Yellow Bus.png" alt="YellowBus" class="draggable" />
+      <img src="assets/Pink Plane.png" alt="PinkPlane" class="draggable" />
+      <img src="assets/Blue Plane.png" alt="BluePlane" class="draggable" />
+      <img src="assets/Red Truck.png" alt="RedTruck" class="draggable" />
+      <img src="assets/Blue Truck.png" alt="BlueTruck" class="draggable" />
+      <img src="assets/Green Bike.png" alt="GreenBike" class="draggable" />
+      <img src="assets/Purple Bike.png" alt="PurpleBike" class="draggable" />
+      <img src="assets/Girl and Dog.png" alt="GirlDog" class="draggable" />
+      <img src="assets/Red Helicopter.png" alt="RedHelicopter" class="draggable" />
+      <img src="assets/Green Helicopter.png" alt="GreenHelicopter" class="draggable" />
+      <img src="assets/Green Motorbike.png" alt="GreenMotorbike" class="draggable" />
+      <img src="assets/Red Motorbike.png" alt="RedMotorbike" class="draggable" />
+      <img src="assets/Man and Dog.png" alt="ManDog" class="draggable" />
+      <img src="assets/Two People Walking.png" alt="TwoPeopleWalking" class="draggable" />
+      <img src="assets/Pink Caravan.png" alt="PinkCaravan" class="draggable" />
     </div>
+  </div>
 
-    <div id="game-ui" style="display: none;">
-      <button id="finish-button">
-        <img src="Assets/finish.png" alt="Finish" />
-      </button>
+  <!-- Modal at end -->
+<!-- Modal at end -->
+<div id="end-modal" class="modal">
+  <!-- Row 1: Map preview and download -->
+  <div class="modal-row" id="row-1" style="display: flex; justify-content: space-between; align-items: center;">
+    <img id="map-preview" alt="Map Preview" style="max-width: 45%; border: 1px solid #ccc;" />
+    <img id="download-btn" src="assets/download.png" alt="Download and Upload" style="cursor: pointer;" />
+  </div>
 
-      <div id="vehicle-palette" style="display: none;"></div>
-    </div>
+  <!-- Row 2: Vehicle count and continue button -->
+  <div class="modal-row" id="row-2" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+    <div id="vehicle-count" style="font-weight: bold;"></div>
+    <img id="continue-btn" src="assets/continue.png" alt="Continue" style="cursor: pointer;" />
+  </div>
 
-    <div id="modal" class="hidden">
-      <div class="modal-content">
-        <div id="modal-row1">
-          <h2>Auslan Transport Plan</h2>
-          <p>Well done, you have placed your vehicles.</p>
-        </div>
+  <!-- Row 3: Again and Menu buttons (initially hidden, shown after upload) -->
+  <div class="modal-row" id="row-3" style="display: none; justify-content: space-around; margin-top: 1rem;">
+    <img src="assets/again.png" id="again-btn" alt="Play Again" style="cursor: pointer;" />
+    <img src="assets/menu.png" id="menu-btn" alt="Menu" style="cursor: pointer;" />
+  </div>
+</div>
 
-        <div id="modal-row2">
-          <div id="screenshot-preview">
-            <img id="preview-img" alt="Preview" />
-          </div>
-          <div id="upload-controls">
-            <button id="download-btn">
-              <img src="Assets/download.png" alt="Download" />
-            </button>
-            <p id="upload-instruction">Download your map image and upload it to the learning task on Compass.</p>
-          </div>
-        </div>
-
-        <div id="modal-row3">
-          <button id="again-btn">Again</button>
-          <button id="menu-btn">Menu</button>
-        </div>
-      </div>
-    </div>
-
-    <script src="script.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-  </body>
+  <script src="script.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</body>
 </html>
