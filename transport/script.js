@@ -1,15 +1,22 @@
+// -------------------------
+// Auslan Transport Game Script
+// Full complete version with drag-drop, save/restore, daily reset, Google Form + Drive upload
+// -------------------------
+
 document.addEventListener("DOMContentLoaded", function () {
   // -------------------------
-  // Student Sign-in Handling
+  // Student sign-in & localStorage keys
   // -------------------------
   const studentName = localStorage.getItem("studentName") || "";
   const studentClass = localStorage.getItem("studentClass") || "";
 
   if (!studentName || !studentClass) {
+    // Redirect to sign-in page if missing
     window.location.href = "../index.html";
     return;
   }
 
+  // DOM references
   const studentInfo = document.getElementById("student-info");
   const palette = document.getElementById("vehicle-palette");
   const finishBtn = document.getElementById("finish-btn");
@@ -25,12 +32,15 @@ document.addEventListener("DOMContentLoaded", function () {
   const row2 = document.getElementById("row-2");
   const row3 = document.getElementById("row-3");
 
+  // State variables for form inputs
   let jobDescription = "";
   let partnerName = "";
 
   if (endModal) endModal.classList.remove("show");
 
-  // --- DAILY SAVED DATA CHECK & CLEARING ---
+  // -------------------------
+  // Daily saved data check and clearing
+  // -------------------------
   const savedDataJSON = localStorage.getItem("savedVehicles");
   let savedData = null;
 
@@ -38,56 +48,56 @@ document.addEventListener("DOMContentLoaded", function () {
     try {
       savedData = JSON.parse(savedDataJSON);
     } catch (e) {
-      // corrupt data, clear it
+      // If corrupted, clear it
       localStorage.removeItem("savedVehicles");
       savedData = null;
     }
   }
 
-  // Helper to check if two dates (YYYY-MM-DD) are the same day
+  // Utility function: check if two YYYY-MM-DD dates are same day
   function isSameDay(dateStr1, dateStr2) {
     return dateStr1 === dateStr2;
   }
 
-  // Get today's date as YYYY-MM-DD
+  // Get today string YYYY-MM-DD
   const todayStr = new Date().toISOString().slice(0, 10);
 
-  // Check savedData date
+  // Validate savedData date
   if (savedData && savedData.savedDate) {
     if (!isSameDay(savedData.savedDate, todayStr)) {
-      // Old data, clear it
+      // Old data from previous day, clear
       localStorage.removeItem("savedVehicles");
       savedData = null;
     }
   } else if (savedData) {
-    // If no savedDate property, clear to be safe
+    // No savedDate property? Clear anyway to be safe
     localStorage.removeItem("savedVehicles");
     savedData = null;
   }
 
-  // Now savedData is either null or fresh from today
-
+  // -------------------------
+  // Initialize UI depending on savedData existence
+  // -------------------------
   if (savedData) {
-    // Show modal, restore preview, vehicle count, etc.
-    if (endModal) {
-      endModal.classList.add("show");
-    }
+    // Show modal and restore preview image, vehicle count
+    if (endModal) endModal.classList.add("show");
     restorePreview();
 
     if (vehicleCountText) {
       vehicleCountText.textContent = `${savedData.vehicles.length} vehicles previously placed.`;
     }
 
-    // Hide form and show palette and finish button
+    // Hide form, show palette and finish button
     if (form) form.style.display = "none";
     if (palette) palette.style.display = "grid";
     if (finishBtn) finishBtn.style.display = "inline-block";
+
     if (studentInfo) {
       studentInfo.style.display = "block";
       studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
     }
   } else {
-    // No saved data, so ensure form is visible and hide palette & finish btn
+    // No saved data: show form, hide palette and finish button
     if (form) form.style.display = "block";
     if (palette) palette.style.display = "none";
     if (finishBtn) finishBtn.style.display = "none";
@@ -95,9 +105,13 @@ document.addEventListener("DOMContentLoaded", function () {
     if (endModal) endModal.classList.remove("show");
   }
 
+  // -------------------------
+  // Form submission: get partner/job info & start
+  // -------------------------
   if (form) {
     form.addEventListener("submit", function (e) {
       e.preventDefault();
+
       jobDescription = document.getElementById("jobDescription").value;
       partnerName = document.getElementById("partnerName").value;
 
@@ -112,34 +126,44 @@ document.addEventListener("DOMContentLoaded", function () {
       if (localStorage.getItem("savedVehicles")) {
         if (endModal) endModal.classList.add("show");
         restorePreview();
+
         if (vehicleCountText) {
-          vehicleCountText.textContent = `${JSON.parse(localStorage.getItem("savedVehicles")).vehicles.length} vehicles previously placed.`;
+          const savedVehicles = JSON.parse(localStorage.getItem("savedVehicles"));
+          vehicleCountText.textContent = `${savedVehicles.vehicles.length} vehicles previously placed.`;
         }
       }
     });
   }
 
   // -------------------------
-  // Drag & Drop Vehicle Logic with Touch Support
+  // Drag & drop vehicle logic with touch support
   // -------------------------
   const MAX_VEHICLES = 12;
   let dragged = null;
 
+  // Drag start handler
   function startDrag(e, isTouch = false) {
     const target = isTouch ? e.targetTouches[0].target : e.target;
+
+    // Only start drag if from palette and draggable class
     if (!target.classList.contains("draggable") || target.parentElement !== palette) return;
+
+    // Limit max vehicles placed
     if (document.querySelectorAll("body > .draggable-wrapper").length >= MAX_VEHICLES) return;
 
+    // Create wrapper container for dragging, positioning absolute
     const wrapper = document.createElement("div");
     wrapper.classList.add("draggable-wrapper");
     wrapper.style.position = "absolute";
     wrapper.style.zIndex = 1000;
 
+    // Clone target image and add it inside wrapper
     const clone = target.cloneNode(true);
     clone.classList.add("dropped-vehicle");
-    clone.style.pointerEvents = "none";
+    clone.style.pointerEvents = "none"; // avoid interfering with drag
     wrapper.appendChild(clone);
 
+    // Create flip button and append
     const flipBtn = document.createElement("button");
     flipBtn.className = "flip-btn";
     flipBtn.innerHTML = "↔";
@@ -147,18 +171,23 @@ document.addEventListener("DOMContentLoaded", function () {
     flipBtn.onclick = (ev) => {
       ev.stopPropagation();
       clone.classList.toggle("flipped-horizontal");
+      saveVehiclesToStorage();
     };
     wrapper.appendChild(flipBtn);
 
+    // Show flip button on hover
     wrapper.addEventListener("mouseenter", () => (flipBtn.style.display = "block"));
     wrapper.addEventListener("mouseleave", () => (flipBtn.style.display = "none"));
 
+    // Append wrapper to body for absolute positioning & drag
     document.body.appendChild(wrapper);
     dragged = wrapper;
 
+    // Get cursor/touch coordinates
     const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
     const clientY = isTouch ? e.targetTouches[0].clientY : e.clientY;
 
+    // Set offset for cursor inside wrapper (hardcoded 40px center)
     dragged.offsetX = 40;
     dragged.offsetY = 40;
     dragged.style.left = clientX - dragged.offsetX + "px";
@@ -167,6 +196,7 @@ document.addEventListener("DOMContentLoaded", function () {
     e.preventDefault();
   }
 
+  // Drag move handler
   function moveDrag(e, isTouch = false) {
     if (!dragged) return;
     const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
@@ -175,11 +205,15 @@ document.addEventListener("DOMContentLoaded", function () {
     dragged.style.top = clientY - dragged.offsetY + "px";
   }
 
+  // Drag end handler
   function endDrag() {
     if (dragged) dragged.style.zIndex = "";
     dragged = null;
+    // Save state on drag end
+    saveVehiclesToStorage();
   }
 
+  // Attach mouse and touch event listeners for drag-drop
   document.body.addEventListener("mousedown", (e) => startDrag(e, false));
   document.body.addEventListener("mousemove", (e) => moveDrag(e, false));
   document.body.addEventListener("mouseup", endDrag);
@@ -188,40 +222,86 @@ document.addEventListener("DOMContentLoaded", function () {
   document.body.addEventListener("touchend", endDrag);
 
   // -------------------------
-  // Finish Button
+  // Save vehicles to localStorage
+  // -------------------------
+  function saveVehiclesToStorage() {
+    const wrappers = document.querySelectorAll(".draggable-wrapper");
+    const vehicles = [];
+
+    wrappers.forEach((wrapper) => {
+      const img = wrapper.querySelector("img");
+      vehicles.push({
+        src: img.src,
+        left: wrapper.style.left,
+        top: wrapper.style.top,
+        flipped: img.classList.contains("flipped-horizontal"),
+      });
+    });
+
+    localStorage.setItem(
+      "savedVehicles",
+      JSON.stringify({
+        savedDate: todayStr,
+        vehicles: vehicles,
+      })
+    );
+  }
+
+  // -------------------------
+  // Restore preview image from screenshot
+  // -------------------------
+  function restorePreview() {
+    captureScreenshot().then((dataUrl) => {
+      if (previewImg) previewImg.src = dataUrl;
+    });
+  }
+
+  // -------------------------
+  // Capture screenshot using html2canvas
+  // -------------------------
+  function captureScreenshot() {
+    return html2canvas(document.body).then((canvas) => canvas.toDataURL("image/png"));
+  }
+
+  // -------------------------
+  // Finish button click handler
   // -------------------------
   if (finishBtn) {
     finishBtn.addEventListener("click", () => {
-      const placedVehicles = document.querySelectorAll(".draggable-wrapper");
+      const placedWrappers = document.querySelectorAll(".draggable-wrapper");
       const vehicleData = [];
 
-      placedVehicles.forEach((wrapper) => {
+      // Collect vehicle data for form and display
+      placedWrappers.forEach((wrapper) => {
         const img = wrapper.querySelector("img");
         const isFlipped = img.classList.contains("flipped-horizontal");
+        const fileName = img.src.split("/").pop().split(".")[0];
         vehicleData.push({
-          name: img.src.split("/").pop().split(".")[0],
+          name: fileName,
           x: wrapper.style.left,
           y: wrapper.style.top,
           flipped: isFlipped,
         });
       });
 
+      // Sort by vehicle name alphabetically
       vehicleData.sort((a, b) => a.name.localeCompare(b.name));
 
+      // Create summary string for Google Form
       const vehicleSummary = vehicleData
         .map((v) => `${v.name} at (${v.x}, ${v.y})${v.flipped ? " [flipped]" : ""}`)
         .join("; ");
 
       if (vehicleCountText) vehicleCountText.textContent = `${vehicleData.length} vehicles submitted.`;
 
+      // Take screenshot and upload to Google Drive
       captureScreenshot().then((dataUrl) => {
         if (previewImg) previewImg.src = dataUrl;
 
         const now = new Date();
         const timestamp = now.toISOString().replace(/T/, "_").replace(/:/g, "-").split(".")[0];
-        const fileName = `${timestamp}_${studentName}_${studentClass}_${jobDescription}_with_${partnerName}.png`
-          .replace(/\s+/g, "_")
-          .replace(/[^\w\-\.]/g, "");
+        let fileName = `${timestamp}_${studentName}_${studentClass}_${jobDescription}_with_${partnerName}.png`;
+        fileName = fileName.replace(/\s+/g, "_").replace(/[^\w\-\.]/g, "");
 
         fetch(
           "https://script.google.com/macros/s/AKfycbzQFM9jcNCDPVg70SzmQ3hZIYahhDbTQXJ4UyqaTby81hTMWMmgxCtPX9nZxqHVfs_Mew/exec",
@@ -233,20 +313,25 @@ document.addEventListener("DOMContentLoaded", function () {
         );
       });
 
+      // Prepare Google Form data submission
       const formData = new FormData();
-      formData.append("entry.1202364028", "Mrs Cove");
+      formData.append("entry.1202364028", "Mrs Cove"); // fixed teacher name
       formData.append("entry.1957249768", studentClass);
       formData.append("entry.436910009", studentName);
       formData.append("entry.169376211", jobDescription);
-      formData.append("entry.1017965571", "1");
+      formData.append("entry.1017965571", "1"); // some fixed field - e.g. attempt?
       formData.append("entry.1568301781", vehicleSummary);
 
+      // Submit form silently (no-cors)
       fetch("https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse", {
         method: "POST",
         mode: "no-cors",
         body: formData,
       }).then(() => {
+        // Hide all draggable vehicles after submission
         document.querySelectorAll(".draggable-wrapper").forEach((el) => (el.style.display = "none"));
+
+        // Show modal with results, update UI rows and buttons
         if (endModal) endModal.classList.add("show");
         if (row1) row1.style.display = "none";
         if (row2) row2.style.display = "none";
@@ -258,16 +343,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  function captureScreenshot() {
-    return html2canvas(document.body).then((canvas) => canvas.toDataURL("image/png"));
-  }
-
-  function restorePreview() {
-    captureScreenshot().then((dataUrl) => {
-      if (previewImg) previewImg.src = dataUrl;
-    });
-  }
-
+  // -------------------------
+  // "Again" button: clear saved vehicles & reload
+  // -------------------------
   if (againBtn) {
     againBtn.addEventListener("click", () => {
       localStorage.removeItem("savedVehicles");
@@ -275,6 +353,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // -------------------------
+  // "Menu" button: clear saved vehicles & go to hub
+  // -------------------------
   if (menuBtn) {
     menuBtn.addEventListener("click", () => {
       localStorage.removeItem("savedVehicles");
@@ -282,6 +363,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // -------------------------
+  // "Continue" button: save current vehicles, hide modal, restore vehicle display
+  // -------------------------
   if (continueBtn) {
     continueBtn.addEventListener("click", () => {
       const vehicleData = [];
@@ -295,7 +379,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       });
 
-      // Save with date
+      // Save current vehicle placements with today's date
       localStorage.setItem(
         "savedVehicles",
         JSON.stringify({
@@ -303,8 +387,54 @@ document.addEventListener("DOMContentLoaded", function () {
           vehicles: vehicleData,
         })
       );
+
       if (endModal) endModal.classList.remove("show");
+
+      // Show all vehicles again
       document.querySelectorAll(".draggable-wrapper").forEach((el) => (el.style.display = "block"));
+    });
+  }
+
+  // -------------------------
+  // On page load: restore saved vehicles to palette if savedData exists
+  // -------------------------
+  if (savedData && savedData.vehicles && savedData.vehicles.length) {
+    // Remove existing draggable-wrapper elements first
+    document.querySelectorAll(".draggable-wrapper").forEach((el) => el.remove());
+
+    // Recreate draggable vehicles from saved data
+    savedData.vehicles.forEach((vehicle, i) => {
+      const wrapper = document.createElement("div");
+      wrapper.classList.add("draggable-wrapper");
+      wrapper.style.position = "absolute";
+      wrapper.style.left = vehicle.left;
+      wrapper.style.top = vehicle.top;
+      wrapper.style.zIndex = 1000;
+
+      const img = document.createElement("img");
+      img.src = vehicle.src;
+      img.classList.add("dropped-vehicle");
+      if (vehicle.flipped) img.classList.add("flipped-horizontal");
+      img.style.pointerEvents = "none";
+
+      wrapper.appendChild(img);
+
+      // Add flip button for restored vehicle
+      const flipBtn = document.createElement("button");
+      flipBtn.className = "flip-btn";
+      flipBtn.innerHTML = "↔";
+      flipBtn.style.display = "none";
+      flipBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        img.classList.toggle("flipped-horizontal");
+        saveVehiclesToStorage();
+      };
+      wrapper.appendChild(flipBtn);
+
+      wrapper.addEventListener("mouseenter", () => (flipBtn.style.display = "block"));
+      wrapper.addEventListener("mouseleave", () => (flipBtn.style.display = "none"));
+
+      document.body.appendChild(wrapper);
     });
   }
 });
