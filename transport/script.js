@@ -94,23 +94,35 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // On page load, if savedData exists, show modal with continue/again options
-  if (savedData) {
-    showInitialModal();
-    if (form) form.style.display = "none";
-    if (palette) palette.style.display = "none";
-    if (finishBtn) finishBtn.style.display = "none";
+// On page load, check saved data and partner/job validity before showing modal
+if (
+  savedData &&
+  Array.isArray(savedData.vehicles) &&
+  savedData.vehicles.length > 0 &&
+  partnerName.trim() !== "" &&
+  jobDescription.trim() !== ""
+) {
+  showInitialModal();
+  if (form) form.style.display = "none";
+  if (palette) palette.style.display = "none";
+  if (finishBtn) finishBtn.style.display = "none";
 
-    if (studentInfo) {
-      studentInfo.style.display = "block";
-      studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
-    }
-  } else {
-    if (form) form.style.display = "block";
-    if (palette) palette.style.display = "none";
-    if (finishBtn) finishBtn.style.display = "none";
-    if (studentInfo) studentInfo.style.display = "none";
-    if (endModal) endModal.classList.remove("show");
+  if (studentInfo) {
+    studentInfo.style.display = "block";
+    studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
   }
+} else {
+  // No valid saved data or missing info - clear any partial saved data to avoid confusion
+  localStorage.removeItem("savedVehicles");
+  localStorage.removeItem("savedPartnerName");
+  localStorage.removeItem("savedJobDescription");
+
+  if (form) form.style.display = "block";
+  if (palette) palette.style.display = "none";
+  if (finishBtn) finishBtn.style.display = "none";
+  if (studentInfo) studentInfo.style.display = "none";
+  if (endModal) endModal.classList.remove("show");
+}
 
   // Continue button: hide modal, show palette + finish, restore vehicles
   if (continueBtn) {
