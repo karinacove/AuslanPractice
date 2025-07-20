@@ -11,18 +11,22 @@
   <!-- Student info top-left -->
   <div id="student-info"></div>
 
-  <!-- Sign-in form -->
-  <form id="student-form">
-    <label for="jobDescription">Job Description:</label>
-    <input type="text" id="jobDescription" name="jobDescription" placeholder="'Give' or 'Follow' instructions" required />
+<!-- Sign-in overlay -->
+<div id="startOverlay" style="display: none;" class="overlay">
+  <div class="start-box">
+    <h2>👋 Welcome to the Transport Game</h2>
+    <label for="job-description">Job Description:</label>
+    <input type="text" id="job-description" placeholder="'Give' or 'Follow' instructions" required />
 
-    <label for="partnerName">Partner Name:</label>
-    <input type="text" id="partnerName" name="partnerName" required />
+    <label for="partner-name">Partner Name:</label>
+    <input type="text" id="partner-name" required />
 
-    <button type="submit" id="start-btn">
+    <button id="start-btn">
       <img src="assets/start.png" alt="Start" />
     </button>
-  </form>
+  </div>
+</div>
+
 
   <!-- Finish button (top-right) -->
   <img id="finish-btn" src="assets/finish.png" alt="Finish" />
