@@ -62,28 +62,14 @@
     </div>
   </div>
 
-  <!-- Modal at end -->
- <div id="end-modal" class="modal hidden">
-  <!-- Add these missing elements first -->
-  <p id="partner-summary" style="color: white; font-size: 1.2rem;"></p>
-  <img id="screenshot-preview" alt="Previous Screenshot" style="max-width: 60%; display: none; border: 2px solid white; border-radius: 8px;" />
-
-  <!-- Row 1: Map preview and download -->
-  <div class="modal-row" id="row-1">
-    <img id="map-preview" alt="Map Preview" />
-    <img id="download-btn" src="assets/download.png" alt="Download and Upload" />
-  </div>
-
-  <!-- Row 2: Vehicle count and continue button -->
-  <div class="modal-row" id="row-2">
-    <div id="vehicle-count"></div>
-    <img id="continue-btn" src="assets/continue.png" alt="Continue" />
-  </div>
-
-  <!-- Row 3: Again and Menu buttons (after upload) -->
-  <div class="modal-row" id="row-3">
-    <img src="assets/again.png" id="again-btn" alt="Play Again" />
-    <img src="assets/menu.png" id="menu-btn" alt="Menu" />
+<div id="resume-screen" class="resume-screen" style="display: none;">
+  <h2>Resume Previous Work?</h2>
+  <p id="resume-info"></p>
+  <img id="resume-screenshot" src="" alt="Screenshot Preview" style="max-width: 100%; display: none;" />
+  <div class="resume-buttons">
+    <img id="resume-continue" src="../assets/continue.png" alt="Continue">
+    <img id="resume-again" src="../assets/again.png" alt="Start Again">
+    <img id="resume-menu" src="../assets/menu.png" alt="Menu">
   </div>
 </div>
 
