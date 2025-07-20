@@ -186,94 +186,26 @@ html, body {
   position: fixed;
   bottom: 10px;
   left: 10px;
-  width: 100px;
+  width: 120px;
   cursor: pointer;
   z-index: 1000;
 }
 
-/* End Modal - Fullscreen Overlay */
-#end-modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 999;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+.resume-screen {
+  background: #fff;
+  border: 2px solid #000;
   padding: 20px;
-  box-sizing: border-box;
-  gap: 1.5rem;
-}
-
-/* Show modal when active */
-#end-modal.show {
-  display: flex;
-}
-
-/* Modal rows */
-.modal-row {
-  width: 100%;
+  margin: 20px auto;
   max-width: 600px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  z-index: 10;
 }
 
-/* Row 1: Map preview and download */
-#row-1 img#map-preview {
-  max-width: 60%;
-  max-height: 200px;
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  object-fit: contain;
-}
-
-#row-1 img#download-btn {
+.resume-buttons img {
   width: 120px;
-  height: 120px;
+  margin: 10px;
   cursor: pointer;
-  flex-shrink: 0;
-  transition: transform 0.2s ease;
-}
-
-#row-1 img#download-btn:hover {
-  transform: scale(1.1);
-}
-
-/* Row 2: Vehicle count and continue button */
-#row-2 {
-  font-weight: bold;
-  font-size: 1.2rem;
-  color: #fff;
-  justify-content: space-between;
-}
-
-#row-2 #vehicle-count {
-  flex-grow: 1;
-}
-
-#row-2 img#continue-btn {
-  width: 120px;
-  height: 120px;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: transform 0.2s ease;
-}
-
-#row-2 img#continue-btn:hover {
-  transform: scale(1.1);
-}
-
-/* Row 3: Upload button and action buttons */
-#row-3 {
-  justify-content: center;
-  gap: 2rem;
 }
 
 /* Upload button styling */
