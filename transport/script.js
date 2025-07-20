@@ -129,4 +129,90 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = "../hub.html";
     });
   }
+  // -------------------------
+  // Drag & drop vehicle logic with touch support
+  // -------------------------
+  const MAX_VEHICLES = 12;
+  let dragged = null;
+
+  // Drag start handler
+  function startDrag(e, isTouch = false) {
+    const target = isTouch ? e.targetTouches[0].target : e.target;
+
+    // Only start drag if from palette and draggable class
+    if (!target.classList.contains("draggable") || target.parentElement !== palette) return;
+
+    // Limit max vehicles placed
+    if (document.querySelectorAll("body > .draggable-wrapper").length >= MAX_VEHICLES) return;
+
+    // Create wrapper container for dragging, positioning absolute
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("draggable-wrapper");
+    wrapper.style.position = "absolute";
+    wrapper.style.zIndex = 1000;
+
+    // Clone target image and add it inside wrapper
+    const clone = target.cloneNode(true);
+    clone.classList.add("dropped-vehicle");
+    clone.style.pointerEvents = "none"; // avoid interfering with drag
+    wrapper.appendChild(clone);
+
+    // Create flip button and append
+    const flipBtn = document.createElement("button");
+    flipBtn.className = "flip-btn";
+    flipBtn.innerHTML = "↔";
+    flipBtn.style.display = "none";
+    flipBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      clone.classList.toggle("flipped-horizontal");
+      saveVehiclesToStorage();
+    };
+    wrapper.appendChild(flipBtn);
+
+    // Show flip button on hover
+    wrapper.addEventListener("mouseenter", () => (flipBtn.style.display = "block"));
+    wrapper.addEventListener("mouseleave", () => (flipBtn.style.display = "none"));
+
+    // Append wrapper to body for absolute positioning & drag
+    document.body.appendChild(wrapper);
+    dragged = wrapper;
+
+    // Get cursor/touch coordinates
+    const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
+    const clientY = isTouch ? e.targetTouches[0].clientY : e.clientY;
+
+    // Set offset for cursor inside wrapper (hardcoded 40px center)
+    dragged.offsetX = 40;
+    dragged.offsetY = 40;
+    dragged.style.left = clientX - dragged.offsetX + "px";
+    dragged.style.top = clientY - dragged.offsetY + "px";
+
+    e.preventDefault();
+  }
+
+  // Drag move handler
+  function moveDrag(e, isTouch = false) {
+    if (!dragged) return;
+    const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
+    const clientY = isTouch ? e.targetTouches[0].clientY : e.clientY;
+    dragged.style.left = clientX - dragged.offsetX + "px";
+    dragged.style.top = clientY - dragged.offsetY + "px";
+  }
+
+  // Drag end handler
+  function endDrag() {
+    if (dragged) dragged.style.zIndex = "";
+    dragged = null;
+    // Save state on drag end
+    saveVehiclesToStorage();
+  }
+
+  // Attach mouse and touch event listeners for drag-drop
+  document.body.addEventListener("mousedown", (e) => startDrag(e, false));
+  document.body.addEventListener("mousemove", (e) => moveDrag(e, false));
+  document.body.addEventListener("mouseup", endDrag);
+  document.body.addEventListener("touchstart", (e) => startDrag(e, true), { passive: false });
+  document.body.addEventListener("touchmove", (e) => moveDrag(e, true), { passive: false });
+  document.body.addEventListener("touchend", endDrag);
 });
+
