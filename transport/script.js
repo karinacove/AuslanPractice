@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let dragged = null;
 
   const palette = document.getElementById("vehicle-palette");
-  const startOverlay = document.getElementById("startOverlay"); // 🔄 fixed ID
+  const startOverlay = document.getElementById("startOverlay");
   const startBtn = document.getElementById("start-btn");
   const finishBtn = document.getElementById("finish-btn");
   const endModal = document.getElementById("end-modal");
@@ -103,7 +103,6 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.reload();
   }
 
-  // 💡 Fixed conditional display
   if (isSameDay(savedDate, todayStr) && savedVehicles.length > 0 && partnerName && jobDescription) {
     showModal();
   } else if (startOverlay) {
@@ -178,9 +177,8 @@ document.addEventListener("DOMContentLoaded", () => {
     clearDataAndReload();
     window.location.href = "index.html";
   });
-});
 
-  // Drag & Drop with Mouse + Touch
+  // ✅ Drag & Drop Logic INSIDE the DOMContentLoaded block
   function startDrag(e, isTouch = false) {
     const target = isTouch ? e.targetTouches[0].target : e.target;
     if (!target.classList.contains("draggable") || target.parentElement !== palette) return;
