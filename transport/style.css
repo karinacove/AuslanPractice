@@ -57,6 +57,11 @@ html, body {
   transform: scale(1.1);
 }
 
+.vehicle.selected {
+  filter: drop-shadow(0 0 8px white);
+  z-index: 10;
+}
+
 /* Dragged Vehicles */
 .dropped-vehicle {
   width: 80px;
