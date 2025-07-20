@@ -1,69 +1,190 @@
+// ✅ Combined and Finalised Transport Game Script
+
 document.addEventListener("DOMContentLoaded", () => {
-  // -------------------------
-  // Initial Setup
-  // -------------------------
   const studentName = localStorage.getItem("studentName") || "";
   const studentClass = localStorage.getItem("studentClass") || "";
   const partnerName = localStorage.getItem("partnerName") || "";
-  const partnerClass = localStorage.getItem("partnerClass") || "";
+  const jobDescription = localStorage.getItem("jobDescription") || "";
   const savedVehicles = JSON.parse(localStorage.getItem("placedVehicles") || "[]");
+  const savedDate = localStorage.getItem("savedDate");
 
-  const nameDisplay = document.getElementById("student-name");
-  const classDisplay = document.getElementById("student-class");
-
-  if (nameDisplay && studentName) nameDisplay.textContent = studentName;
-  if (classDisplay && studentClass) classDisplay.textContent = studentClass;
-
-  const palette = document.getElementById("palette");
-  const finishBtn = document.getElementById("finish-btn");
-  const screenshotBtn = document.getElementById("screenshot-btn");
-
-//  const startOverlay = document.getElementById("start-overlay");
-  const startForm = document.getElementById("partner-form");
-  const startContinue = document.getElementById("continue-btn");
-
+  const todayStr = new Date().toISOString().slice(0, 10);
   const MAX_VEHICLES = 12;
   let dragged = null;
 
-  // -------------------------
-  // Modal Logic & Resume
-  // -------------------------
-  if (!partnerName || !partnerClass || savedVehicles.length === 0) {
-  //  startOverlay.style.display = "flex";
-  //  startContinue.style.display = "none";
-  } else {
-  //  startOverlay.style.display = "none";
-    restoreVehiclesFromStorage();
+  const palette = document.getElementById("vehicle-palette");
+  const startForm = document.getElementById("partner-form");
+  const startBtn = document.getElementById("start-btn");
+  const finishBtn = document.getElementById("finish-btn");
+  const endModal = document.getElementById("end-modal");
+  const againBtn = document.getElementById("again-btn");
+  const continueBtn = document.getElementById("continue-btn");
+  const menuBtn = document.getElementById("menu-btn");
+  const downloadBtn = document.getElementById("download-btn");
+  const previewImg = document.getElementById("map-preview");
+  const vehicleCountText = document.getElementById("vehicle-count");
+  const studentInfo = document.getElementById("student-info");
+
+  const partnerInput = document.getElementById("partner-name");
+  const jobInput = document.getElementById("job-description");
+
+  if (!studentName || !studentClass) {
+    window.location.href = "../index.html";
+    return;
   }
 
-  startForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const pName = document.getElementById("partner-name").value;
-    const pClass = document.getElementById("partner-class").value;
+  function isSameDay(dateStr1, dateStr2) {
+    return dateStr1 === dateStr2;
+  }
 
-    if (!pName || !pClass) {
-      alert("Please enter your partner's details.");
+  function saveVehiclesToStorage() {
+    const wrappers = document.querySelectorAll(".draggable-wrapper");
+    const data = [];
+    wrappers.forEach(wrapper => {
+      const img = wrapper.querySelector("img");
+      data.push({
+        src: img.src,
+        left: wrapper.style.left,
+        top: wrapper.style.top,
+        flipped: img.classList.contains("flipped-horizontal")
+      });
+    });
+    localStorage.setItem("placedVehicles", JSON.stringify(data));
+    localStorage.setItem("savedDate", todayStr);
+  }
+
+  function restoreVehiclesFromStorage() {
+    const data = JSON.parse(localStorage.getItem("placedVehicles") || "[]");
+    data.forEach(item => {
+      const wrapper = document.createElement("div");
+      wrapper.classList.add("draggable-wrapper");
+      wrapper.style.position = "absolute";
+      wrapper.style.left = item.left;
+      wrapper.style.top = item.top;
+
+      const img = document.createElement("img");
+      img.src = item.src;
+      img.classList.add("dropped-vehicle");
+      if (item.flipped) img.classList.add("flipped-horizontal");
+      img.style.pointerEvents = "none";
+
+      const flipBtn = document.createElement("button");
+      flipBtn.className = "flip-btn";
+      flipBtn.innerHTML = "↔";
+      flipBtn.style.display = "none";
+      flipBtn.onclick = ev => {
+        ev.stopPropagation();
+        img.classList.toggle("flipped-horizontal");
+        saveVehiclesToStorage();
+      };
+
+      wrapper.addEventListener("mouseenter", () => (flipBtn.style.display = "block"));
+      wrapper.addEventListener("mouseleave", () => (flipBtn.style.display = "none"));
+      wrapper.ondblclick = () => {
+        wrapper.remove();
+        saveVehiclesToStorage();
+      };
+
+      wrapper.appendChild(img);
+      wrapper.appendChild(flipBtn);
+      document.body.appendChild(wrapper);
+    });
+  }
+
+  function showModal() {
+    if (endModal) endModal.classList.add("show");
+    if (vehicleCountText) vehicleCountText.textContent = `${savedVehicles.length} vehicles placed with ${partnerName}`;
+    if (studentInfo) studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
+  }
+
+  function clearDataAndReload() {
+    localStorage.removeItem("placedVehicles");
+    localStorage.removeItem("partnerName");
+    localStorage.removeItem("jobDescription");
+    localStorage.removeItem("savedDate");
+    window.location.reload();
+  }
+
+  if (isSameDay(savedDate, todayStr) && savedVehicles.length > 0 && partnerName && jobDescription) {
+    showModal();
+  } else {
+    startForm.style.display = "block";
+  }
+
+  startBtn.addEventListener("click", () => {
+    const pName = partnerInput.value.trim();
+    const jDesc = jobInput.value.trim();
+    if (!pName || !jDesc) {
+      alert("Please enter partner name and job description.");
       return;
     }
-
     localStorage.setItem("partnerName", pName);
-    localStorage.setItem("partnerClass", pClass);
-  //  startOverlay.style.display = "none";
+    localStorage.setItem("jobDescription", jDesc);
+    startForm.style.display = "none";
+    palette.style.display = "grid";
+    finishBtn.style.display = "inline-block";
+    if (studentInfo) studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jDesc} with ${pName}`;
   });
 
-  startContinue.addEventListener("click", () => {
-  //  startOverlay.style.display = "none";
+  continueBtn.addEventListener("click", () => {
+    endModal.classList.remove("show");
+    palette.style.display = "grid";
+    finishBtn.style.display = "inline-block";
     restoreVehiclesFromStorage();
   });
 
-  // -------------------------
-  // Drag & Drop with Touch
-  // -------------------------
+  againBtn.addEventListener("click", clearDataAndReload);
+
+  menuBtn.addEventListener("click", () => {
+    clearDataAndReload();
+    window.location.href = "hub.html";
+  });
+
+  downloadBtn.addEventListener("click", async () => {
+    const canvas = await html2canvas(document.body);
+    const dataUrl = canvas.toDataURL("image/png");
+    if (previewImg) previewImg.src = dataUrl;
+
+    const timestamp = new Date().toISOString().replace(/[:T]/g, "-").split(".")[0];
+    const fileName = `${timestamp}_${studentClass}_${studentName}_${jobDescription}_with_${partnerName}`.replace(/\s+/g, "_");
+
+    fetch("https://script.google.com/macros/s/AKfycbzQFM9jcNCDPVg70SzmQ3hZIYahhDbTQXJ4UyqaTby81hTMWMmgxCtPX9nZxqHVfs_Mew/exec", {
+      method: "POST",
+      body: JSON.stringify({ image: dataUrl, filename: fileName }),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const wrappers = document.querySelectorAll(".draggable-wrapper");
+    const vehicleSummary = Array.from(wrappers).map(wrapper => {
+      const img = wrapper.querySelector("img");
+      const name = img.src.split("/").pop().split(".")[0];
+      const flipped = img.classList.contains("flipped-horizontal") ? " [flipped]" : "";
+      return `${name} at (${wrapper.style.left}, ${wrapper.style.top})${flipped}`;
+    }).join("; ");
+
+    const formData = new FormData();
+    formData.append("entry.1202364028", "Mrs Cove");
+    formData.append("entry.1957249768", studentClass);
+    formData.append("entry.436910009", studentName);
+    formData.append("entry.169376211", jobDescription);
+    formData.append("entry.1017965571", "1");
+    formData.append("entry.1568301781", vehicleSummary);
+
+    fetch("https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse", {
+      method: "POST",
+      mode: "no-cors",
+      body: formData,
+    });
+
+    clearDataAndReload();
+    window.location.href = "index.html";
+  });
+
+  // Drag & Drop with Mouse + Touch
   function startDrag(e, isTouch = false) {
     const target = isTouch ? e.targetTouches[0].target : e.target;
     if (!target.classList.contains("draggable") || target.parentElement !== palette) return;
-
-    if (document.querySelectorAll("body > .draggable-wrapper").length >= MAX_VEHICLES) return;
+    if (document.querySelectorAll(".draggable-wrapper").length >= MAX_VEHICLES) return;
 
     const wrapper = document.createElement("div");
     wrapper.classList.add("draggable-wrapper");
@@ -79,7 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
     flipBtn.className = "flip-btn";
     flipBtn.innerHTML = "↔";
     flipBtn.style.display = "none";
-    flipBtn.onclick = (ev) => {
+    flipBtn.onclick = ev => {
       ev.stopPropagation();
       clone.classList.toggle("flipped-horizontal");
       saveVehiclesToStorage();
@@ -88,7 +209,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     wrapper.addEventListener("mouseenter", () => (flipBtn.style.display = "block"));
     wrapper.addEventListener("mouseleave", () => (flipBtn.style.display = "none"));
-
     wrapper.ondblclick = () => {
       wrapper.remove();
       saveVehiclesToStorage();
@@ -127,92 +247,4 @@ document.addEventListener("DOMContentLoaded", () => {
   document.body.addEventListener("touchstart", (e) => startDrag(e, true), { passive: false });
   document.body.addEventListener("touchmove", (e) => moveDrag(e, true), { passive: false });
   document.body.addEventListener("touchend", endDrag);
-
-  // -------------------------
-  // Save/Restore Vehicle Placement
-  // -------------------------
-  function saveVehiclesToStorage() {
-    const wrappers = document.querySelectorAll(".draggable-wrapper");
-    const data = [];
-
-    wrappers.forEach(wrapper => {
-      const img = wrapper.querySelector("img");
-      const flipped = img.classList.contains("flipped-horizontal");
-      data.push({
-        src: img.src,
-        left: wrapper.style.left,
-        top: wrapper.style.top,
-        flipped: flipped
-      });
-    });
-
-    localStorage.setItem("placedVehicles", JSON.stringify(data));
-  }
-
-  function restoreVehiclesFromStorage() {
-    const data = JSON.parse(localStorage.getItem("placedVehicles") || "[]");
-    data.forEach(item => {
-      const wrapper = document.createElement("div");
-      wrapper.classList.add("draggable-wrapper");
-      wrapper.style.position = "absolute";
-      wrapper.style.left = item.left;
-      wrapper.style.top = item.top;
-
-      const img = document.createElement("img");
-      img.src = item.src;
-      img.classList.add("dropped-vehicle");
-      if (item.flipped) img.classList.add("flipped-horizontal");
-      img.style.pointerEvents = "none";
-
-      const flipBtn = document.createElement("button");
-      flipBtn.className = "flip-btn";
-      flipBtn.innerHTML = "↔";
-      flipBtn.style.display = "none";
-      flipBtn.onclick = (ev) => {
-        ev.stopPropagation();
-        img.classList.toggle("flipped-horizontal");
-        saveVehiclesToStorage();
-      };
-
-      wrapper.addEventListener("mouseenter", () => (flipBtn.style.display = "block"));
-      wrapper.addEventListener("mouseleave", () => (flipBtn.style.display = "none"));
-      wrapper.ondblclick = () => {
-        wrapper.remove();
-        saveVehiclesToStorage();
-      };
-
-      wrapper.appendChild(img);
-      wrapper.appendChild(flipBtn);
-      document.body.appendChild(wrapper);
-    });
-  }
-
-  // -------------------------
-  // Screenshot / Finish
-  // -------------------------
-  screenshotBtn.addEventListener("click", async () => {
-    try {
-      const canvas = await html2canvas(document.body);
-      const link = document.createElement("a");
-      link.download = `${studentName}_${studentClass}_vehicles.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    } catch (err) {
-      alert("Screenshot failed.");
-    }
-  });
-
-  finishBtn.addEventListener("click", () => {
-    const vehicleCount = document.querySelectorAll("body > .draggable-wrapper").length;
-
-    if (!partnerName || !partnerClass || vehicleCount === 0) {
-      alert("Make sure your partner’s name/class is entered and at least one vehicle is placed.");
-      return;
-    }
-
-    const time = new Date().toLocaleTimeString();
-    alert(`Finished! Vehicles placed: ${vehicleCount}\nTime: ${time}`);
-    localStorage.removeItem("placedVehicles");
-    window.location.href = "hub.html";
-  });
 });
