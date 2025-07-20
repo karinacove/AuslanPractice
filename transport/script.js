@@ -1,3 +1,7 @@
+// ✅ Final Script.js for Transport Game with Save/Resume, Screenshot Upload, and Modal Logic
+
+const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSd8nbI_Nck6x7Jkpv6t61tpAvZC1MQyTLwnNqOLiNipVwAt1A/formResponse";
+
 document.addEventListener("DOMContentLoaded", function () {
   const studentName = localStorage.getItem("studentName") || "";
   const studentClass = localStorage.getItem("studentClass") || "";
@@ -25,18 +29,15 @@ document.addEventListener("DOMContentLoaded", function () {
   const row2 = document.getElementById("row-2"); // count + continue
   const row3 = document.getElementById("row-3"); // again + menu
 
-  // State variables
-  let jobDescription = "";
-  let partnerName = "";
+  let jobDescription = localStorage.getItem("partnerJob") || "";
+  let partnerName = localStorage.getItem("partnerName") || "";
   const todayStr = new Date().toISOString().slice(0, 10);
 
-  // Load saved data
   let savedData = null;
   const savedDataJSON = localStorage.getItem("savedVehicles");
   if (savedDataJSON) {
     try {
       savedData = JSON.parse(savedDataJSON);
-      // Validate date
       if (savedData.savedDate !== todayStr) {
         savedData = null;
         localStorage.removeItem("savedVehicles");
@@ -47,194 +48,141 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // If savedData exists, also try to get saved partner/job info from localStorage if saved separately
-  const savedPartnerName = localStorage.getItem("savedPartnerName");
-  const savedJobDescription = localStorage.getItem("savedJobDescription");
-  if (savedPartnerName) partnerName = savedPartnerName;
-  if (savedJobDescription) jobDescription = savedJobDescription;
-
-  // Helper: Show modal with row 1 and 2 visible, row 3 hidden
   function showInitialModal() {
-    if (!endModal) return;
-
     endModal.classList.add("show");
-    if (row1) row1.style.display = "flex";
-    if (row2) row2.style.display = "flex";
-    if (row3) row3.style.display = "none";
+    row1.style.display = "flex";
+    row2.style.display = "flex";
+    row3.style.display = "none";
 
-    if (downloadBtn) downloadBtn.style.display = "inline-block";
-    if (continueBtn) continueBtn.style.display = "inline-block";
-    if (againBtn) againBtn.style.display = "inline-block";
-    if (menuBtn) menuBtn.style.display = "none";
+    downloadBtn.style.display = "inline-block";
+    continueBtn.style.display = "inline-block";
+    againBtn.style.display = "inline-block";
+    menuBtn.style.display = "none";
 
-    // Show vehicle count and partner/job info
     if (vehicleCountText && savedData) {
       vehicleCountText.textContent = `${savedData.vehicles.length} vehicles previously placed. Partner: ${partnerName} Job: ${jobDescription}`;
     }
 
-    // Show preview image if available or placeholder
-    if (previewImg) {
-      previewImg.src = savedData.screenshotDataUrl || ""; // save this on upload or null
-    }
+    previewImg.src = savedData.screenshotDataUrl || "";
   }
 
-  // Show modal after upload with again + menu buttons visible
   function showPostUploadModal() {
-    if (!endModal) return;
-
     endModal.classList.add("show");
-    if (row1) row1.style.display = "none";
-    if (row2) row2.style.display = "none";
-    if (row3) row3.style.display = "flex";
+    row1.style.display = "none";
+    row2.style.display = "none";
+    row3.style.display = "flex";
 
-    if (downloadBtn) downloadBtn.style.display = "none";
-    if (continueBtn) continueBtn.style.display = "none";
-    if (againBtn) againBtn.style.display = "inline-block";
-    if (menuBtn) menuBtn.style.display = "inline-block";
+    downloadBtn.style.display = "none";
+    continueBtn.style.display = "none";
+    againBtn.style.display = "inline-block";
+    menuBtn.style.display = "inline-block";
   }
 
-  // On page load, if savedData exists, show modal with continue/again options
-// On page load, check saved data and partner/job validity before showing modal
-if (
-  savedData &&
-  Array.isArray(savedData.vehicles) &&
-  savedData.vehicles.length > 0 &&
-  partnerName.trim() !== "" &&
-  jobDescription.trim() !== ""
-) {
-  showInitialModal();
-  if (form) form.style.display = "none";
-  if (palette) palette.style.display = "none";
-  if (finishBtn) finishBtn.style.display = "none";
-
-  if (studentInfo) {
+  if (
+    savedData &&
+    Array.isArray(savedData.vehicles) &&
+    savedData.vehicles.length > 0 &&
+    partnerName.trim() !== "" &&
+    jobDescription.trim() !== ""
+  ) {
+    showInitialModal();
+    form.style.display = "none";
+    palette.style.display = "none";
+    finishBtn.style.display = "none";
     studentInfo.style.display = "block";
     studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
-  }
-} else {
-  // No valid saved data or missing info - clear any partial saved data to avoid confusion
-  localStorage.removeItem("savedVehicles");
-  localStorage.removeItem("savedPartnerName");
-  localStorage.removeItem("savedJobDescription");
+  } else {
+    localStorage.removeItem("savedVehicles");
+    localStorage.removeItem("partnerName");
+    localStorage.removeItem("partnerJob");
 
-  if (form) form.style.display = "block";
-  if (palette) palette.style.display = "none";
-  if (finishBtn) finishBtn.style.display = "none";
-  if (studentInfo) studentInfo.style.display = "none";
-  if (endModal) endModal.classList.remove("show");
-}
-
-  // Continue button: hide modal, show palette + finish, restore vehicles
-  if (continueBtn) {
-    continueBtn.addEventListener("click", () => {
-      if (!savedData) return;
-
-      if (form) form.style.display = "none";
-      if (palette) palette.style.display = "grid";
-      if (finishBtn) finishBtn.style.display = "inline-block";
-
-      if (studentInfo) {
-        studentInfo.style.display = "block";
-        studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
-      }
-
-      endModal.classList.remove("show");
-
-      // Restore saved vehicles display (your existing code handles this)
-      restoreSavedVehicles();
-
-      // Show all vehicle wrappers
-      document.querySelectorAll(".draggable-wrapper").forEach((el) => (el.style.display = "block"));
-    });
+    form.style.display = "block";
+    palette.style.display = "none";
+    finishBtn.style.display = "none";
+    studentInfo.style.display = "none";
+    endModal.classList.remove("show");
   }
 
-  // Download button: upload screenshot + submit google form
-  if (downloadBtn) {
-    downloadBtn.addEventListener("click", async () => {
-      if (!savedData) return;
-      downloadBtn.style.pointerEvents = "none"; // disable button to prevent multiple clicks
+  continueBtn.addEventListener("click", () => {
+    if (!savedData) return;
+    form.style.display = "none";
+    palette.style.display = "grid";
+    finishBtn.style.display = "inline-block";
+    studentInfo.style.display = "block";
+    studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
+    endModal.classList.remove("show");
+    restoreSavedVehicles();
+    document.querySelectorAll(".draggable-wrapper").forEach((el) => (el.style.display = "block"));
+  });
 
-      // Capture screenshot using your existing captureScreenshot() function
-      let screenshotDataUrl = await captureScreenshot();
+  downloadBtn.addEventListener("click", async () => {
+    if (!savedData) return;
+    downloadBtn.style.pointerEvents = "none";
+    let screenshotDataUrl = await captureScreenshot();
+    savedData.screenshotDataUrl = screenshotDataUrl;
+    localStorage.setItem("savedVehicles", JSON.stringify(savedData));
+    localStorage.setItem("screenshotData", screenshotDataUrl);
 
-      // Save the screenshot dataUrl in savedData for preview next time
-      savedData.screenshotDataUrl = screenshotDataUrl;
-      localStorage.setItem("savedVehicles", JSON.stringify(savedData));
+    const now = new Date();
+    const timestamp = now.toISOString().replace(/T/, "_").replace(/:/g, "-").split(".")[0];
+    let fileName = `${timestamp}_${studentName}_${studentClass}_${jobDescription}_with_${partnerName}.png`;
+    fileName = fileName.replace(/\s+/g, "_").replace(/[^\w\-\.]/g, "");
 
-      // Upload image to Drive API (your existing fetch)
-      const now = new Date();
-      const timestamp = now.toISOString().replace(/T/, "_").replace(/:/g, "-").split(".")[0];
-      let fileName = `${timestamp}_${studentName}_${studentClass}_${jobDescription}_with_${partnerName}.png`;
-      fileName = fileName.replace(/\s+/g, "_").replace(/[^\w\-\.]/g, "");
-
-      await fetch(
-        "https://script.google.com/macros/s/AKfycbzQFM9jcNCDPVg70SzmQ3hZIYahhDbTQXJ4UyqaTby81hTMWMmgxCtPX9nZxqHVfs_Mew/exec",
-        {
-          method: "POST",
-          body: JSON.stringify({ image: screenshotDataUrl, filename: fileName }),
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      // Prepare form submission with vehicle data summary (your existing logic)
-      const formData = new FormData();
-      formData.append("entry.1202364028", "Mrs Cove"); // teacher fixed
-      formData.append("entry.1957249768", studentClass);
-      formData.append("entry.436910009", studentName);
-      formData.append("entry.169376211", jobDescription);
-      formData.append("entry.1017965571", "1"); // attempt
-      // vehicleSummary should be constructed from savedData vehicles array
-      const vehicleSummary = savedData.vehicles
-        .map(v => {
-          const name = v.src.split("/").pop().split(".")[0];
-          return `${name} at (${v.left},${v.top})${v.flipped ? " [flipped]" : ""}`;
-        })
-        .join("; ");
-      formData.append("entry.1568301781", vehicleSummary);
-
-      // Submit Google Form (no-cors)
-      await fetch("https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse", {
+    await fetch(
+      "https://script.google.com/macros/s/AKfycbzQFM9jcNCDPVg70SzmQ3hZIYahhDbTQXJ4UyqaTby81hTMWMmgxCtPX9nZxqHVfs_Mew/exec",
+      {
         method: "POST",
-        mode: "no-cors",
-        body: formData,
-      });
+        body: JSON.stringify({ image: screenshotDataUrl, filename: fileName }),
+        headers: { "Content-Type": "application/json" },
+      }
+    );
 
-      // After upload and form submission completes, update modal UI
-      showPostUploadModal();
+    const formData = new FormData();
+    formData.append("entry.1202364028", "Mrs Cove");
+    formData.append("entry.1957249768", studentClass);
+    formData.append("entry.436910009", studentName);
+    formData.append("entry.169376211", jobDescription);
+    formData.append("entry.1017965571", "1");
+    const vehicleSummary = savedData.vehicles
+      .map(v => {
+        const name = v.src.split("/").pop().split(".")[0];
+        return `${name} at (${v.left},${v.top})${v.flipped ? " [flipped]" : ""}`;
+      })
+      .join("; ");
+    formData.append("entry.1568301781", vehicleSummary);
 
-      downloadBtn.style.pointerEvents = "auto"; // re-enable button just in case
+    await fetch("https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse", {
+      method: "POST",
+      mode: "no-cors",
+      body: formData,
     });
-  }
 
-  // Again button: clear data and reload page
-  if (againBtn) {
-    againBtn.addEventListener("click", () => {
-      localStorage.removeItem("savedVehicles");
-      localStorage.removeItem("savedPartnerName");
-      localStorage.removeItem("savedJobDescription");
-      window.location.reload();
-    });
-  }
+    showPostUploadModal();
+    downloadBtn.style.pointerEvents = "auto";
+  });
 
-  // Menu button: clear data and redirect to hub
-  if (menuBtn) {
-    menuBtn.addEventListener("click", () => {
-      localStorage.removeItem("savedVehicles");
-      localStorage.removeItem("savedPartnerName");
-      localStorage.removeItem("savedJobDescription");
-      window.location.href = "hub.html";
-    });
-  }
+  againBtn.addEventListener("click", () => {
+    localStorage.removeItem("savedVehicles");
+    localStorage.removeItem("partnerName");
+    localStorage.removeItem("partnerJob");
+    localStorage.removeItem("screenshotData");
+    window.location.reload();
+  });
 
-  // You need to implement this or use your existing function:
+  menuBtn.addEventListener("click", () => {
+    localStorage.removeItem("savedVehicles");
+    localStorage.removeItem("partnerName");
+    localStorage.removeItem("partnerJob");
+    localStorage.removeItem("screenshotData");
+    window.location.href = "hub.html";
+  });
+
   function captureScreenshot() {
     return html2canvas(document.body).then((canvas) => canvas.toDataURL("image/png"));
   }
 
-  // Restore saved vehicles function (copy from your existing code)
   function restoreSavedVehicles() {
     if (!savedData || !savedData.vehicles) return;
-
     document.querySelectorAll(".draggable-wrapper").forEach((el) => el.remove());
 
     savedData.vehicles.forEach((vehicle) => {
@@ -271,7 +219,6 @@ if (
     });
   }
 
-  // Save vehicles function you probably already have
   function saveVehiclesToStorage() {
     const wrappers = document.querySelectorAll(".draggable-wrapper");
     const vehicles = [];
@@ -295,10 +242,10 @@ if (
       })
     );
 
-    // Also save partner/job so they persist
-    if (partnerName) localStorage.setItem("savedPartnerName", partnerName);
-    if (jobDescription) localStorage.setItem("savedJobDescription", jobDescription);
+    if (partnerName) localStorage.setItem("partnerName", partnerName);
+    if (jobDescription) localStorage.setItem("partnerJob", jobDescription);
   }
+});
 
   // -------------------------
   // Drag & drop vehicle logic with touch support
