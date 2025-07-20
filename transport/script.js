@@ -1,5 +1,3 @@
-// ✅ Combined and Finalised Transport Game Script
-
 document.addEventListener("DOMContentLoaded", () => {
   const studentName = localStorage.getItem("studentName") || "";
   const studentClass = localStorage.getItem("studentClass") || "";
@@ -13,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let dragged = null;
 
   const palette = document.getElementById("vehicle-palette");
-  const startForm = document.getElementById("partner-form");
+  const startOverlay = document.getElementById("startOverlay"); // 🔄 fixed ID
   const startBtn = document.getElementById("start-btn");
   const finishBtn = document.getElementById("finish-btn");
   const endModal = document.getElementById("end-modal");
@@ -105,10 +103,11 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.reload();
   }
 
+  // 💡 Fixed conditional display
   if (isSameDay(savedDate, todayStr) && savedVehicles.length > 0 && partnerName && jobDescription) {
     showModal();
-  } else {
-    startForm.style.display = "block";
+  } else if (startOverlay) {
+    startOverlay.style.display = "flex";
   }
 
   startBtn.addEventListener("click", () => {
@@ -120,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     localStorage.setItem("partnerName", pName);
     localStorage.setItem("jobDescription", jDesc);
-    startForm.style.display = "none";
+    startOverlay.style.display = "none";
     palette.style.display = "grid";
     finishBtn.style.display = "inline-block";
     if (studentInfo) studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jDesc} with ${pName}`;
@@ -179,6 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
     clearDataAndReload();
     window.location.href = "index.html";
   });
+});
 
   // Drag & Drop with Mouse + Touch
   function startDrag(e, isTouch = false) {
