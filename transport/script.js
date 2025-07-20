@@ -1,250 +1,208 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const studentName = localStorage.getItem("studentName") || "";
-  const studentClass = localStorage.getItem("studentClass") || "";
-  const partnerName = localStorage.getItem("partnerName") || "";
-  const jobDescription = localStorage.getItem("jobDescription") || "";
-  const savedVehicles = JSON.parse(localStorage.getItem("placedVehicles") || "[]");
-  const savedDate = localStorage.getItem("savedDate");
+// Transport Game Script
 
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const MAX_VEHICLES = 12;
-  let dragged = null;
+const MAX_VEHICLES = 12;
+let selectedVehicle = null;
+let offsetX, offsetY;
+let isDragging = false;
+let vehiclePlacements = [];
+let sessionStartTime = Date.now();
 
-  const getEl = (id) => document.getElementById(id);
-  const palette = getEl("vehicle-palette");
-  const startOverlay = getEl("startOverlay");
-  const startBtn = getEl("start-btn");
-  const finishBtn = getEl("finish-btn");
-  const endModal = getEl("end-modal");
-  const againBtn = getEl("again-btn");
-  const continueBtn = getEl("continue-btn");
-  const menuBtn = getEl("menu-btn");
-  const downloadBtn = getEl("download-btn");
-  const previewImg = getEl("map-preview");
-  const vehicleCountText = getEl("vehicle-count");
-  const studentInfo = getEl("student-info");
-  const partnerInput = getEl("partner-name");
-  const jobInput = getEl("job-description");
+// DOM Elements
+const mapArea = document.getElementById("map-area");
+const palette = document.getElementById("palette");
+const vehicleCount = document.getElementById("vehicle-count");
+const downloadBtn = document.getElementById("download-btn");
+const resetBtn = document.getElementById("reset-btn");
+const menuBtn = document.getElementById("menu-btn");
+const finishBtn = document.getElementById("finish-btn");
+const screenshotPreview = document.getElementById("screenshot-preview");
+const finalButtons = document.getElementById("final-buttons");
 
-  if (!studentName || !studentClass) {
-    window.location.href = "../index.html";
-    return;
-  }
+// Sign-in Elements
+const studentName = localStorage.getItem("studentName") || "";
+const studentClass = localStorage.getItem("studentClass") || "";
+const partnerName = localStorage.getItem("partnerName") || "";
+const jobDescription = localStorage.getItem("jobDescription") || "";
 
-  function isSameDay(dateStr1, dateStr2) {
-    return dateStr1 === dateStr2;
-  }
+if (!studentName || !studentClass) {
+  alert("Please return to the sign-in page.");
+  window.location.href = "index.html";
+}
 
-  function saveVehiclesToStorage() {
-    const wrappers = document.querySelectorAll(".draggable-wrapper");
-    const data = [];
-    wrappers.forEach(wrapper => {
-      const img = wrapper.querySelector("img");
-      data.push({
-        src: img.src,
-        left: wrapper.style.left,
-        top: wrapper.style.top,
-        flipped: img.classList.contains("flipped-horizontal")
-      });
-    });
-    localStorage.setItem("placedVehicles", JSON.stringify(data));
-    localStorage.setItem("savedDate", todayStr);
-  }
+// Load vehicles from palette
+function createVehicleElement(type, index) {
+  const vehicle = document.createElement("img");
+  vehicle.src = `assets/vehicles/${type}`;
+  vehicle.classList.add("vehicle");
+  vehicle.dataset.index = index;
+  vehicle.dataset.type = type;
+  vehicle.setAttribute("draggable", false);
 
-  function restoreVehiclesFromStorage() {
-    const data = JSON.parse(localStorage.getItem("placedVehicles") || "[]");
-    data.forEach(item => {
-      const wrapper = document.createElement("div");
-      wrapper.classList.add("draggable-wrapper");
-      wrapper.style.position = "absolute";
-      wrapper.style.left = item.left;
-      wrapper.style.top = item.top;
+  // Click to select and drag
+  vehicle.addEventListener("mousedown", startDrag);
+  vehicle.addEventListener("touchstart", startDrag);
 
-      const img = document.createElement("img");
-      img.src = item.src;
-      img.classList.add("dropped-vehicle");
-      if (item.flipped) img.classList.add("flipped-horizontal");
-      img.style.pointerEvents = "none";
+  return vehicle;
+}
 
-      const flipBtn = document.createElement("button");
-      flipBtn.className = "flip-btn";
-      flipBtn.innerHTML = "↔";
-      flipBtn.style.display = "none";
-      flipBtn.onclick = ev => {
-        ev.stopPropagation();
-        img.classList.toggle("flipped-horizontal");
-        saveVehiclesToStorage();
-      };
+function updateVehicleCount() {
+  vehicleCount.textContent = vehiclePlacements.length;
+}
 
-      wrapper.addEventListener("mouseenter", () => (flipBtn.style.display = "block"));
-      wrapper.addEventListener("mouseleave", () => (flipBtn.style.display = "none"));
-      wrapper.ondblclick = () => {
-        wrapper.remove();
-        saveVehiclesToStorage();
-      };
+function startDrag(e) {
+  e.preventDefault();
+  if (vehiclePlacements.length >= MAX_VEHICLES && !e.target.classList.contains("placed")) return;
 
-      wrapper.appendChild(img);
-      wrapper.appendChild(flipBtn);
-      document.body.appendChild(wrapper);
-    });
-  }
+  selectedVehicle = e.target.cloneNode(true);
+  selectedVehicle.classList.add("selected");
+  mapArea.appendChild(selectedVehicle);
 
-  function showModal() {
-    if (endModal) endModal.classList.add("show");
-    if (vehicleCountText) vehicleCountText.textContent = `${savedVehicles.length} vehicles placed with ${partnerName}`;
-    if (studentInfo) studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
-  }
+  const rect = mapArea.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
-  function clearDataAndReload() {
-    localStorage.removeItem("placedVehicles");
-    localStorage.removeItem("partnerName");
-    localStorage.removeItem("jobDescription");
-    localStorage.removeItem("savedDate");
-    window.location.reload();
-  }
+  offsetX = 50;
+  offsetY = 50;
 
-  if (isSameDay(savedDate, todayStr) && savedVehicles.length > 0 && partnerName && jobDescription) {
-    showModal();
-  } else if (startOverlay) {
-    startOverlay.style.display = "flex";
-  }
+  selectedVehicle.style.left = `${clientX - rect.left - offsetX}px`;
+  selectedVehicle.style.top = `${clientY - rect.top - offsetY}px`;
 
-  if (startBtn) {
-    startBtn.addEventListener("click", () => {
-      const pName = partnerInput?.value.trim();
-      const jDesc = jobInput?.value.trim();
-      if (!pName || !jDesc) {
-        alert("Please enter partner name and job description.");
-        return;
-      }
-      localStorage.setItem("partnerName", pName);
-      localStorage.setItem("jobDescription", jDesc);
-      if (startOverlay) startOverlay.style.display = "none";
-      if (palette) palette.style.display = "grid";
-      if (finishBtn) finishBtn.style.display = "inline-block";
-      if (studentInfo) studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jDesc} with ${pName}`;
-    });
-  }
+  isDragging = true;
+}
 
-  continueBtn?.addEventListener("click", () => {
-    endModal?.classList.remove("show");
-    if (palette) palette.style.display = "grid";
-    if (finishBtn) finishBtn.style.display = "inline-block";
-    restoreVehiclesFromStorage();
+function drag(e) {
+  if (!isDragging || !selectedVehicle) return;
+
+  const rect = mapArea.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+  selectedVehicle.style.left = `${clientX - rect.left - offsetX}px`;
+  selectedVehicle.style.top = `${clientY - rect.top - offsetY}px`;
+}
+
+function endDrag() {
+  if (!selectedVehicle) return;
+
+  selectedVehicle.classList.remove("selected");
+  selectedVehicle.classList.add("placed");
+
+  selectedVehicle.addEventListener("click", () => {
+    mapArea.removeChild(selectedVehicle);
+    vehiclePlacements = vehiclePlacements.filter(v => v !== selectedVehicle);
+    updateVehicleCount();
   });
 
-  againBtn?.addEventListener("click", clearDataAndReload);
+  vehiclePlacements.push(selectedVehicle);
+  updateVehicleCount();
 
-  menuBtn?.addEventListener("click", () => {
-    clearDataAndReload();
-    window.location.href = "hub.html";
-  });
+  selectedVehicle = null;
+  isDragging = false;
+}
 
-  downloadBtn?.addEventListener("click", async () => {
-    const canvas = await html2canvas(document.body);
-    const dataUrl = canvas.toDataURL("image/png");
-    if (previewImg) previewImg.src = dataUrl;
+function finishActivity() {
+  // 1. Take screenshot
+  html2canvas(mapArea).then(canvas => {
+    const imageData = canvas.toDataURL("image/png");
 
-    const timestamp = new Date().toISOString().replace(/[:T]/g, "-").split(".")[0];
-    const fileName = `${timestamp}_${studentClass}_${studentName}_${jobDescription}_with_${partnerName}`.replace(/\s+/g, "_");
+    // 2. Show screenshot preview
+    screenshotPreview.src = imageData;
+    screenshotPreview.style.display = "block";
+    finalButtons.style.display = "flex";
 
-    fetch("https://script.google.com/macros/s/AKfycbzQFM9jcNCDPVg70SzmQ3hZIYahhDbTQXJ4UyqaTby81hTMWMmgxCtPX9nZxqHVfs_Mew/exec", {
-      method: "POST",
-      body: JSON.stringify({ image: dataUrl, filename: fileName }),
-      headers: { "Content-Type": "application/json" },
-    });
+    // 3. Send to Google Form silently
+    const placedCount = vehiclePlacements.length;
+    const scorePercent = Math.round((placedCount / MAX_VEHICLES) * 100);
+    const timeTaken = Math.round((Date.now() - sessionStartTime) / 1000);
 
-    const wrappers = document.querySelectorAll(".draggable-wrapper");
-    const vehicleSummary = Array.from(wrappers).map(wrapper => {
-      const img = wrapper.querySelector("img");
-      const name = img.src.split("/").pop().split(".")[0];
-      const flipped = img.classList.contains("flipped-horizontal") ? " [flipped]" : "";
-      return `${name} at (${wrapper.style.left}, ${wrapper.style.top})${flipped}`;
-    }).join("; ");
+    const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfXCG5iGctZFFKPRmTDv82Ihv2k9wBP4EKyG4RbFqjFl8pkPQ/formResponse";
+    const form = new FormData();
+    form.append("entry.1387461004", studentName);
+    form.append("entry.1309291707", studentClass);
+    form.append("entry.477642881", "Transport");
+    form.append("entry.1499502291", partnerName);
+    form.append("entry.644540153", jobDescription);
+    form.append("entry.1996137354", `${scorePercent}%`);
+    form.append("entry.1948763139", `${timeTaken}s`);
 
-    const formData = new FormData();
-    formData.append("entry.1202364028", "Mrs Cove");
-    formData.append("entry.1957249768", studentClass);
-    formData.append("entry.436910009", studentName);
-    formData.append("entry.169376211", jobDescription);
-    formData.append("entry.1017965571", "1");
-    formData.append("entry.1568301781", vehicleSummary);
-
-    fetch("https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse", {
+    fetch(formURL, {
       method: "POST",
       mode: "no-cors",
-      body: formData,
+      body: form
+    });
+  });
+}
+
+function resetActivity() {
+  location.reload();
+}
+
+function goToMenu() {
+  window.location.href = "hub.html";
+}
+
+function downloadScreenshot() {
+  const link = document.createElement("a");
+  link.download = `transport_${studentName}_${studentClass}.png`;
+  link.href = screenshotPreview.src;
+  link.click();
+}
+
+// Load saved session
+function restoreState() {
+  const saved = JSON.parse(localStorage.getItem("transportPlacements"));
+  if (!saved) return;
+
+  saved.forEach(data => {
+    const img = createVehicleElement(data.type, data.index);
+    img.style.left = data.left;
+    img.style.top = data.top;
+    img.classList.add("placed");
+
+    img.addEventListener("click", () => {
+      mapArea.removeChild(img);
+      vehiclePlacements = vehiclePlacements.filter(v => v !== img);
+      updateVehicleCount();
     });
 
-    clearDataAndReload();
-    window.location.href = "index.html";
+    mapArea.appendChild(img);
+    vehiclePlacements.push(img);
   });
+  updateVehicleCount();
+}
 
-  // Drag & Drop Logic
-  function startDrag(e, isTouch = false) {
-    const target = isTouch ? e.targetTouches[0].target : e.target;
-    if (!target.classList.contains("draggable") || target.parentElement !== palette) return;
-    if (document.querySelectorAll(".draggable-wrapper").length >= MAX_VEHICLES) return;
+function saveState() {
+  const data = vehiclePlacements.map(img => ({
+    type: img.dataset.type,
+    index: img.dataset.index,
+    left: img.style.left,
+    top: img.style.top
+  }));
+  localStorage.setItem("transportPlacements", JSON.stringify(data));
+}
 
-    const wrapper = document.createElement("div");
-    wrapper.classList.add("draggable-wrapper");
-    wrapper.style.position = "absolute";
-    wrapper.style.zIndex = 1000;
+mapArea.addEventListener("mousemove", drag);
+mapArea.addEventListener("mouseup", endDrag);
+mapArea.addEventListener("touchmove", drag);
+mapArea.addEventListener("touchend", endDrag);
 
-    const clone = target.cloneNode(true);
-    clone.classList.add("dropped-vehicle");
-    clone.style.pointerEvents = "none";
-    wrapper.appendChild(clone);
+resetBtn?.addEventListener("click", resetActivity);
+menuBtn?.addEventListener("click", goToMenu);
+downloadBtn?.addEventListener("click", downloadScreenshot);
+finishBtn?.addEventListener("click", finishActivity);
 
-    const flipBtn = document.createElement("button");
-    flipBtn.className = "flip-btn";
-    flipBtn.innerHTML = "↔";
-    flipBtn.style.display = "none";
-    flipBtn.onclick = ev => {
-      ev.stopPropagation();
-      clone.classList.toggle("flipped-horizontal");
-      saveVehiclesToStorage();
-    };
-    wrapper.appendChild(flipBtn);
-
-    wrapper.addEventListener("mouseenter", () => (flipBtn.style.display = "block"));
-    wrapper.addEventListener("mouseleave", () => (flipBtn.style.display = "none"));
-    wrapper.ondblclick = () => {
-      wrapper.remove();
-      saveVehiclesToStorage();
-    };
-
-    document.body.appendChild(wrapper);
-    dragged = wrapper;
-
-    const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
-    const clientY = isTouch ? e.targetTouches[0].clientY : e.clientY;
-    dragged.offsetX = 40;
-    dragged.offsetY = 40;
-    dragged.style.left = clientX - dragged.offsetX + "px";
-    dragged.style.top = clientY - dragged.offsetY + "px";
-
-    e.preventDefault();
-  }
-
-  function moveDrag(e, isTouch = false) {
-    if (!dragged) return;
-    const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
-    const clientY = isTouch ? e.targetTouches[0].clientY : e.clientY;
-    dragged.style.left = clientX - dragged.offsetX + "px";
-    dragged.style.top = clientY - dragged.offsetY + "px";
-  }
-
-  function endDrag() {
-    if (dragged) dragged.style.zIndex = "";
-    dragged = null;
-    saveVehiclesToStorage();
-  }
-
-  document.body.addEventListener("mousedown", (e) => startDrag(e, false));
-  document.body.addEventListener("mousemove", (e) => moveDrag(e, false));
-  document.body.addEventListener("mouseup", endDrag);
-  document.body.addEventListener("touchstart", (e) => startDrag(e, true), { passive: false });
-  document.body.addEventListener("touchmove", (e) => moveDrag(e, true), { passive: false });
-  document.body.addEventListener("touchend", endDrag);
+// Load vehicle palette
+const vehicleTypes = [
+  "car.png", "bus.png", "bike.png", "truck.png",
+  "van.png", "ambulance.png", "firetruck.png", "tractor.png"
+];
+vehicleTypes.forEach((type, i) => {
+  const el = createVehicleElement(type, i);
+  palette.appendChild(el);
 });
+
+// Initial restore
+restoreState();
+
+// Save on unload
+window.addEventListener("beforeunload", saveState);
