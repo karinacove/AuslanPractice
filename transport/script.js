@@ -1,28 +1,64 @@
 document.addEventListener("DOMContentLoaded", () => {
   // -------------------------
-  // Sign-in Handling
+  // Initial Setup
   // -------------------------
   const studentName = localStorage.getItem("studentName") || "";
   const studentClass = localStorage.getItem("studentClass") || "";
-  const currentLevel = parseInt(localStorage.getItem("currentLevel")) || 1;
-  const placedVehicles = JSON.parse(localStorage.getItem("placedVehicles")) || [];
+  const partnerName = localStorage.getItem("partnerName") || "";
+  const partnerClass = localStorage.getItem("partnerClass") || "";
+  const savedVehicles = JSON.parse(localStorage.getItem("placedVehicles") || "[]");
 
-  if (!studentName || !studentClass) {
-    alert("Please return to the sign-in page.");
-    window.location.href = "index.html";
-    return;
-  }
+  const nameDisplay = document.getElementById("student-name");
+  const classDisplay = document.getElementById("student-class");
 
-  document.getElementById("student-name").textContent = studentName;
-  document.getElementById("student-class").textContent = studentClass;
+  if (nameDisplay && studentName) nameDisplay.textContent = studentName;
+  if (classDisplay && studentClass) classDisplay.textContent = studentClass;
 
-  // -------------------------
-  // Drag & Drop Vehicle Logic with Touch Support
-  // -------------------------
+  const palette = document.getElementById("palette");
+  const finishBtn = document.getElementById("finish-btn");
+  const screenshotBtn = document.getElementById("screenshot-btn");
+
+  const startOverlay = document.getElementById("start-overlay");
+  const startForm = document.getElementById("partner-form");
+  const startContinue = document.getElementById("continue-btn");
+
   const MAX_VEHICLES = 12;
-  const palette = document.getElementById("vehicle-palette");
   let dragged = null;
 
+  // -------------------------
+  // Modal Logic & Resume
+  // -------------------------
+  if (!partnerName || !partnerClass || savedVehicles.length === 0) {
+    startOverlay.style.display = "flex";
+    startContinue.style.display = "none";
+  } else {
+    startOverlay.style.display = "none";
+    restoreVehiclesFromStorage();
+  }
+
+  startForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const pName = document.getElementById("partner-name").value;
+    const pClass = document.getElementById("partner-class").value;
+
+    if (!pName || !pClass) {
+      alert("Please enter your partner's details.");
+      return;
+    }
+
+    localStorage.setItem("partnerName", pName);
+    localStorage.setItem("partnerClass", pClass);
+    startOverlay.style.display = "none";
+  });
+
+  startContinue.addEventListener("click", () => {
+    startOverlay.style.display = "none";
+    restoreVehiclesFromStorage();
+  });
+
+  // -------------------------
+  // Drag & Drop with Touch
+  // -------------------------
   function startDrag(e, isTouch = false) {
     const target = isTouch ? e.targetTouches[0].target : e.target;
     if (!target.classList.contains("draggable") || target.parentElement !== palette) return;
@@ -53,18 +89,16 @@ document.addEventListener("DOMContentLoaded", () => {
     wrapper.addEventListener("mouseenter", () => (flipBtn.style.display = "block"));
     wrapper.addEventListener("mouseleave", () => (flipBtn.style.display = "none"));
 
-    // Double-click to remove the vehicle
-    wrapper.addEventListener("dblclick", () => {
+    wrapper.ondblclick = () => {
       wrapper.remove();
       saveVehiclesToStorage();
-    });
+    };
 
     document.body.appendChild(wrapper);
     dragged = wrapper;
 
     const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
     const clientY = isTouch ? e.targetTouches[0].clientY : e.clientY;
-
     dragged.offsetX = 40;
     dragged.offsetY = 40;
     dragged.style.left = clientX - dragged.offsetX + "px";
@@ -95,70 +129,40 @@ document.addEventListener("DOMContentLoaded", () => {
   document.body.addEventListener("touchend", endDrag);
 
   // -------------------------
-  // Screenshot / Finish Button Logic
-  // -------------------------
-  const finishBtn = document.getElementById("finish-btn");
-  const modal = document.getElementById("finish-modal");
-  const closeModal = document.getElementById("close-modal");
-  const downloadBtn = document.getElementById("download-btn");
-  const imagePreview = document.getElementById("image-preview");
-
-  finishBtn?.addEventListener("click", async () => {
-    modal?.classList.remove("hidden");
-
-    try {
-      const canvas = await html2canvas(document.body);
-      const dataURL = canvas.toDataURL();
-      imagePreview.src = dataURL;
-
-      // Optional: Download logic
-      downloadBtn.onclick = () => {
-        const link = document.createElement("a");
-        link.download = "auslan-transport.png";
-        link.href = dataURL;
-        link.click();
-      };
-    } catch (err) {
-      console.error("Screenshot failed:", err);
-    }
-  });
-
-  closeModal?.addEventListener("click", () => {
-    modal?.classList.add("hidden");
-  });
-
-  // -------------------------
-  // Vehicle Save & Restore Logic
+  // Save/Restore Vehicle Placement
   // -------------------------
   function saveVehiclesToStorage() {
-    const vehicles = [];
-    document.querySelectorAll(".draggable-wrapper").forEach((wrapper) => {
+    const wrappers = document.querySelectorAll(".draggable-wrapper");
+    const data = [];
+
+    wrappers.forEach(wrapper => {
       const img = wrapper.querySelector("img");
-      vehicles.push({
-        src: img.getAttribute("src"),
-        flipped: img.classList.contains("flipped-horizontal"),
+      const flipped = img.classList.contains("flipped-horizontal");
+      data.push({
+        src: img.src,
         left: wrapper.style.left,
         top: wrapper.style.top,
+        flipped: flipped
       });
     });
-    localStorage.setItem("placedVehicles", JSON.stringify(vehicles));
+
+    localStorage.setItem("placedVehicles", JSON.stringify(data));
   }
 
-  function loadVehiclesFromStorage() {
-    placedVehicles.forEach((v) => {
+  function restoreVehiclesFromStorage() {
+    const data = JSON.parse(localStorage.getItem("placedVehicles") || "[]");
+    data.forEach(item => {
       const wrapper = document.createElement("div");
       wrapper.classList.add("draggable-wrapper");
       wrapper.style.position = "absolute";
-      wrapper.style.zIndex = 1000;
-      wrapper.style.left = v.left;
-      wrapper.style.top = v.top;
+      wrapper.style.left = item.left;
+      wrapper.style.top = item.top;
 
-      const clone = document.createElement("img");
-      clone.src = v.src;
-      clone.classList.add("dropped-vehicle");
-      if (v.flipped) clone.classList.add("flipped-horizontal");
-      clone.style.pointerEvents = "none";
-      wrapper.appendChild(clone);
+      const img = document.createElement("img");
+      img.src = item.src;
+      img.classList.add("dropped-vehicle");
+      if (item.flipped) img.classList.add("flipped-horizontal");
+      img.style.pointerEvents = "none";
 
       const flipBtn = document.createElement("button");
       flipBtn.className = "flip-btn";
@@ -166,26 +170,49 @@ document.addEventListener("DOMContentLoaded", () => {
       flipBtn.style.display = "none";
       flipBtn.onclick = (ev) => {
         ev.stopPropagation();
-        clone.classList.toggle("flipped-horizontal");
+        img.classList.toggle("flipped-horizontal");
         saveVehiclesToStorage();
       };
-      wrapper.appendChild(flipBtn);
 
       wrapper.addEventListener("mouseenter", () => (flipBtn.style.display = "block"));
       wrapper.addEventListener("mouseleave", () => (flipBtn.style.display = "none"));
-
-      // Double-click to remove
-      wrapper.addEventListener("dblclick", () => {
+      wrapper.ondblclick = () => {
         wrapper.remove();
         saveVehiclesToStorage();
-      });
+      };
 
+      wrapper.appendChild(img);
+      wrapper.appendChild(flipBtn);
       document.body.appendChild(wrapper);
     });
   }
 
-  // Auto-resume
-  if (placedVehicles.length > 0) {
-    loadVehiclesFromStorage();
-  }
+  // -------------------------
+  // Screenshot / Finish
+  // -------------------------
+  screenshotBtn.addEventListener("click", async () => {
+    try {
+      const canvas = await html2canvas(document.body);
+      const link = document.createElement("a");
+      link.download = `${studentName}_${studentClass}_vehicles.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch (err) {
+      alert("Screenshot failed.");
+    }
+  });
+
+  finishBtn.addEventListener("click", () => {
+    const vehicleCount = document.querySelectorAll("body > .draggable-wrapper").length;
+
+    if (!partnerName || !partnerClass || vehicleCount === 0) {
+      alert("Make sure your partner’s name/class is entered and at least one vehicle is placed.");
+      return;
+    }
+
+    const time = new Date().toLocaleTimeString();
+    alert(`Finished! Vehicles placed: ${vehicleCount}\nTime: ${time}`);
+    localStorage.removeItem("placedVehicles");
+    window.location.href = "hub.html";
+  });
 });
