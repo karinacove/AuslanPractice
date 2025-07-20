@@ -29,10 +29,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // Modal Logic & Resume
   // -------------------------
   if (!partnerName || !partnerClass || savedVehicles.length === 0) {
-    startOverlay.style.display = "flex";
+  //  startOverlay.style.display = "flex";
     startContinue.style.display = "none";
   } else {
-    startOverlay.style.display = "none";
+  //  startOverlay.style.display = "none";
     restoreVehiclesFromStorage();
   }
 
