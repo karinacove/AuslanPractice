@@ -1,5 +1,3 @@
-// ✅ Final Script.js for Transport Game with Save/Resume, Screenshot Upload, and Modal Logic
-
 const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSd8nbI_Nck6x7Jkpv6t61tpAvZC1MQyTLwnNqOLiNipVwAt1A/formResponse";
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -454,7 +452,6 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
   }
-
 
   // -------------------------
   // "Menu" button: clear saved vehicles & go to hub
