@@ -63,29 +63,28 @@
   </div>
 
   <!-- Modal at end -->
-<!-- Modal at end -->
-<div id="end-modal" class="modal hidden">
-  <!-- Row 1: Map preview and download -->
-  <div class="modal-row" id="row-1" style="display: flex; justify-content: space-between; align-items: center;">
-    <img id="map-preview" alt="Map Preview" style="max-width: 45%; border: 1px solid #ccc;" />
-    <img id="download-btn" src="assets/download.png" alt="Download and Upload" style="cursor: pointer;" />
+  <div id="end-modal" class="modal hidden">
+    <!-- Row 1: Map preview and download -->
+    <div class="modal-row" id="row-1" style="display: flex; justify-content: space-between; align-items: center;">
+      <img id="map-preview" alt="Map Preview" style="max-width: 45%; border: 1px solid #ccc;" />
+      <img id="download-btn" src="assets/download.png" alt="Download and Upload" style="cursor: pointer;" />
+    </div>
+
+    <!-- Row 2: Vehicle count and continue button -->
+    <div class="modal-row" id="row-2" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+      <div id="vehicle-count" style="font-weight: bold;"></div>
+      <img id="continue-btn" src="assets/continue.png" alt="Continue" style="cursor: pointer;" />
+    </div>
+
+    <!-- Row 3: Again and Menu buttons (initially hidden, shown after upload) -->
+    <div class="modal-row" id="row-3" style="display: none; justify-content: space-around; margin-top: 1rem;">
+      <img src="assets/again.png" id="again-btn" alt="Play Again" style="cursor: pointer;" />
+      <img src="assets/menu.png" id="menu-btn" alt="Menu" style="cursor: pointer;" />
+    </div>
   </div>
 
-  <!-- Row 2: Vehicle count and continue button -->
-  <div class="modal-row" id="row-2" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
-    <div id="vehicle-count" style="font-weight: bold;"></div>
-    <img id="continue-btn" src="assets/continue.png" alt="Continue" style="cursor: pointer;" />
-  </div>
-
-  <!-- Row 3: Again and Menu buttons (initially hidden, shown after upload) -->
-  <div class="modal-row" id="row-3" style="display: none; justify-content: space-around; margin-top: 1rem;">
-    <img src="assets/again.png" id="again-btn" alt="Play Again" style="cursor: pointer;" />
-    <img src="assets/menu.png" id="menu-btn" alt="Menu" style="cursor: pointer;" />
-  </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="script.js"></script>
-
+  <!-- External scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
