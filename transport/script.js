@@ -1,7 +1,3 @@
-// -------------------------
-// Auslan Transport Game Script
-// Full complete version with drag-drop, save/restore, daily reset, Google Form + Drive upload
-// -------------------------
 
 document.addEventListener("DOMContentLoaded", function () {
   // -------------------------
@@ -62,24 +58,22 @@ document.addEventListener("DOMContentLoaded", function () {
   // Get today string YYYY-MM-DD
   const todayStr = new Date().toISOString().slice(0, 10);
 
-  // Validate savedData date
+  // Validate savedData date and clear old data
   if (savedData && savedData.savedDate) {
     if (!isSameDay(savedData.savedDate, todayStr)) {
-      // Old data from previous day, clear
       localStorage.removeItem("savedVehicles");
       savedData = null;
     }
   } else if (savedData) {
-    // No savedDate property? Clear anyway to be safe
     localStorage.removeItem("savedVehicles");
     savedData = null;
   }
 
   // -------------------------
-  // Initialize UI depending on savedData existence
+  // Initialize UI depending on savedData existence & vehicle count
   // -------------------------
-  if (savedData) {
-    // Show modal and restore preview image, vehicle count
+  if (savedData && savedData.vehicles && savedData.vehicles.length > 0) {
+    // Show modal only if there are saved vehicles
     if (endModal) endModal.classList.add("show");
     restorePreview();
 
@@ -97,7 +91,7 @@ document.addEventListener("DOMContentLoaded", function () {
       studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
     }
   } else {
-    // No saved data: show form, hide palette and finish button
+    // No saved vehicles or no saved data: show form, hide palette and finish button, hide modal
     if (form) form.style.display = "block";
     if (palette) palette.style.display = "none";
     if (finishBtn) finishBtn.style.display = "none";
@@ -123,13 +117,16 @@ document.addEventListener("DOMContentLoaded", function () {
         studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
       }
 
+      // Check again if saved vehicles exist on start and show modal accordingly
       if (localStorage.getItem("savedVehicles")) {
-        if (endModal) endModal.classList.add("show");
-        restorePreview();
+        const savedVehicles = JSON.parse(localStorage.getItem("savedVehicles"));
+        if (savedVehicles.vehicles && savedVehicles.vehicles.length > 0) {
+          if (endModal) endModal.classList.add("show");
+          restorePreview();
 
-        if (vehicleCountText) {
-          const savedVehicles = JSON.parse(localStorage.getItem("savedVehicles"));
-          vehicleCountText.textContent = `${savedVehicles.vehicles.length} vehicles previously placed.`;
+          if (vehicleCountText) {
+            vehicleCountText.textContent = `${savedVehicles.vehicles.length} vehicles previously placed.`;
+          }
         }
       }
     });
