@@ -1,184 +1,132 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("student-form");
-  const palette = document.getElementById("palette");
-  const dropzones = document.querySelectorAll(".dropzone");
-  const partnerForm = document.getElementById("partner-form");
+  const studentForm = document.getElementById("student-form");
+  const partnerInput = document.getElementById("partner-name");
+  const jobInput = document.getElementById("job-description");
+  const studentInfoDiv = document.getElementById("student-info");
+  const submitBtn = document.getElementById("submit-btn");
+  const vehiclePalette = document.getElementById("vehicle-palette");
+  const endModal = document.getElementById("end-modal");
+  const vehicleCountText = document.getElementById("vehicle-count");
   const downloadBtn = document.getElementById("download-btn");
-  const resumeScreen = document.getElementById("resume-screen");
-  const resumeInfo = document.getElementById("resume-info");
-  const resumeScreenshot = document.getElementById("resume-screenshot");
-  const resumeContinue = document.getElementById("resume-continue");
-  const resumeAgain = document.getElementById("resume-again");
-  const resumeMenu = document.getElementById("resume-menu");
+  const continueBtn = document.getElementById("continue-btn");
+  const againBtn = document.getElementById("again-btn");
+  const menuBtn = document.getElementById("menu-btn");
+  const mapPreview = document.getElementById("map-preview");
 
-  let studentName = localStorage.getItem("studentName") || "";
-  let studentClass = localStorage.getItem("studentClass") || "";
+  // Utilities
+  const getVehicleCount = () => document.querySelectorAll(".vehicle").length;
 
-  if (!studentName || !studentClass) {
-    alert("Please return to the sign-in page.");
-    return;
-  }
+  // Load saved session
+  const savedPartner = localStorage.getItem("partnerName");
+  const savedJob = localStorage.getItem("jobDescription");
+  const savedVehicles = JSON.parse(localStorage.getItem("placedVehicles") || "[]");
+  const savedScreenshot = localStorage.getItem("screenshotData");
 
-  let partnerName = "";
-  let jobDescription = "";
-  let startTime = null;
-  let placedVehicles = [];
-  let screenshotDataUrl = "";
-
-  const savedData = JSON.parse(localStorage.getItem("transportGameData") || "{}");
-  const today = new Date().toISOString().split("T")[0];
-
-  // ----------- Resume Screen Logic -----------
-  if (savedData.date === today && (savedData.partnerName || (savedData.vehicles && savedData.vehicles.length))) {
-    resumeScreen.style.display = "block";
-    resumeInfo.textContent = `Partner: ${savedData.partnerName || "?"}, Job: ${savedData.jobDescription || "?"}, Vehicles: ${savedData.vehicles?.length || 0}`;
-
-    if (savedData.screenshot) {
-      resumeScreenshot.src = savedData.screenshot;
-      resumeScreenshot.style.display = "block";
+  const showModal = () => {
+    if (savedPartner && savedJob && (savedVehicles.length > 0 || savedScreenshot)) {
+      vehicleCountText.textContent = savedVehicles.length
+        ? `${savedVehicles.length} vehicles previously placed.`
+        : "0 vehicles previously placed.";
+      if (savedScreenshot) {
+        mapPreview.src = savedScreenshot;
+        mapPreview.style.display = "block";
+      } else {
+        mapPreview.style.display = "none";
+      }
+      endModal.style.display = "flex";
     }
+  };
 
-    resumeContinue.onclick = () => {
-      partnerName = savedData.partnerName || "";
-      jobDescription = savedData.jobDescription || "";
-      screenshotDataUrl = savedData.screenshot || "";
-      placedVehicles = savedData.vehicles || [];
-      startTime = new Date();
+  const hideModal = () => {
+    endModal.style.display = "none";
+  };
 
-      document.getElementById("partner-inputs").style.display = "none";
-      palette.style.display = "flex";
-      placeSavedVehicles();
-      resumeScreen.style.display = "none";
-    };
+  const saveScreenshot = () => {
+    html2canvas(document.getElementById("map-container")).then(canvas => {
+      const imageData = canvas.toDataURL("image/png");
+      mapPreview.src = imageData;
+      mapPreview.style.display = "block";
+      localStorage.setItem("screenshotData", imageData);
 
-    resumeAgain.onclick = () => {
-      localStorage.removeItem("transportGameData");
-      location.reload();
-    };
+      // Submit to Google Form (example only - replace with actual Form URL and entry IDs)
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "https://docs.google.com/forms/d/e/your-form-id/formResponse"; // Replace with real one
+      form.target = "hiddenIframe";
 
-    resumeMenu.onclick = () => {
-      window.location.href = "../hub.html";
-    };
+      const nameEntry = document.createElement("input");
+      nameEntry.name = "entry.123456"; // Replace with correct entry
+      nameEntry.value = savedPartner || "";
+      form.appendChild(nameEntry);
 
-    return; // Stop DOMContentLoaded here until resume choice is made
-  }
+      const imgEntry = document.createElement("input");
+      imgEntry.name = "entry.654321"; // Replace with correct entry
+      imgEntry.value = imageData;
+      form.appendChild(imgEntry);
 
-  // ----------- Start Game Normally -----------
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    partnerName = document.getElementById("partner-name").value.trim();
-    jobDescription = document.getElementById("job-description").value.trim();
-    if (!partnerName || !jobDescription) {
-      alert("Please fill in both fields.");
-      return;
-    }
-
-    startTime = new Date();
-    partnerForm.style.display = "none";
-    palette.style.display = "flex";
-  });
-
-  // ----------- Vehicle Drag-and-Drop -----------
-  document.querySelectorAll(".vehicle").forEach(vehicle => {
-    vehicle.setAttribute("draggable", true);
-    vehicle.addEventListener("dragstart", e => {
-      e.dataTransfer.setData("text/plain", vehicle.id);
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
     });
-  });
+  };
 
-  dropzones.forEach(zone => {
-    zone.addEventListener("dragover", e => e.preventDefault());
-
-    zone.addEventListener("drop", e => {
+  // Submit form (Start game)
+  if (studentForm) {
+    studentForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      const vehicleId = e.dataTransfer.getData("text/plain");
-      const vehicle = document.getElementById(vehicleId);
-      if (vehicle && !zone.querySelector("img")) {
-        const clone = vehicle.cloneNode(true);
-        clone.removeAttribute("id");
-        zone.innerHTML = "";
-        zone.appendChild(clone);
-        placedVehicles.push({ vehicleId, zoneId: zone.id });
-        saveProgress();
-      }
-    });
-  });
+      const partnerName = partnerInput.value.trim();
+      const jobDescription = jobInput.value.trim();
+      if (!partnerName || !jobDescription) return;
 
-  // ----------- Save to LocalStorage -----------
-  function saveProgress() {
-    const gameData = {
-      studentName,
-      studentClass,
-      partnerName,
-      jobDescription,
-      date: today,
-      vehicles: placedVehicles,
-      screenshot: screenshotDataUrl
-    };
-    localStorage.setItem("transportGameData", JSON.stringify(gameData));
-  }
-
-  function placeSavedVehicles() {
-    placedVehicles.forEach(({ vehicleId, zoneId }) => {
-      const zone = document.getElementById(zoneId);
-      const vehicle = document.getElementById(vehicleId);
-      if (zone && vehicle) {
-        const clone = vehicle.cloneNode(true);
-        clone.removeAttribute("id");
-        zone.innerHTML = "";
-        zone.appendChild(clone);
-      }
+      localStorage.setItem("partnerName", partnerName);
+      localStorage.setItem("jobDescription", jobDescription);
+      studentInfoDiv.textContent = `Partner: ${partnerName} | Job: ${jobDescription}`;
+      studentForm.style.display = "none";
+      submitBtn.style.display = "block";
+      vehiclePalette.style.display = "flex";
     });
   }
 
-  // ----------- Screenshot and Submit Logic -----------
-  downloadBtn.addEventListener("click", async () => {
-    const endTime = new Date();
-    const timeTaken = Math.floor((endTime - startTime) / 1000);
-    const vehicleCount = placedVehicles.length;
+  // Show resume modal if applicable
+  if (savedPartner && savedJob) {
+    studentForm.style.display = "none";
+    studentInfoDiv.textContent = `Partner: ${savedPartner} | Job: ${savedJob}`;
+    submitBtn.style.display = "block";
+    vehiclePalette.style.display = "flex";
+    showModal();
+  }
 
-    if (vehicleCount === 0 || !partnerName) {
-      alert("Please make sure you’ve filled in partner details and placed at least one vehicle.");
-      return;
-    }
+  // Download/Screenshot and Submit
+  if (downloadBtn) {
+    downloadBtn.addEventListener("click", () => {
+      saveScreenshot();
+      downloadBtn.style.display = "none";
+      continueBtn.style.display = "inline-block";
+      againBtn.style.display = "inline-block";
+      menuBtn.style.display = "inline-block";
+    });
+  }
 
-    try {
-      const canvas = await html2canvas(document.getElementById("dropzone-container"));
-      screenshotDataUrl = canvas.toDataURL("image/png");
+  // Continue session
+  if (continueBtn) {
+    continueBtn.addEventListener("click", () => {
+      hideModal();
+    });
+  }
 
-      // Submit to Google Forms
-      const formData = new FormData();
-      formData.append("entry.1387461004", studentName);
-      formData.append("entry.1309291707", studentClass);
-      formData.append("entry.477642881", "Transport");
-      formData.append("entry.1633664084", partnerName);
-      formData.append("entry.1185507483", jobDescription);
-      formData.append("entry.118216325", `${vehicleCount} vehicles`);
-      formData.append("entry.349263448", `${timeTaken} seconds`);
-      formData.append("entry.893212440", "Image uploaded separately");
+  // Start Again
+  if (againBtn) {
+    againBtn.addEventListener("click", () => {
+      localStorage.clear();
+      location.reload();
+    });
+  }
 
-      await fetch("https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse", {
-        method: "POST",
-        mode: "no-cors",
-        body: formData
-      });
-
-      // Save screenshot in localStorage and prompt for download
-      saveProgress();
-
-      const link = document.createElement("a");
-      link.href = screenshotDataUrl;
-      link.download = `${studentName}-${studentClass}-Transport.png`;
-      link.click();
-
-      setTimeout(() => {
-        alert("Screenshot captured and data submitted. Well done!");
-        window.location.href = "../hub.html";
-      }, 1000);
-
-    } catch (error) {
-      alert("There was an error capturing or submitting. Please try again.");
-      console.error(error);
-    }
-  });
+  // Back to menu
+  if (menuBtn) {
+    menuBtn.addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "../hub.html";
+    });
+  }
 });
