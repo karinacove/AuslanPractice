@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------
   if (!partnerName || !partnerClass || savedVehicles.length === 0) {
   //  startOverlay.style.display = "flex";
-    startContinue.style.display = "none";
+  //  startContinue.style.display = "none";
   } else {
   //  startOverlay.style.display = "none";
     restoreVehiclesFromStorage();
