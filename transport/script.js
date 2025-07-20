@@ -10,21 +10,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const MAX_VEHICLES = 12;
   let dragged = null;
 
-  const palette = document.getElementById("vehicle-palette");
-  const startOverlay = document.getElementById("startOverlay");
-  const startBtn = document.getElementById("start-btn");
-  const finishBtn = document.getElementById("finish-btn");
-  const endModal = document.getElementById("end-modal");
-  const againBtn = document.getElementById("again-btn");
-  const continueBtn = document.getElementById("continue-btn");
-  const menuBtn = document.getElementById("menu-btn");
-  const downloadBtn = document.getElementById("download-btn");
-  const previewImg = document.getElementById("map-preview");
-  const vehicleCountText = document.getElementById("vehicle-count");
-  const studentInfo = document.getElementById("student-info");
-
-  const partnerInput = document.getElementById("partner-name");
-  const jobInput = document.getElementById("job-description");
+  const getEl = (id) => document.getElementById(id);
+  const palette = getEl("vehicle-palette");
+  const startOverlay = getEl("startOverlay");
+  const startBtn = getEl("start-btn");
+  const finishBtn = getEl("finish-btn");
+  const endModal = getEl("end-modal");
+  const againBtn = getEl("again-btn");
+  const continueBtn = getEl("continue-btn");
+  const menuBtn = getEl("menu-btn");
+  const downloadBtn = getEl("download-btn");
+  const previewImg = getEl("map-preview");
+  const vehicleCountText = getEl("vehicle-count");
+  const studentInfo = getEl("student-info");
+  const partnerInput = getEl("partner-name");
+  const jobInput = getEl("job-description");
 
   if (!studentName || !studentClass) {
     window.location.href = "../index.html";
@@ -109,36 +109,38 @@ document.addEventListener("DOMContentLoaded", () => {
     startOverlay.style.display = "flex";
   }
 
-  startBtn.addEventListener("click", () => {
-    const pName = partnerInput.value.trim();
-    const jDesc = jobInput.value.trim();
-    if (!pName || !jDesc) {
-      alert("Please enter partner name and job description.");
-      return;
-    }
-    localStorage.setItem("partnerName", pName);
-    localStorage.setItem("jobDescription", jDesc);
-    startOverlay.style.display = "none";
-    palette.style.display = "grid";
-    finishBtn.style.display = "inline-block";
-    if (studentInfo) studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jDesc} with ${pName}`;
-  });
+  if (startBtn) {
+    startBtn.addEventListener("click", () => {
+      const pName = partnerInput?.value.trim();
+      const jDesc = jobInput?.value.trim();
+      if (!pName || !jDesc) {
+        alert("Please enter partner name and job description.");
+        return;
+      }
+      localStorage.setItem("partnerName", pName);
+      localStorage.setItem("jobDescription", jDesc);
+      if (startOverlay) startOverlay.style.display = "none";
+      if (palette) palette.style.display = "grid";
+      if (finishBtn) finishBtn.style.display = "inline-block";
+      if (studentInfo) studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jDesc} with ${pName}`;
+    });
+  }
 
-  continueBtn.addEventListener("click", () => {
-    endModal.classList.remove("show");
-    palette.style.display = "grid";
-    finishBtn.style.display = "inline-block";
+  continueBtn?.addEventListener("click", () => {
+    endModal?.classList.remove("show");
+    if (palette) palette.style.display = "grid";
+    if (finishBtn) finishBtn.style.display = "inline-block";
     restoreVehiclesFromStorage();
   });
 
-  againBtn.addEventListener("click", clearDataAndReload);
+  againBtn?.addEventListener("click", clearDataAndReload);
 
-  menuBtn.addEventListener("click", () => {
+  menuBtn?.addEventListener("click", () => {
     clearDataAndReload();
     window.location.href = "hub.html";
   });
 
-  downloadBtn.addEventListener("click", async () => {
+  downloadBtn?.addEventListener("click", async () => {
     const canvas = await html2canvas(document.body);
     const dataUrl = canvas.toDataURL("image/png");
     if (previewImg) previewImg.src = dataUrl;
@@ -178,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.href = "index.html";
   });
 
-  // ✅ Drag & Drop Logic INSIDE the DOMContentLoaded block
+  // Drag & Drop Logic
   function startDrag(e, isTouch = false) {
     const target = isTouch ? e.targetTouches[0].target : e.target;
     if (!target.classList.contains("draggable") || target.parentElement !== palette) return;
