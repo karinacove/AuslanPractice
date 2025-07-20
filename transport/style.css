@@ -235,8 +235,8 @@ html, body {
 }
 
 #row-1 img#download-btn {
-  width: 60px;
-  height: 60px;
+  width: 120px;
+  height: 120px;
   cursor: pointer;
   flex-shrink: 0;
   transition: transform 0.2s ease;
@@ -259,8 +259,8 @@ html, body {
 }
 
 #row-2 img#continue-btn {
-  width: 60px;
-  height: 60px;
+  width: 120px;
+  height: 120px;
   cursor: pointer;
   flex-shrink: 0;
   transition: transform 0.2s ease;
@@ -300,10 +300,9 @@ html, body {
 /* Again and Menu buttons styling */
 #again-btn,
 #menu-btn {
-  width: 60px;
-  height: 60px;
+  width: 120px;
+  height: 120px;
   cursor: pointer;
-  display: none; /* hidden initially */
   transition: transform 0.2s ease;
 }
 
