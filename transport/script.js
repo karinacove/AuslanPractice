@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const finishBtn = document.getElementById("finish-btn");
   const screenshotBtn = document.getElementById("screenshot-btn");
 
-  const startOverlay = document.getElementById("start-overlay");
+//  const startOverlay = document.getElementById("start-overlay");
   const startForm = document.getElementById("partner-form");
   const startContinue = document.getElementById("continue-btn");
 
@@ -48,11 +48,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     localStorage.setItem("partnerName", pName);
     localStorage.setItem("partnerClass", pClass);
-    startOverlay.style.display = "none";
+  //  startOverlay.style.display = "none";
   });
 
   startContinue.addEventListener("click", () => {
-    startOverlay.style.display = "none";
+  //  startOverlay.style.display = "none";
     restoreVehiclesFromStorage();
   });
 
