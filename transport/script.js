@@ -455,15 +455,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // -------------------------
-  // "Again" button: clear saved vehicles & reload
-  // -------------------------
-  if (againBtn) {
-    againBtn.addEventListener("click", () => {
-      localStorage.removeItem("savedVehicles");
-      window.location.reload();
-    });
-  }
 
   // -------------------------
   // "Menu" button: clear saved vehicles & go to hub
@@ -549,4 +540,3 @@ document.addEventListener("DOMContentLoaded", function () {
       document.body.appendChild(wrapper);
     });
   }
-}
