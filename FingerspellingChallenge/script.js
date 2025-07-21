@@ -404,6 +404,22 @@ continueBtn.addEventListener("click", () => {
 
 againButtonModal.addEventListener("click", () => {
   isPaused = false;
+  score = 0;
+  level = 3;
+  correctWords = 0;
+  usedWords.clear();
+  currentWord = "";
+  wordInput.value = "";
+  wordInput.style.visibility = "visible";
+
+  updateScoreImage(); // Set score to 0.png
+  if (mode === "timed") {
+    showCountdownVideo(); // Restart countdown.mp4
+  } else {
+    showScoreImage(level); // Show level image in place of timer
+  }
+
+  modalOverlay.style.display = "none";
   startGame();
 });
 
