@@ -470,7 +470,6 @@ againButtonModal.addEventListener("click", () => {
 
   modalOverlay.style.display = "none";
   startGame();
-});
 
 menuButton.addEventListener("click", () => window.location.href = "../index.html");
 
