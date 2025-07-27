@@ -457,19 +457,26 @@ continueBtn.addEventListener("click", () => {
 });
 
 againButtonModal.addEventListener("click", () => {
-  endModal.style.display = "none";
-  startGame(); // startGame keeps current gameMode & wordLength
-});
+  isPaused = false;
+  score = 0;
+  correctWords = 0;
+  guessedWords.clear();
+  usedWords.clear();
+  currentWord = "";
+  wordInput.value = "";
+  wordInput.style.visibility = "visible";
 
-  updateScoreImage(); // Set score to 0.png
-  if (mode === "timed") {
-    showCountdownVideo(); // Restart countdown.mp4
-  } else {
-    showScoreImage(level); // Show level image in place of timer
+  updateScore(); // reset score image
+  if (gameMode === "timed") {
+    if (countdownVideo) {
+      countdownVideo.currentTime = 0;
+      countdownVideo.play();
+    }
   }
 
-  modalOverlay.style.display = "none";
+  endModal.style.display = "none";
   startGame();
+});
 
 menuButton.addEventListener("click", () => window.location.href = "../index.html");
 
