@@ -54,6 +54,9 @@ let guessedWords = new Set();
 let incorrectWords = [];
 let wordBank = {};
 let isPaused = false;
+let usedWords = new Set();
+let startTimestamp = 0; 
+
 
 // -------------------------
 // Load Word Bank
@@ -121,37 +124,75 @@ function nextWord() {
   if (gameMode === "levelup" && correctWords > 0 && correctWords % 10 === 0 && wordLength < 10) {
     wordLength++;
   }
+
   const words = wordBank[wordLength] || wordBank[3];
-  const filteredWords = words.filter(w => !guessedWords.has(w));
-  if (filteredWords.length === 0) {
+  const pool = words.filter(w => !usedWords.has(w));
+
+  if (pool.length === 0) {
+    // no more words to show – end the game
     endGame();
     return;
   }
-  currentWord = filteredWords[Math.floor(Math.random() * filteredWords.length)];
+
+  currentWord = pool[Math.floor(Math.random() * pool.length)];
+  usedWords.add(currentWord);
   setTimeout(() => showLetterByLetter(currentWord), 200);
 }
+
+function nextWord() {
+  if (gameMode === "levelup" && correctWords > 0 && correctWords % 10 === 0 && wordLength < 10) {
+    wordLength++;
+  }
+
+  const words = wordBank[wordLength] || wordBank[3];
+  const pool = words.filter(w => !usedWords.has(w));
+
+  if (pool.length === 0) {
+    // no more words to show – end the game
+    endGame();
+    return;
+  }
+
+  currentWord = pool[Math.floor(Math.random() * pool.length)];
+  usedWords.add(currentWord);
+  setTimeout(() => showLetterByLetter(currentWord), 200);
+}
+
 
 function startGame() {
   document.getElementById("signin-screen").style.display = "none";
   gameScreen.style.display = "flex";
 
+  // reset run state, but keep gameMode & wordLength
   score = 0;
   timeLeft = 120;
   correctWords = 0;
   guessedWords.clear();
   incorrectWords = [];
+  usedWords.clear();
+  isPaused = false;
   wordInput.value = "";
+  wordInput.style.visibility = "visible";
   wordInput.focus();
   againButton.style.display = "block";
   updateScore();
+  clearLetters();
+  clearInterval(timer);
+  startTimestamp = Date.now();
 
   if (gameMode === "timed") {
-    countdownVideo.style.display = "block";
+    if (countdownVideo) {
+      countdownVideo.currentTime = 0;
+      countdownVideo.play();
+      countdownVideo.style.display = "block";
+    }
+    startTimer();
   } else {
-    countdownVideo.style.display = "none";
+    if (countdownVideo) {
+      countdownVideo.pause();
+      countdownVideo.style.display = "none";
+    }
   }
-
-  startTimer(); // ✅ Always start the timer for both modes
 
   setTimeout(nextWord, 400);
 }
@@ -160,10 +201,11 @@ function endGame() {
   clearInterval(timer);
   clearLetters();
   wordInput.style.visibility = "hidden";
-  countdownVideo.pause();
+  if (countdownVideo) countdownVideo.pause();
   submitResults();
   showFinishModal(true);
 }
+
 
 function submitResults() {
   const correct = Array.from(guessedWords).join(", ");
@@ -174,22 +216,32 @@ function submitResults() {
 
 function showFinishModal(isGameEnd = false) {
   isPaused = true;
+  clearInterval(timer);
+  if (gameMode === "timed" && countdownVideo && !countdownVideo.paused) {
+    countdownVideo.pause();
+  }
+
   endModal.style.display = "flex";
-  const percentage = correctWords + incorrectWords.length > 0
-    ? Math.round((correctWords / (correctWords + incorrectWords.length)) * 100)
-    : 100;
-  const minutes = Math.floor((120 - timeLeft) / 60);
-  const seconds = (120 - timeLeft) % 60;
+
+  const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
+  const minutes = Math.floor(elapsed / 60);
+  const seconds = elapsed % 60;
+
+  const totalAttempts = correctWords + incorrectWords.length;
+  const percentage = totalAttempts > 0 ? Math.round((correctWords / totalAttempts) * 100) : 100;
 
   endModalContent.querySelector("#score-percentage").textContent = `${percentage}% Correct`;
   scoreText.textContent = `Score: ${score}`;
   timeText.textContent = `Time: ${minutes} mins ${seconds} sec`;
+
+  // clap only on true game end (time up / score 80 / no words left)
   document.getElementById("clap-display").innerHTML = isGameEnd ? `<img src="Assets/auslan-clap.gif" alt="Clap" />` : "";
 
   againButtonModal.style.display = "inline-block";
   menuButton.style.display = "inline-block";
   continueBtn.style.display = isGameEnd ? "none" : "inline-block";
 }
+
 
 function hideFinishModal() {
   isPaused = false;
@@ -396,21 +448,18 @@ finishButton.addEventListener("click", () => {
 
 continueBtn.addEventListener("click", () => {
   hideFinishModal();
-  if (gameMode === "timed" && countdownVideo && countdownVideo.paused) {
-    countdownVideo.play();
+  isPaused = false;
+  if (gameMode === "timed") {
+    if (countdownVideo && countdownVideo.paused) countdownVideo.play();
+    startTimer(); // resume ticking
   }
-  showLetterByLetter(currentWord); // 👈 Add this line
+  showLetterByLetter(currentWord); // keep going with same word
 });
 
 againButtonModal.addEventListener("click", () => {
-  isPaused = false;
-  score = 0;
-  level = 3;
-  correctWords = 0;
-  usedWords.clear();
-  currentWord = "";
-  wordInput.value = "";
-  wordInput.style.visibility = "visible";
+  endModal.style.display = "none";
+  startGame(); // startGame keeps current gameMode & wordLength
+});
 
   updateScoreImage(); // Set score to 0.png
   if (mode === "timed") {
@@ -439,9 +488,7 @@ speedSlider.addEventListener("input", () => {
 
 // Auto-end game when video ends
 countdownVideo.addEventListener("ended", () => {
-  if (gameMode === "timed") {
-    endGame();
-  }
+  if (gameMode === "timed") endGame();
 });
 
 setupKeyboard();
