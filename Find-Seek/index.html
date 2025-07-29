@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Auslan Practice: Find & Seek</title>
+  <link rel="stylesheet" href="findandseek.css">
+</head>
+<body>
+  <div id="header">
+    <h1>Auslan Practice: Find & Seek</h1>
+  </div>
+
+  <div id="gameContainer">
+    <div id="imageArea">
+      <img id="sceneImage" src="assets/scene.jpg" alt="Scene">
+      <img id="clapGif" src="assets/auslan-clap.gif" alt="Clap" hidden>
+      <img id="finishBtn" src="assets/finish.png" alt="Finish" hidden>
+      <img id="correctIcon" src="assets/correct.png" alt="Correct" hidden>
+      <img id="wrongIcon" src="assets/wrong.png" alt="Wrong" hidden>
+    </div>
+
+    <div id="controls">
+      <ul id="vocabList"></ul>
+      <button id="startBtn">Start Game</button>
+      <div id="result"></div>
+      <div id="score"></div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <img src="assets/continue.png" alt="Continue">
+      <img src="assets/menu.png" alt="Menu">
+    </div>
+  </div>
+
+  <script src="findandseek.js"></script>
+</body>
+</html>
