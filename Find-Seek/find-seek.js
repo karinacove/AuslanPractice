@@ -1,15 +1,20 @@
 // -------------------------
 // Student Sign-in Handling
 // -------------------------
-const studentName = localStorage.getItem("studentName") || "";
-const studentClass = localStorage.getItem("studentClass") || "";
+let studentName = localStorage.getItem("studentName") || "";
+let studentClass = localStorage.getItem("studentClass") || "";
 
 if (!studentName || !studentClass) {
-  window.location.href = "../index.html";
+  alert("Please log in first.");
+  window.location.href = "../index.html"; // Adjust path if needed
+} else {
+  if (studentInfoDiv) {
+    studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
+  }
+  if (gameContainer) {
+    gameContainer.style.display = "block";
+  }
 }
-
-document.getElementById("studentName").textContent = studentName;
-document.getElementById("studentClass").textContent = studentClass;
 
 // -------------------------
 // Globals
@@ -22,6 +27,7 @@ let foundItems = {};
 let levelStartTime;
 let gameData = [];
 
+const studentInfoDiv = document.getElementById("student-info");
 const imageContainer = document.getElementById("imageContainer");
 const sidebar = document.getElementById("sidebar");
 const levelTitle = document.getElementById("levelTitle");
