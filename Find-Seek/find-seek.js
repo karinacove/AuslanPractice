@@ -104,16 +104,30 @@ function handleClick(img, entry) {
   if (img.classList.contains("found")) return;
   totalClicks++;
 
-  if (entry.correct && foundCounts[entry.type] < matchData[entry.type]) {
-    foundCounts[entry.type]++;
-    img.classList.add("found");
-    popupFeedback("Correct!", true);
-    updateSidebarCount(entry.type);
-    checkIfDone();
-  } else {
-    popupFeedback("Careful!", false);
+if (isCorrect) {
+  currentCounts[item] = (currentCounts[item] || 0) + 1;
+
+  const entry = document.querySelector(`.match-entry[data-match="${item}"]`);
+  const label = entry.querySelector(".count-label");
+  const total = matchCounts[item];
+  label.textContent = `${currentCounts[item]} of ${total}`;
+
+  // Optional: update image to current count
+  const img = entry.querySelector("img");
+  const newCount = total - currentCounts[item];
+  if (newCount >= 0 && newCount <= 100) {
+    img.src = `numbers/${newCount}.png`;
+  }
+
+  // If complete, show clap.gif
+  if (currentCounts[item] === total) {
+    const clap = document.createElement("img");
+    clap.src = "assets/clap.gif";
+    clap.classList.add("clap-overlay");
+    entry.appendChild(clap);
   }
 }
+
 
 function updateSidebarCount(item) {
   const div = document.getElementById(`match-${item}`);
