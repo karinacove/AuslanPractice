@@ -1,7 +1,7 @@
 const items = [
-  { word: 'apple', sign: 'APPLE-SIGN', x: 120, y: 80 },
-  { word: 'ball', sign: 'BALL-SIGN', x: 300, y: 200 },
-  { word: 'cat', sign: 'CAT-SIGN', x: 450, y: 150 },
+  { word: 'apple', sign: 'apple-sign', x: 120, y: 80 },
+  { word: 'banana', sign: 'banana-sign', x: 300, y: 200 },
+  { word: 'pear', sign: 'pear-sign', x: 450, y: 150 },
 ];
 
 let foundCount = 0;
