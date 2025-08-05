@@ -1,215 +1,202 @@
-// find-seek.js
-
-let level = 1;
-let totalTargets = 100;
-let matchData = {}; // current level's items and their targets
-let foundCounts = {}; // how many have been found
-let totalClicks = 0;
-let startTime = 0;
-let timerInterval;
-
+// -------------------------
+// Student Sign-in Handling
+// -------------------------
 const studentName = localStorage.getItem("studentName") || "";
 const studentClass = localStorage.getItem("studentClass") || "";
 
-document.addEventListener("DOMContentLoaded", async () => {
-  if (!studentName || !studentClass) window.location.href = "../index.html";
-
-  document.getElementById("student-name").textContent = studentName;
-  document.getElementById("student-class").textContent = studentClass;
-  document.getElementById("logout-btn").addEventListener("click", logout);
-
-  const wordlist = await fetch("wordlist.json").then((r) => r.json());
-  loadLevel(level, wordlist);
-});
-
-function logout() {
-  localStorage.clear();
+if (!studentName || !studentClass) {
   window.location.href = "../index.html";
 }
 
-function loadLevel(lvl, wordlist) {
-  startTime = Date.now();
-  timerInterval = setInterval(updateTimer, 1000);
+document.getElementById("studentName").textContent = studentName;
+document.getElementById("studentClass").textContent = studentClass;
 
-  document.getElementById("scene-background").src = `scene/level${lvl}.png`;
-  document.getElementById("level-number").textContent = `Level ${lvl}`;
+// -------------------------
+// Globals
+// -------------------------
+let currentLevel = 1;
+let usedImages = new Set();
+let correctItems = [];
+let remainingItems = {};
+let foundItems = {};
+let levelStartTime;
+let gameData = [];
 
-  const allItems = wordlist[lvl];
-  const selectedItems = shuffle(allItems).slice(0, 10);
-  const amounts = generateTargetCounts(10, totalTargets);
+const imageContainer = document.getElementById("imageContainer");
+const sidebar = document.getElementById("sidebar");
+const levelTitle = document.getElementById("levelTitle");
+const clap = document.getElementById("clap");
 
-  matchData = {};
-  foundCounts = {};
-  selectedItems.forEach((item, i) => {
-    matchData[item] = amounts[i];
-    foundCounts[item] = 0;
+// -------------------------
+// Load Level Data
+// -------------------------
+async function loadLevel(levelNumber) {
+  const response = await fetch("data.json");
+  const data = await response.json();
+  const levelItems = data[levelNumber];
+  if (!levelItems) return;
+
+  currentLevel = levelNumber;
+  levelTitle.textContent = `Level ${currentLevel}`;
+
+  correctItems = getRandomItems(levelItems, 10);
+  remainingItems = {};
+  foundItems = {};
+
+  correctItems.forEach(item => {
+    remainingItems[item] = getRandomInt(3, 20);
+    foundItems[item] = 0;
   });
 
-  renderSidebar(matchData);
-  renderScene(matchData, allItems);
-}
+  imageContainer.innerHTML = "";
+  sidebar.innerHTML = "";
+  usedImages.clear();
+  levelStartTime = Date.now();
 
-function updateTimer() {
-  const now = Date.now();
-  const seconds = Math.floor((now - startTime) / 1000);
-  document.getElementById("timer").textContent = `Time: ${seconds}s`;
-}
+  const allImages = await getAllImages();
+  const imageElements = generateImages(correctItems, allImages);
+  shuffleArray(imageElements);
+  imageElements.forEach(img => imageContainer.appendChild(img));
 
-function renderSidebar(data) {
-  matchList.forEach((item) => {
-    const amount = matchCounts[item]; // e.g., 7 chickens
-    const container = document.createElement("div");
-    container.classList.add("match-entry");
-    container.dataset.match = item;
+  correctItems.forEach(item => {
+    const count = remainingItems[item];
+    const section = document.createElement("div");
+    section.className = "item-counter";
+    section.id = `counter-${item}`;
 
-    const img = document.createElement("img");
-    img.src = `numbers/${amount}.png`;
-    img.alt = `Auslan sign for number ${amount}`;
-    img.classList.add("sidebar-sign");
+    const sign = document.createElement("img");
+    sign.src = `matches/signs/${item}.png`;
+    sign.className = "sign-icon";
 
-    const label = document.createElement("div");
-    label.className = "count-label";
-    label.textContent = `0 of ${amount}`;
+    const counter = document.createElement("div");
+    counter.className = "count";
+    counter.textContent = `0 of ${count}`;
 
-    container.appendChild(img);
-    container.appendChild(label);
-    matchListContainer.appendChild(container);
-  });
-
-}
-
-function renderScene(targets, allItems) {
-  const overlay = document.getElementById("match-overlay");
-  overlay.innerHTML = "";
-  const decoys = shuffle(allItems.filter(i => !targets[i])).slice(0, 400);
-
-  const items = [];
-  Object.entries(targets).forEach(([item, count]) => {
-    for (let i = 0; i < count; i++) items.push({ type: item, correct: true });
-  });
-  decoys.forEach((item) => items.push({ type: item, correct: false }));
-
-  shuffle(items).forEach((entry) => {
-    const img = document.createElement("img");
-    img.src = `matches/images/${entry.type}.png`;
-    img.className = "placed-item";
-    img.style.top = `${Math.random() * 90}%`;
-    img.style.left = `${Math.random() * 90}%`;
-    img.addEventListener("click", () => handleClick(img, entry));
-    overlay.appendChild(img);
+    section.appendChild(sign);
+    section.appendChild(counter);
+    sidebar.appendChild(section);
   });
 }
 
-function handleClick(img, entry) {
-  if (img.classList.contains("found")) return;
-  totalClicks++;
+// -------------------------
+// Image Handling
+// -------------------------
+function generateImages(correctItems, allImages) {
+  const imageElements = [];
 
-if (isCorrect) {
-  currentCounts[item] = (currentCounts[item] || 0) + 1;
+  correctItems.forEach(item => {
+    const count = remainingItems[item];
+    for (let i = 0; i < count; i++) {
+      const img = createImage(item, true);
+      imageElements.push(img);
+    }
+  });
 
-  const entry = document.querySelector(`.match-entry[data-match="${item}"]`);
-  const label = entry.querySelector(".count-label");
-  const total = matchCounts[item];
-  label.textContent = `${currentCounts[item]} of ${total}`;
-
-  // Optional: update image to current count
-  const img = entry.querySelector("img");
-  const newCount = total - currentCounts[item];
-  if (newCount >= 0 && newCount <= 100) {
-    img.src = `numbers/${newCount}.png`;
+  const decoys = allImages.filter(img => !correctItems.includes(img));
+  shuffleArray(decoys);
+  while (imageElements.length < 100 && decoys.length) {
+    const img = createImage(decoys.pop(), false);
+    imageElements.push(img);
   }
 
-  // If complete, show clap.gif
-  if (currentCounts[item] === total) {
-    const clap = document.createElement("img");
-    clap.src = "assets/clap.gif";
-    clap.classList.add("clap-overlay");
-    entry.appendChild(clap);
+  return imageElements;
+}
+
+function createImage(item, isCorrect) {
+  const img = document.createElement("img");
+  img.src = `matches/images/${item}.png`;
+  img.className = "scene-image";
+  img.dataset.item = item;
+  img.dataset.correct = isCorrect;
+
+  img.addEventListener("click", () => {
+    if (img.classList.contains("found")) return;
+    if (img.dataset.correct === "true") {
+      foundItems[item]++;
+      const total = remainingItems[item];
+      const counterDiv = document.querySelector(`#counter-${item} .count`);
+      counterDiv.textContent = `${foundItems[item]} of ${total}`;
+
+      img.classList.add("found");
+      if (foundItems[item] === total) {
+        const section = document.getElementById(`counter-${item}`);
+        const clapImg = document.createElement("img");
+        clapImg.src = "matches/clap.gif";
+        clapImg.className = "clap-icon";
+        section.appendChild(clapImg);
+      }
+      checkLevelComplete();
+    } else {
+      img.classList.add("wrong");
+      setTimeout(() => img.classList.remove("wrong"), 500);
+    }
+  });
+
+  return img;
+}
+
+// -------------------------
+// Utility Functions
+// -------------------------
+function getRandomItems(array, count) {
+  const shuffled = [...array];
+  shuffleArray(shuffled);
+  return shuffled.slice(0, count);
+}
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
   }
 }
 
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
-function updateSidebarCount(item) {
-  const div = document.getElementById(`match-${item}`);
-  if (div) {
-    const countSpan = div.querySelector("span");
-    countSpan.textContent = matchData[item] - foundCounts[item];
+async function getAllImages() {
+  const response = await fetch("data.json");
+  const data = await response.json();
+  const all = new Set();
+  Object.values(data).forEach(arr => arr.forEach(item => all.add(item)));
+  return [...all];
+}
+
+function checkLevelComplete() {
+  const complete = correctItems.every(item => foundItems[item] === remainingItems[item]);
+  if (complete) {
+    const timeTaken = Math.round((Date.now() - levelStartTime) / 1000);
+    const percent = "100%";
+    const result = {
+      name: studentName,
+      class: studentClass,
+      level: currentLevel,
+      time: timeTaken,
+      percent,
+    };
+    gameData.push(result);
+    alert(`Well done! Level ${currentLevel} complete.`);
+    if (currentLevel < 2) {
+      loadLevel(currentLevel + 1);
+    } else {
+      showFinishButton();
+    }
   }
 }
 
-function checkIfDone() {
-  const allDone = Object.entries(matchData).every(
-    ([item, count]) => foundCounts[item] === count
-  );
-  if (allDone) endLevel();
+function showFinishButton() {
+  const btn = document.getElementById("finishBtn");
+  btn.style.display = "block";
 }
 
-function endLevel() {
-  clearInterval(timerInterval);
-  const timeTaken = Math.floor((Date.now() - startTime) / 1000);
-  const score = Math.round((100 / totalClicks) * totalTargets);
+document.getElementById("finishBtn").addEventListener("click", () => {
+  console.log("Game Data:", gameData);
+  // TODO: Google Form submission
+  window.location.href = "../MatchingGame/hub.html";
+});
 
-  document.getElementById("modal-score").innerHTML = `
-    <p>Score: ${score}%</p>
-    <p>Time: ${timeTaken} seconds</p>
-  `;
-
-  document.getElementById("end-modal").classList.remove("hidden");
-
-  document.getElementById("menu-button").onclick = () => window.location.href = "hub.html";
-  document.getElementById("again-button").onclick = () => window.location.reload();
-  document.getElementById("continue-button").onclick = () => {
-    level++;
-    document.getElementById("end-modal").classList.add("hidden");
-    loadLevel(level, wordlist); // needs wordlist as global
-  };
-
-  sendToGoogleForm(score, timeTaken);
-  saveProgress();
-}
-
-function sendToGoogleForm(score, time) {
-  const formURL = "https://docs.google.com/forms/d/e/FORM_ID/formResponse";
-  const data = new FormData();
-  data.append("entry.1111111111", studentName);
-  data.append("entry.2222222222", studentClass);
-  data.append("entry.3333333333", `Level ${level}`);
-  data.append("entry.4444444444", `${score}%`);
-  data.append("entry.5555555555", `${time} seconds`);
-  data.append("entry.6666666666", `${totalClicks} clicks`);
-  fetch(formURL, { method: "POST", body: data });
-}
-
-function saveProgress() {
-  const state = {
-    level,
-    matchData,
-    foundCounts,
-    totalClicks,
-    time: Date.now() - startTime
-  };
-  localStorage.setItem("findSeekProgress", JSON.stringify(state));
-}
-
-function shuffle(arr) {
-  return arr.sort(() => Math.random() - 0.5);
-}
-
-function generateTargetCounts(n, total) {
-  let counts = Array(n).fill(1);
-  let remaining = total - n;
-  while (remaining > 0) {
-    const i = Math.floor(Math.random() * n);
-    counts[i]++;
-    remaining--;
-  }
-  return counts;
-}
-
-function popupFeedback(text, success) {
-  const popup = document.getElementById("feedback-popup");
-  popup.textContent = text;
-  popup.style.backgroundColor = success ? "green" : "red";
-  popup.style.display = "block";
-  setTimeout(() => (popup.style.display = "none"), 1000);
-}
+// -------------------------
+// Start Game
+// -------------------------
+loadLevel(currentLevel);
