@@ -75,7 +75,7 @@ body {
   font-weight: bold;
 }
 
-.clap-overlay {
+.clap-icon {
   position: absolute;
   top: 0;
   left: 0;
@@ -84,7 +84,6 @@ body {
   pointer-events: none;
   z-index: 10;
 }
-
 
 #scene-container {
   position: relative;
@@ -141,6 +140,15 @@ body {
   overflow-y: auto;
   height: calc(100% - 100px);
   z-index: 10;
+}
+
+.sign-icon {
+  height: 60px;
+  width: auto;
+}
+
+#sidebar {
+  scroll-behavior: smooth;
 }
 
 #match-list {
