@@ -56,18 +56,26 @@ function updateTimer() {
 }
 
 function renderSidebar(data) {
-  const container = document.getElementById("match-list");
-  container.innerHTML = "";
-  Object.entries(data).forEach(([item, count]) => {
-    const div = document.createElement("div");
-    div.className = "match-item";
-    div.id = `match-${item}`;
-    div.innerHTML = `
-      <img src="matches/signs/${item}-sign.png" alt="${item}" />
-      <span>${count}</span>
-    `;
-    container.appendChild(div);
+  matchList.forEach((item) => {
+    const amount = matchCounts[item]; // e.g., 7 chickens
+    const container = document.createElement("div");
+    container.classList.add("match-entry");
+    container.dataset.match = item;
+
+    const img = document.createElement("img");
+    img.src = `numbers/${amount}.png`;
+    img.alt = `Auslan sign for number ${amount}`;
+    img.classList.add("sidebar-sign");
+
+    const label = document.createElement("div");
+    label.className = "count-label";
+    label.textContent = `0 of ${amount}`;
+
+    container.appendChild(img);
+    container.appendChild(label);
+    matchListContainer.appendChild(container);
   });
+
 }
 
 function renderScene(targets, allItems) {
