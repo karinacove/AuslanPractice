@@ -186,7 +186,7 @@ function checkLevelComplete() {
 }
 
 function showFinishButton() {
-  const btn = document.getElementById("finishBtn");
+  const btn = document.getElementById("finish-btn");
   btn.style.display = "block";
 }
 
