@@ -1,37 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Auslan Practice: Find & Seek</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find & Seek Game</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="header">
-    <h1>Auslan Practice: Find & Seek</h1>
-  </div>
-
-  <div id="gameContainer">
-    <div id="imageArea">
-      <img id="sceneImage" src="assets/scene.jpg" alt="Scene">
-      <img id="clapGif" src="assets/auslan-clap.gif" alt="Clap" hidden>
-      <img id="finishBtn" src="assets/finish.png" alt="Finish" hidden>
-      <img id="correctIcon" src="assets/correct.png" alt="Correct" hidden>
-      <img id="wrongIcon" src="assets/wrong.png" alt="Wrong" hidden>
+  <div id="game-container">
+    <div id="header">
+      <div id="user-info">
+        <span id="student-name"></span>
+        <span id="student-class"></span>
+      </div>
+      <button id="logout-btn"><img src="assets/logout.png" alt="Logout" /></button>
     </div>
 
-    <div id="controls">
-      <ul id="vocabList"></ul>
-      <button id="startBtn">Start Game</button>
-      <div id="result"></div>
-      <div id="score"></div>
+    <div id="level-info">
+      <span id="level-number"></span>
+      <span id="level-progress"></span>
+      <span id="timer">Time: 0s</span>
     </div>
-  </div>
 
-  <!-- Modal -->
-  <div id="modal" class="modal hidden">
-    <div class="modal-content">
-      <img src="assets/continue.png" alt="Continue">
-      <img src="assets/menu.png" alt="Menu">
+    <div id="scene-container">
+      <img id="scene-background" src="scene/level1.png" alt="Level Background" />
+      <div id="match-overlay"></div>
+    </div>
+
+    <div id="sidebar">
+      <div id="match-list"></div>
+    </div>
+
+    <div id="feedback-popup"></div>
+
+    <div id="end-modal" class="modal hidden">
+      <img src="assets/clap.gif" alt="Congratulations" class="clap-gif" />
+      <div id="modal-score"></div>
+      <div class="modal-buttons">
+        <button id="menu-button"><img src="assets/menu.png" alt="Menu" /></button>
+        <button id="continue-button"><img src="assets/continue.png" alt="Continue" /></button>
+        <button id="again-button"><img src="assets/again.png" alt="Again" /></button>
+      </div>
     </div>
   </div>
 
