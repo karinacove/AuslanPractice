@@ -1,354 +1,181 @@
-/* -------------------------
-   Fingerspelling Game Styles
----------------------------- */
+/* styles.css */
 
 body {
-  font-family: sans-serif;
   margin: 0;
-  padding: 2px;
-  background: url('Assets/fingerspelling-background.png') no-repeat;
-  background-position: center top;
-  background-size: fill;
-  background-attachment: fixed;
-  background-color: #5b65a9;
-  overflow-x: hidden;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
 }
 
-@font-face {
-  font-family: 'AuslanFingerspelling';
-  src: url('Assets/Font/Auslan%20Finger%20Spelling.otf') format('opentype');
+#game-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
-.auslan-font {
-  font-family: 'AuslanFingerspelling';
-  font-size: 6rem;
-  text-align: center;
+#header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #3c5a99;
   color: white;
-}
-
-#game-screen {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  margin-top: 18vh;
-  margin-bottom: 10vh;
-}
-
-#game-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr;
-  gap: 2px;
-  width: 70vw;
-  max-width: 800px;
-  height: 50vh;
-  margin: 2px auto;
-  align-items: center;
-  justify-items: center;
-}
-
-/* Column 1: Timer/Countdown */
-#side-panel {
-  grid-column: 1 / 3;
-  grid-row: 1 / 3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* Score or Level Image */
-#side-details {
-   grid-column: 1 / 2;
-   grid-row: 3;
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   flex-direction: column;
-   gap: 10px;
-}
-
-#score-container {
-  background: white;
-  border: 2px solid #444;
-  border-radius: 10px;
   padding: 10px 20px;
-  text-align: center;
-  font-size: 1.5rem;
+  font-size: 16px;
   font-weight: bold;
-  color: black;
 }
 
-#score-label {
-  font-size: 1rem;
-  margin-bottom: 5px;
+#user-info span {
+  margin-right: 10px;
 }
 
-#countdown-video {
-  max-width: 120px;
-  display: none; /* Initially hidden */
-}
-
-#level-image {
-  max-width: 120px;
-  display: none; /* Initially hidden */
-}
-
-/* Columns 2–4, Rows 1–2: Letter Display */
-#letter-display {
-  grid-column: 3 / 4;
-  grid-row: 1 / 3;
-  font-size: 6rem;
-  text-align: center;
-  font-family: 'AuslanFingerspelling';
+#logout-btn,
+#finish-btn {
+  background-color: #ff6666;
+  border: none;
+  padding: 8px 16px;
   color: white;
-}
-
-/* Columns 2–4, Row 3: Word Input */
-#word-input {
-  grid-column: 3 / 4;
-  grid-row: 3 / 4;
-  width: 250px;
-  max-width: 200%;
-  box-sizing: border-box;
-  justify-self: stretch;  
-  font-size: 2rem;
-  text-align: center;
-  padding: 10px;
-  border-radius: 10px;
-  border: 2px solid #ccc;
-}
-
-/* Column 5: Again Button */
-#again-button {
-  grid-column: 5 / 6;
-  grid-row: 3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#again-button img {
-  max-width: 130px;
-  display: block;
+  font-weight: bold;
+  font-size: 14px;
+  border-radius: 6px;
   cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-#speed-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  margin-top: 10px;
+#logout-btn:hover,
+#finish-btn:hover {
+  background-color: #e65555;
 }
 
-#speed-slider {
-   min-width: 480px;
-   width: 60%;
-}
-
-#slow-icon,
-#fast-icon {
-  width: auto;
-  height: 120px;
-}
-
-#top-bar {
+#level-info {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  margin: 10px 0;
-  color: white;
+  background-color: #ddd;
+  padding: 10px;
   font-weight: bold;
 }
 
-#game-screen {
-  margin-top: 18vh;
-  margin-bottom: 10vh;
-  flex-direction: column;
-  justify-content: space-evenly;
-}
-
-#controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px; 
-  margin-top: 20px;
-  flex-wrap: wrap;
-}
-
-#word-wrapper {
+#scene-container {
   position: relative;
+  flex-grow: 1;
+  background-color: #fff;
+  overflow: hidden;
 }
 
-.mode-select {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 20vh;
+#scene-background {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
 }
 
-.mode-option {
-  width: 200px;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.mode-option:hover {
-  transform: scale(1.1);
-}
-
-#length-container {
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 10px;
-  width: 540px;
-  height: 250px;
-  margin: 20px auto;
-  box-sizing: border-box;
-  justify-items: center;
-}
-
-.length-option {
-  width: 120px;
-  height: 120px;
-  justify-content: space-evenly;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.length-option:hover,
-.length-option.selected {
-  transform: scale(1.1);
-  border: 3px solid yellow;
-  border-radius: 10px;
-}
-
-#finishButton {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  width: 120px;
-  cursor: pointer;
-  z-index: 1000;
-}
-
-#keyboard-btn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 160px;
-  z-index: 1000;
-  touch-action: manipulation;
-  cursor: pointer;
-}
-
-#end-modal {
-  position: fixed;
+#match-overlay {
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
+  z-index: 2;
 }
 
-#end-modal-content {
-  background: white;
-  padding: 30px;
-  border-radius: 20px;
-  text-align: center;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-}
-
-#end-modal-content img {
-  width: 120px;
-  margin: 10px;
-  background: transparent;
-  cursor: pointer;
-}
-
-#clap-display img {
-  max-width: 150px;
-  margin-top: 10px;
-}
-
-.breathe {
-  animation: breathe 0.8s ease-in-out;
-}
-
-@keyframes breathe {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}
-
-#keyboard-container {
+.placed-item {
   position: absolute;
-  background: rgba(255, 255, 255, 0.95);
-  padding: 10px;
-  border-radius: 12px;
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
-  z-index: 2500;
-  min-width: 300px;
-  max-width: 90vw;
-  min-height: 200px;
-  overflow: hidden;
-  cursor: move;
-  touch-action: none;
-  display: none;
-}
-
-#keyboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: bold;
-  margin-bottom: 1px;
-  cursor: move;
-  touch-action: none;
-}
-
-.keyboard-row {
-  display: flex;
-  justify-content: center;
-  margin: 2px 0;
-  flex-wrap: nowrap;
-}
-
-.keyboard-key {
-  font-size: 40px;
-  padding: 1px 1px;
-  margin: 1px;
-  background: #eee;
-  border: 2px solid #aaa;
-  border-radius: 2px;
+  width: 40px;
+  height: 40px;
   cursor: pointer;
-  user-select: none;
-  text-transform: lowercase;
-  width: 80px;
-  text-align: center;
+  z-index: 3;
+  transition: transform 0.2s;
 }
 
-.key.wide {
-  width: 100px;
+.placed-item:hover {
+  transform: scale(1.2);
 }
 
-.keyboard-key {
-  transition: transform 0.15s ease;
+.placed-item.found {
+  opacity: 0.4;
+  pointer-events: none;
 }
 
-.keyboard-key.pop {
-  transform: scale(1.3);
+#sidebar {
+  position: absolute;
+  right: 0;
+  top: 60px;
+  width: 180px;
+  background: rgba(255, 255, 255, 0.9);
+  border-left: 2px solid #ccc;
+  padding: 10px;
+  overflow-y: auto;
+  height: calc(100% - 100px);
+  z-index: 10;
 }
 
-.key:hover {
-  background: #ccc;
+#match-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.match-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #eef;
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid #aac;
+}
+
+.match-item img {
+  height: 30px;
+  margin-right: 10px;
+}
+
+#feedback-popup {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 18px;
+  display: none;
+  z-index: 20;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 20px;
+  margin-top: 15px;
+}
+
+.modal-buttons button img {
+  height: 40px;
+}
+
+.clap-gif {
+  height: 80px;
+  margin-bottom: 10px;
+}
+
+.hidden {
+  display: none !important;
 }
