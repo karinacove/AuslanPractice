@@ -1,8 +1,11 @@
 // -------------------------
 // Student Sign-in Handling
 // -------------------------
-let studentName = localStorage.getItem("studentName") || "";
-let studentClass = localStorage.getItem("studentClass") || "";
+const studentName = localStorage.getItem("studentName") || "";
+const studentClass = localStorage.getItem("studentClass") || "";
+
+const studentInfoDiv = document.getElementById("student-info");
+const gameContainer = document.getElementById("game-container");
 
 if (!studentName || !studentClass) {
   alert("Please log in first.");
@@ -15,6 +18,7 @@ if (!studentName || !studentClass) {
     gameContainer.style.display = "block";
   }
 }
+
 
 // -------------------------
 // Globals
