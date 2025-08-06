@@ -1,6 +1,6 @@
 {
   "1": ["dog", "cat", "mouse", "rabbit", "bird", "fish", "pig", "cow", "goat", "sheep", "horse", "duck", "chicken"],
-  "2": [ "elephant", "rhino", "zebra", "tiger", "lion", "seal", "giraffe", "bear", "kangaroo", "koala", "lizard", "snake", "spider", "hippo"]
-  "3": [ "apple", "banana", "blueberry", "carrot", "cherry", "corn", "cucumber", "grape", "lettuce", "mushroom", "orange", "pear", "peas", "pineapple", "potato", "pumpkin", "raspberry", "strawberry", "tomato", "watermelon"],
+  "2": ["elephant", "rhino", "zebra", "tiger", "lion", "seal", "giraffe", "bear", "kangaroo", "koala", "lizard", "snake", "spider", "hippo"]
+  "3": ["apple", "banana", "blueberry", "carrot", "cherry", "corn", "cucumber", "grape", "lettuce", "mushroom", "orange", "pear", "peas", "pineapple", "potato", "pumpkin", "raspberry", "strawberry", "tomato", "watermelon"],
   "4": ["bread", "meat", "pizza", "burger", "cheese"]
 }
