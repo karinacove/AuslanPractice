@@ -40,7 +40,7 @@ const clap = document.getElementById("clap");
 // Load Level Data
 // -------------------------
 async function loadLevel(levelNumber) {
-  const response = await fetch("data.json");
+  const response = await fetch("wordlist.json");
   const data = await response.json();
   const levelItems = data[levelNumber];
   if (!levelItems) return;
