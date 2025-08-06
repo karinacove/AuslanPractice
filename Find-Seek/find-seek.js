@@ -31,7 +31,6 @@ let foundItems = {};
 let levelStartTime;
 let gameData = [];
 
-const studentInfoDiv = document.getElementById("student-info");
 const imageContainer = document.getElementById("imageContainer");
 const sidebar = document.getElementById("sidebar");
 const levelTitle = document.getElementById("levelTitle");
