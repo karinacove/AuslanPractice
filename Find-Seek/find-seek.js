@@ -165,7 +165,7 @@ function getRandomInt(min, max) {
 }
 
 async function getAllImages() {
-  const response = await fetch("data.json");
+  const response = await fetch("wordlist.json");
   const data = await response.json();
   const all = new Set();
   Object.values(data).forEach(arr => arr.forEach(item => all.add(item)));
