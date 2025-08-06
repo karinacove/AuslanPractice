@@ -199,7 +199,7 @@ function showFinishButton() {
   btn.style.display = "block";
 }
 
-document.getElementById("finishBtn").addEventListener("click", () => {
+document.getElementById("finish-btn").addEventListener("click", () => {
   console.log("Game Data:", gameData);
   // TODO: Google Form submission
   window.location.href = "../MatchingGame/hub.html";
