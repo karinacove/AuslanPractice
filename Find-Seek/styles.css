@@ -50,6 +50,11 @@ body {
   z-index: -1;
 }
 
+.count-img {
+  height: 40px;
+  margin-left: 10px;
+}
+
 #finish-btn {
   position: fixed;
   top: 20px;
