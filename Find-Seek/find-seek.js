@@ -47,7 +47,8 @@ async function loadLevel(levelNumber) {
 
   currentLevel = levelNumber;
   levelTitle.textContent = `Level ${currentLevel}`;
-
+  updateBackground();
+  
   correctItems = getRandomItems(levelItems, 10);
   remainingItems = {};
   foundItems = {};
@@ -194,6 +195,11 @@ function checkLevelComplete() {
   }
 }
 
+  function updateBackground() {
+    const bgIndex = Math.min(level, 10);
+    background.style.backgroundImage = `url('scene/$level_{levelNumber}.png')`;
+  }
+
 function showFinishButton() {
   const btn = document.getElementById("finish-btn");
   btn.style.display = "block";
@@ -209,3 +215,5 @@ document.getElementById("finish-btn").addEventListener("click", () => {
 // Start Game
 // -------------------------
 loadLevel(currentLevel);
+updateBackground();
+
