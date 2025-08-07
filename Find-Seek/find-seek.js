@@ -136,15 +136,40 @@ function createImage(item, isCorrect) {
   img.dataset.item = item;
   img.dataset.correct = isCorrect;
 
+  // Style the image
+  img.style.position = "absolute";
+  img.style.width = "20px";
+  img.style.height = "auto";
+
+  // Random position within the game area
+  const container = document.getElementById("background");
+  const containerWidth = container.offsetWidth;
+  const containerHeight = container.offsetHeight;
+
+  const maxX = containerWidth - 20;
+  const maxY = containerHeight - 20;
+
+  const x = Math.random() * maxX;
+  const y = Math.random() * maxY;
+
+  img.style.left = `${x}px`;
+  img.style.top = `${y}px`;
+
   img.addEventListener("click", () => {
     if (img.classList.contains("found")) return;
+
     if (img.dataset.correct === "true") {
       foundItems[item]++;
       const total = remainingItems[item];
-      const counterDiv = document.querySelector(`#counter-${item} .count`);
-      counterDiv.textContent = `${foundItems[item]} of ${total}`;
+
+      const counterImg = document.getElementById(`count-img-${item}`);
+      if (counterImg) {
+        counterImg.src = `numbers/${foundItems[item]}.png`;
+        counterImg.alt = `${foundItems[item]}`;
+      }
 
       img.classList.add("found");
+
       if (foundItems[item] === total) {
         const section = document.getElementById(`counter-${item}`);
         const clapImg = document.createElement("img");
@@ -152,6 +177,7 @@ function createImage(item, isCorrect) {
         clapImg.className = "clap-icon";
         section.appendChild(clapImg);
       }
+
       checkLevelComplete();
     } else {
       img.classList.add("wrong");
@@ -161,6 +187,7 @@ function createImage(item, isCorrect) {
 
   return img;
 }
+
 
 // -------------------------
 // Utility Functions
