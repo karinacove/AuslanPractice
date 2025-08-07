@@ -23,7 +23,6 @@ if (!studentName || !studentClass) {
 // Globals
 // -------------------------
 let currentLevel = 1;
-let usedImages = new Set();
 let correctItems = [];
 let remainingItems = {};
 let foundItems = {};
@@ -57,72 +56,90 @@ async function loadLevel(levelNumber) {
   levelTitle.textContent = `Level ${currentLevel}`;
   updateBackground();
 
+  // Select 10 correct items
   correctItems = getRandomItems(levelItems, 10);
+  
+  // Allocate counts so total is exactly 100, each between 1 and 20
   remainingItems = {};
-  foundItems = {};
+  let totalToAllocate = 100;
+  for (let i = 0; i < correctItems.length; i++) {
+    const item = correctItems[i];
+    const maxForThis = Math.min(20, totalToAllocate - (correctItems.length - i - 1)); // leave at least 1 for remaining items
+    let count;
+    if (i === correctItems.length - 1) {
+      count = totalToAllocate; // assign all remaining to last item
+    } else {
+      count = getRandomInt(1, maxForThis);
+    }
+    remainingItems[item] = count;
+    totalToAllocate -= count;
+  }
 
-  correctItems.forEach(item => {
-    remainingItems[item] = getRandomInt(3, 20);
-    foundItems[item] = 0;
-  });
+  // Initialize found counts
+  foundItems = {};
+  correctItems.forEach(item => foundItems[item] = 0);
 
   imageContainer.innerHTML = "";
   sidebar.innerHTML = "";
-  usedImages.clear();
   levelStartTime = Date.now();
 
+  // Get all images from wordlist.json
   const allImages = await getAllImages();
-  const imageElements = generateImages(correctItems, allImages);
-  shuffleArray(imageElements);
-  imageElements.forEach(img => imageContainer.appendChild(img));
 
-correctItems.forEach(item => {
-  const count = remainingItems[item];
-  const section = document.createElement("div");
-  section.className = "item-counter";
-  section.id = `counter-${item}`;
+  // Generate array of correct images repeated by allocated count
+  let correctImages = [];
+  correctItems.forEach(item => {
+    for (let i = 0; i < remainingItems[item]; i++) {
+      correctImages.push(item);
+    }
+  });
 
-  const sign = document.createElement("img");
-  sign.src = `matches/signs/${item}.png`;
-  sign.className = "sign-icon";
+  // Get decoy items (not in correctItems)
+  const decoyItems = allImages.filter(item => !correctItems.includes(item));
 
-  const counterImg = document.createElement("img");
-  counterImg.src = `numbers/0.png`; 
-  counterImg.alt = `0`;
-  counterImg.className = "count-img";
-  counterImg.id = `count-img-${item}`;
+  // Generate 400 decoy images randomly chosen
+  let decoyImages = [];
+  for (let i = 0; i < 400; i++) {
+    const randomDecoy = decoyItems[Math.floor(Math.random() * decoyItems.length)];
+    decoyImages.push(randomDecoy);
+  }
 
-  section.appendChild(sign);
-  section.appendChild(counterImg);
-  sidebar.appendChild(section);
-});
+  // Combine and shuffle all images (correct + decoys)
+  let allImagesOnBoard = correctImages.concat(decoyImages);
+  shuffleArray(allImagesOnBoard);
+
+  // Create image elements and append
+  allImagesOnBoard.forEach(item => {
+    const img = createImage(item, correctItems.includes(item));
+    imageContainer.appendChild(img);
+  });
+
+  // Create sidebar counters for correct items
+  correctItems.forEach(item => {
+    const count = remainingItems[item];
+    const section = document.createElement("div");
+    section.className = "item-counter";
+    section.id = `counter-${item}`;
+
+    const sign = document.createElement("img");
+    sign.src = `matches/signs/${item}.png`;
+    sign.className = "sign-icon";
+
+    const counterImg = document.createElement("img");
+    counterImg.src = `numbers/0.png`; 
+    counterImg.alt = `0`;
+    counterImg.className = "count-img";
+    counterImg.id = `count-img-${item}`;
+
+    section.appendChild(sign);
+    section.appendChild(counterImg);
+    sidebar.appendChild(section);
+  });
 }
 
 // -------------------------
 // Image Handling
 // -------------------------
-function generateImages(correctItems, allImages) {
-  const imageElements = [];
-
-  correctItems.forEach(item => {
-    const count = remainingItems[item];
-    for (let i = 0; i < count; i++) {
-      const img = createImage(item, true);
-      imageElements.push(img);
-    }
-  });
-
-  const decoys = allImages.filter(img => !correctItems.includes(img));
-  shuffleArray(decoys);
-
-  while (imageElements.length < 100 && decoys.length) {
-    const img = createImage(decoys.pop(), false);
-    imageElements.push(img);
-  }
-
-  return imageElements;
-}
-
 function createImage(item, isCorrect) {
   const img = document.createElement("img");
   img.src = `matches/images/${item}.png`;
@@ -130,12 +147,12 @@ function createImage(item, isCorrect) {
   img.dataset.item = item;
   img.dataset.correct = isCorrect;
 
-  // Style
+  // Style image position & size
   img.style.position = "absolute";
   img.style.width = "20px";
   img.style.height = "auto";
 
-  // Random placement
+  // Random placement inside container
   const container = document.getElementById("background");
   const containerWidth = container.offsetWidth;
   const containerHeight = container.offsetHeight;
@@ -196,6 +213,7 @@ function shuffleArray(array) {
     const j = Math.floor(Math.random() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
   }
+  return array;
 }
 
 function getRandomInt(min, max) {
@@ -210,6 +228,9 @@ async function getAllImages() {
   return [...all];
 }
 
+// -------------------------
+// Check if Level Complete
+// -------------------------
 function checkLevelComplete() {
   const complete = correctItems.every(item => foundItems[item] === remainingItems[item]);
   if (complete) {
@@ -232,17 +253,26 @@ function checkLevelComplete() {
   }
 }
 
+// -------------------------
+// Update Background Image
+// -------------------------
 function updateBackground() {
   const background = document.getElementById("background");
   const bgIndex = Math.min(currentLevel, 10);
   background.style.backgroundImage = `url('scene/level${bgIndex}.png')`;
 }
 
+// -------------------------
+// Show Finish Button
+// -------------------------
 function showFinishButton() {
   const btn = document.getElementById("finish-btn");
   btn.style.display = "block";
 }
 
+// -------------------------
+// Send Results to Google Form
+// -------------------------
 function sendResultToGoogleForm(result) {
   const formUrl = "https://docs.google.com/forms/d/e/FORM_ID/formResponse"; // Replace FORM_ID
   const formData = new FormData();
