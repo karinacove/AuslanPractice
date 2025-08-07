@@ -31,7 +31,11 @@ let foundItems = {};
 let levelStartTime;
 let gameData = [];
 
-const imageContainer = document.getElementById("imageContainer");
+const counterImg = document.getElementById(`count-img-${item}`);
+if (counterImg) {
+  counterImg.src = `numbers/${foundItems[item]}.png`;
+  counterImg.alt = `${foundItems[item]}`;
+}
 const sidebar = document.getElementById("sidebar");
 const levelTitle = document.getElementById("levelTitle");
 const clap = document.getElementById("clap");
@@ -89,9 +93,11 @@ async function loadLevel(levelNumber) {
     sign.className = "sign-icon";
 
     const counterImg = document.createElement("img");
-    counterImg.src = `numbers/${count}.png`;
-    counterImg.alt = `${count}`;
+    counterImg.src = `numbers/0.png`; 
+    counterImg.alt = `0`;
     counterImg.className = "count-img";
+    counterImg.id = `count-img-${item}`;
+
 
     section.appendChild(sign);
     section.appendChild(counterImg);
