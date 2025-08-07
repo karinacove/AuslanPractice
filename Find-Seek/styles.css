@@ -55,6 +55,20 @@ body {
   margin-left: 10px;
 }
 
+.item-counter {
+  position: relative;
+  display: inline-block;
+}
+
+.clap-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 40px;
+  pointer-events: none;
+}
+
 #finish-btn {
   position: fixed;
   top: 20px;
