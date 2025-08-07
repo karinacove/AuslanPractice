@@ -19,7 +19,6 @@ if (!studentName || !studentClass) {
   }
 }
 
-
 // -------------------------
 // Globals
 // -------------------------
@@ -34,6 +33,7 @@ let gameData = [];
 const sidebar = document.getElementById("sidebar");
 const levelTitle = document.getElementById("levelTitle");
 const clap = document.getElementById("clap");
+const imageContainer = document.getElementById("background");
 
 // -------------------------
 // Load Level Data
@@ -55,7 +55,6 @@ async function loadLevel(levelNumber) {
 
   currentLevel = levelNumber;
   levelTitle.textContent = `Level ${currentLevel}`;
-
   updateBackground();
 
   correctItems = getRandomItems(levelItems, 10);
@@ -78,21 +77,19 @@ async function loadLevel(levelNumber) {
   imageElements.forEach(img => imageContainer.appendChild(img));
 
   correctItems.forEach(item => {
-    const count = remainingItems[item];
     const section = document.createElement("div");
     section.className = "item-counter";
     section.id = `counter-${item}`;
 
     const sign = document.createElement("img");
-    sign.src = `matches/signs/${item}.png`;
+    sign.src = `matches/signs/${item}-sign.png`;
     sign.className = "sign-icon";
 
     const counterImg = document.createElement("img");
-    counterImg.src = `numbers/0.png`; 
+    counterImg.src = `numbers/0.png`;
     counterImg.alt = `0`;
     counterImg.className = "count-img";
     counterImg.id = `count-img-${item}`;
-
 
     section.appendChild(sign);
     section.appendChild(counterImg);
@@ -116,6 +113,7 @@ function generateImages(correctItems, allImages) {
 
   const decoys = allImages.filter(img => !correctItems.includes(img));
   shuffleArray(decoys);
+
   while (imageElements.length < 100 && decoys.length) {
     const img = createImage(decoys.pop(), false);
     imageElements.push(img);
@@ -131,12 +129,12 @@ function createImage(item, isCorrect) {
   img.dataset.item = item;
   img.dataset.correct = isCorrect;
 
-  // Style the image
+  // Style
   img.style.position = "absolute";
   img.style.width = "20px";
   img.style.height = "auto";
 
-  // Random position within the game area
+  // Random placement
   const container = document.getElementById("background");
   const containerWidth = container.offsetWidth;
   const containerHeight = container.offsetHeight;
@@ -182,7 +180,6 @@ function createImage(item, isCorrect) {
 
   return img;
 }
-
 
 // -------------------------
 // Utility Functions
@@ -249,12 +246,12 @@ function sendResultToGoogleForm(result) {
   const formUrl = "https://docs.google.com/forms/d/e/FORM_ID/formResponse"; // Replace FORM_ID
   const formData = new FormData();
 
-  // Replace entry.123456 with your actual Google Form entry IDs
-  formData.append("entry.123456", result.name);    // Student name
-  formData.append("entry.234567", result.class);   // Student class
-  formData.append("entry.345678", result.level);   // Level number
-  formData.append("entry.456789", result.time);    // Time taken
-  formData.append("entry.567890", result.percent); // Percent score
+  // Replace entry IDs with real ones
+  formData.append("entry.123456", result.name);
+  formData.append("entry.234567", result.class);
+  formData.append("entry.345678", result.level);
+  formData.append("entry.456789", result.time);
+  formData.append("entry.567890", result.percent);
 
   return fetch(formUrl, {
     method: "POST",
@@ -267,10 +264,13 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// -------------------------
+// Submit Results
+// -------------------------
 document.getElementById("finish-btn").addEventListener("click", async () => {
   for (const result of gameData) {
     await sendResultToGoogleForm(result);
-    await delay(500); // 500ms delay between submissions
+    await delay(500);
   }
 
   alert("All results submitted!");
