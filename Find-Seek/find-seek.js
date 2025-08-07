@@ -31,11 +31,6 @@ let foundItems = {};
 let levelStartTime;
 let gameData = [];
 
-const counterImg = document.getElementById(`count-img-${item}`);
-if (counterImg) {
-  counterImg.src = `numbers/${foundItems[item]}.png`;
-  counterImg.alt = `${foundItems[item]}`;
-}
 const sidebar = document.getElementById("sidebar");
 const levelTitle = document.getElementById("levelTitle");
 const clap = document.getElementById("clap");
