@@ -80,7 +80,7 @@ async function loadLevel(levelNumber) {
 
     const counter = document.createElement("div");
     counter.className = "count";
-    counter.textContent = `0 of ${count}`;
+    counter.textContent = `numbers/${counter}.png`of `numbers/${count}.png`;
 
     section.appendChild(sign);
     section.appendChild(counter);
