@@ -217,9 +217,35 @@ function showFinishButton() {
   btn.style.display = "block";
 }
 
-document.getElementById("finish-btn").addEventListener("click", () => {
-  console.log("Game Data:", gameData);
-  // TODO: Google Form submission
+function sendResultToGoogleForm(result) {
+  const formUrl = "https://docs.google.com/forms/d/e/FORM_ID/formResponse"; // Replace FORM_ID
+  const formData = new FormData();
+
+  // Replace entry.123456 with your actual Google Form entry IDs
+  formData.append("entry.123456", result.name);    // Student name
+  formData.append("entry.234567", result.class);   // Student class
+  formData.append("entry.345678", result.level);   // Level number
+  formData.append("entry.456789", result.time);    // Time taken
+  formData.append("entry.567890", result.percent); // Percent score
+
+  return fetch(formUrl, {
+    method: "POST",
+    mode: "no-cors",
+    body: formData,
+  });
+}
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+document.getElementById("finish-btn").addEventListener("click", async () => {
+  for (const result of gameData) {
+    await sendResultToGoogleForm(result);
+    await delay(500); // 500ms delay between submissions
+  }
+
+  alert("All results submitted!");
   window.location.href = "../MatchingGame/hub.html";
 });
 
@@ -227,5 +253,3 @@ document.getElementById("finish-btn").addEventListener("click", () => {
 // Start Game
 // -------------------------
 loadLevel(currentLevel);
-updateBackground();
-
