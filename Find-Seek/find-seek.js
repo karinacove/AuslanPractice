@@ -35,6 +35,7 @@ const imageContainer = document.getElementById("imageContainer");
 const sidebar = document.getElementById("sidebar");
 const levelTitle = document.getElementById("levelTitle");
 const clap = document.getElementById("clap");
+const levelDisplay = document.getElementById('level');
 
 // -------------------------
 // Load Level Data
