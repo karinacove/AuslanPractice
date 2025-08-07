@@ -76,25 +76,26 @@ async function loadLevel(levelNumber) {
   shuffleArray(imageElements);
   imageElements.forEach(img => imageContainer.appendChild(img));
 
-  correctItems.forEach(item => {
-    const section = document.createElement("div");
-    section.className = "item-counter";
-    section.id = `counter-${item}`;
+correctItems.forEach(item => {
+  const count = remainingItems[item];
+  const section = document.createElement("div");
+  section.className = "item-counter";
+  section.id = `counter-${item}`;
 
-    const sign = document.createElement("img");
-    sign.src = `matches/signs/${item}-sign.png`;
-    sign.className = "sign-icon";
+  const sign = document.createElement("img");
+  sign.src = `matches/signs/${item}.png`;
+  sign.className = "sign-icon";
 
-    const counterImg = document.createElement("img");
-    counterImg.src = `numbers/0.png`;
-    counterImg.alt = `0`;
-    counterImg.className = "count-img";
-    counterImg.id = `count-img-${item}`;
+  const counterImg = document.createElement("img");
+  counterImg.src = `numbers/0.png`; 
+  counterImg.alt = `0`;
+  counterImg.className = "count-img";
+  counterImg.id = `count-img-${item}`;
 
-    section.appendChild(sign);
-    section.appendChild(counterImg);
-    sidebar.appendChild(section);
-  });
+  section.appendChild(sign);
+  section.appendChild(counterImg);
+  sidebar.appendChild(section);
+});
 }
 
 // -------------------------
