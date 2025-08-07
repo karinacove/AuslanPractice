@@ -35,21 +35,30 @@ const imageContainer = document.getElementById("imageContainer");
 const sidebar = document.getElementById("sidebar");
 const levelTitle = document.getElementById("levelTitle");
 const clap = document.getElementById("clap");
-const levelDisplay = document.getElementById('level');
 
 // -------------------------
 // Load Level Data
 // -------------------------
 async function loadLevel(levelNumber) {
-  const response = await fetch("wordlist.json");
-  const data = await response.json();
+  let data;
+  try {
+    const response = await fetch("wordlist.json");
+    if (!response.ok) throw new Error("Failed to load word list.");
+    data = await response.json();
+  } catch (error) {
+    alert("Error loading level data.");
+    console.error(error);
+    return;
+  }
+
   const levelItems = data[levelNumber];
   if (!levelItems) return;
 
   currentLevel = levelNumber;
   levelTitle.textContent = `Level ${currentLevel}`;
+
   updateBackground();
-  
+
   correctItems = getRandomItems(levelItems, 10);
   remainingItems = {};
   foundItems = {};
@@ -79,12 +88,13 @@ async function loadLevel(levelNumber) {
     sign.src = `matches/signs/${item}.png`;
     sign.className = "sign-icon";
 
-    const counter = document.createElement("div");
-    counter.className = "count";
-    counter.textContent = `numbers/${counter}.png`of `numbers/${count}.png`;
+    const counterImg = document.createElement("img");
+    counterImg.src = `numbers/${count}.png`;
+    counterImg.alt = `${count}`;
+    counterImg.className = "count-img";
 
     section.appendChild(sign);
-    section.appendChild(counter);
+    section.appendChild(counterImg);
     sidebar.appendChild(section);
   });
 }
@@ -196,10 +206,11 @@ function checkLevelComplete() {
   }
 }
 
-  function updateBackground() {
-    const bgIndex = Math.min(level, 10);
-    background.style.backgroundImage = `url('scene/$level_{levelNumber}.png')`;
-  }
+function updateBackground() {
+  const background = document.getElementById("background");
+  const bgIndex = Math.min(currentLevel, 10);
+  background.style.backgroundImage = `url('scene/level_${bgIndex}.png')`;
+}
 
 function showFinishButton() {
   const btn = document.getElementById("finish-btn");
