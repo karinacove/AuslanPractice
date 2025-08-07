@@ -234,7 +234,7 @@ function checkLevelComplete() {
 function updateBackground() {
   const background = document.getElementById("background");
   const bgIndex = Math.min(currentLevel, 10);
-  background.style.backgroundImage = `url('scene/level_${bgIndex}.png')`;
+  background.style.backgroundImage = `url('scene/level${bgIndex}.png')`;
 }
 
 function showFinishButton() {
