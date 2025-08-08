@@ -62,7 +62,6 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  padding: 20px;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -146,6 +145,7 @@ body {
 #scene-background {
   width: 100%;
   height: 100%;
+  padding: 30px;
   object-fit: cover;
   position: absolute;
   top: 0;
