@@ -177,25 +177,22 @@ body {
 }
 
 #sidebar {
-  position: absolute;
+  position: fixed;
   right: 0;
-  top: 60px;
+  top: 140px;
   width: 180px;
   background: rgba(255, 255, 255, 0.9);
   border-left: 2px solid #ccc;
   padding: 10px;
   overflow-y: auto;
-  height: calc(100% - 100px);
+  height: calc(100% - 150px);
   z-index: 50;
+  scroll-behavior: smooth;
 }
 
 .sign-icon {
   height: 60px;
   width: auto;
-}
-
-#sidebar {
-  scroll-behavior: smooth;
 }
 
 #match-list {
