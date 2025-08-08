@@ -92,8 +92,8 @@ body {
 
 #finish-btn {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  bottom: 20px;
+  left: 20px;
   width: 100px;
   cursor: pointer;
   z-index: 1000;
@@ -183,7 +183,7 @@ body {
 #sidebar {
   position: fixed;
   right: 0;
-  top: 120px;
+  top: 20px;
   width: 210px;
   background: rgba(255, 255, 255, 0.9);
   border-left: 2px solid #ccc;
