@@ -173,7 +173,7 @@ function createImage(item, isCorrect) {
       if (foundItems[item] === remainingItems[item]) {
         const section = document.getElementById(`counter-${item}`);
         const clapImg = document.createElement("img");
-        clapImg.src = "matches/clap.gif";
+        clapImg.src = "assets/clap.gif";
         clapImg.className = "clap-icon";
         section.appendChild(clapImg);
       }
