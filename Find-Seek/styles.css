@@ -16,7 +16,7 @@ body {
 
 .img-option {
   position: absolute;
-  width: 30px;
+  width: 50px;
   height: auto;
   cursor: pointer;
   z-index: 1;
@@ -25,7 +25,7 @@ body {
 
 .correct-overlay {
   position: absolute;
-  width: 30px;
+  width: 50px;
   height: auto;
   z-index: 2;
   pointer-events: none;
@@ -163,8 +163,8 @@ body {
 
 .placed-item {
   position: absolute;
-  width: 40px;
-  height: 40px;
+  width: 60px;
+  height: 60px;
   cursor: pointer;
   z-index: 3;
   transition: transform 0.2s;
@@ -182,7 +182,7 @@ body {
 #sidebar {
   position: fixed;
   right: 0;
-  top: 140px;
+  top: 120px;
   width: 210px;
   background: rgba(255, 255, 255, 0.9);
   border-left: 2px solid #ccc;
@@ -254,7 +254,7 @@ body {
 }
 
 .modal-buttons button img {
-  height: 40px;
+  height: 60px;
 }
 
 .clap-gif {
