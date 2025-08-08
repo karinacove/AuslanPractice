@@ -173,7 +173,7 @@ function createImage(item, isCorrect) {
       if (foundItems[item] === remainingItems[item]) {
         const section = document.getElementById(`counter-${item}`);
         const clapImg = document.createElement("img");
-        clapImg.src = "assets/clap.gif";
+        clapImg.src = "matches/clap.gif";
         clapImg.className = "clap-icon";
         section.appendChild(clapImg);
       }
@@ -271,7 +271,7 @@ document.getElementById("finish-btn").addEventListener("click", async () => {
     await delay(500);
   }
   alert("All results submitted!");
-  window.location.href = ".../hub.html";
+  window.location.href = "../MatchingGame/hub.html";
 });
 
 // -------------------------
