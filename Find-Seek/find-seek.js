@@ -9,7 +9,7 @@ const gameContainer = document.getElementById("game-container");
 
 if (!studentName || !studentClass) {
   alert("Please log in first.");
-  window.location.href = "../index.html"; 
+  window.location.href = "../index.html";
 } else {
   if (studentInfoDiv) {
     studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
@@ -60,7 +60,6 @@ async function loadLevel(levelNumber) {
       const count = (i === correctItems.length - 1)
         ? totalToAllocate
         : getRandomInt(1, maxForThis);
-
       remainingItems[correctItems[i]] = count;
       totalToAllocate -= count;
     }
@@ -85,7 +84,7 @@ async function loadLevel(levelNumber) {
       }
     });
 
-    // Build 400 decoys from remaining pool
+    // Build 400 decoys
     const decoyPool = allImages.filter(item => !correctItems.includes(item));
     let decoyImages = [];
     for (let i = 0; i < 400; i++) {
@@ -102,7 +101,7 @@ async function loadLevel(levelNumber) {
       imageContainer.appendChild(img);
     });
 
-    // Build sidebar with counters
+    // Build sidebar
     correctItems.forEach(item => {
       const section = document.createElement("div");
       section.className = "item-counter";
@@ -112,14 +111,13 @@ async function loadLevel(levelNumber) {
       sign.src = `matches/signs/${item}-sign.png`;
       sign.className = "sign-icon";
 
-      const counterImg = document.createElement("img");
-      counterImg.src = `numbers/0.png`; 
-      counterImg.alt = `0`;
-      counterImg.className = "count-img";
-      counterImg.id = `count-img-${item}`;
+      const counterText = document.createElement("span");
+      counterText.id = `count-text-${item}`;
+      counterText.textContent = `0 / ${remainingItems[item]}`;
+      counterText.className = "count-text";
 
       section.appendChild(sign);
-      section.appendChild(counterImg);
+      section.appendChild(counterText);
       sidebar.appendChild(section);
     });
 
@@ -148,17 +146,29 @@ function createImage(item, isCorrect) {
   img.style.left = `${Math.random() * (containerWidth - 20)}px`;
   img.style.top = `${Math.random() * (containerHeight - 20)}px`;
 
-  img.addEventListener("click", () => {
+  const handleClick = () => {
     if (img.classList.contains("found")) return;
 
-    if (img.dataset.correct === "true") {
+    const overlay = document.createElement("img");
+    overlay.src = isCorrect ? "assets/correct.png" : "assets/wrong.png";
+    overlay.className = "overlay-icon";
+    overlay.style.position = "absolute";
+    overlay.style.left = img.style.left;
+    overlay.style.top = img.style.top;
+    overlay.style.width = "20px";
+    overlay.style.zIndex = "10";
+    imageContainer.appendChild(overlay);
+
+    setTimeout(() => overlay.remove(), 2000);
+
+    if (isCorrect) {
       foundItems[item]++;
-      const counterImg = document.getElementById(`count-img-${item}`);
-      if (counterImg) {
-        counterImg.src = `numbers/${foundItems[item]}.png`;
-        counterImg.alt = `${foundItems[item]}`;
+      const counterText = document.getElementById(`count-text-${item}`);
+      if (counterText) {
+        counterText.textContent = `${foundItems[item]} / ${remainingItems[item]}`;
       }
       img.classList.add("found");
+      img.style.boxShadow = "0 0 10px 5px limegreen";
 
       if (foundItems[item] === remainingItems[item]) {
         const section = document.getElementById(`counter-${item}`);
@@ -168,11 +178,11 @@ function createImage(item, isCorrect) {
         section.appendChild(clapImg);
       }
       checkLevelComplete();
-    } else {
-      img.classList.add("wrong");
-      setTimeout(() => img.classList.remove("wrong"), 500);
     }
-  });
+  };
+
+  img.addEventListener("click", handleClick);
+  img.addEventListener("touchstart", handleClick);
 
   return img;
 }
@@ -241,7 +251,7 @@ function showFinishButton() {
 }
 
 function sendResultToGoogleForm(result) {
-  const formUrl = "https://docs.google.com/forms/d/e/FORM_ID/formResponse"; 
+  const formUrl = "https://docs.google.com/forms/d/e/FORM_ID/formResponse";
   const formData = new FormData();
   formData.append("entry.123456", result.name);
   formData.append("entry.234567", result.class);
@@ -261,7 +271,7 @@ document.getElementById("finish-btn").addEventListener("click", async () => {
     await delay(500);
   }
   alert("All results submitted!");
-  window.location.href = "../MatchingGame/hub.html";
+  window.location.href = ".../hub.html";
 });
 
 // -------------------------
