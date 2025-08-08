@@ -16,7 +16,7 @@ body {
 
 .img-option {
   position: absolute;
-  width: 20px;
+  width: 30px;
   height: auto;
   cursor: pointer;
   z-index: 1;
@@ -25,7 +25,7 @@ body {
 
 .correct-overlay {
   position: absolute;
-  width: 20px;
+  width: 30px;
   height: auto;
   z-index: 2;
   pointer-events: none;
@@ -215,7 +215,7 @@ body {
 }
 
 .match-item img {
-  height: 30px;
+  height: 40px;
   margin-right: 10px;
 }
 
