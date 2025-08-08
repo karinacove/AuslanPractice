@@ -69,8 +69,11 @@ body {
 }
 
 .count-img {
-  height: 40px;
+  height: 60px;
   margin-left: 10px;
+}
+.number-img {
+  height: 60px;
 }
 
 .item-counter {
