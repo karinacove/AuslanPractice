@@ -262,3 +262,12 @@ body {
 .hidden {
   display: none !important;
 }
+
+.scene-image.found {
+  box-shadow: 0 0 10px 5px limegreen;
+  border-radius: 50%;
+}
+
+.overlay-icon {
+  pointer-events: none;
+}
