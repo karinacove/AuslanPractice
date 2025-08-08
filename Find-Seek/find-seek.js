@@ -52,7 +52,7 @@ async function loadLevel(levelNumber) {
     // Select 10 target items
     correctItems = getRandomItems(levelItems, 10);
 
-    // Allocate counts so total is exactly 100, each between 1 and 20
+    // Allocate counts so total = 100 (1–20 each)
     remainingItems = {};
     let totalToAllocate = 100;
     for (let i = 0; i < correctItems.length; i++) {
@@ -73,7 +73,7 @@ async function loadLevel(levelNumber) {
     sidebar.innerHTML = "";
     levelStartTime = Date.now();
 
-    // Get complete list of items from JSON
+    // Get all available items
     const allImages = await getAllImages();
 
     // Build correct images
@@ -111,13 +111,24 @@ async function loadLevel(levelNumber) {
       sign.src = `matches/signs/${item}-sign.png`;
       sign.className = "sign-icon";
 
-      const counterText = document.createElement("span");
-      counterText.id = `count-text-${item}`;
-      counterText.textContent = `0 / ${remainingItems[item]}`;
-      counterText.className = "count-text";
+      const foundImg = document.createElement("img");
+      foundImg.id = `found-${item}`;
+      foundImg.src = `numbers/0.png`;
+      foundImg.className = "number-img";
+
+      const slash = document.createElement("span");
+      slash.textContent = " / ";
+      slash.className = "slash-text";
+
+      const targetImg = document.createElement("img");
+      targetImg.id = `target-${item}`;
+      targetImg.src = `numbers/${remainingItems[item]}.png`;
+      targetImg.className = "number-img";
 
       section.appendChild(sign);
-      section.appendChild(counterText);
+      section.appendChild(foundImg);
+      section.appendChild(slash);
+      section.appendChild(targetImg);
       sidebar.appendChild(section);
     });
 
@@ -149,6 +160,7 @@ function createImage(item, isCorrect) {
   const handleClick = () => {
     if (img.classList.contains("found")) return;
 
+    // Overlay feedback
     const overlay = document.createElement("img");
     overlay.src = isCorrect ? "assets/correct.png" : "assets/wrong.png";
     overlay.className = "overlay-icon";
@@ -158,17 +170,13 @@ function createImage(item, isCorrect) {
     overlay.style.width = "20px";
     overlay.style.zIndex = "10";
     imageContainer.appendChild(overlay);
-
     setTimeout(() => overlay.remove(), 2000);
 
     if (isCorrect) {
       foundItems[item]++;
-      const counterText = document.getElementById(`count-text-${item}`);
-      if (counterText) {
-        counterText.textContent = `${foundItems[item]} / ${remainingItems[item]}`;
-      }
+      document.getElementById(`found-${item}`).src = `numbers/${foundItems[item]}.png`;
       img.classList.add("found");
-      img.style.boxShadow = "0 0 10px 5px limegreen";
+      img.style.filter = "drop-shadow(0 0 10px lime) drop-shadow(0 0 20px lime)";
 
       if (foundItems[item] === remainingItems[item]) {
         const section = document.getElementById(`counter-${item}`);
