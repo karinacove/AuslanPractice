@@ -188,7 +188,7 @@ body {
   border-left: 2px solid #ccc;
   padding: 10px;
   overflow-y: auto;
-  height: calc(100% - 150px);
+  height: auto;
   z-index: 50;
   scroll-behavior: smooth;
 }
