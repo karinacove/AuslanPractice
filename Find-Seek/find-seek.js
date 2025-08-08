@@ -117,7 +117,7 @@ async function loadLevel(levelNumber) {
       foundImg.className = "number-img";
 
       const slash = document.createElement("span");
-      slash.textContent = " / ";
+      slash.textContent = " of ";
       slash.className = "slash-text";
 
       const targetImg = document.createElement("img");
