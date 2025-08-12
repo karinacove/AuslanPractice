@@ -149,7 +149,7 @@ function createImage(item, isCorrect) {
   img.dataset.correct = isCorrect;
 
   img.style.position = "absolute";
-  img.style.width = "20px";
+  img.style.width = "40px";
   img.style.height = "auto";
 
   const containerWidth = imageContainer.offsetWidth;
