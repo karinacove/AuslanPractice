@@ -69,11 +69,11 @@ body {
 }
 
 .count-img {
-  height: 60px;
+  height: 50px;
   margin-left: 10px;
 }
 .number-img {
-  height: 60px;
+  height: 50px;
 }
 
 .item-counter {
@@ -129,8 +129,8 @@ body {
   position: absolute;
   top: 0;
   left: 0;
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
   pointer-events: none;
   z-index: 10;
 }
@@ -195,7 +195,7 @@ body {
 }
 
 .sign-icon {
-  height: 60px;
+  height: 50px;
   width: auto;
 }
 
@@ -255,11 +255,11 @@ body {
 }
 
 .modal-buttons button img {
-  height: 60px;
+  height: 50px;
 }
 
 .clap-gif {
-  height: 80px;
+  height: 60px;
   margin-bottom: 10px;
 }
 
