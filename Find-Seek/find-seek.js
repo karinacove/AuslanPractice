@@ -52,11 +52,11 @@ async function loadLevel(levelNumber) {
     // Select 10 target items
     correctItems = getRandomItems(levelItems, 10);
 
-    // Allocate counts so total = 100 (1–20 each)
+    // Allocate counts so total = 80 (1–17 each)
     remainingItems = {};
-    let totalToAllocate = 100;
+    let totalToAllocate = 80;
     for (let i = 0; i < correctItems.length; i++) {
-      const maxForThis = Math.min(20, totalToAllocate - (correctItems.length - i - 1));
+      const maxForThis = Math.min(17, totalToAllocate - (correctItems.length - i - 1));
       const count = (i === correctItems.length - 1)
         ? totalToAllocate
         : getRandomInt(1, maxForThis);
@@ -84,10 +84,10 @@ async function loadLevel(levelNumber) {
       }
     });
 
-    // Build 400 decoys
+    // Build 300 decoys
     const decoyPool = allImages.filter(item => !correctItems.includes(item));
     let decoyImages = [];
-    for (let i = 0; i < 400; i++) {
+    for (let i = 0; i < 300; i++) {
       const randomDecoy = decoyPool[Math.floor(Math.random() * decoyPool.length)];
       decoyImages.push(randomDecoy);
     }
@@ -167,7 +167,7 @@ function createImage(item, isCorrect) {
     overlay.style.position = "absolute";
     overlay.style.left = img.style.left;
     overlay.style.top = img.style.top;
-    overlay.style.width = "20px";
+    overlay.style.width = "60px";
     overlay.style.zIndex = "10";
     imageContainer.appendChild(overlay);
     setTimeout(() => overlay.remove(), 2000);
