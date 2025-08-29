@@ -94,10 +94,10 @@ document.addEventListener("DOMContentLoaded", function () {
   wordBanks[4] = [...wordBanks[1], ...wordBanks[2], ...wordBanks[3]];
 
   const levelDefinitions = [
-    { words: wordBanks[1], pages: 3, type: "clipart-grid" },
-    { words: wordBanks[2], pages: 3, type: "clipart-grid" },
-    { words: wordBanks[3], pages: 3, type: "clipart-grid" },
-    { words: wordBanks[4], pages: 3, type: "clipart-grid" }
+    { words: wordBanks[1], pages: 3, name: "Fruit" },
+    { words: wordBanks[2], pages: 3, name: "Vegetables" },
+    { words: wordBanks[3], pages: 3, name: "More Food" },
+    { words: wordBanks[4], pages: 3, name: "Mixture" }
   ];
 
   const feedbackImage = document.createElement("img");
@@ -179,7 +179,7 @@ document.addEventListener("DOMContentLoaded", function () {
       showFeedback(true);
       updateScore();
 
-      if (correctMatches >= currentWords[currentPage].length) {
+      if (correctMatches >= 9) {
         correctMatches = 0;
         currentPage++;
         if (currentPage < currentWords.length) {
@@ -257,42 +257,66 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("end-modal-content").appendChild(timeDisplay);
   }
 
+  function distributeWords(words) {
+    // Ensure all words appear twice, and 3 appear three times (for 27 slots)
+    let counts = {};
+    words.forEach(w => counts[w] = 2);
+    shuffle(words).slice(0, 3).forEach(w => counts[w]++);
+
+    let all = [];
+    for (let w in counts) {
+      for (let i = 0; i < counts[w]; i++) all.push(w);
+    }
+    return shuffle(all);
+  }
+
   function loadPage() {
     const info = levelDefinitions[currentLevel];
-    const words = shuffle(info.words);
-    const chosen = words.slice(0, info.pages * 9);
-    const pageItems = [];
-    for (let i = 0; i < info.pages; i++) {
-      pageItems.push(chosen.slice(i * 9, (i + 1) * 9));
-    }
-    currentWords = pageItems;
+    levelTitle.innerText = `Level ${currentLevel + 1}: ${info.name}`;
 
-    const pageWords = currentWords[currentPage];
+    if (currentPage === 0) {
+      // page 1 setup
+      currentWords = [distributeWords(info.words).slice(0, 9)];
+    } else if (currentPage === 1) {
+      // page 2 setup
+      currentWords = [distributeWords(info.words).slice(9, 18)];
+    } else if (currentPage === 2) {
+      // page 3 setup
+      currentWords = [distributeWords(info.words).slice(18, 27)];
+    }
+
+    const pageWords = currentWords[0];
+
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
     rightSigns.innerHTML = "";
-    levelTitle.innerText = `Level ${currentLevel + 1}`;
+
+    // ✅ Page types
+    let gridType = "clipart";
+    if (currentPage === 1) gridType = "sign";
+    if (currentPage === 2) gridType = Math.random() > 0.5 ? "clipart" : "sign";
 
     // slots
     pageWords.forEach(word => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.word = word;
-      slot.style.backgroundImage = `url('assets/food/clipart/${word}.png')`;
+      if (gridType === "clipart") {
+        slot.style.backgroundImage = `url('assets/food/clipart/${word}.png')`;
+      } else {
+        slot.style.backgroundImage = `url('assets/food/signs/${word}-sign.png')`;
+      }
       gameBoard.appendChild(slot);
     });
 
-    // draggable options
-    let decoyPool = info.words.filter(w => !pageWords.includes(w));
-    let decoys = decoyPool.length >= 3 ? shuffle(decoyPool).slice(0, 3) : decoyPool;
-    const draggableWords = shuffle([...pageWords, ...decoys]);
-
+    // draggable options (always all words)
+    const draggableWords = shuffle(info.words);
     draggableWords.forEach((word, i) => {
       const img = document.createElement("img");
       img.className = "draggable";
       img.draggable = true;
       img.dataset.word = word;
-      img.src = `assets/food/signs/${word}-sign.png`;
+      img.src = gridType === "clipart" ? `assets/food/signs/${word}-sign.png` : `assets/food/clipart/${word}.png`;
 
       img.addEventListener("dragstart", e => {
         e.dataTransfer.setData("text/plain", word);
