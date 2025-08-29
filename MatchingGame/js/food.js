@@ -292,7 +292,7 @@ document.addEventListener("DOMContentLoaded", function () {
       img.className = "draggable";
       img.draggable = true;
       img.dataset.word = word;
-      img.src = `assets/food/signs/${word-sign}.png`;
+      img.src = `assets/food/signs/${word}-sign.png`;
 
       img.addEventListener("dragstart", e => {
         e.dataTransfer.setData("text/plain", word);
