@@ -1,5 +1,4 @@
-// ✅ Final Complete Food Matching Game Script
-
+// ✅ Complete Food Matching Game Script
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
@@ -179,10 +178,10 @@ document.addEventListener("DOMContentLoaded", function () {
       showFeedback(true);
       updateScore();
 
-      if (correctMatches >= 9) {
+      if (correctMatches >= currentWords[0].length) {
         correctMatches = 0;
         currentPage++;
-        if (currentPage < currentWords.length) {
+        if (currentPage < levelDefinitions[currentLevel].pages) {
           setTimeout(loadPage, 800);
         } else {
           currentLevel++;
@@ -257,46 +256,64 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("end-modal-content").appendChild(timeDisplay);
   }
 
+  // ✅ Word distribution helpers
   function distributeWords(words) {
-    // Ensure all words appear twice, and 3 appear three times (for 27 slots)
     let counts = {};
     words.forEach(w => counts[w] = 2);
     shuffle(words).slice(0, 3).forEach(w => counts[w]++);
-
     let all = [];
-    for (let w in counts) {
-      for (let i = 0; i < counts[w]; i++) all.push(w);
-    }
+    for (let w in counts) for (let i = 0; i < counts[w]; i++) all.push(w);
     return shuffle(all);
+  }
+
+  function distributeLevel4(words, incorrects, pages = 3) {
+    let pageSets = [];
+    let usedIncorrects = [...incorrects];
+    for (let p = 0; p < pages; p++) {
+      let page = [];
+      while (page.length < 9 && usedIncorrects.length > 0) {
+        let w = usedIncorrects.shift();
+        if (!page.includes(w)) page.push(w);
+      }
+      let pool = shuffle(words);
+      for (let w of pool) {
+        if (page.length >= 9) break;
+        if (!page.includes(w)) page.push(w);
+      }
+      pageSets.push(page);
+    }
+    return pageSets;
   }
 
   function loadPage() {
     const info = levelDefinitions[currentLevel];
     levelTitle.innerText = `Level ${currentLevel + 1}: ${info.name}`;
+    let pageWords;
 
-    if (currentPage === 0) {
-      // page 1 setup
-      currentWords = [distributeWords(info.words).slice(0, 9)];
-    } else if (currentPage === 1) {
-      // page 2 setup
-      currentWords = [distributeWords(info.words).slice(9, 18)];
-    } else if (currentPage === 2) {
-      // page 3 setup
-      currentWords = [distributeWords(info.words).slice(18, 27)];
+    if (currentLevel < 3) {
+      let distributed = distributeWords(info.words);
+      if (currentPage === 0) pageWords = distributed.slice(0, 9);
+      if (currentPage === 1) pageWords = distributed.slice(9, 18);
+      if (currentPage === 2) pageWords = distributed.slice(18, 27);
+    } else {
+      if (currentPage === 0) {
+        currentWords = distributeLevel4(
+          info.words,
+          levelAttempts.slice(0, 3).flatMap(lvl => lvl.incorrect),
+          info.pages
+        );
+      }
+      pageWords = currentWords[currentPage];
     }
-
-    const pageWords = currentWords[0];
 
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
     rightSigns.innerHTML = "";
 
-    // ✅ Page types
     let gridType = "clipart";
     if (currentPage === 1) gridType = "sign";
     if (currentPage === 2) gridType = Math.random() > 0.5 ? "clipart" : "sign";
 
-    // slots
     pageWords.forEach(word => {
       const slot = document.createElement("div");
       slot.className = "slot";
@@ -309,7 +326,6 @@ document.addEventListener("DOMContentLoaded", function () {
       gameBoard.appendChild(slot);
     });
 
-    // draggable options (always all words)
     const draggableWords = shuffle(info.words);
     draggableWords.forEach((word, i) => {
       const img = document.createElement("img");
@@ -317,7 +333,6 @@ document.addEventListener("DOMContentLoaded", function () {
       img.draggable = true;
       img.dataset.word = word;
       img.src = gridType === "clipart" ? `assets/food/signs/${word}-sign.png` : `assets/food/clipart/${word}.png`;
-
       img.addEventListener("dragstart", e => {
         e.dataTransfer.setData("text/plain", word);
         e.dataTransfer.setData("src", img.src);
@@ -341,9 +356,5 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   const resumed = restoreProgress();
-  if (resumed) {
-    loadPage();
-  } else {
-    loadPage();
-  }
+  if (resumed) loadPage(); else loadPage();
 });
