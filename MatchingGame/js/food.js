@@ -1,5 +1,8 @@
 // ✅ Complete Food Matching Game Script
 document.addEventListener("DOMContentLoaded", function () {
+  // -----------------------------
+  // Student Info & Redirection
+  // -----------------------------
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
 
@@ -10,6 +13,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
+  // -----------------------------
+  // Buttons & Modal
+  // -----------------------------
   const againBtn = document.getElementById("again-btn");
   const continueBtn = document.getElementById("continue-btn");
   const menuBtn = document.getElementById("menu-btn");
@@ -17,20 +23,17 @@ document.addEventListener("DOMContentLoaded", function () {
   const modal = document.getElementById("end-modal");
   const finishBtn = document.getElementById("finish-btn");
 
-  if (finishBtn) finishBtn.addEventListener("click", () => {
-    if (!gameEnded) {
-      modal.style.display = "flex";
-      endGame();
-    }
-  });
+  if (finishBtn)
+    finishBtn.addEventListener("click", () => {
+      if (!gameEnded) {
+        modal.style.display = "flex";
+        endGame();
+      }
+    });
 
   continueBtn.addEventListener("click", () => {
     const saved = JSON.parse(localStorage.getItem("foodGameSave"));
-    if (
-      saved &&
-      saved.studentName === studentName &&
-      saved.studentClass === studentClass
-    ) {
+    if (saved && saved.studentName === studentName && saved.studentClass === studentClass) {
       currentLevel = saved.currentLevel;
       currentPage = saved.currentPage;
       saved.levelAttempts.forEach((lvl, i) => {
@@ -70,11 +73,17 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // -----------------------------
+  // Game Elements
+  // -----------------------------
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
   const rightSigns = document.getElementById("rightSigns");
   const levelTitle = document.getElementById("levelTitle");
 
+  // -----------------------------
+  // Game State Variables
+  // -----------------------------
   let currentLevel = 0;
   let currentPage = 0;
   let currentWords = [];
@@ -83,7 +92,9 @@ document.addEventListener("DOMContentLoaded", function () {
   let startTime = Date.now();
   const levelAttempts = Array(4).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
 
-  // ✅ Word banks
+  // -----------------------------
+  // Word Banks
+  // -----------------------------
   const wordBanks = {
     1: ["apple","banana","blueberry","cherry","grape","orange","pear","pineapple","raspberry","strawberry","watermelon","fruit"],
     2: ["carrot","corn","cucumber","lettuce","mushroom","onion","peas","beans","potato","pumpkin","tomato","vegetables"],
@@ -99,6 +110,9 @@ document.addEventListener("DOMContentLoaded", function () {
     { words: wordBanks[4], pages: 3, name: "Mixture" }
   ];
 
+  // -----------------------------
+  // Feedback Image
+  // -----------------------------
   const feedbackImage = document.createElement("img");
   feedbackImage.id = "feedbackImage";
   Object.assign(feedbackImage.style, {
@@ -112,6 +126,9 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.body.appendChild(feedbackImage);
 
+  // -----------------------------
+  // Utility Functions
+  // -----------------------------
   function shuffle(arr) {
     return arr.sort(() => Math.random() - 0.5);
   }
@@ -119,7 +136,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function showFeedback(correct) {
     feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
     feedbackImage.style.display = "block";
-    setTimeout(() => feedbackImage.style.display = "none", 1000);
+    setTimeout(() => (feedbackImage.style.display = "none"), 1000);
   }
 
   function updateScore() {
@@ -157,6 +174,9 @@ document.addEventListener("DOMContentLoaded", function () {
     return true;
   }
 
+  // -----------------------------
+  // Drag & Drop Handlers
+  // -----------------------------
   function drop(e) {
     e.preventDefault();
     const word = e.dataTransfer.getData("text/plain");
@@ -178,7 +198,7 @@ document.addEventListener("DOMContentLoaded", function () {
       showFeedback(true);
       updateScore();
 
-      if (correctMatches >= currentWords[0].length) {
+      if (correctMatches >= pageWords.length) {
         correctMatches = 0;
         currentPage++;
         if (currentPage < levelDefinitions[currentLevel].pages) {
@@ -238,6 +258,9 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("touchend", handleTouchEnd, { passive: false });
   }
 
+  // -----------------------------
+  // End Game
+  // -----------------------------
   function endGame() {
     if (gameEnded) return;
     gameEnded = true;
@@ -256,47 +279,47 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("end-modal-content").appendChild(timeDisplay);
   }
 
-  // ✅ Word distribution helpers
+  // -----------------------------
+  // Word Distribution Helpers
+  // -----------------------------
   function distributeWords(words) {
-    let counts = {};
-    words.forEach(w => counts[w] = 2);
-    shuffle(words).slice(0, 3).forEach(w => counts[w]++);
-    let all = [];
-    for (let w in counts) for (let i = 0; i < counts[w]; i++) all.push(w);
-    return shuffle(all);
+    const shuffled = shuffle([...words]);
+    return shuffled.slice(0, 9);
   }
 
   function distributeLevel4(words, incorrects, pages = 3) {
-    let pageSets = [];
-    let usedIncorrects = [...incorrects];
+    const pageSets = [];
+    const pool = shuffle([...words]);
+    let i = 0;
     for (let p = 0; p < pages; p++) {
-      let page = [];
-      while (page.length < 9 && usedIncorrects.length > 0) {
-        let w = usedIncorrects.shift();
+      const page = [];
+      while (page.length < 9) {
+        if (i >= pool.length) i = 0;
+        const w = pool[i++];
         if (!page.includes(w)) page.push(w);
       }
-      let pool = shuffle(words);
-      for (let w of pool) {
-        if (page.length >= 9) break;
-        if (!page.includes(w)) page.push(w);
+      for (let inc of incorrects) {
+        if (page.length < 9 && !page.includes(inc)) page.unshift(inc);
       }
-      pageSets.push(page);
+      pageSets.push(page.slice(0, 9));
     }
     return pageSets;
   }
 
+  // -----------------------------
+  // Load Page
+  // -----------------------------
+  let pageWords = [];
+
   function loadPage() {
     const info = levelDefinitions[currentLevel];
     levelTitle.innerText = `Level ${currentLevel + 1}: ${info.name}`;
-    let pageWords;
 
     if (currentLevel < 3) {
-      let distributed = distributeWords(info.words);
-      if (currentPage === 0) pageWords = distributed.slice(0, 9);
-      if (currentPage === 1) pageWords = distributed.slice(9, 18);
-      if (currentPage === 2) pageWords = distributed.slice(18, 27);
+      const distributed = shuffle(info.words);
+      pageWords = distributed.slice(currentPage * 9, currentPage * 9 + 9);
     } else {
-      if (currentPage === 0) {
+      if (currentPage === 0 && currentLevel === 3) {
         currentWords = distributeLevel4(
           info.words,
           levelAttempts.slice(0, 3).flatMap(lvl => lvl.incorrect),
@@ -318,11 +341,8 @@ document.addEventListener("DOMContentLoaded", function () {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.word = word;
-      if (gridType === "clipart") {
-        slot.style.backgroundImage = `url('assets/food/clipart/${word}.png')`;
-      } else {
-        slot.style.backgroundImage = `url('assets/food/signs/${word}-sign.png')`;
-      }
+      if (gridType === "clipart") slot.style.backgroundImage = `url('assets/food/clipart/${word}.png')`;
+      else slot.style.backgroundImage = `url('assets/food/signs/${word}-sign.png')`;
       gameBoard.appendChild(slot);
     });
 
@@ -355,6 +375,9 @@ document.addEventListener("DOMContentLoaded", function () {
     saveProgress();
   }
 
+  // -----------------------------
+  // Initialize Game
+  // -----------------------------
   const resumed = restoreProgress();
   if (resumed) loadPage(); else loadPage();
 });
