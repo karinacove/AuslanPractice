@@ -1,8 +1,5 @@
 // ✅ Complete Food Matching Game Script
 document.addEventListener("DOMContentLoaded", function () {
-  // -----------------------------
-  // Student Info & Redirection
-  // -----------------------------
   let studentName = localStorage.getItem("studentName") || "";
   let studentClass = localStorage.getItem("studentClass") || "";
 
@@ -13,9 +10,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
-  // -----------------------------
-  // Buttons & Modal
-  // -----------------------------
   const againBtn = document.getElementById("again-btn");
   const continueBtn = document.getElementById("continue-btn");
   const menuBtn = document.getElementById("menu-btn");
@@ -23,13 +17,12 @@ document.addEventListener("DOMContentLoaded", function () {
   const modal = document.getElementById("end-modal");
   const finishBtn = document.getElementById("finish-btn");
 
-  if (finishBtn)
-    finishBtn.addEventListener("click", () => {
-      if (!gameEnded) {
-        modal.style.display = "flex";
-        endGame();
-      }
-    });
+  if (finishBtn) finishBtn.addEventListener("click", () => {
+    if (!gameEnded) {
+      modal.style.display = "flex";
+      endGame();
+    }
+  });
 
   continueBtn.addEventListener("click", () => {
     const saved = JSON.parse(localStorage.getItem("foodGameSave"));
@@ -41,7 +34,6 @@ document.addEventListener("DOMContentLoaded", function () {
         levelAttempts[i].incorrect = lvl.incorrect;
       });
     }
-
     modal.style.display = "none";
     gameEnded = false;
     loadPage();
@@ -73,17 +65,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // -----------------------------
-  // Game Elements
-  // -----------------------------
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
   const rightSigns = document.getElementById("rightSigns");
   const levelTitle = document.getElementById("levelTitle");
 
-  // -----------------------------
-  // Game State Variables
-  // -----------------------------
   let currentLevel = 0;
   let currentPage = 0;
   let currentWords = [];
@@ -92,14 +78,12 @@ document.addEventListener("DOMContentLoaded", function () {
   let startTime = Date.now();
   const levelAttempts = Array(4).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
 
-  // -----------------------------
-  // Word Banks
-  // -----------------------------
+  // ✅ Word banks
   const wordBanks = {
     1: ["apple","banana","blueberry","cherry","grape","orange","pear","pineapple","raspberry","strawberry","watermelon","fruit"],
     2: ["carrot","corn","cucumber","lettuce","mushroom","onion","peas","beans","potato","pumpkin","tomato","vegetables"],
     3: ["bacon","bread","burger","cake","cereal","cheese","egg","meat","pizza","salami","chips","pasta"],
-    4: [] // all combined below
+    4: [] // will combine all below
   };
   wordBanks[4] = [...wordBanks[1], ...wordBanks[2], ...wordBanks[3]];
 
@@ -110,9 +94,7 @@ document.addEventListener("DOMContentLoaded", function () {
     { words: wordBanks[4], pages: 3, name: "Mixture" }
   ];
 
-  // -----------------------------
-  // Feedback Image
-  // -----------------------------
+  // ✅ Feedback image
   const feedbackImage = document.createElement("img");
   feedbackImage.id = "feedbackImage";
   Object.assign(feedbackImage.style, {
@@ -126,9 +108,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.body.appendChild(feedbackImage);
 
-  // -----------------------------
-  // Utility Functions
-  // -----------------------------
   function shuffle(arr) {
     return arr.sort(() => Math.random() - 0.5);
   }
@@ -136,7 +115,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function showFeedback(correct) {
     feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
     feedbackImage.style.display = "block";
-    setTimeout(() => (feedbackImage.style.display = "none"), 1000);
+    setTimeout(() => feedbackImage.style.display = "none", 1000);
   }
 
   function updateScore() {
@@ -174,9 +153,6 @@ document.addEventListener("DOMContentLoaded", function () {
     return true;
   }
 
-  // -----------------------------
-  // Drag & Drop Handlers
-  // -----------------------------
   function drop(e) {
     e.preventDefault();
     const word = e.dataTransfer.getData("text/plain");
@@ -185,9 +161,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const targetWord = target.dataset.word;
 
     if (word === targetWord) {
-      if (!levelAttempts[currentLevel].correct.has(word)) {
-        levelAttempts[currentLevel].correct.add(word);
-      }
+      if (!levelAttempts[currentLevel].correct.has(word)) levelAttempts[currentLevel].correct.add(word);
       target.innerHTML = "";
       const overlay = document.createElement("img");
       overlay.src = src;
@@ -244,9 +218,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const el = document.elementFromPoint(touch.clientX, touch.clientY);
       if (el && el.classList.contains("slot")) drop({
         preventDefault: () => {},
-        dataTransfer: {
-          getData: k => k === "text/plain" ? word : src
-        },
+        dataTransfer: { getData: k => k === "text/plain" ? word : src },
         currentTarget: el
       });
       document.removeEventListener("touchmove", handleTouchMove);
@@ -258,9 +230,6 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("touchend", handleTouchEnd, { passive: false });
   }
 
-  // -----------------------------
-  // End Game
-  // -----------------------------
   function endGame() {
     if (gameEnded) return;
     gameEnded = true;
@@ -279,54 +248,54 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("end-modal-content").appendChild(timeDisplay);
   }
 
-  // -----------------------------
-  // Word Distribution Helpers
-  // -----------------------------
-  function distributeWords(words) {
-    const shuffled = shuffle([...words]);
-    return shuffled.slice(0, 9);
+  // ✅ Helper: page words without duplicates on page
+  function getPageWords(words, pageSize = 9) {
+    const shuffled = shuffle(words);
+    const pageWords = [];
+    let i = 0;
+    while (pageWords.length < pageSize) {
+      const w = shuffled[i % shuffled.length];
+      if (!pageWords.includes(w)) pageWords.push(w);
+      i++;
+    }
+    return shuffle(pageWords);
   }
 
+  // ✅ Level 4 distribution
   function distributeLevel4(words, incorrects, pages = 3) {
     const pageSets = [];
-    const pool = shuffle([...words]);
-    let i = 0;
+    let usedIncorrects = [...incorrects];
     for (let p = 0; p < pages; p++) {
       const page = [];
-      while (page.length < 9) {
-        if (i >= pool.length) i = 0;
-        const w = pool[i++];
+      while (page.length < 9 && usedIncorrects.length > 0) {
+        const w = usedIncorrects.shift();
         if (!page.includes(w)) page.push(w);
       }
-      for (let inc of incorrects) {
-        if (page.length < 9 && !page.includes(inc)) page.unshift(inc);
+      const pool = shuffle(words);
+      for (let w of pool) {
+        if (page.length >= 9) break;
+        if (!page.includes(w)) page.push(w);
       }
-      pageSets.push(page.slice(0, 9));
+      pageSets.push(shuffle(page));
     }
     return pageSets;
   }
 
-  // -----------------------------
-  // Load Page
-  // -----------------------------
-  let pageWords = [];
-
+  // ✅ Load a page
   function loadPage() {
     const info = levelDefinitions[currentLevel];
     levelTitle.innerText = `Level ${currentLevel + 1}: ${info.name}`;
-
     if (currentLevel < 3) {
-      const distributed = shuffle(info.words);
-      pageWords = distributed.slice(currentPage * 9, currentPage * 9 + 9);
+      pageWords = getPageWords(info.words, 9);
     } else {
-      if (currentPage === 0 && currentLevel === 3) {
+      if (!currentWords.length) {
         currentWords = distributeLevel4(
           info.words,
           levelAttempts.slice(0, 3).flatMap(lvl => lvl.incorrect),
           info.pages
         );
       }
-      pageWords = currentWords[currentPage];
+      pageWords = currentWords[currentPage] || [];
     }
 
     gameBoard.innerHTML = "";
@@ -337,15 +306,16 @@ document.addEventListener("DOMContentLoaded", function () {
     if (currentPage === 1) gridType = "sign";
     if (currentPage === 2) gridType = Math.random() > 0.5 ? "clipart" : "sign";
 
+    // ✅ Slots
     pageWords.forEach(word => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.word = word;
-      if (gridType === "clipart") slot.style.backgroundImage = `url('assets/food/clipart/${word}.png')`;
-      else slot.style.backgroundImage = `url('assets/food/signs/${word}-sign.png')`;
+      slot.style.backgroundImage = `url('assets/food/${gridType === "clipart" ? "clipart" : "signs"}/${word}${gridType === "sign" ? "-sign" : ""}.png')`;
       gameBoard.appendChild(slot);
     });
 
+    // ✅ Draggables
     const draggableWords = shuffle(info.words);
     draggableWords.forEach((word, i) => {
       const img = document.createElement("img");
@@ -375,9 +345,7 @@ document.addEventListener("DOMContentLoaded", function () {
     saveProgress();
   }
 
-  // -----------------------------
-  // Initialize Game
-  // -----------------------------
+  // ✅ Start or resume
   const resumed = restoreProgress();
-  if (resumed) loadPage(); else loadPage();
+  loadPage();
 });
