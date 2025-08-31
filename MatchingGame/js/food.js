@@ -1,58 +1,69 @@
-// ✅ Complete Food Matching Game Script (with wide-mode support for many draggables)
+// ✅ food.js - Full Food Matching Game with per-level Google Form submission & resume support
+
 document.addEventListener("DOMContentLoaded", function () {
-  // ---------- Identity / gating ----------
-  let studentName = localStorage.getItem("studentName") || "";
-  let studentClass = localStorage.getItem("studentClass") || "";
+  // ----------------------
+  // Student gating
+  // ----------------------
+  const studentName = localStorage.getItem("studentName") || "";
+  const studentClass = localStorage.getItem("studentClass") || "";
+
   if (!studentName || !studentClass) {
     window.location.href = "../index.html";
     return;
   }
-  document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
-  // ---------- DOM ----------
+  // ----------------------
+  // DOM handles
+  // ----------------------
+  const studentInfoEl = document.getElementById("student-info");
+  const scoreDisplayEl = document.getElementById("score-display");
+  const levelTitleEl = document.getElementById("levelTitle");
+  const gameBoard = document.getElementById("gameBoard");
+  const leftSigns = document.getElementById("leftSigns");
+  const rightSigns = document.getElementById("rightSigns");
   const againBtn = document.getElementById("again-btn");
   const continueBtn = document.getElementById("continue-btn");
   const menuBtn = document.getElementById("menu-btn");
   const logoutBtn = document.getElementById("logout-btn");
   const modal = document.getElementById("end-modal");
+  const endModalContent = document.getElementById("end-modal-content");
   const finishBtn = document.getElementById("finish-btn");
 
-  const gameBoard = document.getElementById("gameBoard");
-  const leftSigns = document.getElementById("leftSigns");
-  const rightSigns = document.getElementById("rightSigns");
-  const levelTitle = document.getElementById("levelTitle");
+  studentInfoEl.innerText = `${studentName} (${studentClass})`;
 
-  // ---------- State ----------
+  // ----------------------
+  // Game state
+  // ----------------------
   let currentLevel = 0;     // 0..3
   let currentPage = 0;      // 0..2
+  let currentPageWords = []; // the 9 words currently on the grid
+  let correctMatches = 0;
   let gameEnded = false;
   let startTime = Date.now();
-  let correctMatches = 0;
 
-  // Holds page words for current page so drop() can read length safely
-  let currentPageWords = [];
-
-  // Track attempts per level
+  // attempts: for 4 levels -> track correct set and incorrect array
   const levelAttempts = Array(4).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
 
-  // ---------- Word banks ----------
+  // ----------------------
+  // Word banks
+  // ----------------------
   const wordBanks = {
     1: ["apple","banana","blueberry","cherry","grape","orange","pear","pineapple","raspberry","strawberry","watermelon","fruit"],
     2: ["carrot","corn","cucumber","lettuce","mushroom","onion","peas","beans","potato","pumpkin","tomato","vegetables"],
-    3: ["bacon","bread","burger","cake","cereal","cheese","egg","meat","pizza","salami","chips","pasta"],
-    4: [] // filled below
+    3: ["bacon","bread","burger","cake","cereal","cheese","egg","meat","pizza","salami","chips","pasta"]
   };
   wordBanks[4] = [...wordBanks[1], ...wordBanks[2], ...wordBanks[3]];
 
-  // Level definitions (Level 4 uses wideMode)
   const levelDefinitions = [
     { words: wordBanks[1], pages: 3, name: "Fruit", wideMode: false },
     { words: wordBanks[2], pages: 3, name: "Vegetables", wideMode: false },
     { words: wordBanks[3], pages: 3, name: "More Food", wideMode: false },
-    { words: wordBanks[4], pages: 3, name: "Mixture", wideMode: true } // many draggables → wide mode
+    { words: wordBanks[4], pages: 3, name: "Mixture", wideMode: true } // Level 4 many draggables
   ];
 
-  // ---------- Feedback image ----------
+  // ----------------------
+  // Feedback image
+  // ----------------------
   const feedbackImage = document.createElement("img");
   feedbackImage.id = "feedbackImage";
   Object.assign(feedbackImage.style, {
@@ -66,7 +77,37 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.body.appendChild(feedbackImage);
 
-  // ---------- Utilities ----------
+  // ----------------------
+  // Google Form mapping (from your form link)
+  // ----------------------
+  const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfP71M2M1SmaIzHVnsOSx4390iYgSxQy7Yo3NAPpbsR_Q7JaA/formResponse";
+  const formEntries = {
+    studentName: "entry.649726739",
+    studentClass: "entry.2105926443",
+    subject: "entry.1916287201",
+    timeTaken: "entry.1743763592",
+    percentage: "entry.393464832",
+    currentLevel: "entry.1202549392",
+    level1Correct: "entry.1933213595",
+    level1Incorrect: "entry.2087978837",
+    level2Correct: "entry.1160438650",
+    level2Incorrect: "entry.2081595072",
+    level3Correct: "entry.883075031",
+    level3Incorrect: "entry.2093517837",
+    level4Correct: "entry.498801806",
+    level4Incorrect: "entry.754032840",
+    level5Correct: "entry.1065703343",
+    level5Incorrect: "entry.880100066",
+    level6Correct: "entry.1360743630",
+    level6Incorrect: "entry.112387671",
+    totalCorrect: "entry.395384696",
+    totalIncorrect: "entry.1357567724",
+    errorsReviewed: "entry.11799771"
+  };
+
+  // ----------------------
+  // Utilities
+  // ----------------------
   function shuffle(arr) {
     return arr.slice().sort(() => Math.random() - 0.5);
   }
@@ -74,119 +115,162 @@ document.addEventListener("DOMContentLoaded", function () {
   function showFeedback(correct) {
     feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
     feedbackImage.style.display = "block";
-    setTimeout(() => feedbackImage.style.display = "none", 900);
+    setTimeout(() => (feedbackImage.style.display = "none"), 900);
   }
 
-  function updateScore() {
-    const totalCorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.correct.size, 0);
-    const totalIncorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.incorrect.length, 0);
-    const percent = totalCorrect + totalIncorrect > 0
-      ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100)
-      : 0;
-    document.getElementById("score-display").innerText = `Score: ${percent}%`;
+  function updateScoreDisplay() {
+    const totalCorrect = levelAttempts.reduce((s, l) => s + l.correct.size, 0);
+    const totalIncorrect = levelAttempts.reduce((s, l) => s + l.incorrect.length, 0);
+    const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
+    if (scoreDisplayEl) scoreDisplayEl.innerText = `Score: ${percent}%`;
   }
+
+  // ----------------------
+  // Save / Restore progress
+  // ----------------------
+  const SAVE_KEY = "foodGameSave";
 
   function saveProgress() {
-    const saveData = {
+    // Avoid saving at absolute start with no progress
+    if (currentLevel === 0 && currentPage === 0 && correctMatches === 0 && levelAttempts.every(l => l.correct.size === 0 && l.incorrect.length === 0)) {
+      return;
+    }
+    const data = {
       studentName,
       studentClass,
       currentLevel,
       currentPage,
-      levelAttempts: levelAttempts.map(l => ({
-        correct: Array.from(l.correct),
-        incorrect: [...l.incorrect]
-      })),
-      timestamp: Date.now()
+      levelAttempts: levelAttempts.map(l => ({ correct: Array.from(l.correct), incorrect: l.incorrect })),
+      startTime,
+      gameEnded
     };
-    localStorage.setItem("foodGameSave", JSON.stringify(saveData));
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
   }
 
-  function restoreProgress() {
-    const data = JSON.parse(localStorage.getItem("foodGameSave"));
-    if (!data || data.studentName !== studentName || data.studentClass !== studentClass) return false;
+  function restoreProgressPrompt() {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    try {
+      const data = JSON.parse(raw);
+      if (!data || data.studentName !== studentName || data.studentClass !== studentClass) return false;
+      // Ask to resume only if there is progress recorded
+      if (!data.gameEnded && (data.currentLevel > 0 || data.currentPage > 0 || data.levelAttempts.some(l => l.correct.length > 0 || l.incorrect.length > 0))) {
+        if (confirm("Resume your unfinished Food game?")) {
+          restoreProgress(data);
+          return true;
+        } else {
+          localStorage.removeItem(SAVE_KEY);
+          return false;
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to parse save:", e);
+    }
+    return false;
+  }
+
+  function restoreProgress(data) {
+    if (!data) return false;
     currentLevel = data.currentLevel || 0;
     currentPage = data.currentPage || 0;
+    startTime = data.startTime || Date.now();
+    gameEnded = data.gameEnded || false;
     (data.levelAttempts || []).forEach((l, i) => {
       levelAttempts[i].correct = new Set(l.correct || []);
-      levelAttempts[i].incorrect = [...(l.incorrect || [])];
+      levelAttempts[i].incorrect = l.incorrect || [];
     });
     return true;
   }
 
-  // ---------- Drag & Drop ----------
-  function drop(e) {
+  // ----------------------
+  // Drag & Drop / Touch
+  // ----------------------
+  function dropHandler(e) {
     e.preventDefault();
     const word = e.dataTransfer.getData("text/plain");
     const src = e.dataTransfer.getData("src");
     const target = e.currentTarget;
     const targetWord = target.dataset.word;
 
+    if (!targetWord) return;
+
     if (word === targetWord) {
+      // correct
       if (!levelAttempts[currentLevel].correct.has(word)) {
         levelAttempts[currentLevel].correct.add(word);
       }
       // overlay
       target.innerHTML = "";
       const overlay = document.createElement("img");
-      overlay.src = src;
       overlay.className = "overlay";
+      overlay.src = src;
       target.appendChild(overlay);
 
-      // remove remaining draggables of that word
+      // remove any draggables of that word
       document.querySelectorAll(`img.draggable[data-word='${word}']`).forEach(el => el.remove());
 
       correctMatches++;
       showFeedback(true);
-      updateScore();
+      updateScoreDisplay();
       saveProgress();
 
-      const need = currentPageWords.length; // always 9 words placed
-      if (correctMatches >= need) {
+      if (correctMatches >= currentPageWords.length) {
+        // level page finished
         correctMatches = 0;
-        currentPage++;
-        const levelInfo = levelDefinitions[currentLevel];
-        if (currentPage < levelInfo.pages) {
-          setTimeout(loadPage, 700);
-        } else {
-          currentLevel++;
-          currentPage = 0;
-          if (currentLevel >= levelDefinitions.length) {
-            modal.style.display = "flex";
-            endGame();
-          } else {
+        // submit level results now (per requirement)
+        submitCurrentProgressToForm(currentLevel).finally(() => {
+          // proceed to next page/level
+          currentPage++;
+          const info = levelDefinitions[currentLevel];
+          if (currentPage < info.pages) {
             setTimeout(loadPage, 700);
+          } else {
+            // finished level
+            currentLevel++;
+            currentPage = 0;
+            saveProgress();
+            if (currentLevel >= levelDefinitions.length) {
+              // all levels done
+              endGame();
+              // final submit (already submitted per level, but include errorsReviewed)
+              submitFinalResultsToForm().finally(() => {
+                modal.style.display = "flex";
+              });
+            } else {
+              setTimeout(loadPage, 700);
+            }
           }
-        }
+        });
       }
     } else {
-      // track incorrect for Level 4 priority
+      // incorrect
       levelAttempts[currentLevel].incorrect.push(word);
       showFeedback(false);
+      updateScoreDisplay();
+      saveProgress();
       const wrong = document.querySelector(`img.draggable[data-word='${word}']`);
       if (wrong) {
         wrong.classList.add("shake");
         setTimeout(() => wrong.classList.remove("shake"), 400);
       }
-      updateScore();
-      saveProgress();
     }
   }
 
-  function touchStart(e) {
+  function touchStartHandler(e) {
+    // touch drag for mobile
+    e.preventDefault();
     const target = e.target;
     if (!target || !target.classList.contains("draggable")) return;
-
     const word = target.dataset.word;
     const src = target.src;
 
     const clone = target.cloneNode(true);
     clone.style.position = "absolute";
     clone.style.pointerEvents = "none";
-    clone.style.opacity = "0.8";
+    clone.style.opacity = "0.85";
     clone.style.zIndex = "10000";
-    // keep touch clone small enough
-    const maxW = 110;
-    clone.style.width = `${Math.min(target.width || maxW, maxW)}px`;
+    const maxWidth = 110;
+    clone.style.width = `${Math.min(target.naturalWidth || maxWidth, maxWidth)}px`;
     clone.style.height = "auto";
     document.body.appendChild(clone);
 
@@ -196,275 +280,380 @@ document.addEventListener("DOMContentLoaded", function () {
     };
     moveClone(e.touches[0]);
 
-    const handleTouchMove = ev => moveClone(ev.touches[0]);
-    const handleTouchEnd = ev => {
+    const onMove = ev => moveClone(ev.touches[0]);
+    const onEnd = ev => {
       const touch = ev.changedTouches[0];
       const el = document.elementFromPoint(touch.clientX, touch.clientY);
       if (el && el.classList.contains("slot")) {
-        drop({
+        dropHandler({
           preventDefault: () => {},
           dataTransfer: {
-            getData: (k) => (k === "text/plain" ? word : src)
+            getData: k => (k === "text/plain" ? word : src)
           },
           currentTarget: el
         });
       }
-      document.removeEventListener("touchmove", handleTouchMove);
-      document.removeEventListener("touchend", handleTouchEnd);
+      document.removeEventListener("touchmove", onMove);
+      document.removeEventListener("touchend", onEnd);
       clone.remove();
     };
 
-    document.addEventListener("touchmove", handleTouchMove, { passive: false });
-    document.addEventListener("touchend", handleTouchEnd, { passive: false });
+    document.addEventListener("touchmove", onMove, { passive: false });
+    document.addEventListener("touchend", onEnd, { passive: false });
   }
 
-  // ---------- Page word logic ----------
-  // For L1–L3: ensure 9 unique words per page. Repeat across pages is allowed,
-  // but never on the same page.
-  function getPageWords_NoDuplicates(words, pageSize = 9) {
-    const shuffled = shuffle(words);
+  // ----------------------
+  // Page word selection helpers
+  // ----------------------
+  // Return an array of `n` unique words for a page (no duplicate on the page).
+  // If words array has less than n, words will repeat across pages (but not within this page).
+  function getUniquePageWords(words, n = 9) {
     const picked = [];
+    const pool = shuffle(words);
     let i = 0;
-    while (picked.length < pageSize) {
-      const w = shuffled[i % shuffled.length];
-      if (!picked.includes(w)) picked.push(w);
+    while (picked.length < n) {
+      const candidate = pool[i % pool.length];
+      if (!picked.includes(candidate)) picked.push(candidate);
       i++;
       if (i > 9999) break; // safety
     }
-    return picked;
+    return shuffle(picked);
   }
 
-  // For L4: prioritize previously incorrect (from Levels 1–3) then fill randomly,
-  // still 9 unique words per page.
-  function getLevel4PageWords(allWords, incorrectPool, pageSize = 9) {
-    const uniqueIncorrect = [...new Set(incorrectPool.filter(w => allWords.includes(w)))];
+  // For Level 4: prioritize incorrects (from levels 0..2), then fill rest with unique words.
+  function getLevel4PageWords(allWords, incorrects, n = 9) {
+    const uniqueIncorrect = [...new Set(incorrects.filter(w => allWords.includes(w)))];
     const page = [];
-
-    // Take as many unique incorrects as we can
+    // take incorrects first (unique)
     for (const w of uniqueIncorrect) {
-      if (page.length >= pageSize) break;
+      if (page.length >= n) break;
       if (!page.includes(w)) page.push(w);
     }
-
-    // Fill with random unique words from the total pool
+    // fill with random unique words
     const pool = shuffle(allWords);
     for (const w of pool) {
-      if (page.length >= pageSize) break;
+      if (page.length >= n) break;
       if (!page.includes(w)) page.push(w);
     }
-    return page;
+    // If still short (shouldn't happen), repeat unique picks
+    if (page.length < n) {
+      const more = getUniquePageWords(allWords, n - page.length);
+      for (const m of more) if (!page.includes(m)) page.push(m);
+    }
+    return shuffle(page);
   }
 
-  // Build draggable list:
-  // L1–L3 → all 12 words (requirement).
-  // L4 → page words + up to 9 decoys (18 max total), prioritizing incorrects as decoys too.
-  function buildDraggables(info, pageWords, pageGridType, incorrectPool) {
-    let draggableList = [];
-    if (currentLevel < 3) {
-      draggableList = shuffle(info.words); // show all 12
-    } else {
-      // Level 4: pageWords + decoys prioritized by incorrect, total cap 18
-      const maxTotal = 18;
-      const neededDecoys = Math.max(0, maxTotal - pageWords.length);
-
-      const incorrectDecoys = shuffle(
-        [...new Set(incorrectPool.filter(w => !pageWords.includes(w)))]
-      );
-
-      const remainingPool = shuffle(
-        info.words.filter(w => !pageWords.includes(w) && !incorrectDecoys.includes(w))
-      );
-
-      const decoys = incorrectDecoys.concat(remainingPool).slice(0, neededDecoys);
-      draggableList = shuffle(pageWords.concat(decoys));
-    }
-
-    // Create DOM
+  // Build draggables for a page.
+  // L1-L3 => show all words as draggables (12). L4 => pageWords plus up to `decoyCap` decoys (cap small to prevent overflow).
+  function buildDraggablesForPage(info, pageWords, gridType, incorrectPoolForL4) {
     leftSigns.innerHTML = "";
     rightSigns.innerHTML = "";
 
-    draggableList.forEach((word, i) => {
+    let draggableList = [];
+
+    if (currentLevel < 3) {
+      // show all words (12)
+      draggableList = shuffle(info.words);
+    } else {
+      // Level 4: pageWords + decoys (prioritise incorrects not already on page)
+      const maxTotal = 18; // cap to prevent overflow (you can adjust)
+      const needed = Math.max(0, maxTotal - pageWords.length);
+
+      const incorrectDecoys = shuffle([...new Set(incorrectPoolForL4.filter(w => !pageWords.includes(w)))]);
+      const remainingPool = shuffle(info.words.filter(w => !pageWords.includes(w) && !incorrectDecoys.includes(w)));
+      const decoys = incorrectDecoys.concat(remainingPool).slice(0, needed);
+      draggableList = shuffle(pageWords.concat(decoys));
+    }
+
+    // Create DOM draggables and place them into left/right columns
+    draggableList.forEach((word, idx) => {
       const img = document.createElement("img");
       img.className = "draggable";
       img.draggable = true;
       img.dataset.word = word;
 
-      // Draggables are the *opposite* of what's shown in the grid
-      // For mixed grid, we decide per-slot — so we calculate the opposite per word:
-      let showSignAsGridForWord = null;
-      if (pageGridType === "clipart") {
-        showSignAsGridForWord = false; // grid shows clipart → draggable should be sign
-      } else if (pageGridType === "sign") {
-        showSignAsGridForWord = true;  // grid shows sign → draggable should be clipart
-      } else {
-        // mixed: determine the slot type for this word in the grid
+      // Determine opposite type for draggable image:
+      // if gridType is clipart => draggable should be sign
+      // if gridType is sign => draggable should be clipart
+      // if mixed => check slot's assigned type for that word (slot.dataset.gridType)
+      let gridTypeForWord = gridType;
+      if (gridType === "mixed") {
         const slotEl = document.querySelector(`.slot[data-word='${word}']`);
         if (slotEl) {
-          const slotType = slotEl.dataset.gridType; // "sign" or "clipart"
-          showSignAsGridForWord = (slotType === "sign");
+          gridTypeForWord = slotEl.dataset.gridType || "clipart";
         } else {
-          // if the word is just a decoy (not in grid), pick random opposite for variety
-          showSignAsGridForWord = Math.random() < 0.5;
+          // decoy not in grid: random opposite
+          gridTypeForWord = Math.random() < 0.5 ? "clipart" : "sign";
         }
       }
 
-      const draggableOppositeIsSign = !showSignAsGridForWord;
-      img.src = `assets/food/${draggableOppositeIsSign ? "signs" : "clipart"}/${word}${draggableOppositeIsSign ? "-sign" : ""}.png`;
+      const draggableIsSign = gridTypeForWord === "clipart"; // opposite
+      img.src = `assets/food/${draggableIsSign ? "signs" : "clipart"}/${word}${draggableIsSign ? "-sign" : ""}.png`;
 
       img.addEventListener("dragstart", e => {
         e.dataTransfer.setData("text/plain", word);
         e.dataTransfer.setData("src", img.src);
       });
-      img.addEventListener("touchstart", touchStart);
+      img.addEventListener("touchstart", touchStartHandler);
 
       const wrap = document.createElement("div");
       wrap.className = "drag-wrapper";
       wrap.appendChild(img);
 
-      // split into two columns
-      if (i < Math.ceil(draggableList.length / 2)) {
-        leftSigns.appendChild(wrap);
-      } else {
-        rightSigns.appendChild(wrap);
-      }
+      // split evenly
+      if (idx < Math.ceil(draggableList.length / 2)) leftSigns.appendChild(wrap);
+      else rightSigns.appendChild(wrap);
     });
   }
 
-  // ---------- Grid builder ----------
-  function buildGrid(pageWords, pageIndex) {
+  // Build the grid (slots) for the current page. Returns gridType string ("clipart"/"sign"/"mixed")
+  function buildGridForPage(pageWords, pageIdx) {
     gameBoard.innerHTML = "";
-
-    // Page 0: clipart grid; Page 1: sign grid; Page 2: mixed
-    let gridType = "clipart";
-    if (pageIndex === 1) gridType = "sign";
-    if (pageIndex === 2) gridType = "mixed";
+    const gridType = pageIdx === 0 ? "clipart" : pageIdx === 1 ? "sign" : "mixed";
 
     pageWords.forEach(word => {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.word = word;
 
-      let typeForThisSlot = gridType;
-      if (gridType === "mixed") {
-        typeForThisSlot = Math.random() < 0.5 ? "clipart" : "sign";
-      }
+      let slotType = gridType;
+      if (gridType === "mixed") slotType = Math.random() < 0.5 ? "clipart" : "sign";
+      slot.dataset.gridType = slotType;
 
-      // Save per-slot type so we can generate correct opposite draggables
-      slot.dataset.gridType = typeForThisSlot;
-
-      const url = `assets/food/${typeForThisSlot === "sign" ? "signs" : "clipart"}/${word}${typeForThisSlot === "sign" ? "-sign" : ""}.png`;
+      const url = `assets/food/${slotType === "sign" ? "signs" : "clipart"}/${word}${slotType === "sign" ? "-sign" : ""}.png`;
       slot.style.backgroundImage = `url('${url}')`;
-
       gameBoard.appendChild(slot);
     });
 
-    // Make slots droppable
+    // bind droppers
     document.querySelectorAll(".slot").forEach(slot => {
       slot.addEventListener("dragover", e => e.preventDefault());
-      slot.addEventListener("drop", drop);
+      slot.addEventListener("drop", dropHandler);
     });
 
     return gridType;
   }
 
-  // ---------- End game ----------
-  function endGame() {
-    if (gameEnded) return;
-    gameEnded = true;
-
-    const endTime = Date.now();
-    const timeTaken = Math.round((endTime - startTime) / 1000);
-    const formattedTime = `${Math.floor(timeTaken / 60)} mins ${timeTaken % 60} sec`;
-
-    const totalCorrect = levelAttempts.reduce((sum, l) => sum + l.correct.size, 0);
-    const totalIncorrect = levelAttempts.reduce((sum, l) => sum + l.incorrect.length, 0);
-    const percent = totalCorrect + totalIncorrect > 0
-      ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100)
-      : 0;
-
-    document.getElementById("score-display").innerText = `Score: ${percent}%`;
-    const timeDisplay = document.createElement("p");
-    timeDisplay.innerText = `Time: ${formattedTime}`;
-    document.getElementById("end-modal-content").appendChild(timeDisplay);
+  // ----------------------
+  // Google Form submit helpers
+  // ----------------------
+  function buildPerLevelStrings() {
+    // constructs strings of correct and incorrect for each level to send to form
+    const levelsObj = {};
+    for (let i = 0; i < levelDefinitions.length; i++) {
+      const correctArr = Array.from(levelAttempts[i].correct);
+      const incorrectArr = levelAttempts[i].incorrect.slice(); // list in order attempted
+      // For readability, join with commas
+      levelsObj[`level${i+1}`] = {
+        correct: correctArr.join(","),
+        incorrect: incorrectArr.join(",")
+      };
+    }
+    return levelsObj;
   }
 
-  // ---------- Loader ----------
+  function computeTotals() {
+    let totalCorrect = 0;
+    let totalIncorrect = 0;
+    for (let i = 0; i < levelDefinitions.length; i++) {
+      totalCorrect += levelAttempts[i].correct.size;
+      totalIncorrect += levelAttempts[i].incorrect.length;
+    }
+    return { totalCorrect, totalIncorrect };
+  }
+
+  // Submit after each level completes (silent)
+  function submitCurrentProgressToForm(levelIndex) {
+    return new Promise(resolve => {
+      try {
+        const levelsObj = buildPerLevelStrings();
+        const totals = computeTotals();
+        const endTime = Date.now();
+        const timeTakenSecs = Math.round((endTime - startTime) / 1000);
+        const formattedTime = `${Math.floor(timeTakenSecs / 60)} mins ${timeTakenSecs % 60} sec`;
+        const percent = totals.totalCorrect + totals.totalIncorrect > 0 ? Math.round((totals.totalCorrect / (totals.totalCorrect + totals.totalIncorrect)) * 100) : 0;
+        const currentLevelString = `L${Math.min(levelIndex + 1, levelDefinitions.length)}P${currentPage + 1}`;
+
+        const fd = new FormData();
+        fd.append(formEntries.studentName, studentName);
+        fd.append(formEntries.studentClass, studentClass);
+        fd.append(formEntries.subject, "Food");
+        fd.append(formEntries.timeTaken, formattedTime);
+        fd.append(formEntries.percentage, `${percent}%`);
+        fd.append(formEntries.currentLevel, currentLevelString);
+
+        // map levels (form expects many entries; we'll fill those that exist)
+        // Level 1 entries
+        fd.append(formEntries.level1Correct, levelsObj.level1.correct || "");
+        fd.append(formEntries.level1Incorrect, levelsObj.level1.incorrect || "");
+        // Level 2
+        fd.append(formEntries.level2Correct, levelsObj.level2.correct || "");
+        fd.append(formEntries.level2Incorrect, levelsObj.level2.incorrect || "");
+        // Level 3
+        fd.append(formEntries.level3Correct, levelsObj.level3.correct || "");
+        fd.append(formEntries.level3Incorrect, levelsObj.level3.incorrect || "");
+        // Level 4
+        fd.append(formEntries.level4Correct, levelsObj.level4.correct || "");
+        fd.append(formEntries.level4Incorrect, levelsObj.level4.incorrect || "");
+        // Level 5 & 6 (empty for 4-level game, but keep fields present)
+        fd.append(formEntries.level5Correct, levelsObj.level5 ? levelsObj.level5.correct : "");
+        fd.append(formEntries.level5Incorrect, levelsObj.level5 ? levelsObj.level5.incorrect : "");
+        fd.append(formEntries.level6Correct, levelsObj.level6 ? levelsObj.level6.correct : "");
+        fd.append(formEntries.level6Incorrect, levelsObj.level6 ? levelsObj.level6.incorrect : "");
+
+        // Totals
+        fd.append(formEntries.totalCorrect, `${totals.totalCorrect}`);
+        fd.append(formEntries.totalIncorrect, `${totals.totalIncorrect}`);
+
+        // Errors reviewed (Level 7) left empty here for intermediate submissions
+        fd.append(formEntries.errorsReviewed, "");
+
+        // send
+        fetch(formURL, { method: "POST", mode: "no-cors", body: fd })
+          .catch(err => console.warn("Form submit (no-cors) may fail silently:", err))
+          .finally(() => resolve());
+      } catch (err) {
+        console.error("submitCurrentProgressToForm error:", err);
+        resolve();
+      }
+    });
+  }
+
+  // Final submission that includes Errors Reviewed (Level 7) assembled from incorrects
+  function submitFinalResultsToForm() {
+    return new Promise(resolve => {
+      try {
+        const levelsObj = buildPerLevelStrings();
+        const totals = computeTotals();
+        const endTime = Date.now();
+        const timeTakenSecs = Math.round((endTime - startTime) / 1000);
+        const formattedTime = `${Math.floor(timeTakenSecs / 60)} mins ${timeTakenSecs % 60} sec`;
+        const percent = totals.totalCorrect + totals.totalIncorrect > 0 ? Math.round((totals.totalCorrect / (totals.totalCorrect + totals.totalIncorrect)) * 100) : 0;
+
+        // Errors reviewed: build a unique list of incorrects across levels 1..3
+        const errorsReviewedSet = new Set(levelAttempts.slice(0,3).flatMap(l => l.incorrect));
+        const errorsReviewedStr = Array.from(errorsReviewedSet).join(",");
+
+        const fd = new FormData();
+        fd.append(formEntries.studentName, studentName);
+        fd.append(formEntries.studentClass, studentClass);
+        fd.append(formEntries.subject, "Food");
+        fd.append(formEntries.timeTaken, formattedTime);
+        fd.append(formEntries.percentage, `${percent}%`);
+        fd.append(formEntries.currentLevel, `Finished`);
+
+        fd.append(formEntries.level1Correct, levelsObj.level1.correct || "");
+        fd.append(formEntries.level1Incorrect, levelsObj.level1.incorrect || "");
+        fd.append(formEntries.level2Correct, levelsObj.level2.correct || "");
+        fd.append(formEntries.level2Incorrect, levelsObj.level2.incorrect || "");
+        fd.append(formEntries.level3Correct, levelsObj.level3.correct || "");
+        fd.append(formEntries.level3Incorrect, levelsObj.level3.incorrect || "");
+        fd.append(formEntries.level4Correct, levelsObj.level4.correct || "");
+        fd.append(formEntries.level4Incorrect, levelsObj.level4.incorrect || "");
+        fd.append(formEntries.level5Correct, levelsObj.level5 ? levelsObj.level5.correct : "");
+        fd.append(formEntries.level5Incorrect, levelsObj.level5 ? levelsObj.level5.incorrect : "");
+        fd.append(formEntries.level6Correct, levelsObj.level6 ? levelsObj.level6.correct : "");
+        fd.append(formEntries.level6Incorrect, levelsObj.level6 ? levelsObj.level6.incorrect : "");
+
+        fd.append(formEntries.totalCorrect, `${totals.totalCorrect}`);
+        fd.append(formEntries.totalIncorrect, `${totals.totalIncorrect}`);
+        fd.append(formEntries.errorsReviewed, errorsReviewedStr);
+
+        fetch(formURL, { method: "POST", mode: "no-cors", body: fd })
+          .catch(err => console.warn("Final form submit may fail silently:", err))
+          .finally(() => resolve());
+      } catch (err) {
+        console.error("submitFinalResultsToForm error:", err);
+        resolve();
+      }
+    });
+  }
+
+  // ----------------------
+  // Load page main
+  // ----------------------
   function loadPage() {
     if (gameEnded) {
       modal.style.display = "flex";
       return;
     }
+
     if (currentLevel >= levelDefinitions.length) {
-      modal.style.display = "flex";
+      // All done
       endGame();
+      submitFinalResultsToForm();
+      modal.style.display = "flex";
       return;
     }
 
-    // Wide-mode for many draggables (Level 4)
     const info = levelDefinitions[currentLevel];
-    if (info.wideMode) {
-      document.body.classList.add("wide-mode");
-    } else {
-      document.body.classList.remove("wide-mode");
-    }
+    // toggle wide-mode class (your CSS should handle .wide-mode)
+    if (info.wideMode) document.body.classList.add("wide-mode");
+    else document.body.classList.remove("wide-mode");
 
-    levelTitle.innerText = `Level ${currentLevel + 1}: ${info.name}`;
-    gameBoard.innerHTML = "";
-    leftSigns.innerHTML = "";
-    rightSigns.innerHTML = "";
+    levelTitleEl.innerText = `Level ${currentLevel + 1}: ${info.name}`;
 
-    // Prepare page words (9 items, no duplicates on the same page)
+    // Choose pageWords (9 unique on-page)
     if (currentLevel < 3) {
-      // Levels 1–3: simple unique 9 words per page (repetition allowed across pages)
-      currentPageWords = getPageWords_NoDuplicates(info.words, 9);
+      currentPageWords = getUniquePageWords(info.words, 9);
     } else {
-      // Level 4: prioritize previously incorrect from L1–L3
-      const incorrectPool = levelAttempts
-        .slice(0, 3)
-        .flatMap(l => l.incorrect);
-
+      const incorrectPool = levelAttempts.slice(0,3).flatMap(l => l.incorrect);
       currentPageWords = getLevel4PageWords(info.words, incorrectPool, 9);
     }
 
-    // Build the grid first (so draggable “opposite” can read slot types)
-    const gridType = buildGrid(currentPageWords, currentPage);
+    // Build grid first (so mixed slots have their types available for draggables)
+    const gridType = buildGridForPage(currentPageWords, currentPage);
 
-    // Build draggables
-    const incorrectPoolForL4 = levelAttempts.slice(0, 3).flatMap(l => l.incorrect);
-    buildDraggables(info, currentPageWords, gridType, incorrectPoolForL4);
+    // Build draggables (uses slot.dataset.gridType when mixed)
+    const incorrectPoolForL4 = levelAttempts.slice(0,3).flatMap(l => l.incorrect);
+    buildDraggablesForPage(info, currentPageWords, gridType, incorrectPoolForL4);
 
     correctMatches = 0;
-    updateScore();
+    updateScoreDisplay();
     saveProgress();
   }
 
-  // ---------- Buttons ----------
+  // ----------------------
+  // End game function
+  // ----------------------
+  function endGame() {
+    if (gameEnded) return;
+    gameEnded = true;
+
+    const endTime = Date.now();
+    const timeTakenSecs = Math.round((endTime - startTime) / 1000);
+    const formattedTime = `${Math.floor(timeTakenSecs / 60)} mins ${timeTakenSecs % 60} sec`;
+    const totals = computeTotals();
+    const percent = totals.totalCorrect + totals.totalIncorrect > 0 ? Math.round((totals.totalCorrect / (totals.totalCorrect + totals.totalIncorrect)) * 100) : 0;
+
+    if (scoreDisplayEl) scoreDisplayEl.innerText = `Score: ${percent}%`;
+    const timeDisplay = document.createElement("p");
+    timeDisplay.innerText = `Time: ${formattedTime}`;
+    if (endModalContent) endModalContent.appendChild(timeDisplay);
+
+    // clear save on complete
+    localStorage.removeItem(SAVE_KEY);
+  }
+
+  // ----------------------
+  // Attach button handlers (resume logic)
+  // ----------------------
   if (finishBtn) {
     finishBtn.addEventListener("click", () => {
-      if (!gameEnded) {
-        modal.style.display = "flex";
-        endGame();
-      }
+      modal.style.display = "flex";
+      endGame();
+      submitFinalResultsToForm();
     });
   }
 
   continueBtn.addEventListener("click", () => {
-    const saved = JSON.parse(localStorage.getItem("foodGameSave"));
-    if (saved && saved.studentName === studentName && saved.studentClass === studentClass) {
-      currentLevel = saved.currentLevel || 0;
-      currentPage = saved.currentPage || 0;
-      (saved.levelAttempts || []).forEach((lvl, i) => {
-        levelAttempts[i].correct = new Set(lvl.correct || []);
-        levelAttempts[i].incorrect = lvl.incorrect || [];
-      });
-    }
     modal.style.display = "none";
     gameEnded = false;
     loadPage();
   });
 
   againBtn.addEventListener("click", () => {
-    localStorage.removeItem("foodGameSave");
+    localStorage.removeItem(SAVE_KEY);
     location.reload();
   });
 
@@ -472,24 +661,139 @@ document.addEventListener("DOMContentLoaded", function () {
     window.location.href = "../index.html";
   });
 
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      const saved = JSON.parse(localStorage.getItem("foodGameSave"));
-      if (saved && saved.studentName === studentName && saved.studentClass === studentClass) {
-        gameEnded = true;
-        endGame();
-        setTimeout(() => {
-          localStorage.clear();
-          window.location.href = "../index.html";
-        }, 800);
-      } else {
-        localStorage.clear();
+  logoutBtn.addEventListener("click", () => {
+    // on logout, submit progress if present then navigate home
+    const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
+    if (saved && saved.studentName === studentName && saved.studentClass === studentClass) {
+      submitCurrentProgressToForm(currentLevel).finally(() => {
+        localStorage.removeItem(SAVE_KEY);
         window.location.href = "../index.html";
+      });
+    } else {
+      localStorage.removeItem(SAVE_KEY);
+      window.location.href = "../index.html";
+    }
+  });
+
+  // ----------------------
+  // Start/resume logic
+  // ----------------------
+  // If save exists and has progress, prompt resume (restoreProgressPrompt does the prompt)
+  const resumed = restoreProgressPrompt();
+  if (!resumed) {
+    // start fresh
+    loadPage();
+  } else {
+    // if resumed true, loadPage after restoreProgress was applied
+    loadPage();
+  }
+
+  // ---------- Helper functions used earlier (declared below for readability) ----------
+  // Re-declare here as named function references used above
+
+  // getUniquePageWords: unique words for a page (no duplicates within page)
+  function getUniquePageWords(words, n = 9) {
+    const picked = [];
+    const pool = shuffle(words);
+    let i = 0;
+    while (picked.length < n) {
+      const candidate = pool[i % pool.length];
+      if (!picked.includes(candidate)) picked.push(candidate);
+      i++;
+      if (i > 9999) break;
+    }
+    return shuffle(picked);
+  }
+
+  // Level 4 page words prioritizing incorrects
+  function getLevel4PageWords(allWords, incorrects, n = 9) {
+    const uniqueIncorrect = [...new Set(incorrects.filter(w => allWords.includes(w)))];
+    const page = [];
+    for (const w of uniqueIncorrect) {
+      if (page.length >= n) break;
+      if (!page.includes(w)) page.push(w);
+    }
+    const pool = shuffle(allWords);
+    for (const w of pool) {
+      if (page.length >= n) break;
+      if (!page.includes(w)) page.push(w);
+    }
+    if (page.length < n) {
+      const more = getUniquePageWords(allWords, n - page.length);
+      for (const m of more) if (!page.includes(m)) page.push(m);
+    }
+    return shuffle(page);
+  }
+
+  // grid builder (slots)
+  function buildGridForPage(pageWords, pageIdx) {
+    gameBoard.innerHTML = "";
+    const gridType = pageIdx === 0 ? "clipart" : pageIdx === 1 ? "sign" : "mixed";
+    pageWords.forEach(word => {
+      const slot = document.createElement("div");
+      slot.className = "slot";
+      slot.dataset.word = word;
+      let slotType = gridType;
+      if (gridType === "mixed") slotType = Math.random() < 0.5 ? "clipart" : "sign";
+      slot.dataset.gridType = slotType;
+      const url = `assets/food/${slotType === "sign" ? "signs" : "clipart"}/${word}${slotType === "sign" ? "-sign" : ""}.png`;
+      slot.style.backgroundImage = `url('${url}')`;
+      gameBoard.appendChild(slot);
+    });
+    document.querySelectorAll(".slot").forEach(slot => {
+      slot.addEventListener("dragover", e => e.preventDefault());
+      slot.addEventListener("drop", dropHandler);
+    });
+    return gridType;
+  }
+
+  // build draggables for page (declared earlier, but reattached here for clarity)
+  function buildDraggablesForPage(info, pageWords, gridType, incorrectPoolForL4) {
+    leftSigns.innerHTML = "";
+    rightSigns.innerHTML = "";
+
+    let draggableList = [];
+
+    if (currentLevel < 3) {
+      draggableList = shuffle(info.words);
+    } else {
+      const maxTotal = 18;
+      const needed = Math.max(0, maxTotal - pageWords.length);
+      const incorrectDecoys = shuffle([...new Set(incorrectPoolForL4.filter(w => !pageWords.includes(w)))]);
+      const remainingPool = shuffle(info.words.filter(w => !pageWords.includes(w) && !incorrectDecoys.includes(w)));
+      const decoys = incorrectDecoys.concat(remainingPool).slice(0, needed);
+      draggableList = shuffle(pageWords.concat(decoys));
+    }
+
+    draggableList.forEach((word, idx) => {
+      const img = document.createElement("img");
+      img.className = "draggable";
+      img.draggable = true;
+      img.dataset.word = word;
+
+      let gridTypeForWord = gridType;
+      if (gridType === "mixed") {
+        const slotEl = document.querySelector(`.slot[data-word='${word}']`);
+        if (slotEl) gridTypeForWord = slotEl.dataset.gridType || "clipart";
+        else gridTypeForWord = Math.random() < 0.5 ? "clipart" : "sign";
       }
+
+      const draggableIsSign = gridTypeForWord === "clipart"; // opposite
+      img.src = `assets/food/${draggableIsSign ? "signs" : "clipart"}/${word}${draggableIsSign ? "-sign" : ""}.png`;
+
+      img.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text/plain", word);
+        e.dataTransfer.setData("src", img.src);
+      });
+      img.addEventListener("touchstart", touchStartHandler);
+
+      const wrap = document.createElement("div");
+      wrap.className = "drag-wrapper";
+      wrap.appendChild(img);
+
+      if (idx < Math.ceil(draggableList.length / 2)) leftSigns.appendChild(wrap);
+      else rightSigns.appendChild(wrap);
     });
   }
 
-  // ---------- Start ----------
-  const resumed = restoreProgress();
-  loadPage();
 });
