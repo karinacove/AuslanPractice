@@ -337,52 +337,42 @@ document.addEventListener("DOMContentLoaded", function () {
     return gridType;
   }
 
-  function buildDraggables(level, page, words) {
-  const leftContainer = document.getElementById("left-container");
-  const rightContainer = document.getElementById("right-container");
+  function buildDraggablesForPage(info, pageWords, gridType) {
+    leftSigns.innerHTML = "";
+    rightSigns.innerHTML = "";
 
-  leftContainer.innerHTML = "";
-  rightContainer.innerHTML = "";
+    let draggableList = shuffle(info.words);
 
-  // decide how many pairs we need
-  const pairsPerPage = (level <= 3) ? 6 : 9;
+    draggableList.forEach((word, idx) => {
+      const img = document.createElement("img");
+      img.className = "draggable";
+      img.draggable = true;
+      img.dataset.word = word;
 
-  // slice the word list for this page
-  const startIndex = (page - 1) * pairsPerPage;
-  const endIndex = startIndex + pairsPerPage;
-  const pageWords = words.slice(startIndex, endIndex);
+      let gridTypeForWord = gridType;
+      if (gridType === "mixed") {
+        const slotEl = document.querySelector(`.slot[data-word='${word}']`);
+        if (slotEl) gridTypeForWord = slotEl.dataset.gridType || "clipart";
+        else gridTypeForWord = Math.random() < 0.5 ? "clipart" : "sign";
+      }
 
-  // build left (signs/images depending on mode)
-  pageWords.forEach((word) => {
-    const draggable = document.createElement("div");
-    draggable.classList.add("draggable");
-    draggable.setAttribute("draggable", "true");
-    draggable.setAttribute("data-word", word);
+      const draggableIsSign = gridTypeForWord === "clipart";
+      img.src = `assets/food/${draggableIsSign ? "signs" : "clipart"}/${word}${draggableIsSign ? "-sign" : ""}.png`;
 
-    // 👇 Replace this with your sign/image rendering logic
-    draggable.textContent = word;  
+      img.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text/plain", word);
+        e.dataTransfer.setData("src", img.src);
+      });
+      img.addEventListener("touchstart", touchStartHandler);
 
-    leftContainer.appendChild(draggable);
-  });
+      const wrap = document.createElement("div");
+      wrap.className = "drag-wrapper";
+      wrap.appendChild(img);
 
-  // shuffle the page words for right side
-  const shuffled = [...pageWords].sort(() => Math.random() - 0.5);
-
-  // build right targets
-  shuffled.forEach((word) => {
-    const target = document.createElement("div");
-    target.classList.add("target");
-    target.setAttribute("data-word", word);
-
-    // 👇 Replace this with your sign/image rendering logic
-    target.textContent = word;
-
-    rightContainer.appendChild(target);
-  });
-
-  // reattach drag/drop listeners
-  attachDragDropListeners();
-}
+      if (idx % 2 === 0) leftSigns.appendChild(wrap);
+      else rightSigns.appendChild(wrap);
+    });
+  }
 
   // ----------------------
   // Load Page / Level
