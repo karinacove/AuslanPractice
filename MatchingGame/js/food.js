@@ -51,18 +51,18 @@ document.addEventListener("DOMContentLoaded", function () {
     1: ["apple","banana","blueberry","cherry","grape","orange","pear","pineapple","raspberry","strawberry","watermelon","fruit"],
     2: ["carrot","corn","cucumber","lettuce","mushroom","onion","peas","beans","potato","pumpkin","tomato","vegetables"],
     3: ["bacon","bread","burger","cake","cereal","cheese","egg","meat","pizza","salami","chips","pasta"],
-    4: ["milk","yoghurt","butter","cream","cheese","icecream","juice","water","tea","coffee","drink"],
-    5: ["breakfast","lunch","dinner","snack","meal","dessert","treat","sandwich","salad","soup","stew","cereal"],
-    6: ["biscuits","cake","bread","pancake","muffin","croissant","noodles","spaghetti","pizza","burger","hotdog"]
+    4: ["apple","banana","blueberry","cherry","grape","orange","pear","pineapple","raspberry","strawberry","watermelon","fruit"],
+    5: ["carrot","corn","cucumber","lettuce","mushroom","onion","peas","beans","potato","pumpkin","tomato","vegetables"],
+    6: ["bacon","bread","burger","cake","cereal","cheese","egg","meat","pizza","salami","chips","biscuit"]
   };
 
   const levelDefinitions = [
     { words: wordBanks[1], pages: 3, name: "Fruit", wideMode: false },
     { words: wordBanks[2], pages: 3, name: "Vegetables", wideMode: false },
     { words: wordBanks[3], pages: 3, name: "More Food", wideMode: false },
-    { words: wordBanks[4], pages: 3, name: "Drinks & Dairy", wideMode: false },
-    { words: wordBanks[5], pages: 3, name: "Meals & Snacks", wideMode: false },
-    { words: wordBanks[6], pages: 3, name: "Bakes & Treats", wideMode: false }
+    { words: wordBanks[4], pages: 3, name: "Fruit", wideMode: false },
+    { words: wordBanks[5], pages: 3, name: "Vegetables", wideMode: false },
+    { words: wordBanks[6], pages: 3, name: "More Food", wideMode: false }
   ];
 
   // ----------------------
