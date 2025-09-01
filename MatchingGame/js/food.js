@@ -705,14 +705,14 @@ function restoreProgressPrompt() {
   }
 
 // ----------------------------
-// End game
+// End game / Finish button
 // ----------------------------
 if (finishBtn) {
   finishBtn.addEventListener("click", async () => {
     gameEnded = true;
     saveProgress();
     await submitFinalResultsToForm();
-    showEndMenu(); // calls the updated function
+    showEndMenu();
   });
 }
 
@@ -740,33 +740,33 @@ function showEndMenu() {
     width: "min(520px, 92%)"
   });
 
+  // Auslan clap GIF
   const clapImg = document.createElement("img");
   clapImg.src = "assets/auslan-clap.gif";
   clapImg.alt = "Well done!";
-  clapImg.style.maxWidth = "200px";
+  clapImg.className = "end-clap"; // use existing CSS sizing if defined
   container.appendChild(clapImg);
 
+  // Title
   const title = document.createElement("h2");
   title.innerText = "Well done!";
   container.appendChild(title);
 
+  // Score & Time
   const scoreP = document.createElement("p");
   scoreP.innerText = `Score: ${getTotalCorrect()} correct, ${getTotalIncorrect()} incorrect`;
+  scoreP.className = "end-score";
   container.appendChild(scoreP);
 
   const timeP = document.createElement("p");
   timeP.innerText = `Time: ${Math.floor((Date.now() - startTime) / 1000)}s`;
+  timeP.className = "end-time";
   container.appendChild(timeP);
 
-  // --- CLONE GRID/DRAGGABLE IMAGES AT 120px ---
+  // Clone images (grid + draggables) at 120px
   const cloneContainer = document.createElement("div");
-  cloneContainer.style.display = "flex";
-  cloneContainer.style.flexWrap = "wrap";
-  cloneContainer.style.justifyContent = "center";
-  cloneContainer.style.gap = "10px";
-  cloneContainer.style.marginTop = "15px";
-
-  const allImages = document.querySelectorAll(".left-signs img, .right-signs img, .draggable img");
+  cloneContainer.className = "end-clone-container"; // CSS handles flex wrap / gap
+  const allImages = document.querySelectorAll(".slot, .draggable img");
   allImages.forEach(img => {
     const clone = img.cloneNode(true);
     clone.style.width = "120px";
@@ -774,19 +774,13 @@ function showEndMenu() {
     clone.style.objectFit = "contain";
     cloneContainer.appendChild(clone);
   });
-
   container.appendChild(cloneContainer);
-  // --- END CLONE SECTION ---
 
+  // Buttons
   const buttons = document.createElement("div");
-  Object.assign(buttons.style, {
-    display: "flex",
-    justifyContent: "center",
-    gap: "12px",
-    marginTop: "12px"
-  });
+  buttons.className = "end-buttons"; // CSS handles layout & button size
 
-  // Continue (resume same state)
+  // Continue
   const contImg = document.createElement("img");
   contImg.src = "assets/continue.png";
   contImg.className = "modal-button";
@@ -812,7 +806,7 @@ function showEndMenu() {
     loadPage();
   });
 
-  // Menu (hub)
+  // Menu
   const menuImg = document.createElement("img");
   menuImg.src = "assets/menu.png";
   menuImg.className = "modal-button";
@@ -822,11 +816,11 @@ function showEndMenu() {
   const logoutImg = document.createElement("img");
   logoutImg.src = "assets/logout.png";
   logoutImg.className = "modal-button";
-  logoutImg.addEventListener("click", () => {
+  logoutImg.addEventListener("click", async () => {
     localStorage.removeItem(SAVE_KEY);
     localStorage.removeItem("studentName");
     localStorage.removeItem("studentClass");
-    submitFinalResultsToForm();
+    await submitFinalResultsToForm();
     window.location.href = "../index.html";
   });
 
@@ -834,11 +828,12 @@ function showEndMenu() {
   buttons.appendChild(againImg);
   buttons.appendChild(menuImg);
   buttons.appendChild(logoutImg);
-
   container.appendChild(buttons);
+
   endOverlay.appendChild(container);
   document.body.appendChild(endOverlay);
 }
+
 
 
 // ----------------------------
