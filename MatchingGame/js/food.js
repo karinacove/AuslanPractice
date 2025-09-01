@@ -137,7 +137,11 @@ const SAVE_KEY = "foodGameSave";
 // ----------------------
 // Save / Restore progress
 // ----------------------
-const SAVE_KEY = "foodGameSave"; // Use ONE consistent key
+// ----------------------
+// Save / Restore progress (unified)
+// ----------------------
+const SAVE_KEY = "foodGameSave"; // single consistent key
+let score = 0; // track score — make sure this variable is used/updated in your game logic
 
 function saveProgress() {
   // Avoid saving at absolute start with no progress
@@ -159,57 +163,103 @@ function saveProgress() {
     gameEnded,
     score,
     levelAttempts: levelAttempts.map(l => ({
-      correct: [...l.correct],
+      correct: Array.from(l.correct),
       incorrect: l.incorrect
     }))
   };
 
-  localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  } catch (err) {
+    console.warn("Could not save progress:", err);
+  }
 }
 
-function restoreProgress() {
-  const raw = localStorage.getItem(SAVE_KEY);
-  if (!raw) return false;
-
+function restoreProgressFromData(data) {
+  if (!data) return false;
   try {
-    const data = JSON.parse(raw);
-    if (!data) return false;
-
-    currentLevel = data.currentLevel ?? 0;
-    currentPage = data.currentPage ?? 0;
-    startTime = data.startTime ?? Date.now();
-    gameEnded = data.gameEnded ?? false;
-    score = data.score ?? 0;
+    currentLevel = typeof data.currentLevel === "number" ? data.currentLevel : 0;
+    currentPage = typeof data.currentPage === "number" ? data.currentPage : 0;
+    startTime = data.startTime || Date.now();
+    gameEnded = !!data.gameEnded;
+    score = typeof data.score === "number" ? data.score : 0;
 
     (data.levelAttempts || []).forEach((l, i) => {
       levelAttempts[i].correct = new Set(l.correct || []);
       levelAttempts[i].incorrect = l.incorrect || [];
     });
 
+    // Refresh UI (score and page will be rendered by loadPage)
+    updateScoreDisplay();
     return true;
-  } catch (e) {
-    console.warn("Failed to parse save:", e);
+  } catch (err) {
+    console.warn("Failed restoring progress:", err);
     return false;
   }
 }
 
-// Resume game entry point
-function resumeGame() {
-  if (restoreProgress()) {
-    buildLevel(currentLevel, currentPage); // Resume exactly where left off
-  } else {
-    startNewGame();
+function restoreProgressPrompt() {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (!raw) return false;
+
+  try {
+    const data = JSON.parse(raw);
+    if (!data || data.studentName !== studentName || data.studentClass !== studentClass) {
+      // save not owned by this student — ignore
+      return false;
+    }
+
+    const hasProgress =
+      !data.gameEnded &&
+      (
+        (typeof data.currentLevel === "number" && data.currentLevel > 0) ||
+        (typeof data.currentPage === "number" && data.currentPage > 0) ||
+        Array.isArray(data.levelAttempts) && data.levelAttempts.some(l => (l.correct && l.correct.length > 0) || (l.incorrect && l.incorrect.length > 0))
+      );
+
+    if (!hasProgress) return false;
+
+    if (confirm("Resume your unfinished Food game?")) {
+      // restore internal state and immediately load the page
+      const ok = restoreProgressFromData(data);
+      // clamp values to valid ranges
+      if (typeof currentLevel !== "number" || currentLevel < 0 || currentLevel >= levelDefinitions.length) currentLevel = 0;
+      if (typeof currentPage !== "number" || currentPage < 0 || currentPage >= (levelDefinitions[currentLevel] ? levelDefinitions[currentLevel].pages : 3)) currentPage = 0;
+
+      // load UI to reflect restored state
+      loadPage();
+      return ok;
+    } else {
+      localStorage.removeItem(SAVE_KEY);
+      return false;
+    }
+  } catch (err) {
+    console.warn("Could not parse save data:", err);
+    return false;
   }
 }
 
-// Resume game entry point
-function resumeGame() {
-  if (restoreProgressPrompt()) {
-    buildLevel(currentLevel, currentPage); // ✅ Resume at correct screen
-    updateScoreDisplay(score);             // ✅ Refresh score display
-  } else {
-    startNewGame();
+// Fallback restore (no prompt) - returns true if restore succeeded
+function tryRestoreSilently() {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (!raw) return false;
+  try {
+    const data = JSON.parse(raw);
+    if (!data || data.studentName !== studentName || data.studentClass !== studentClass) return false;
+    return restoreProgressFromData(data);
+  } catch (err) {
+    return false;
   }
+}
+
+// ----------------------
+// Init: try to resume (prompt) then load page
+// ----------------------
+if (!restoreProgressPrompt()) {
+  // if there's a silent save we might prefer to auto-restore:
+  // if (tryRestoreSilently()) { loadPage(); }
+  // but for now start a fresh page
+  loadPage();
 }
 
   // ----------------------
