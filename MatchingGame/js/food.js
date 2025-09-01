@@ -1,21 +1,16 @@
 // ==================================================
-// food.js (rewritten)
+// food.js (rewritten and fixed)
 // Food Matching Game — Levels 1–6 (with optional review)
-// - Tracks LxPy for each page
-// - Sends "Finished" only at finish or when Finish button clicked
-// - Resume prompt is a clear modal with Continue / Start Over buttons
-// - Keeps save/restore, drag & drop, touch, and Google Form submits
 // ==================================================
 
 document.addEventListener("DOMContentLoaded", function () {
   // ----------------------------
-  // Student gating (must be set earlier)
+  // Student gating
   // ----------------------------
   const studentName = localStorage.getItem("studentName") || "";
   const studentClass = localStorage.getItem("studentClass") || "";
 
   if (!studentName || !studentClass) {
-    // redirect to entry page if missing
     window.location.href = "../index.html";
     return;
   }
@@ -34,17 +29,15 @@ document.addEventListener("DOMContentLoaded", function () {
   const menuBtn = document.getElementById("menu-btn");
   const logoutBtn = document.getElementById("logout-btn");
   const modal = document.getElementById("end-modal");
-  const endModalContent = document.getElementById("end-modal-content");
   const finishBtn = document.getElementById("finish-btn");
 
   studentInfoEl.innerText = `${studentName} (${studentClass})`;
 
   // ----------------------------
-  // Game configuration and state
+  // Game configuration
   // ----------------------------
-  const SAVE_KEY = "foodGameSave_v1"; // single unified key
+  const SAVE_KEY = "foodGameSave_v1";
 
-  // Word banks (levels 1..6)
   const wordBanks = {
     1: ["apple","banana","blueberry","cherry","grape","orange","pear","pineapple","raspberry","strawberry","watermelon","fruit"],
     2: ["carrot","corn","cucumber","lettuce","mushroom","onion","peas","beans","potato","pumpkin","tomato","vegetables"],
@@ -63,17 +56,15 @@ document.addEventListener("DOMContentLoaded", function () {
     { words: wordBanks[6], pages: 3, name: "More Food (Review)" }
   ];
 
-  // Game dynamic state (0-based indices for levels/pages)
-  let currentLevel = 0;          // 0..5
-  let currentPage = 0;           // 0..2
-  let currentPageWords = [];     // array of words shown on grid (9)
-  let correctMatches = 0;        // how many correct slots filled this page
-  let gameEnded = false;         // whether game finished
-  let startTime = Date.now();    // timestamp
-  // attempts per level: { correct: Set(), incorrect: [] }
+  let currentLevel = 0;
+  let currentPage = 0;
+  let currentPageWords = [];
+  let correctMatches = 0;
+  let gameEnded = false;
+  let startTime = Date.now();
   const levelAttempts = Array(levelDefinitions.length).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
 
-  // Feedback image (correct/wrong)
+  // Feedback image
   const feedbackImage = document.createElement("img");
   feedbackImage.id = "feedbackImage";
   Object.assign(feedbackImage.style, {
@@ -88,7 +79,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.body.appendChild(feedbackImage);
 
   // ----------------------------
-  // Google Form mapping (your values)
+  // Google Form mapping
   // ----------------------------
   const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfP71M2M1SmaIzHVnsOSx4390iYgSxQy7Yo3NAPpbsR_Q7JaA/formResponse";
   const formEntries = {
@@ -98,7 +89,6 @@ document.addEventListener("DOMContentLoaded", function () {
     timeTaken: "entry.1743763592",
     percentage: "entry.393464832",
     currentLevel: "entry.1202549392",
-    // level-specific fields
     level1Correct: "entry.1933213595",
     level1Incorrect: "entry.2087978837",
     level2Correct: "entry.1160438650",
@@ -119,25 +109,16 @@ document.addEventListener("DOMContentLoaded", function () {
   // ----------------------------
   // Utilities
   // ----------------------------
-  function shuffle(arr) {
-    return arr.slice().sort(() => Math.random() - 0.5);
-  }
+  function shuffle(arr) { return arr.slice().sort(() => Math.random() - 0.5); }
 
   function showFeedback(correct) {
     feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
     feedbackImage.style.display = "block";
-    setTimeout(() => {
-      feedbackImage.style.display = "none";
-    }, 900);
+    setTimeout(() => { feedbackImage.style.display = "none"; }, 900);
   }
 
-  function clamp(v, lo, hi) {
-    return Math.min(hi, Math.max(lo, v));
-  }
+  function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
 
-  // ----------------------------
-  // Score & UI
-  // ----------------------------
   function calculatePercent() {
     const totalCorrect = levelAttempts.reduce((s, lvl) => s + lvl.correct.size, 0);
     const totalIncorrect = levelAttempts.reduce((s, lvl) => s + lvl.incorrect.length, 0);
@@ -148,200 +129,56 @@ document.addEventListener("DOMContentLoaded", function () {
   function updateScoreDisplay() {
     const percent = calculatePercent();
     if (scoreDisplayEl) scoreDisplayEl.innerText = `Score: ${percent}%`;
-  // ----------------------------
-
   }
 
   // ----------------------------
-  // Save / Restore progress  function saveProgress() {
-function saveProgress() {
-  const hasProgress =
-    currentLevel > 0 ||
-    currentPage > 0 ||
-    levelAttempts.some(
-      (l) => l.correct.size > 0 || l.incorrect.length > 0
-    ) ||
-    gameEnded;
+  // Save / Restore
+  // ----------------------------
+  function saveProgress() {
+    const hasProgress =
+      currentLevel > 0 || currentPage > 0 ||
+      levelAttempts.some(l => l.correct.size > 0 || l.incorrect.length > 0) ||
+      gameEnded;
+    if (!hasProgress) return;
 
-  if (!hasProgress) return;
-
-  const data = {
-    studentName,
-    studentClass,
-    currentLevel,
-    currentPage,
-    startTime,
-    gameEnded,
-    levelAttempts: levelAttempts.map((l) => ({
-      correct: Array.from(l.correct),
-      incorrect: l.incorrect,
-    })),
-  };
-
-  try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
-  } catch (err) {
-    console.warn("Save failed:", err);
-  }
-}
-
-function restoreProgressFromData(data) {
-  if (!data) return false;
-
-  try {
-    if (data.studentName && data.studentName !== studentName) return false;
-    if (data.studentClass && data.studentClass !== studentClass) return false;
-
-    currentLevel =
-      typeof data.currentLevel === "number" ? data.currentLevel : 0;
-    currentPage =
-      typeof data.currentPage === "number" ? data.currentPage : 0;
-    startTime = data.startTime || Date.now();
-    gameEnded = !!data.gameEnded;
-
-    (data.levelAttempts || []).forEach((l, i) => {
-      if (!levelAttempts[i])
-        levelAttempts[i] = { correct: new Set(), incorrect: [] };
-      levelAttempts[i].correct = new Set(l.correct || []);
-      levelAttempts[i].incorrect = l.incorrect || [];
-    });
-
-    // safety clamps
-    currentLevel = clamp(currentLevel, 0, levelDefinitions.length - 1);
-    currentPage = clamp(
+    const data = {
+      studentName,
+      studentClass,
+      currentLevel,
       currentPage,
-      0,
-      levelDefinitions[currentLevel].pages - 1
-    );
+      startTime,
+      gameEnded,
+      levelAttempts: levelAttempts.map(l => ({ correct: Array.from(l.correct), incorrect: l.incorrect }))
+    };
 
-    updateScoreDisplay();
-    return true;
-  } catch (err) {
-    console.warn("Restore parse failed:", err);
-    return false;
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }
+    catch (err) { console.warn("Save failed:", err); }
   }
-}
 
-// -------------------------
-// Friendly resume modal (with images instead of plain buttons)
-// -------------------------
-function showResumeModal(data) {
-  const overlay = document.createElement("div");
-  overlay.id = "resume-overlay";
-  Object.assign(overlay.style, {
-    position: "fixed",
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 10000,
-  });
+  function restoreProgressFromData(data) {
+    if (!data) return false;
+    try {
+      if (data.studentName && data.studentName !== studentName) return false;
+      if (data.studentClass && data.studentClass !== studentClass) return false;
 
-  const box = document.createElement("div");
-  Object.assign(box.style, {
-    background: "#fff",
-    padding: "20px",
-    borderRadius: "10px",
-    width: "min(520px, 92%)",
-    textAlign: "center",
-    boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
-  });
+      currentLevel = typeof data.currentLevel === "number" ? data.currentLevel : 0;
+      currentPage = typeof data.currentPage === "number" ? data.currentPage : 0;
+      startTime = data.startTime || Date.now();
+      gameEnded = !!data.gameEnded;
 
-  const title = document.createElement("h2");
-  title.innerText = "Resume your game?";
+      (data.levelAttempts || []).forEach((l, i) => {
+        if (!levelAttempts[i]) levelAttempts[i] = { correct: new Set(), incorrect: [] };
+        levelAttempts[i].correct = new Set(l.correct || []);
+        levelAttempts[i].incorrect = l.incorrect || [];
+      });
 
-  const message = document.createElement("p");
-  message.innerText =
-    "We found a saved game. You can continue where you left off, or start over.";
-  message.style.fontSize = "16px";
+      currentLevel = clamp(currentLevel, 0, levelDefinitions.length - 1);
+      currentPage = clamp(currentPage, 0, levelDefinitions[currentLevel].pages - 1);
 
-  const btnRow = document.createElement("div");
-  Object.assign(btnRow.style, {
-    marginTop: "16px",
-    display: "flex",
-    gap: "16px",
-    justifyContent: "center",
-  });
-
-  // Image buttons (instead of plain text)
-  const contBtn = document.createElement("img");
-  contBtn.src = "assets/continue.png";
-  contBtn.alt = "Continue";
-  contBtn.style.cursor = "pointer";
-
-  const startBtn = document.createElement("img");
-  startBtn.src = "assets/again.png";
-  startBtn.alt = "Start Over";
-  startBtn.style.cursor = "pointer";
-
-  contBtn.addEventListener("click", () => {
-    document.body.removeChild(overlay);
-    restoreProgressFromData(data);
-    loadPage(); // resume from saved state
-  });
-
-  startBtn.addEventListener("click", () => {
-    document.body.removeChild(overlay);
-    localStorage.removeItem(SAVE_KEY);
-    // reset state
-    for (let i = 0; i < levelAttempts.length; i++) {
-      levelAttempts[i] = { correct: new Set(), incorrect: [] };
-    }
-    currentLevel = 0;
-    currentPage = 0;
-    startTime = Date.now();
-    gameEnded = false;
-    saveProgress();
-    loadPage(); // fresh start
-  });
-
-  btnRow.appendChild(contBtn);
-  btnRow.appendChild(startBtn);
-
-  box.appendChild(title);
-  box.appendChild(message);
-  box.appendChild(btnRow);
-  overlay.appendChild(box);
-  document.body.appendChild(overlay);
-}
-
-function restoreProgressPrompt() {
-  const raw = localStorage.getItem(SAVE_KEY);
-  if (!raw) return false;
-
-  try {
-    const data = JSON.parse(raw);
-    if (
-      !data ||
-      data.studentName !== studentName ||
-      data.studentClass !== studentClass
-    )
-      return false;
-
-    const hasMeaningful =
-      !data.gameEnded &&
-      ((data.currentLevel && data.currentLevel > 0) ||
-        (data.currentPage && data.currentPage > 0) ||
-        (Array.isArray(data.levelAttempts) &&
-          data.levelAttempts.some(
-            (l) =>
-              (l.correct && l.correct.length > 0) ||
-              (l.incorrect && l.incorrect.length > 0)
-          )));
-
-    if (!hasMeaningful) return false;
-
-    showResumeModal(data);
-    return true;
-  } catch (err) {
-    console.warn("Failed to parse save:", err);
-    return false;
+      updateScoreDisplay();
+      return true;
+    } catch (err) { console.warn("Restore parse failed:", err); return false; }
   }
-}
 
   // ----------------------------
   // Drag & Drop & Touch handlers
@@ -707,208 +544,344 @@ function restoreProgressPrompt() {
 // ----------------------------
 // End game / Finish button
 // ----------------------------
-if (finishBtn) {
-  finishBtn.addEventListener("click", async () => {
-    gameEnded = true;
-    saveProgress();
-    await submitFinalResultsToForm();
-    showEndMenu();
-  });
-}
+// ==================================================
+// food.js (rewritten and fixed)
+// Food Matching Game — Levels 1–6 (with optional review)
+// ==================================================
 
-function showEndMenu() {
-  const hubUrl = "../hub.html";
-  document.body.classList.add("game-finished");
+document.addEventListener("DOMContentLoaded", function () {
+  // ----------------------------
+  // Student gating
+  // ----------------------------
+  const studentName = localStorage.getItem("studentName") || "";
+  const studentClass = localStorage.getItem("studentClass") || "";
 
-  const endOverlay = document.createElement("div");
-  Object.assign(endOverlay.style, {
-    position: "fixed",
-    left: 0, right: 0, top: 0, bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 10000
-  });
-
-  const container = document.createElement("div");
-  Object.assign(container.style, {
-    background: "#fff",
-    padding: "20px",
-    borderRadius: "10px",
-    textAlign: "center",
-    width: "min(520px, 92%)"
-  });
-
-  // Auslan clap GIF
-  const clapImg = document.createElement("img");
-  clapImg.src = "assets/auslan-clap.gif";
-  clapImg.alt = "Well done!";
-  clapImg.className = "end-clap"; // use existing CSS sizing if defined
-  container.appendChild(clapImg);
-
-  // Title
-  const title = document.createElement("h2");
-  title.innerText = "Well done!";
-  container.appendChild(title);
-
-  // Score & Time
-  const scoreP = document.createElement("p");
-  scoreP.innerText = `Score: ${getTotalCorrect()} correct, ${getTotalIncorrect()} incorrect`;
-  scoreP.className = "end-score";
-  container.appendChild(scoreP);
-
-  const timeP = document.createElement("p");
-  timeP.innerText = `Time: ${Math.floor((Date.now() - startTime) / 1000)}s`;
-  timeP.className = "end-time";
-  container.appendChild(timeP);
-
-  // Clone images (grid + draggables) at 120px
-  const cloneContainer = document.createElement("div");
-  cloneContainer.className = "end-clone-container"; // CSS handles flex wrap / gap
-  const allImages = document.querySelectorAll(".slot, .draggable img");
-  allImages.forEach(img => {
-    const clone = img.cloneNode(true);
-    clone.style.width = "120px";
-    clone.style.height = "120px";
-    clone.style.objectFit = "contain";
-    cloneContainer.appendChild(clone);
-  });
-  container.appendChild(cloneContainer);
-
-  // Buttons
-  const buttons = document.createElement("div");
-  buttons.className = "end-buttons"; // CSS handles layout & button size
-
-  // Continue
-  const contImg = document.createElement("img");
-  contImg.src = "assets/continue.png";
-  contImg.className = "modal-button";
-  contImg.addEventListener("click", () => {
-    document.body.removeChild(endOverlay);
-    loadPage();
-  });
-
-  // Again (reset all)
-  const againImg = document.createElement("img");
-  againImg.src = "assets/again.png";
-  againImg.className = "modal-button";
-  againImg.addEventListener("click", () => {
-    localStorage.removeItem(SAVE_KEY);
-    for (let i = 0; i < levelAttempts.length; i++) {
-      levelAttempts[i] = { correct: new Set(), incorrect: [] };
-    }
-    currentLevel = 0;
-    currentPage = 0;
-    startTime = Date.now();
-    gameEnded = false;
-    document.body.removeChild(endOverlay);
-    loadPage();
-  });
-
-  // Menu
-  const menuImg = document.createElement("img");
-  menuImg.src = "assets/menu.png";
-  menuImg.className = "modal-button";
-  menuImg.addEventListener("click", () => window.location.href = hubUrl);
-
-  // Logout
-  const logoutImg = document.createElement("img");
-  logoutImg.src = "assets/logout.png";
-  logoutImg.className = "modal-button";
-  logoutImg.addEventListener("click", async () => {
-    localStorage.removeItem(SAVE_KEY);
-    localStorage.removeItem("studentName");
-    localStorage.removeItem("studentClass");
-    await submitFinalResultsToForm();
+  if (!studentName || !studentClass) {
     window.location.href = "../index.html";
+    return;
+  }
+
+  // ----------------------------
+  // DOM Handles
+  // ----------------------------
+  const studentInfoEl = document.getElementById("student-info");
+  const scoreDisplayEl = document.getElementById("score-display");
+  const levelTitleEl = document.getElementById("levelTitle");
+  const gameBoard = document.getElementById("gameBoard");
+  const leftSigns = document.getElementById("leftSigns");
+  const rightSigns = document.getElementById("rightSigns");
+  const againBtn = document.getElementById("again-btn");
+  const continueBtn = document.getElementById("continue-btn");
+  const menuBtn = document.getElementById("menu-btn");
+  const logoutBtn = document.getElementById("logout-btn");
+  const modal = document.getElementById("end-modal");
+  const finishBtn = document.getElementById("finish-btn");
+
+  studentInfoEl.innerText = `${studentName} (${studentClass})`;
+
+  // ----------------------------
+  // Game configuration
+  // ----------------------------
+  const SAVE_KEY = "foodGameSave_v1";
+
+  const wordBanks = {
+    1: ["apple","banana","blueberry","cherry","grape","orange","pear","pineapple","raspberry","strawberry","watermelon","fruit"],
+    2: ["carrot","corn","cucumber","lettuce","mushroom","onion","peas","beans","potato","pumpkin","tomato","vegetables"],
+    3: ["bacon","bread","burger","cake","cereal","cheese","egg","meat","pizza","salami","chips","pasta"],
+    4: ["apple","banana","blueberry","cherry","grape","orange","pear","pineapple","raspberry","strawberry","watermelon","fruit"],
+    5: ["carrot","corn","cucumber","lettuce","mushroom","onion","peas","beans","potato","pumpkin","tomato","vegetables"],
+    6: ["bacon","bread","burger","cake","cereal","cheese","egg","meat","pizza","salami","chips","biscuit"]
+  };
+
+  const levelDefinitions = [
+    { words: wordBanks[1], pages: 3, name: "Fruit" },
+    { words: wordBanks[2], pages: 3, name: "Vegetables" },
+    { words: wordBanks[3], pages: 3, name: "More Food" },
+    { words: wordBanks[4], pages: 3, name: "Fruit (Review)" },
+    { words: wordBanks[5], pages: 3, name: "Vegetables (Review)" },
+    { words: wordBanks[6], pages: 3, name: "More Food (Review)" }
+  ];
+
+  let currentLevel = 0;
+  let currentPage = 0;
+  let currentPageWords = [];
+  let correctMatches = 0;
+  let gameEnded = false;
+  let startTime = Date.now();
+  const levelAttempts = Array(levelDefinitions.length).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
+
+  // Feedback image
+  const feedbackImage = document.createElement("img");
+  feedbackImage.id = "feedbackImage";
+  Object.assign(feedbackImage.style, {
+    position: "fixed",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: "200px",
+    display: "none",
+    zIndex: "9999"
   });
-
-  buttons.appendChild(contImg);
-  buttons.appendChild(againImg);
-  buttons.appendChild(menuImg);
-  buttons.appendChild(logoutImg);
-  container.appendChild(buttons);
-
-  endOverlay.appendChild(container);
-  document.body.appendChild(endOverlay);
-}
-
-
-
-// ----------------------------
-// Helpers to count totals
-// ----------------------------
-function getTotalCorrect() {
-  return levelAttempts.reduce((s, l) => s + l.correct.size, 0);
-}
-function getTotalIncorrect() {
-  return levelAttempts.reduce((s, l) => s + l.incorrect.length, 0);
-}
+  document.body.appendChild(feedbackImage);
 
   // ----------------------------
-  // Buttons wiring
+  // Google Form mapping
   // ----------------------------
-  if (againBtn) {
-    againBtn.addEventListener("click", () => {
-      // reset to start of current level/page without clearing saved progress
+  const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfP71M2M1SmaIzHVnsOSx4390iYgSxQy7Yo3NAPpbsR_Q7JaA/formResponse";
+  const formEntries = {
+    studentName: "entry.649726739",
+    studentClass: "entry.2105926443",
+    subject: "entry.1916287201",
+    timeTaken: "entry.1743763592",
+    percentage: "entry.393464832",
+    currentLevel: "entry.1202549392",
+    level1Correct: "entry.1933213595",
+    level1Incorrect: "entry.2087978837",
+    level2Correct: "entry.1160438650",
+    level2Incorrect: "entry.2081595072",
+    level3Correct: "entry.883075031",
+    level3Incorrect: "entry.2093517837",
+    level4Correct: "entry.498801806",
+    level4Incorrect: "entry.754032840",
+    level5Correct: "entry.1065703343",
+    level5Incorrect: "entry.880100066",
+    level6Correct: "entry.1360743630",
+    level6Incorrect: "entry.112387671",
+    totalCorrect: "entry.395384696",
+    totalIncorrect: "entry.1357567724",
+    errorsReviewed: "entry.11799771"
+  };
+
+  // ----------------------------
+  // Utilities
+  // ----------------------------
+  function shuffle(arr) { return arr.slice().sort(() => Math.random() - 0.5); }
+
+  function showFeedback(correct) {
+    feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
+    feedbackImage.style.display = "block";
+    setTimeout(() => { feedbackImage.style.display = "none"; }, 900);
+  }
+
+  function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+
+  function calculatePercent() {
+    const totalCorrect = levelAttempts.reduce((s, lvl) => s + lvl.correct.size, 0);
+    const totalIncorrect = levelAttempts.reduce((s, lvl) => s + lvl.incorrect.length, 0);
+    if (totalCorrect + totalIncorrect === 0) return 0;
+    return Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100);
+  }
+
+  function updateScoreDisplay() {
+    const percent = calculatePercent();
+    if (scoreDisplayEl) scoreDisplayEl.innerText = `Score: ${percent}%`;
+  }
+
+  // ----------------------------
+  // Save / Restore
+  // ----------------------------
+  function saveProgress() {
+    const hasProgress =
+      currentLevel > 0 || currentPage > 0 ||
+      levelAttempts.some(l => l.correct.size > 0 || l.incorrect.length > 0) ||
+      gameEnded;
+    if (!hasProgress) return;
+
+    const data = {
+      studentName,
+      studentClass,
+      currentLevel,
+      currentPage,
+      startTime,
+      gameEnded,
+      levelAttempts: levelAttempts.map(l => ({ correct: Array.from(l.correct), incorrect: l.incorrect }))
+    };
+
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }
+    catch (err) { console.warn("Save failed:", err); }
+  }
+
+  function restoreProgressFromData(data) {
+    if (!data) return false;
+    try {
+      if (data.studentName && data.studentName !== studentName) return false;
+      if (data.studentClass && data.studentClass !== studentClass) return false;
+
+      currentLevel = typeof data.currentLevel === "number" ? data.currentLevel : 0;
+      currentPage = typeof data.currentPage === "number" ? data.currentPage : 0;
+      startTime = data.startTime || Date.now();
+      gameEnded = !!data.gameEnded;
+
+      (data.levelAttempts || []).forEach((l, i) => {
+        if (!levelAttempts[i]) levelAttempts[i] = { correct: new Set(), incorrect: [] };
+        levelAttempts[i].correct = new Set(l.correct || []);
+        levelAttempts[i].incorrect = l.incorrect || [];
+      });
+
+      currentLevel = clamp(currentLevel, 0, levelDefinitions.length - 1);
+      currentPage = clamp(currentPage, 0, levelDefinitions[currentLevel].pages - 1);
+
+      updateScoreDisplay();
+      return true;
+    } catch (err) { console.warn("Restore parse failed:", err); return false; }
+  }
+
+  // ----------------------------
+  // Drag & Drop & Touch (unchanged)
+  // ----------------------------
+  // [Keep your existing dropHandler & touchStartHandler here]
+
+  // ----------------------------
+  // Page loading, grid & draggables
+  // ----------------------------
+  // [Keep your existing getUniquePageWords, buildGridForPage, buildDraggablesForPage, loadPage functions]
+
+  // ----------------------------
+  // Google Form submission helpers
+  // ----------------------------
+  // [Keep your submitCurrentProgressToForm & submitFinalResultsToForm functions]
+
+  // ----------------------------
+  // Finish button / end modal
+  // ----------------------------
+  if (finishBtn) {
+    finishBtn.addEventListener("click", async () => {
+      gameEnded = true;
+      saveProgress();
+      await submitFinalResultsToForm();
+      showEndMenu();
+    });
+  }
+
+  function showEndMenu() {
+    const hubUrl = "../hub.html";
+    document.body.classList.add("game-finished");
+
+    const endOverlay = document.createElement("div");
+    Object.assign(endOverlay.style, {
+      position: "fixed",
+      left: 0, right: 0, top: 0, bottom: 0,
+      backgroundColor: "rgba(0,0,0,0.6)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 10000
+    });
+
+    const container = document.createElement("div");
+    Object.assign(container.style, {
+      background: "#fff",
+      padding: "20px",
+      borderRadius: "10px",
+      textAlign: "center",
+      width: "min(520px, 92%)"
+    });
+
+    // Auslan clap GIF
+    const clapImg = document.createElement("img");
+    clapImg.src = "assets/auslan-clap.gif";
+    clapImg.alt = "Well done!";
+    clapImg.className = "end-clap";
+    container.appendChild(clapImg);
+
+    // Title
+    const title = document.createElement("h2");
+    title.innerText = "Well done!";
+    container.appendChild(title);
+
+    // Score & Time
+    const scoreP = document.createElement("p");
+    scoreP.innerText = `Score: ${getTotalCorrect()} correct, ${getTotalIncorrect()} incorrect`;
+    scoreP.className = "end-score";
+    container.appendChild(scoreP);
+
+    const timeP = document.createElement("p");
+    timeP.innerText = `Time: ${Math.floor((Date.now() - startTime) / 1000)}s`;
+    timeP.className = "end-time";
+    container.appendChild(timeP);
+
+    // Clone images (grid + draggables) at 120px
+    const cloneContainer = document.createElement("div");
+    cloneContainer.className = "end-clone-container";
+    const allImages = document.querySelectorAll(".slot, .draggable img");
+    allImages.forEach(img => {
+      const clone = img.cloneNode(true);
+      clone.style.width = "120px";
+      clone.style.height = "120px";
+      clone.style.objectFit = "contain";
+      cloneContainer.appendChild(clone);
+    });
+    container.appendChild(cloneContainer);
+
+    // Buttons
+    const buttons = document.createElement("div");
+    buttons.className = "end-buttons";
+
+    // Continue
+    const contImg = document.createElement("img");
+    contImg.src = "assets/continue.png";
+    contImg.className = "modal-button";
+    contImg.addEventListener("click", () => {
+      document.body.removeChild(endOverlay);
       loadPage();
     });
-  }
 
-  if (continueBtn) {
-    continueBtn.addEventListener("click", () => {
-      if (modal) modal.style.display = "none";
-      loadPage();
-    });
-  }
-
-  if (menuBtn) {
-    menuBtn.addEventListener("click", () => {
-      // return to hub / main menu
-      window.location.href = "../index.html";
-    });
-  }
-
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
+    // Again (reset all)
+    const againImg = document.createElement("img");
+    againImg.src = "assets/again.png";
+    againImg.className = "modal-button";
+    againImg.addEventListener("click", () => {
       localStorage.removeItem(SAVE_KEY);
-      localStorage.removeItem("studentName");
-      localStorage.removeItem("studentClass");
-      window.location.href = "../index.html";
-    });
-  }
-
-  // ----------------------------
-  // Initialization logic: resume prompt then loadPage
-  // ----------------------------
-  (function init() {
-    // try to restore with friendly prompt
-    const resumed = restoreProgressPrompt();
-    if (!resumed) {
-      // fresh start
-      currentLevel = 0;
-      currentPage = 0;
-      startTime = Date.now();
-      // clear attempts
       for (let i = 0; i < levelAttempts.length; i++) {
         levelAttempts[i] = { correct: new Set(), incorrect: [] };
       }
+      currentLevel = 0;
+      currentPage = 0;
+      startTime = Date.now();
+      gameEnded = false;
+      document.body.removeChild(endOverlay);
       loadPage();
-    } else {
-      // restoreProgressPrompt will show modal and loadPage when they pick Continue
-    }
-    // autosave periodically
-    setInterval(saveProgress, 15000);
-    // also save on unload
-    window.addEventListener("beforeunload", saveProgress);
-  })();
+    });
 
-  // Expose some internals for debugging (optional)
-  window._foodGame = {
-    saveProgress,
-    restoreProgressFromData,
-    getState: () => ({ currentLevel, currentPage, levelAttempts }),
-    loadPage
-  };
+    // Menu
+    const menuImg = document.createElement("img");
+    menuImg.src = "assets/menu.png";
+    menuImg.className = "modal-button";
+    menuImg.addEventListener("click", () => window.location.href = hubUrl);
+
+    // Logout
+    const logoutImg = document.createElement("img");
+    logoutImg.src = "assets/logout.png";
+    logoutImg.className = "modal-button";
+    logoutImg.addEventListener("click", async () => {
+      localStorage.removeItem(SAVE_KEY);
+      localStorage.removeItem("studentName");
+      localStorage.removeItem("studentClass");
+      await submitFinalResultsToForm();
+      window.location.href = "../index.html";
+    });
+
+    buttons.appendChild(contImg);
+    buttons.appendChild(againImg);
+    buttons.appendChild(menuImg);
+    buttons.appendChild(logoutImg);
+    container.appendChild(buttons);
+
+    endOverlay.appendChild(container);
+    document.body.appendChild(endOverlay);
+  }
+
+  function getTotalCorrect() {
+    return levelAttempts.reduce((sum, l) => sum + l.correct.size, 0);
+  }
+
+  function getTotalIncorrect() {
+    return levelAttempts.reduce((sum, l) => sum + l.incorrect.length, 0);
+  }
+
+  // ----------------------------
+  // Start
+  // ----------------------------
+  const saved = restoreProgressFromData(JSON.parse(localStorage.getItem(SAVE_KEY)));
+  loadPage();
 });
