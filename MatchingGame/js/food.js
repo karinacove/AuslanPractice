@@ -543,7 +543,7 @@ function resumeGame() {
     modal.style.display = "none";
     loadPage();
   });
-  menuBtn?.addEventListener("click", () => (window.location.href = "../hub.html"));
+  menuBtn?.addEventListener("click", () => (window.location.href = "../index.html"));
   logoutBtn?.addEventListener("click", () => {
     localStorage.removeItem(SAVE_KEY);
     window.location.href = "../index.html";
