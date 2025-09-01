@@ -704,11 +704,13 @@ function restoreProgressPrompt() {
     }
   }
 
-  // ----------------------------
-  // End game
-  // ----------------------------
+// ----------------------------
+// End game
+// ----------------------------
 if (finishBtn) {
   finishBtn.addEventListener("click", async () => {
+    gameEnded = true;
+    saveProgress();
     await submitFinalResultsToForm();
     showEndMenu();
   });
@@ -748,6 +750,10 @@ function showEndMenu() {
 
   const scoreP = document.createElement("p");
   scoreP.innerText = `Score: ${getTotalCorrect()} correct, ${getTotalIncorrect()} incorrect`;
+
+  // Time taken
+  const timeP = document.createElement("p");
+  timeP.innerText = `Time: ${Math.floor((Date.now() - startTime) / 1000)}s`;
 
   const buttons = document.createElement("div");
   Object.assign(buttons.style, {
@@ -797,7 +803,7 @@ function showEndMenu() {
     localStorage.removeItem(SAVE_KEY);
     localStorage.removeItem("studentName");
     localStorage.removeItem("studentClass");
-    submitFinalResultsToForm();
+    submitFinalResultsToForm(); // flush one more submit
     window.location.href = "../index.html";
   });
 
@@ -809,9 +815,20 @@ function showEndMenu() {
   container.appendChild(clapImg);
   container.appendChild(title);
   container.appendChild(scoreP);
+  container.appendChild(timeP);
   container.appendChild(buttons);
   endOverlay.appendChild(container);
   document.body.appendChild(endOverlay);
+}
+
+// ----------------------------
+// Helpers to count totals
+// ----------------------------
+function getTotalCorrect() {
+  return levelAttempts.reduce((s, l) => s + l.correct.size, 0);
+}
+function getTotalIncorrect() {
+  return levelAttempts.reduce((s, l) => s + l.incorrect.length, 0);
 }
 
   // ----------------------------
@@ -844,14 +861,6 @@ function showEndMenu() {
       localStorage.removeItem("studentName");
       localStorage.removeItem("studentClass");
       window.location.href = "../index.html";
-    });
-  }
-
-  if (finishBtn) {
-    finishBtn.addEventListener("click", async () => {
-      // submit final results and show final menu (Menu / Again / Logout)
-      await submitFinalResultsToForm();
-      showEndMenu();
     });
   }
 
