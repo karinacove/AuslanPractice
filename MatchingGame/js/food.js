@@ -712,7 +712,7 @@ if (finishBtn) {
     gameEnded = true;
     saveProgress();
     await submitFinalResultsToForm();
-    showEndMenu();
+    showEndMenu(); // calls the updated function
   });
 }
 
@@ -744,16 +744,39 @@ function showEndMenu() {
   clapImg.src = "assets/auslan-clap.gif";
   clapImg.alt = "Well done!";
   clapImg.style.maxWidth = "200px";
+  container.appendChild(clapImg);
 
   const title = document.createElement("h2");
   title.innerText = "Well done!";
+  container.appendChild(title);
 
   const scoreP = document.createElement("p");
   scoreP.innerText = `Score: ${getTotalCorrect()} correct, ${getTotalIncorrect()} incorrect`;
+  container.appendChild(scoreP);
 
-  // Time taken
   const timeP = document.createElement("p");
   timeP.innerText = `Time: ${Math.floor((Date.now() - startTime) / 1000)}s`;
+  container.appendChild(timeP);
+
+  // --- CLONE GRID/DRAGGABLE IMAGES AT 120px ---
+  const cloneContainer = document.createElement("div");
+  cloneContainer.style.display = "flex";
+  cloneContainer.style.flexWrap = "wrap";
+  cloneContainer.style.justifyContent = "center";
+  cloneContainer.style.gap = "10px";
+  cloneContainer.style.marginTop = "15px";
+
+  const allImages = document.querySelectorAll(".left-signs img, .right-signs img, .draggable img");
+  allImages.forEach(img => {
+    const clone = img.cloneNode(true);
+    clone.style.width = "120px";
+    clone.style.height = "120px";
+    clone.style.objectFit = "contain";
+    cloneContainer.appendChild(clone);
+  });
+
+  container.appendChild(cloneContainer);
+  // --- END CLONE SECTION ---
 
   const buttons = document.createElement("div");
   Object.assign(buttons.style, {
@@ -769,7 +792,7 @@ function showEndMenu() {
   contImg.className = "modal-button";
   contImg.addEventListener("click", () => {
     document.body.removeChild(endOverlay);
-    loadPage(); // resume same place
+    loadPage();
   });
 
   // Again (reset all)
@@ -803,7 +826,7 @@ function showEndMenu() {
     localStorage.removeItem(SAVE_KEY);
     localStorage.removeItem("studentName");
     localStorage.removeItem("studentClass");
-    submitFinalResultsToForm(); // flush one more submit
+    submitFinalResultsToForm();
     window.location.href = "../index.html";
   });
 
@@ -812,14 +835,11 @@ function showEndMenu() {
   buttons.appendChild(menuImg);
   buttons.appendChild(logoutImg);
 
-  container.appendChild(clapImg);
-  container.appendChild(title);
-  container.appendChild(scoreP);
-  container.appendChild(timeP);
   container.appendChild(buttons);
   endOverlay.appendChild(container);
   document.body.appendChild(endOverlay);
 }
+
 
 // ----------------------------
 // Helpers to count totals
