@@ -1,17 +1,10 @@
 // ==================================================
-// food.js
-// Food Matching Game — Levels 1–6
-// Features:
-// - 6 levels (1..6), each with 3 pages (page types: clipart, sign, mixed)
-// - per-level vocab banks
-// - 6 draggables per side for levels 1–3 (12 total) and 9 per side for levels 4–6 (18 total)
-// - no duplicates on the same page (per-page uniqueness) — repeats allowed across pages as designed
-// - Level 4–6 prioritize incorrect words from earlier levels
-// - drag & drop + touch support
-// - save/restore progress with resume prompt
-// - per-level Google Form submission and final submission
-// - progress saving after each correct/incorrect and page completion
-// - clear structure and comments
+// food.js (rewritten)
+// Food Matching Game — Levels 1–6 (with optional review)
+// - Tracks LxPy for each page
+// - Sends "Finished" only at finish or when Finish button clicked
+// - Resume prompt is a clear modal with Continue / Start Over buttons
+// - Keeps save/restore, drag & drop, touch, and Google Form submits
 // ==================================================
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -56,7 +49,6 @@ document.addEventListener("DOMContentLoaded", function () {
     1: ["apple","banana","blueberry","cherry","grape","orange","pear","pineapple","raspberry","strawberry","watermelon","fruit"],
     2: ["carrot","corn","cucumber","lettuce","mushroom","onion","peas","beans","potato","pumpkin","tomato","vegetables"],
     3: ["bacon","bread","burger","cake","cereal","cheese","egg","meat","pizza","salami","chips","pasta"],
-    // For convenience levels 4..6 can replicate or be mixtures; adjust as needed
     4: ["apple","banana","blueberry","cherry","grape","orange","pear","pineapple","raspberry","strawberry","watermelon","fruit"],
     5: ["carrot","corn","cucumber","lettuce","mushroom","onion","peas","beans","potato","pumpkin","tomato","vegetables"],
     6: ["bacon","bread","burger","cake","cereal","cheese","egg","meat","pizza","salami","chips","biscuit"]
@@ -71,9 +63,9 @@ document.addEventListener("DOMContentLoaded", function () {
     { words: wordBanks[6], pages: 3, name: "More Food (Review)" }
   ];
 
-  // Game dynamic state
-  let currentLevel = 0;          // integer 0..5
-  let currentPage = 0;           // integer 0..2
+  // Game dynamic state (0-based indices for levels/pages)
+  let currentLevel = 0;          // 0..5
+  let currentPage = 0;           // 0..2
   let currentPageWords = [];     // array of words shown on grid (9)
   let correctMatches = 0;        // how many correct slots filled this page
   let gameEnded = false;         // whether game finished
@@ -96,7 +88,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.body.appendChild(feedbackImage);
 
   // ----------------------------
-  // Google Form mapping (update with your form's entries)
+  // Google Form mapping (your values)
   // ----------------------------
   const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfP71M2M1SmaIzHVnsOSx4390iYgSxQy7Yo3NAPpbsR_Q7JaA/formResponse";
   const formEntries = {
@@ -162,7 +154,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // Save / Restore progress
   // ----------------------------
   function saveProgress() {
-    // don't save meaningless initial empty state
     const hasProgress = currentLevel > 0 || currentPage > 0 || levelAttempts.some(l => l.correct.size > 0 || l.incorrect.length > 0) || gameEnded;
     if (!hasProgress) return;
 
@@ -185,6 +176,9 @@ document.addEventListener("DOMContentLoaded", function () {
   function restoreProgressFromData(data) {
     if (!data) return false;
     try {
+      if (data.studentName && data.studentName !== studentName) return false;
+      if (data.studentClass && data.studentClass !== studentClass) return false;
+
       currentLevel = typeof data.currentLevel === "number" ? data.currentLevel : 0;
       currentPage = typeof data.currentPage === "number" ? data.currentPage : 0;
       startTime = data.startTime || Date.now();
@@ -208,6 +202,82 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  // New: friendly modal resume UI for preps
+  function showResumeModal(data) {
+    // create overlay
+    const overlay = document.createElement("div");
+    overlay.id = "resume-overlay";
+    Object.assign(overlay.style, {
+      position: "fixed",
+      left: 0, right: 0, top: 0, bottom: 0,
+      backgroundColor: "rgba(0,0,0,0.6)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 10000
+    });
+
+    const box = document.createElement("div");
+    Object.assign(box.style, {
+      background: "#fff",
+      padding: "20px",
+      borderRadius: "10px",
+      width: "min(520px, 92%)",
+      textAlign: "center",
+      boxShadow: "0 8px 24px rgba(0,0,0,0.25)"
+    });
+
+    const title = document.createElement("h2");
+    title.innerText = "Resume your game?";
+    const message = document.createElement("p");
+    message.innerText = "We found a saved game. You can continue where you left off, or start over.";
+    message.style.fontSize = "16px";
+
+    const btnRow = document.createElement("div");
+    btnRow.style.marginTop = "16px";
+    btnRow.style.display = "flex";
+    btnRow.style.gap = "12px";
+    btnRow.style.justifyContent = "center";
+
+    const contBtn = document.createElement("button");
+    contBtn.innerText = "Continue";
+    Object.assign(contBtn.style, { padding: "10px 18px", fontSize: "16px", borderRadius: "8px" });
+
+    const startBtn = document.createElement("button");
+    startBtn.innerText = "Start Over";
+    Object.assign(startBtn.style, { padding: "10px 18px", fontSize: "16px", borderRadius: "8px" });
+
+    // big friendly buttons (suitable for preps)
+    contBtn.addEventListener("click", () => {
+      document.body.removeChild(overlay);
+      restoreProgressFromData(data);
+      loadPage(); // load UI from restored state
+    });
+
+    startBtn.addEventListener("click", () => {
+      document.body.removeChild(overlay);
+      localStorage.removeItem(SAVE_KEY);
+      // reset state
+      for (let i = 0; i < levelAttempts.length; i++) {
+        levelAttempts[i] = { correct: new Set(), incorrect: [] };
+      }
+      currentLevel = 0;
+      currentPage = 0;
+      startTime = Date.now();
+      gameEnded = false;
+      saveProgress(); // clear previous
+      loadPage();
+    });
+
+    btnRow.appendChild(contBtn);
+    btnRow.appendChild(startBtn);
+    box.appendChild(title);
+    box.appendChild(message);
+    box.appendChild(btnRow);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+  }
+
   function restoreProgressPrompt() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return false;
@@ -215,19 +285,12 @@ document.addEventListener("DOMContentLoaded", function () {
       const data = JSON.parse(raw);
       if (!data || data.studentName !== studentName || data.studentClass !== studentClass) return false;
 
-      // only offer resume if there's meaningful progress and not finished
       const hasMeaningful = !data.gameEnded && ((data.currentLevel && data.currentLevel > 0) || (data.currentPage && data.currentPage > 0) || (Array.isArray(data.levelAttempts) && data.levelAttempts.some(l => (l.correct && l.correct.length > 0) || (l.incorrect && l.incorrect.length > 0))));
       if (!hasMeaningful) return false;
 
-      if (confirm("Resume your unfinished Food game?")) {
-        const ok = restoreProgressFromData(data);
-        // load page UI after restore
-        loadPage();
-        return ok;
-      } else {
-        localStorage.removeItem(SAVE_KEY);
-        return false;
-      }
+      // Show friendly modal with Continue / Start Over
+      showResumeModal(data);
+      return true;
     } catch (err) {
       console.warn("Failed to parse save:", err);
       return false;
@@ -274,7 +337,7 @@ document.addEventListener("DOMContentLoaded", function () {
         correctMatches = 0;
         (async () => {
           try {
-            await submitCurrentProgressToForm(currentLevel);
+            await submitCurrentProgressToForm(currentLevel); // send LxPy for this page
           } catch (err) {
             console.warn("Submit failed, continuing:", err);
           } finally {
@@ -290,7 +353,7 @@ document.addEventListener("DOMContentLoaded", function () {
               currentPage = 0;
               saveProgress();
               if (currentLevel >= levelDefinitions.length) {
-                // finished all levels
+                // finished all levels -> finish game automatically
                 gameEnded = true;
                 saveProgress();
                 try {
@@ -298,8 +361,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 } catch (err) {
                   console.warn("Final submit failed:", err);
                 }
-                // show modal
+                // show final modal (menu/again/logout), not continue
                 if (modal) modal.style.display = "flex";
+                showEndMenu();
               } else {
                 setTimeout(loadPage, 700);
               }
@@ -371,7 +435,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ----------------------------
   // Get unique set of words for a page (no duplicates on the same page)
-  // If words list is shorter than page size, allow repeats across pages but not on same page
   // ----------------------------
   function getUniquePageWords(words, n = 9) {
     const picked = [];
@@ -388,8 +451,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ----------------------------
   // Build grid slots
-  // - pageIdx: 0 => clipart grid, 1 => sign grid, 2 => mixed (random per slot)
-  // - returns gridType (one of 'clipart','sign','mixed')
   // ----------------------------
   function buildGridForPage(pageWords, pageIdx) {
     gameBoard.innerHTML = "";
@@ -421,15 +482,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ----------------------------
   // Build draggables for a page
-  // - info: levelDefinitions[currentLevel]
-  // - pageWords: array of 9 words on grid
-  // - gridType: 'clipart'|'sign'|'mixed'
-  // Behavior:
-  // - Decide TARGET_TOTAL based on currentLevel: 12 (6 per side) for levels 0..2, 18 (9 per side) for levels 3..5
-  // - Ensure every unique word in the level appears at least once in draggables.
-  // - Prioritize incorrect words from previous levels if currentLevel >= 3
-  // - Prefer to include words not present on page as decoys
-  // - Alternate appending to left and right containers so counts are balanced
   // ----------------------------
   function buildDraggablesForPage(info, pageWords, gridType) {
     leftSigns.innerHTML = "";
@@ -451,7 +503,7 @@ document.addEventListener("DOMContentLoaded", function () {
       priority = Array.from(new Set(priority)).filter(w => uniqueWords.includes(w));
     }
 
-    // initial pool: priority -> page words (so the draggable includes page items) -> all unique words
+    // initial pool: priority -> page words -> all unique words
     const pool = [];
     priority.forEach(w => { if (!pool.includes(w)) pool.push(w); });
     pageWords.forEach(w => { if (!pool.includes(w) && uniqueWords.includes(w)) pool.push(w); });
@@ -463,12 +515,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // fill up pool until target total reached
     let safe = 0;
     while (pool.length < TARGET_TOTAL && safe < 5000) {
-      // prefer not on page first
       if (notOnPage.length > 0) {
         const pick = notOnPage.shift();
         if (!pool.includes(pick)) pool.push(pick);
       } else {
-        // random duplicate allowed if we need to reach total
         const pick = uniqueWords[Math.floor(Math.random() * uniqueWords.length)];
         pool.push(pick);
       }
@@ -509,16 +559,10 @@ document.addEventListener("DOMContentLoaded", function () {
       if (idx % 2 === 0) leftSigns.appendChild(wrap);
       else rightSigns.appendChild(wrap);
     });
-
-    // ensure counts are as expected (debug)
-    // console.log('draggables left', leftSigns.children.length, 'right', rightSigns.children.length);
   }
 
   // ----------------------------
   // Page loading logic
-  // - For levels 0..2 (1..3) pick page words by getUniquePageWords(info.words,9)
-  // - For review levels (3..5) we also prioritize incorrects via buildDraggablesForPage's logic
-  // - currentPageWords set for later checks
   // ----------------------------
   function loadPage() {
     if (currentLevel >= levelDefinitions.length) {
@@ -542,8 +586,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ----------------------------
   // Google Form submission helpers
-  // - per-level submission upon finishing a page (or finishing level)
-  // - final submission at end of all levels
+  // - per-page submission upon finishing a page (or finishing level)
+  // - final submission at end of all levels (with "Finished")
   // ----------------------------
   async function submitCurrentProgressToForm(levelIdx) {
     if (typeof levelIdx !== "number" || levelIdx < 0 || levelIdx >= levelAttempts.length) return;
@@ -552,11 +596,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const totalIncorrect = lvlAttempt.incorrect.length;
     const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
 
+    const levelNum = levelIdx + 1;
+    const pageNum = currentPage + 1; // currentPage still points to the page just completed
+    const levelPageString = `L${levelNum}P${pageNum}`;
+
     const formData = new FormData();
     formData.append(formEntries.studentName, studentName);
     formData.append(formEntries.studentClass, studentClass);
     formData.append(formEntries.subject, "Food");
-    formData.append(formEntries.currentLevel, levelIdx + 1);
+    formData.append(formEntries.currentLevel, levelPageString);
     // dynamic field keys exist in mapping
     const correctKey = formEntries[`level${levelIdx + 1}Correct`];
     const incorrectKey = formEntries[`level${levelIdx + 1}Incorrect`];
@@ -583,11 +631,14 @@ document.addEventListener("DOMContentLoaded", function () {
     formData.append(formEntries.studentName, studentName);
     formData.append(formEntries.studentClass, studentClass);
     formData.append(formEntries.subject, "Food");
+
+    // put "Finished" into the same currentLevel field
+    formData.append(formEntries.currentLevel, "Finished");
+
     formData.append(formEntries.totalCorrect, totalCorrect);
     formData.append(formEntries.totalIncorrect, totalIncorrect);
     formData.append(formEntries.percentage, percent);
     formData.append(formEntries.timeTaken, Math.floor((Date.now() - startTime) / 1000));
-    formData.append(formEntries.errorsReviewed, "N/A");
 
     for (let i = 0; i < levelAttempts.length; i++) {
       const lvl = levelAttempts[i];
@@ -596,6 +647,9 @@ document.addEventListener("DOMContentLoaded", function () {
       if (keyC) formData.append(keyC, Array.from(lvl.correct).join(","));
       if (keyI) formData.append(keyI, lvl.incorrect.join(","));
     }
+
+    // for now 'Errors Reviewed' keeps N/A or aggregated from review flow if you implement it
+    formData.append(formEntries.errorsReviewed, "N/A");
 
     try {
       await fetch(formURL, { method: "POST", body: formData, mode: "no-cors" });
@@ -612,6 +666,68 @@ document.addEventListener("DOMContentLoaded", function () {
     saveProgress();
     updateScoreDisplay();
     if (modal) modal.style.display = "flex";
+  }
+
+  // New: show final menu (no continue) after finishing
+  function showEndMenu() {
+    // hide game UI and show a simple menu (menu / again / logout)
+    const hubUrl = "../hub.html";
+    document.body.classList.add("game-finished");
+    // you likely have modal UI - reuse it or show a simple overlay
+    const endOverlay = document.createElement("div");
+    Object.assign(endOverlay.style, {
+      position: "fixed",
+      left: 0, right: 0, top: 0, bottom: 0,
+      backgroundColor: "rgba(0,0,0,0.6)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 10000
+    });
+
+    const container = document.createElement("div");
+    Object.assign(container.style, { background: "#fff", padding: "20px", borderRadius: "10px", textAlign: "center", width: "min(520px, 92%)" });
+
+    const title = document.createElement("h2");
+    title.innerText = "Well done! Game finished.";
+    const buttons = document.createElement("div");
+    buttons.style.display = "flex";
+    buttons.style.justifyContent = "center";
+    buttons.style.gap = "12px";
+    buttons.style.marginTop = "12px";
+
+    const menuButton = document.createElement("button");
+    menuButton.innerText = "Menu";
+    menuButton.addEventListener("click", () => window.location.href = hubUrl);
+
+    const againButton = document.createElement("button");
+    againButton.innerText = "Again";
+    againButton.addEventListener("click", () => {
+      // restart fresh for another play-through
+      localStorage.removeItem(SAVE_KEY);
+      for (let i = 0; i < levelAttempts.length; i++) levelAttempts[i] = { correct: new Set(), incorrect: [] };
+      currentLevel = 0; currentPage = 0; startTime = Date.now(); gameEnded = false;
+      document.body.removeChild(endOverlay);
+      loadPage();
+    });
+
+    const logoutButton = document.createElement("button");
+    logoutButton.innerText = "Logout";
+    logoutButton.addEventListener("click", () => {
+      localStorage.removeItem(SAVE_KEY);
+      localStorage.removeItem("studentName");
+      localStorage.removeItem("studentClass");
+      window.location.href = "../index.html";
+    });
+
+    buttons.appendChild(menuButton);
+    buttons.appendChild(againButton);
+    buttons.appendChild(logoutButton);
+
+    container.appendChild(title);
+    container.appendChild(buttons);
+    endOverlay.appendChild(container);
+    document.body.appendChild(endOverlay);
   }
 
   // ----------------------------
@@ -649,9 +765,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (finishBtn) {
     finishBtn.addEventListener("click", async () => {
-      // submit final results and show modal
+      // submit final results and show final menu (Menu / Again / Logout)
       await submitFinalResultsToForm();
-      if (modal) modal.style.display = "flex";
+      showEndMenu();
     });
   }
 
@@ -659,22 +775,22 @@ document.addEventListener("DOMContentLoaded", function () {
   // Initialization logic: resume prompt then loadPage
   // ----------------------------
   (function init() {
-    // try to restore with prompt
+    // try to restore with friendly prompt
     const resumed = restoreProgressPrompt();
     if (!resumed) {
       // fresh start
       currentLevel = 0;
       currentPage = 0;
       startTime = Date.now();
-      // clear attempts (if you want to preserve attempts across page reloads, remove this)
+      // clear attempts
       for (let i = 0; i < levelAttempts.length; i++) {
         levelAttempts[i] = { correct: new Set(), incorrect: [] };
       }
       loadPage();
     } else {
-      // restoreProgressPrompt calls loadPage after restoring
+      // restoreProgressPrompt will show modal and loadPage when they pick Continue
     }
-    // autosave periodically (optional)
+    // autosave periodically
     setInterval(saveProgress, 15000);
     // also save on unload
     window.addEventListener("beforeunload", saveProgress);
