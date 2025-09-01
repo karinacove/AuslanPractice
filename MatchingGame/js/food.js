@@ -208,66 +208,89 @@ function resumeGame() {
   // ----------------------
   // Drag & Drop / Touch
   // ----------------------
-  function dropHandler(e) {
-    e.preventDefault();
-    const word = e.dataTransfer.getData("text/plain");
-    const src = e.dataTransfer.getData("src");
-    const target = e.currentTarget;
-    const targetWord = target.dataset.word;
+ function dropHandler(e) {
+  e.preventDefault();
+  const word = e.dataTransfer.getData("text/plain");
+  const src = e.dataTransfer.getData("src");
+  const target = e.currentTarget;
+  const targetWord = target && target.dataset ? target.dataset.word : null;
 
-    if (!targetWord) return;
+  if (!targetWord) return;
 
-    if (word === targetWord) {
-      if (!levelAttempts[currentLevel].correct.has(word)) {
-        levelAttempts[currentLevel].correct.add(word);
-      }
-      target.innerHTML = "";
-      const overlay = document.createElement("img");
-      overlay.className = "overlay";
-      overlay.src = src;
-      target.appendChild(overlay);
+  if (word === targetWord) {
+    if (!levelAttempts[currentLevel].correct.has(word)) {
+      levelAttempts[currentLevel].correct.add(word);
+    }
 
-      document.querySelectorAll(`img.draggable[data-word='${word}']`).forEach(el => el.remove());
+    // place overlay and remove draggable icons
+    target.innerHTML = "";
+    const overlay = document.createElement("img");
+    overlay.className = "overlay";
+    overlay.src = src;
+    target.appendChild(overlay);
 
-      correctMatches++;
-      showFeedback(true);
-      updateScoreDisplay();
-      saveProgress();
+    // remove all draggable instances of that word (keeps UI tidy)
+    document.querySelectorAll(`img.draggable[data-word='${word}']`).forEach(el => el.remove());
 
-      if (correctMatches >= currentPageWords.length) {
-        correctMatches = 0;
-        submitCurrentProgressToForm(currentLevel).finally(() => {
+    correctMatches++;
+    showFeedback(true);
+    updateScoreDisplay();
+    saveProgress();
+
+    // use the real DOM slot count so the check can't be stale
+    const slotsOnPage = document.querySelectorAll(".slot").length;
+
+    if (correctMatches >= slotsOnPage) {
+      // finished the page
+      correctMatches = 0;
+
+      // submit progress, but don't let submission errors block navigation
+      (async () => {
+        try {
+          await submitCurrentProgressToForm(currentLevel);
+        } catch (err) {
+          console.warn("Form submit failed (continuing):", err);
+        } finally {
+          // advance page/level synchronously
           currentPage++;
           const info = levelDefinitions[currentLevel];
           if (currentPage < info.pages) {
+            saveProgress();
             setTimeout(loadPage, 700);
           } else {
             currentLevel++;
             currentPage = 0;
             saveProgress();
             if (currentLevel >= levelDefinitions.length) {
+              // finished all levels
               endGame();
-              submitFinalResultsToForm().finally(() => {
-                modal.style.display = "flex";
-              });
+              try { await submitFinalResultsToForm(); } catch (err) { console.warn("Final submit failed:", err); }
+              modal.style.display = "flex";
             } else {
               setTimeout(loadPage, 700);
             }
           }
-        });
-      }
-    } else {
+        }
+      })();
+    }
+  } else {
+    // incorrect drop
+    if (Array.isArray(levelAttempts[currentLevel].incorrect)) {
       levelAttempts[currentLevel].incorrect.push(word);
-      showFeedback(false);
-      updateScoreDisplay();
-      saveProgress();
-      const wrong = document.querySelector(`img.draggable[data-word='${word}']`);
-      if (wrong) {
-        wrong.classList.add("shake");
-        setTimeout(() => wrong.classList.remove("shake"), 400);
-      }
+    } else {
+      levelAttempts[currentLevel].incorrect = [word];
+    }
+    showFeedback(false);
+    updateScoreDisplay();
+    saveProgress();
+
+    const wrong = document.querySelector(`img.draggable[data-word='${word}']`);
+    if (wrong) {
+      wrong.classList.add("shake");
+      setTimeout(() => wrong.classList.remove("shake"), 400);
     }
   }
+}
 
   function touchStartHandler(e) {
     e.preventDefault();
