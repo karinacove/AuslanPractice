@@ -148,154 +148,200 @@ document.addEventListener("DOMContentLoaded", function () {
   function updateScoreDisplay() {
     const percent = calculatePercent();
     if (scoreDisplayEl) scoreDisplayEl.innerText = `Score: ${percent}%`;
+  // ----------------------------
+
   }
 
   // ----------------------------
-  // Save / Restore progress
-  // ----------------------------
-  function saveProgress() {
-    const hasProgress = currentLevel > 0 || currentPage > 0 || levelAttempts.some(l => l.correct.size > 0 || l.incorrect.length > 0) || gameEnded;
-    if (!hasProgress) return;
+  // Save / Restore progress  function saveProgress() {
+function saveProgress() {
+  const hasProgress =
+    currentLevel > 0 ||
+    currentPage > 0 ||
+    levelAttempts.some(
+      (l) => l.correct.size > 0 || l.incorrect.length > 0
+    ) ||
+    gameEnded;
 
-    const data = {
-      studentName,
-      studentClass,
-      currentLevel,
-      currentPage,
-      startTime,
-      gameEnded,
-      levelAttempts: levelAttempts.map(l => ({ correct: Array.from(l.correct), incorrect: l.incorrect }))
-    };
-    try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(data));
-    } catch (err) {
-      console.warn("Save failed:", err);
-    }
+  if (!hasProgress) return;
+
+  const data = {
+    studentName,
+    studentClass,
+    currentLevel,
+    currentPage,
+    startTime,
+    gameEnded,
+    levelAttempts: levelAttempts.map((l) => ({
+      correct: Array.from(l.correct),
+      incorrect: l.incorrect,
+    })),
+  };
+
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  } catch (err) {
+    console.warn("Save failed:", err);
   }
+}
 
-  function restoreProgressFromData(data) {
-    if (!data) return false;
-    try {
-      if (data.studentName && data.studentName !== studentName) return false;
-      if (data.studentClass && data.studentClass !== studentClass) return false;
+function restoreProgressFromData(data) {
+  if (!data) return false;
 
-      currentLevel = typeof data.currentLevel === "number" ? data.currentLevel : 0;
-      currentPage = typeof data.currentPage === "number" ? data.currentPage : 0;
-      startTime = data.startTime || Date.now();
-      gameEnded = !!data.gameEnded;
+  try {
+    if (data.studentName && data.studentName !== studentName) return false;
+    if (data.studentClass && data.studentClass !== studentClass) return false;
 
-      (data.levelAttempts || []).forEach((l, i) => {
-        if (!levelAttempts[i]) levelAttempts[i] = { correct: new Set(), incorrect: [] };
-        levelAttempts[i].correct = new Set(l.correct || []);
-        levelAttempts[i].incorrect = l.incorrect || [];
-      });
+    currentLevel =
+      typeof data.currentLevel === "number" ? data.currentLevel : 0;
+    currentPage =
+      typeof data.currentPage === "number" ? data.currentPage : 0;
+    startTime = data.startTime || Date.now();
+    gameEnded = !!data.gameEnded;
 
-      // safety clamps
-      currentLevel = clamp(currentLevel, 0, levelDefinitions.length - 1);
-      currentPage = clamp(currentPage, 0, levelDefinitions[currentLevel].pages - 1);
-
-      updateScoreDisplay();
-      return true;
-    } catch (err) {
-      console.warn("Restore parse failed:", err);
-      return false;
-    }
-  }
-
-  // New: friendly modal resume UI for preps
-  function showResumeModal(data) {
-    // create overlay
-    const overlay = document.createElement("div");
-    overlay.id = "resume-overlay";
-    Object.assign(overlay.style, {
-      position: "fixed",
-      left: 0, right: 0, top: 0, bottom: 0,
-      backgroundColor: "rgba(0,0,0,0.6)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      zIndex: 10000
-    });
-
-    const box = document.createElement("div");
-    Object.assign(box.style, {
-      background: "#fff",
-      padding: "20px",
-      borderRadius: "10px",
-      width: "min(520px, 92%)",
-      textAlign: "center",
-      boxShadow: "0 8px 24px rgba(0,0,0,0.25)"
-    });
-
-    const title = document.createElement("h2");
-    title.innerText = "Resume your game?";
-    const message = document.createElement("p");
-    message.innerText = "We found a saved game. You can continue where you left off, or start over.";
-    message.style.fontSize = "16px";
-
-    const btnRow = document.createElement("div");
-    btnRow.style.marginTop = "16px";
-    btnRow.style.display = "flex";
-    btnRow.style.gap = "12px";
-    btnRow.style.justifyContent = "center";
-
-    const contBtn = document.createElement("button");
-    contBtn.innerText = "Continue";
-    Object.assign(contBtn.style, { padding: "10px 18px", fontSize: "16px", borderRadius: "8px" });
-
-    const startBtn = document.createElement("button");
-    startBtn.innerText = "Start Over";
-    Object.assign(startBtn.style, { padding: "10px 18px", fontSize: "16px", borderRadius: "8px" });
-
-    // big friendly buttons (suitable for preps)
-    contBtn.addEventListener("click", () => {
-      document.body.removeChild(overlay);
-      restoreProgressFromData(data);
-      loadPage(); // load UI from restored state
-    });
-
-    startBtn.addEventListener("click", () => {
-      document.body.removeChild(overlay);
-      localStorage.removeItem(SAVE_KEY);
-      // reset state
-      for (let i = 0; i < levelAttempts.length; i++) {
+    (data.levelAttempts || []).forEach((l, i) => {
+      if (!levelAttempts[i])
         levelAttempts[i] = { correct: new Set(), incorrect: [] };
-      }
-      currentLevel = 0;
-      currentPage = 0;
-      startTime = Date.now();
-      gameEnded = false;
-      saveProgress(); // clear previous
-      loadPage();
+      levelAttempts[i].correct = new Set(l.correct || []);
+      levelAttempts[i].incorrect = l.incorrect || [];
     });
 
-    btnRow.appendChild(contBtn);
-    btnRow.appendChild(startBtn);
-    box.appendChild(title);
-    box.appendChild(message);
-    box.appendChild(btnRow);
-    overlay.appendChild(box);
-    document.body.appendChild(overlay);
+    // safety clamps
+    currentLevel = clamp(currentLevel, 0, levelDefinitions.length - 1);
+    currentPage = clamp(
+      currentPage,
+      0,
+      levelDefinitions[currentLevel].pages - 1
+    );
+
+    updateScoreDisplay();
+    return true;
+  } catch (err) {
+    console.warn("Restore parse failed:", err);
+    return false;
   }
+}
 
-  function restoreProgressPrompt() {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return false;
-    try {
-      const data = JSON.parse(raw);
-      if (!data || data.studentName !== studentName || data.studentClass !== studentClass) return false;
+// -------------------------
+// Friendly resume modal (with images instead of plain buttons)
+// -------------------------
+function showResumeModal(data) {
+  const overlay = document.createElement("div");
+  overlay.id = "resume-overlay";
+  Object.assign(overlay.style, {
+    position: "fixed",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10000,
+  });
 
-      const hasMeaningful = !data.gameEnded && ((data.currentLevel && data.currentLevel > 0) || (data.currentPage && data.currentPage > 0) || (Array.isArray(data.levelAttempts) && data.levelAttempts.some(l => (l.correct && l.correct.length > 0) || (l.incorrect && l.incorrect.length > 0))));
-      if (!hasMeaningful) return false;
+  const box = document.createElement("div");
+  Object.assign(box.style, {
+    background: "#fff",
+    padding: "20px",
+    borderRadius: "10px",
+    width: "min(520px, 92%)",
+    textAlign: "center",
+    boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+  });
 
-      // Show friendly modal with Continue / Start Over
-      showResumeModal(data);
-      return true;
-    } catch (err) {
-      console.warn("Failed to parse save:", err);
-      return false;
+  const title = document.createElement("h2");
+  title.innerText = "Resume your game?";
+
+  const message = document.createElement("p");
+  message.innerText =
+    "We found a saved game. You can continue where you left off, or start over.";
+  message.style.fontSize = "16px";
+
+  const btnRow = document.createElement("div");
+  Object.assign(btnRow.style, {
+    marginTop: "16px",
+    display: "flex",
+    gap: "16px",
+    justifyContent: "center",
+  });
+
+  // Image buttons (instead of plain text)
+  const contBtn = document.createElement("img");
+  contBtn.src = "assets/buttons/continue.png";
+  contBtn.alt = "Continue";
+  contBtn.style.cursor = "pointer";
+
+  const startBtn = document.createElement("img");
+  startBtn.src = "assets/buttons/again.png";
+  startBtn.alt = "Start Over";
+  startBtn.style.cursor = "pointer";
+
+  contBtn.addEventListener("click", () => {
+    document.body.removeChild(overlay);
+    restoreProgressFromData(data);
+    loadPage(); // resume from saved state
+  });
+
+  startBtn.addEventListener("click", () => {
+    document.body.removeChild(overlay);
+    localStorage.removeItem(SAVE_KEY);
+    // reset state
+    for (let i = 0; i < levelAttempts.length; i++) {
+      levelAttempts[i] = { correct: new Set(), incorrect: [] };
     }
+    currentLevel = 0;
+    currentPage = 0;
+    startTime = Date.now();
+    gameEnded = false;
+    saveProgress();
+    loadPage(); // fresh start
+  });
+
+  btnRow.appendChild(contBtn);
+  btnRow.appendChild(startBtn);
+
+  box.appendChild(title);
+  box.appendChild(message);
+  box.appendChild(btnRow);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+
+function restoreProgressPrompt() {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (!raw) return false;
+
+  try {
+    const data = JSON.parse(raw);
+    if (
+      !data ||
+      data.studentName !== studentName ||
+      data.studentClass !== studentClass
+    )
+      return false;
+
+    const hasMeaningful =
+      !data.gameEnded &&
+      ((data.currentLevel && data.currentLevel > 0) ||
+        (data.currentPage && data.currentPage > 0) ||
+        (Array.isArray(data.levelAttempts) &&
+          data.levelAttempts.some(
+            (l) =>
+              (l.correct && l.correct.length > 0) ||
+              (l.incorrect && l.incorrect.length > 0)
+          )));
+
+    if (!hasMeaningful) return false;
+
+    showResumeModal(data);
+    return true;
+  } catch (err) {
+    console.warn("Failed to parse save:", err);
+    return false;
   }
+}
 
   // ----------------------------
   // Drag & Drop & Touch handlers
