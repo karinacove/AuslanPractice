@@ -134,65 +134,72 @@ document.addEventListener("DOMContentLoaded", function () {
 // ----------------------
 const SAVE_KEY = "foodGameSave";
 
+// ----------------------
+// Save / Restore progress
+// ----------------------
+const SAVE_KEY = "foodGameSave"; // Use ONE consistent key
+
 function saveProgress() {
   // Avoid saving at absolute start with no progress
-  if (currentLevel === 0 && currentPage === 0 && score === 0 && levelAttempts.every(l => l.correct.size === 0 && l.incorrect.length === 0)) {
+  if (
+    currentLevel === 0 &&
+    currentPage === 0 &&
+    score === 0 &&
+    levelAttempts.every(l => l.correct.size === 0 && l.incorrect.length === 0)
+  ) {
     return;
   }
+
   const data = {
     studentName,
     studentClass,
     currentLevel,
     currentPage,
-    levelAttempts: levelAttempts.map(l => ({ 
-      correct: Array.from(l.correct), 
-      incorrect: l.incorrect 
-    })),
     startTime,
     gameEnded,
-    score
+    score,
+    levelAttempts: levelAttempts.map(l => ({
+      correct: [...l.correct],
+      incorrect: l.incorrect
+    }))
   };
+
   localStorage.setItem(SAVE_KEY, JSON.stringify(data));
 }
 
-function restoreProgress(data) {
-  if (!data) return false;
-
-  currentLevel = data.currentLevel || 0;
-  currentPage = data.currentPage || 0;
-  startTime = data.startTime || Date.now();
-  gameEnded = data.gameEnded || false;
-  score = data.score || 0; // ✅ Restore score
-
-  (data.levelAttempts || []).forEach((l, i) => {
-    levelAttempts[i].correct = new Set(l.correct || []);
-    levelAttempts[i].incorrect = l.incorrect || [];
-  });
-
-  return true;
-}
-
-function restoreProgressPrompt() {
+function restoreProgress() {
   const raw = localStorage.getItem(SAVE_KEY);
   if (!raw) return false;
 
   try {
     const data = JSON.parse(raw);
-    if (!data || data.studentName !== studentName || data.studentClass !== studentClass) return false;
+    if (!data) return false;
 
-    if (!data.gameEnded && (data.currentLevel > 0 || data.currentPage > 0 || data.levelAttempts.some(l => l.correct.length > 0 || l.incorrect.length > 0))) {
-      if (confirm("Resume your unfinished Food game?")) {
-        restoreProgress(data);
-        return true;
-      } else {
-        localStorage.removeItem(SAVE_KEY);
-        return false;
-      }
-    }
+    currentLevel = data.currentLevel ?? 0;
+    currentPage = data.currentPage ?? 0;
+    startTime = data.startTime ?? Date.now();
+    gameEnded = data.gameEnded ?? false;
+    score = data.score ?? 0;
+
+    (data.levelAttempts || []).forEach((l, i) => {
+      levelAttempts[i].correct = new Set(l.correct || []);
+      levelAttempts[i].incorrect = l.incorrect || [];
+    });
+
+    return true;
   } catch (e) {
     console.warn("Failed to parse save:", e);
+    return false;
   }
-  return false;
+}
+
+// Resume game entry point
+function resumeGame() {
+  if (restoreProgress()) {
+    buildLevel(currentLevel, currentPage); // Resume exactly where left off
+  } else {
+    startNewGame();
+  }
 }
 
 // Resume game entry point
