@@ -707,74 +707,112 @@ function restoreProgressPrompt() {
   // ----------------------------
   // End game
   // ----------------------------
-  function endGame() {
-    gameEnded = true;
-    saveProgress();
-    updateScoreDisplay();
-    if (modal) modal.style.display = "flex";
-  }
+if (finishBtn) {
+  finishBtn.addEventListener("click", async () => {
+    await submitFinalResultsToForm();
+    showEndMenu();
+  });
+}
 
-  // New: show final menu (no continue) after finishing
-  function showEndMenu() {
-    // hide game UI and show a simple menu (menu / again / logout)
-    const hubUrl = "../hub.html";
-    document.body.classList.add("game-finished");
-    // you likely have modal UI - reuse it or show a simple overlay
-    const endOverlay = document.createElement("div");
-    Object.assign(endOverlay.style, {
-      position: "fixed",
-      left: 0, right: 0, top: 0, bottom: 0,
-      backgroundColor: "rgba(0,0,0,0.6)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      zIndex: 10000
-    });
+function showEndMenu() {
+  const hubUrl = "../hub.html";
+  document.body.classList.add("game-finished");
 
-    const container = document.createElement("div");
-    Object.assign(container.style, { background: "#fff", padding: "20px", borderRadius: "10px", textAlign: "center", width: "min(520px, 92%)" });
+  const endOverlay = document.createElement("div");
+  Object.assign(endOverlay.style, {
+    position: "fixed",
+    left: 0, right: 0, top: 0, bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10000
+  });
 
-    const title = document.createElement("h2");
-    title.innerText = "Well done! Game finished.";
-    const buttons = document.createElement("div");
-    buttons.style.display = "flex";
-    buttons.style.justifyContent = "center";
-    buttons.style.gap = "12px";
-    buttons.style.marginTop = "12px";
+  const container = document.createElement("div");
+  Object.assign(container.style, {
+    background: "#fff",
+    padding: "20px",
+    borderRadius: "10px",
+    textAlign: "center",
+    width: "min(520px, 92%)"
+  });
 
-    const menuButton = document.createElement("button");
-    menuButton.innerText = "Menu";
-    menuButton.addEventListener("click", () => window.location.href = hubUrl);
+  const clapImg = document.createElement("img");
+  clapImg.src = "assets/auslan-clap.gif";
+  clapImg.alt = "Well done!";
+  clapImg.style.maxWidth = "200px";
 
-    const againButton = document.createElement("button");
-    againButton.innerText = "Again";
-    againButton.addEventListener("click", () => {
-      // restart fresh for another play-through
-      localStorage.removeItem(SAVE_KEY);
-      for (let i = 0; i < levelAttempts.length; i++) levelAttempts[i] = { correct: new Set(), incorrect: [] };
-      currentLevel = 0; currentPage = 0; startTime = Date.now(); gameEnded = false;
-      document.body.removeChild(endOverlay);
-      loadPage();
-    });
+  const title = document.createElement("h2");
+  title.innerText = "Well done! Game finished.";
 
-    const logoutButton = document.createElement("button");
-    logoutButton.innerText = "Logout";
-    logoutButton.addEventListener("click", () => {
-      localStorage.removeItem(SAVE_KEY);
-      localStorage.removeItem("studentName");
-      localStorage.removeItem("studentClass");
-      window.location.href = "../index.html";
-    });
+  const scoreP = document.createElement("p");
+  scoreP.innerText = `Score: ${getTotalCorrect()} correct, ${getTotalIncorrect()} incorrect`;
 
-    buttons.appendChild(menuButton);
-    buttons.appendChild(againButton);
-    buttons.appendChild(logoutButton);
+  const buttons = document.createElement("div");
+  Object.assign(buttons.style, {
+    display: "flex",
+    justifyContent: "center",
+    gap: "12px",
+    marginTop: "12px"
+  });
 
-    container.appendChild(title);
-    container.appendChild(buttons);
-    endOverlay.appendChild(container);
-    document.body.appendChild(endOverlay);
-  }
+  // Continue (resume same state)
+  const contImg = document.createElement("img");
+  contImg.src = "assets/continue.png";
+  contImg.className = "modal-button";
+  contImg.addEventListener("click", () => {
+    document.body.removeChild(endOverlay);
+    loadPage(); // resume same place
+  });
+
+  // Again (reset all)
+  const againImg = document.createElement("img");
+  againImg.src = "assets/again.png";
+  againImg.className = "modal-button";
+  againImg.addEventListener("click", () => {
+    localStorage.removeItem(SAVE_KEY);
+    for (let i = 0; i < levelAttempts.length; i++) {
+      levelAttempts[i] = { correct: new Set(), incorrect: [] };
+    }
+    currentLevel = 0;
+    currentPage = 0;
+    startTime = Date.now();
+    gameEnded = false;
+    document.body.removeChild(endOverlay);
+    loadPage();
+  });
+
+  // Menu (hub)
+  const menuImg = document.createElement("img");
+  menuImg.src = "assets/menu.png";
+  menuImg.className = "modal-button";
+  menuImg.addEventListener("click", () => window.location.href = hubUrl);
+
+  // Logout
+  const logoutImg = document.createElement("img");
+  logoutImg.src = "assets/logout.png";
+  logoutImg.className = "modal-button";
+  logoutImg.addEventListener("click", () => {
+    localStorage.removeItem(SAVE_KEY);
+    localStorage.removeItem("studentName");
+    localStorage.removeItem("studentClass");
+    submitFinalResultsToForm();
+    window.location.href = "../index.html";
+  });
+
+  buttons.appendChild(contImg);
+  buttons.appendChild(againImg);
+  buttons.appendChild(menuImg);
+  buttons.appendChild(logoutImg);
+
+  container.appendChild(clapImg);
+  container.appendChild(title);
+  container.appendChild(scoreP);
+  container.appendChild(buttons);
+  endOverlay.appendChild(container);
+  document.body.appendChild(endOverlay);
+}
 
   // ----------------------------
   // Buttons wiring
