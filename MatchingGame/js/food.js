@@ -367,42 +367,104 @@ function resumeGame() {
     return gridType;
   }
 
-  function buildDraggablesForPage(info, pageWords, gridType) {
-    leftSigns.innerHTML = "";
-    rightSigns.innerHTML = "";
+ function buildDraggablesForPage(info, pageWords, gridType) {
+  // clear
+  leftSigns.innerHTML = "";
+  rightSigns.innerHTML = "";
 
-    let draggableList = shuffle(info.words);
+  // decide target counts based on currentLevel (global)
+  // levels 0..2 => 6 per side, levels 3..5 => 9 per side
+  const pairsPerSide = (typeof currentLevel === "number" && currentLevel <= 2) ? 6 : 9;
+  const TARGET_TOTAL = pairsPerSide * 2;
 
-    draggableList.forEach((word, idx) => {
-      const img = document.createElement("img");
-      img.className = "draggable";
-      img.draggable = true;
-      img.dataset.word = word;
+  // gather unique words for the level
+  const uniqueWords = Array.from(new Set(info.words));
 
-      let gridTypeForWord = gridType;
-      if (gridType === "mixed") {
-        const slotEl = document.querySelector(`.slot[data-word='${word}']`);
-        if (slotEl) gridTypeForWord = slotEl.dataset.gridType || "clipart";
-        else gridTypeForWord = Math.random() < 0.5 ? "clipart" : "sign";
+  // If this is a review level (level index >= 3) prioritise incorrects from earlier levels
+  let priority = [];
+  if (typeof currentLevel === "number" && currentLevel >= 3) {
+    for (let li = 0; li < currentLevel; li++) {
+      if (levelAttempts[li] && Array.isArray(levelAttempts[li].incorrect)) {
+        priority = priority.concat(levelAttempts[li].incorrect);
       }
-
-      const draggableIsSign = gridTypeForWord === "clipart";
-      img.src = `assets/food/${draggableIsSign ? "signs" : "clipart"}/${word}${draggableIsSign ? "-sign" : ""}.png`;
-
-      img.addEventListener("dragstart", e => {
-        e.dataTransfer.setData("text/plain", word);
-        e.dataTransfer.setData("src", img.src);
-      });
-      img.addEventListener("touchstart", touchStartHandler);
-
-      const wrap = document.createElement("div");
-      wrap.className = "drag-wrapper";
-      wrap.appendChild(img);
-
-      if (idx % 2 === 0) leftSigns.appendChild(wrap);
-      else rightSigns.appendChild(wrap);
-    });
+    }
+    // keep only unique and valid words (present in uniqueWords)
+    priority = Array.from(new Set(priority)).filter(w => uniqueWords.includes(w));
   }
+
+  // build initial list: priority -> pageWords -> remaining uniqueWords
+  const pool = [];
+  priority.forEach(w => { if (!pool.includes(w)) pool.push(w); });
+  pageWords.forEach(w => { if (!pool.includes(w) && uniqueWords.includes(w)) pool.push(w); });
+  uniqueWords.forEach(w => { if (!pool.includes(w)) pool.push(w); });
+
+  // prefer filling with words NOT on the current grid (so decoys are useful)
+  const notOnPage = uniqueWords.filter(w => !pageWords.includes(w));
+
+  // fill up to target total
+  let pIdx = 0;
+  while (pool.length < TARGET_TOTAL) {
+    // prefer words not on page
+    if (notOnPage.length > 0) {
+      const next = notOnPage.shift();
+      if (!pool.includes(next)) pool.push(next);
+      continue;
+    }
+    // otherwise add random picks (duplicates allowed now to reach target)
+    const pick = uniqueWords[Math.floor(Math.random() * uniqueWords.length)];
+    pool.push(pick);
+    // safety guard
+    if (pIdx++ > 1000) break;
+  }
+
+  // final shuffle and trim to exact target
+  const finalList = shuffle(pool).slice(0, TARGET_TOTAL);
+
+  // debug (remove if you don't want console noise)
+  console.log("buildDraggablesForPage:", {
+    currentLevel,
+    pairsPerSide,
+    TARGET_TOTAL,
+    finalCount: finalList.length,
+    finalList
+  });
+
+  // create DOM draggables and split evenly (alternating) into left/right
+  finalList.forEach((word, idx) => {
+    const img = document.createElement("img");
+    img.className = "draggable";
+    img.draggable = true;
+    img.dataset.word = word;
+
+    // For mixed grids, pick the opposite of the slot's type if slot exists.
+    let gridTypeForWord = gridType;
+    if (gridType === "mixed") {
+      const slotEl = document.querySelector(`.slot[data-word='${word}']`);
+      gridTypeForWord = slotEl ? (slotEl.dataset.gridType || "clipart") : (Math.random() < 0.5 ? "clipart" : "sign");
+    }
+
+    const draggableIsSign = (gridTypeForWord === "clipart"); // if grid shows clipart, draggable shows sign
+    img.src = `assets/food/${draggableIsSign ? "signs" : "clipart"}/${word}${draggableIsSign ? "-sign" : ""}.png`;
+
+    // drag + touch handlers
+    img.addEventListener("dragstart", e => {
+      e.dataTransfer.setData("text/plain", word);
+      e.dataTransfer.setData("src", img.src);
+    });
+    img.addEventListener("touchstart", touchStartHandler);
+
+    const wrap = document.createElement("div");
+    wrap.className = "drag-wrapper";
+    wrap.appendChild(img);
+
+    // alternate so each side gets the same count (TARGET_TOTAL is even)
+    if (idx % 2 === 0) leftSigns.appendChild(wrap);
+    else rightSigns.appendChild(wrap);
+  });
+
+  // final sanity check (optional)
+  // console.log('left count', leftSigns.children.length, 'right count', rightSigns.children.length);
+}
 
   // ----------------------
   // Load Page / Level
