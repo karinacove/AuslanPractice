@@ -172,18 +172,48 @@ document.addEventListener("DOMContentLoaded", function () {
     return false;
   }
 
-  function restoreProgress(data) {
-    if (!data) return false;
-    currentLevel = data.currentLevel || 0;
-    currentPage = data.currentPage || 0;
-    startTime = data.startTime || Date.now();
-    gameEnded = data.gameEnded || false;
-    (data.levelAttempts || []).forEach((l, i) => {
-      levelAttempts[i].correct = new Set(l.correct || []);
-      levelAttempts[i].incorrect = l.incorrect || [];
-    });
-    return true;
+// Save progress
+function saveProgress() {
+  const data = {
+    currentLevel,
+    currentPage,
+    startTime,
+    gameEnded,
+    levelAttempts: levelAttempts.map(l => ({
+      correct: [...l.correct],
+      incorrect: l.incorrect
+    }))
+  };
+  localStorage.setItem("foodMatchingProgress", JSON.stringify(data));
+}
+
+// Restore progress
+function restoreProgress() {
+  const data = JSON.parse(localStorage.getItem("foodMatchingProgress"));
+  if (!data) return false;
+
+  currentLevel = data.currentLevel || 0;
+  currentPage = data.currentPage || 0;
+  startTime = data.startTime || Date.now();
+  gameEnded = data.gameEnded || false;
+
+  (data.levelAttempts || []).forEach((l, i) => {
+    levelAttempts[i].correct = new Set(l.correct || []);
+    levelAttempts[i].incorrect = l.incorrect || [];
+  });
+
+  return true;
+}
+
+// Resume game entry point
+function resumeGame() {
+  if (restoreProgress()) {
+    buildLevel(currentLevel, currentPage); // Rebuild current screen
+  } else {
+    startNewGame();
   }
+}
+
 
   // ----------------------
   // Drag & Drop / Touch
