@@ -418,7 +418,9 @@ input, select, button {
 }
 
 #end-modal-content img {
-  width: 120px;
+  width: 120px !important;
+  height: 120px !important;
+  object-fit: contain !important;
   margin: 10px;
   cursor: pointer;
 }
