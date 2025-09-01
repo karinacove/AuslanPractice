@@ -269,12 +269,12 @@ function showResumeModal(data) {
 
   // Image buttons (instead of plain text)
   const contBtn = document.createElement("img");
-  contBtn.src = "assets/buttons/continue.png";
+  contBtn.src = "assets/continue.png";
   contBtn.alt = "Continue";
   contBtn.style.cursor = "pointer";
 
   const startBtn = document.createElement("img");
-  startBtn.src = "assets/buttons/again.png";
+  startBtn.src = "assets/again.png";
   startBtn.alt = "Start Over";
   startBtn.style.cursor = "pointer";
 
