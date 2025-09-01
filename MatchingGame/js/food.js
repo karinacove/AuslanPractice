@@ -746,7 +746,7 @@ function showEndMenu() {
   clapImg.style.maxWidth = "200px";
 
   const title = document.createElement("h2");
-  title.innerText = "Well done! Game finished.";
+  title.innerText = "Well done!";
 
   const scoreP = document.createElement("p");
   scoreP.innerText = `Score: ${getTotalCorrect()} correct, ${getTotalIncorrect()} incorrect`;
