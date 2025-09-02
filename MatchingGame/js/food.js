@@ -64,6 +64,34 @@ document.addEventListener("DOMContentLoaded", function () {
   const levelAttempts = Array(levelDefinitions.length).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
 
   // ----------------------------
+  // Google Form mapping
+  // ----------------------------
+  const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfP71M2M1SmaIzHVnsOSx4390iYgSxQy7Yo3NAPpbsR_Q7JaA/formResponse";
+  const formEntries = {
+    studentName: "entry.649726739",
+    studentClass: "entry.2105926443",
+    subject: "entry.1916287201",
+    timeTaken: "entry.1743763592",
+    percentage: "entry.393464832",
+    currentLevel: "entry.1202549392",
+    level1Correct: "entry.1933213595",
+    level1Incorrect: "entry.2087978837",
+    level2Correct: "entry.1160438650",
+    level2Incorrect: "entry.2081595072",
+    level3Correct: "entry.883075031",
+    level3Incorrect: "entry.2093517837",
+    level4Correct: "entry.498801806",
+    level4Incorrect: "entry.754032840",
+    level5Correct: "entry.1065703343",
+    level5Incorrect: "entry.880100066",
+    level6Correct: "entry.1360743630",
+    level6Incorrect: "entry.112387671",
+    totalCorrect: "entry.395384696",
+    totalIncorrect: "entry.1357567724",
+    errorsReviewed: "entry.11799771"
+  };
+
+  // ----------------------------
   // Utilities
   // ----------------------------
   function shuffle(arr) { return arr.slice().sort(() => Math.random() - 0.5); }
@@ -89,7 +117,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function resumeGame(){ gameEnded=false; startTimer(); }
 
   // ----------------------------
-  // Feedback
+  // Feedback image
   // ----------------------------
   const feedbackImage=document.createElement("img");
   feedbackImage.id="feedbackImage";
@@ -98,16 +126,44 @@ document.addEventListener("DOMContentLoaded", function () {
   function showFeedback(correct){ feedbackImage.src=correct?"assets/correct.png":"assets/wrong.png"; feedbackImage.style.display="block"; setTimeout(()=>{feedbackImage.style.display="none"},900); }
 
   // ----------------------------
+  // Save/Restore
+  // ----------------------------
+  function saveProgress(){
+    const data={studentName,studentClass,currentLevel,currentPage,startTime,gameEnded,levelAttempts:levelAttempts.map(l=>({correct:Array.from(l.correct),incorrect:l.incorrect}))};
+    try{ localStorage.setItem(SAVE_KEY,JSON.stringify(data)); } catch(err){ console.warn("Save failed:",err); }
+  }
+  function restoreProgressFromData(data){
+    if(!data) return false;
+    try{
+      if(data.studentName && data.studentName!==studentName) return false;
+      if(data.studentClass && data.studentClass!==studentClass) return false;
+      currentLevel=clamp(data.currentLevel||0,0,levelDefinitions.length-1);
+      currentPage=clamp(data.currentPage||0,0,levelDefinitions[currentLevel].pages-1);
+      startTime=data.startTime||Date.now();
+      gameEnded=!!data.gameEnded;
+      (data.levelAttempts||[]).forEach((l,i)=>{
+        if(!levelAttempts[i]) levelAttempts[i]={correct:new Set(),incorrect:[]};
+        levelAttempts[i].correct=new Set(l.correct||[]);
+        levelAttempts[i].incorrect=l.incorrect||[];
+      });
+      updateScoreDisplay();
+      return true;
+    } catch(err){ console.warn("Restore parse failed:",err); return false; }
+  }
+
+  // ----------------------------
   // Drag & Drop
   // ----------------------------
   function dropHandler(e){
     e.preventDefault();
     const word = e.dataTransfer.getData("text/plain");
+    const src = e.dataTransfer.getData("src");
     const slot = e.currentTarget;
     if(!slot?.dataset?.word) return;
-    if(word===slot.dataset.word){
-      levelAttempts[currentLevel].correct.add(word);
-      slot.innerHTML = `<img src="assets/food/clipart/${word}.png" class="overlay">`;
+    const targetWord = slot.dataset.word;
+    if(word===targetWord){
+      if(!levelAttempts[currentLevel].correct.has(word)) levelAttempts[currentLevel].correct.add(word);
+      slot.innerHTML = `<img class="overlay" src="${src}">`;
       document.querySelectorAll(`img.draggable[data-word='${word}']`).forEach(el=>el.remove());
       correctMatches++;
       showFeedback(true);
@@ -127,6 +183,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  // ----------------------------
+  // Touch support
+  // ----------------------------
   function touchStartHandler(e){
     if(!e.target?.classList.contains("draggable")) return;
     e.preventDefault();
@@ -140,17 +199,28 @@ document.addEventListener("DOMContentLoaded", function () {
     const moveClone = t=>{ clone.style.left=`${t.clientX-clone.width/2}px`; clone.style.top=`${t.clientY-clone.height/2}px`; };
     moveClone(e.touches[0]);
     const onMove=ev=>moveClone(ev.touches[0]);
-    const onEnd=ev=>{
-      const t=ev.changedTouches[0]; const el=document.elementFromPoint(t.clientX,t.clientY);
-      if(el?.classList.contains("slot")) dropHandler({preventDefault:()=>{}, dataTransfer:{getData:k=>k==="text/plain"?word:src}, currentTarget:el});
-      document.removeEventListener("touchmove",onMove); document.removeEventListener("touchend",onEnd); clone.remove();
+        const onEnd=ev=>{
+      const touch=ev.changedTouches[0];
+      const el=document.elementFromPoint(touch.clientX,touch.clientY);
+      if(el?.classList.contains("slot")){
+        dropHandler({
+          preventDefault:()=>{},
+          dataTransfer:{
+            getData:k=>k==="text/plain"?word:src
+          },
+          currentTarget:el
+        });
+      }
+      document.removeEventListener("touchmove",onMove);
+      document.removeEventListener("touchend",onEnd);
+      clone.remove();
     };
     document.addEventListener("touchmove",onMove,{passive:false});
     document.addEventListener("touchend",onEnd,{passive:false});
   }
 
   // ----------------------------
-  // Page & Draggables
+  // Page grid & draggables
   // ----------------------------
   function getUniquePageWords(words,n=9){
     const picked=[]; const pool=shuffle(words); let i=0;
@@ -164,30 +234,46 @@ document.addEventListener("DOMContentLoaded", function () {
     pageWords.forEach(word=>{
       const slot=document.createElement("div");
       slot.className="slot"; slot.dataset.word=word;
-      let type=gridType; if(gridType==="mixed") type=Math.random()<0.5?"clipart":"sign"; slot.dataset.gridType=type;
-      const url=`assets/food/${type==="sign"?"signs":"clipart"}/${word}${type==="sign"?'-sign':''}.png`;
+      let slotType=gridType;
+      if(gridType==="mixed") slotType=Math.random()<0.5?"clipart":"sign";
+      slot.dataset.gridType=slotType;
+      const url=`assets/food/${slotType==="sign"?"signs":"clipart"}/${word}${slotType==="sign"?'-sign':''}.png`;
       slot.style.backgroundImage=`url('${url}')`;
-      gameBoard.appendChild(slot);
       slot.addEventListener("dragover",e=>e.preventDefault());
       slot.addEventListener("drop",dropHandler);
+      gameBoard.appendChild(slot);
     });
     return gridType;
   }
 
   function buildDraggablesForPage(info,pageWords,gridType){
     leftSigns.innerHTML=""; rightSigns.innerHTML="";
-    const TARGET_TOTAL=9*2;
+    const pairsPerSide=(currentLevel<=2)?6:9; const TARGET_TOTAL=pairsPerSide*2;
     const uniqueWords=Array.from(new Set(info.words));
     let pool=[];
-    pageWords.forEach(w=>{ if(!pool.includes(w)&&uniqueWords.includes(w)) pool.push(w); });
+    if(currentLevel>=3){
+      let priority=[];
+      for(let li=0;li<currentLevel;li++){ if(levelAttempts[li]?.incorrect?.length) priority=priority.concat(levelAttempts[li].incorrect); }
+      priority=Array.from(new Set(priority)).filter(w=>uniqueWords.includes(w));
+      pool.push(...priority);
+    }
+    pageWords.forEach(w=>{ if(!pool.includes(w) && uniqueWords.includes(w)) pool.push(w); });
     uniqueWords.forEach(w=>{ if(!pool.includes(w)) pool.push(w); });
     const notOnPage=uniqueWords.filter(w=>!pageWords.includes(w));
-    let safe=0; while(pool.length<TARGET_TOTAL && safe<5000){ if(notOnPage.length>0) pool.push(notOnPage.shift()); else pool.push(uniqueWords[Math.floor(Math.random()*uniqueWords.length)]); safe++; }
+    let safe=0;
+    while(pool.length<TARGET_TOTAL && safe<5000){
+      if(notOnPage.length>0) pool.push(notOnPage.shift());
+      else pool.push(uniqueWords[Math.floor(Math.random()*uniqueWords.length)]);
+      safe++;
+    }
     const finalList=shuffle(pool).slice(0,TARGET_TOTAL);
     finalList.forEach((word,idx)=>{
-      const img=document.createElement("img"); img.className="draggable"; img.draggable=true; img.dataset.word=word;
-      let type=gridType; if(gridType==="mixed"){ const slotEl=document.querySelector(`.slot[data-word='${word}']`); type=slotEl?.dataset?.gridType||"clipart"; }
-      const isSign=type==="sign"; img.src=`assets/food/${isSign?"signs":"clipart"}/${word}${isSign?"-sign":""}.png`;
+      const img=document.createElement("img");
+      img.className="draggable"; img.draggable=true; img.dataset.word=word;
+      let typeForWord=gridType;
+      if(gridType==="mixed"){ const slotEl=document.querySelector(`.slot[data-word='${word}']`); typeForWord=slotEl?.dataset?.gridType||"clipart"; }
+      const isSign=typeForWord==="sign";
+      img.src=`assets/food/${isSign?"signs":"clipart"}/${word}${isSign?'-sign':''}.png`;
       img.addEventListener("dragstart",e=>{ e.dataTransfer.setData("text/plain",word); e.dataTransfer.setData("src",img.src); });
       img.addEventListener("touchstart",touchStartHandler);
       const wrap=document.createElement("div"); wrap.className="drag-wrapper"; wrap.appendChild(img);
@@ -196,57 +282,131 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ----------------------------
-  // Page Loading
+  // Page loading & progression
   // ----------------------------
   function loadPage(){
     if(currentLevel>=levelDefinitions.length){ endGame(); return; }
     const info=levelDefinitions[currentLevel];
     levelTitleEl.innerText=`Level ${currentLevel+1}: ${info.name} (Page ${currentPage+1})`;
-    currentPageWords=getUniquePageWords(info.words,9); correctMatches=0;
+    currentPageWords=getUniquePageWords(info.words,9);
+    correctMatches=0;
     const gridType=buildGridForPage(currentPageWords,currentPage);
     buildDraggablesForPage(info,currentPageWords,gridType);
     updateScoreDisplay();
   }
 
   async function nextPageOrLevel(){
+    try{ await submitCurrentProgressToForm(currentLevel); } catch(err){ console.warn("Submit failed:",err); }
     currentPage++;
     const info=levelDefinitions[currentLevel];
     if(currentPage<info.pages){ saveProgress(); setTimeout(loadPage,700); }
-    else{ currentLevel++; currentPage=0; saveProgress(); if(currentLevel>=levelDefinitions.length){ gameEnded=true; saveProgress(); if(modal) modal.style.display="flex"; } else setTimeout(loadPage,700); }
-  }
-
-  function saveProgress(){
-    const data={studentName,studentClass,currentLevel,currentPage,startTime,gameEnded,levelAttempts:levelAttempts.map(l=>({correct:Array.from(l.correct),incorrect:l.incorrect}))};
-    try{ localStorage.setItem(SAVE_KEY,JSON.stringify(data)); } catch(err){ console.warn("Save failed:",err); }
+    else{
+      currentLevel++; currentPage=0; saveProgress();
+      if(currentLevel>=levelDefinitions.length){ gameEnded=true; saveProgress(); try{ await submitFinalResultsToForm(); }catch(err){ console.warn("Final submit failed:",err); } modal.style.display="flex"; showEndMenu(); }
+      else setTimeout(loadPage,700);
+    }
   }
 
   // ----------------------------
-  // End Game / Modal Buttons
+  // Google Form Submission
+  // ----------------------------
+  async function submitCurrentProgressToForm(levelIdx){
+    if(typeof levelIdx!=="number" || levelIdx<0 || levelIdx>=levelAttempts.length) return;
+    const lvlAttempt=levelAttempts[levelIdx];
+    const totalCorrect=lvlAttempt.correct.size; const totalIncorrect=lvlAttempt.incorrect.length;
+    const percent=totalCorrect+totalIncorrect>0?Math.round((totalCorrect/(totalCorrect+totalIncorrect))*100):0;
+    const levelNum=levelIdx+1; const pageNum=currentPage+1; const levelPageString=`L${levelNum}P${pageNum}`;
+    const formData=new FormData();
+    formData.append(formEntries.studentName,studentName);
+    formData.append(formEntries.studentClass,studentClass);
+    formData.append(formEntries.subject,"Food");
+    formData.append(formEntries.currentLevel,levelPageString);
+    const correctKey=formEntries[`level${levelNum}Correct`]; const incorrectKey=formEntries[`level${levelNum}Incorrect`];
+    formData.append(correctKey,Array.from(lvlAttempt.correct).join(","));
+    formData.append(incorrectKey,lvlAttempt.incorrect.join(","));
+    formData.append(formEntries.percentage,percent);
+    formData.append(formEntries.timeTaken,Math.round((Date.now()-startTime)/1000));
+    await fetch(formURL,{method:"POST",body:formData,mode:"no-cors"});
+  }
+
+  async function submitFinalResultsToForm(){
+    const totalCorrect=levelAttempts.reduce((s,l)=>s+l.correct.size,0);
+    const totalIncorrect=levelAttempts.reduce((s,l)=>s+l.incorrect.length,0);
+    const percent=totalCorrect+totalIncorrect===0?0:Math.round((totalCorrect/(totalCorrect+totalIncorrect))*100);
+    const timeTaken=Math.round((Date.now()-startTime)/1000);
+    const formData=new FormData();
+    formData.append(formEntries.studentName,studentName);
+    formData.append(formEntries.studentClass,studentClass);
+    formData.append(formEntries.subject,"Food");
+    formData.append(formEntries.totalCorrect,totalCorrect);
+    formData.append(formEntries.totalIncorrect,totalIncorrect);
+    formData.append(formEntries.percentage,percent);
+    formData.append(formEntries.timeTaken,timeTaken);
+    levelAttempts.forEach((lvl,idx)=>{
+      const n=idx+1;
+      formData.append(formEntries[`level${n}Correct`],Array.from(lvl.correct).join(","));
+      formData.append(formEntries[`level${n}Incorrect`],lvl.incorrect.join(","));
+    });
+    await fetch(formURL,{method:"POST",body:formData,mode:"no-cors"});
+  }
+
+  // ----------------------------
+  // End game / modal
   // ----------------------------
   function endGame(){
-    gameEnded=true; pauseGame(); saveProgress();
+    gameEnded=true; pauseGame(); saveProgress(); submitFinalResultsToForm().catch(err=>console.warn("Final submit failed:",err));
     if(modal) modal.style.display="flex";
-    if(continueBtn) continueBtn.style.display="inline-block";
-    if(againBtn) againBtn.style.display="inline-block";
-    if(finishBtn) finishBtn.style.display="inline-block";
-    if(menuBtn) menuBtn.style.display="inline-block";
-    if(logoutBtn) logoutBtn.style.display="inline-block";
+    showEndMenu();
   }
 
-  if(continueBtn) continueBtn.addEventListener("click",()=>{ modal.style.display="none"; resumeGame(); });
-  if(againBtn) againBtn.addEventListener("click",()=>{ restartGame(); modal.style.display="none"; startTimer(); });
-  if(finishBtn) finishBtn.addEventListener("click",()=>{ modal.style.display="none"; showClapGIF(); setTimeout(()=>window.location.href="../hub.html",5000); });
+  function showEndMenu(){
+    continueBtn.style.display="inline-block";
+    againBtn.style.display="inline-block";
+    finishBtn.style.display="inline-block";
+    menuBtn.style.display="inline-block";
+    logoutBtn.style.display="inline-block";
+  }
+
+  // ----------------------------
+  // Button logic
+  // ----------------------------
+  if(continueBtn) continueBtn.addEventListener("click",()=>{
+    modal.style.display="none";
+    resumeGame();
+  });
+  if(againBtn) againBtn.addEventListener("click",async()=>{
+    saveProgress(); await submitFinalResultsToForm(); restartGame(); modal.style.display="none"; startTimer();
+  });
+  if(finishBtn) finishBtn.addEventListener("click",async()=>{
+    modal.style.display="none"; showClapGIF(); await new Promise(r=>setTimeout(r,5000)); window.location.href="../hub.html";
+  });
   if(menuBtn) menuBtn.addEventListener("click",()=>{ window.location.href="../hub.html"; });
-  if(logoutBtn) logoutBtn.addEventListener("click",()=>{ window.location.href="../index.html"; });
-
-  function restartGame(){ currentLevel=0; currentPage=0; elapsedTime=0; startTime=Date.now(); loadPage(); updateScoreDisplay(); }
-  function showClapGIF(){ alert("🎉 Clap GIF would show here"); }
+  if(logoutBtn) logoutBtn.addEventListener("click",async()=>{ saveProgress(); await submitFinalResultsToForm(); window.location.href="../index.html"; });
 
   // ----------------------------
-  // Initialize
+  // Game init
   // ----------------------------
-  const saved = JSON.parse(localStorage.getItem(SAVE_KEY)||"null");
-  if(saved){ currentLevel=saved.currentLevel||0; currentPage=saved.currentPage||0; startTime=saved.startTime||Date.now(); }
-  loadPage();
-  startTimer();
+  const saved=JSON.parse(localStorage.getItem(SAVE_KEY)||"null");
+  if(!restoreProgressFromData(saved)){ currentLevel=0; currentPage=0; startTime=Date.now(); }
+  loadPage(); startTimer();
+
+  // ----------------------------
+  // Restart game
+  // ----------------------------
+  function restartGame(){
+    currentLevel=0; currentPage=0; correctMatches=0; gameEnded=false; startTime=Date.now(); elapsedTime=0;
+    levelAttempts.forEach(l=>{ l.correct.clear(); l.incorrect=[]; });
+    saveProgress(); loadPage(); updateScoreDisplay();
+  }
+
+  // ----------------------------
+  // Clap GIF function
+  // ----------------------------
+  function showClapGIF(){
+    const gif=document.createElement("img");
+    gif.src="assets/auslan-clap.gif"; gif.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:300px;z-index:9999;";
+    document.body.appendChild(gif);
+    setTimeout(()=>gif.remove(),5000);
+  }
+
 });
