@@ -481,45 +481,78 @@ document.addEventListener("DOMContentLoaded", function () {
     await fetch(formURL, { method: "POST", body: formData, mode: "no-cors" });
   }
 
-  // ----------------------------
-  // End game
-  // ----------------------------
-  function endGame() {
-    gameEnded = true;
+ // ----------------------------
+// End Game Modal Logic
+// ----------------------------
+function endGame() {
+  gameEnded = true;
+  pauseGame(); // stop animations/timers
+  saveProgress();
+  submitFinalResultsToForm().catch(err => console.warn("Final submit failed:", err));
+  
+  if (modal) modal.style.display = "flex";
+
+  // Show modal buttons appropriately
+  continueBtn.style.display = "inline-block";  // Continue to resume game
+  finishBtn.style.display = "inline-block";    // Finish to submit and go to menu
+  againBtn.style.display = "inline-block";     // Restart game
+  logoutBtn.style.display = "inline-block";    // Logout
+}
+
+// ----------------------------
+// Stop Button
+// ----------------------------
+if (stopBtn) {
+  stopBtn.addEventListener("click", () => {
+    endGame();
+  });
+}
+
+// ----------------------------
+// Continue Button — resumes game
+// ----------------------------
+if (continueBtn) {
+  continueBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+    resumeGame();  // 
+  });
+}
+
+// ----------------------------
+// Finish Button — submits, shows Auslan Clap GIF, returns to menu
+// ----------------------------
+if (finishBtn) {
+  finishBtn.addEventListener("click", async () => {
+    modal.style.display = "none";
+    showClapGIF(); // function that displays auslan-clap.gif
+
+    await new Promise(resolve => setTimeout(resolve, 5000)); // 5 sec delay
+    window.location.href = "../hub.html";
+  });
+}
+
+// ----------------------------
+// Again Button — submits results, restarts game
+// ----------------------------
+if (againBtn) {
+  againBtn.addEventListener("click", async () => {
     saveProgress();
-    submitFinalResultsToForm().catch(err => console.warn("Final submit failed:", err));
-    if (modal) modal.style.display = "flex";
-    showEndMenu();
-  }
+    await submitFinalResultsToForm();
+    restartGame(); // function that resets game state & UI
+    modal.style.display = "none";
+  });
+}
 
-  function showEndMenu() {
-    if (continueBtn) continueBtn.style.display = "none";
-    if (menuBtn) menuBtn.style.display = "inline-block";
-  }
-
-  // ----------------------------
-  // Stop button
-  // ----------------------------
-  if (stopBtn) {
-    stopBtn.addEventListener("click", () => {
-      endGame();
-    });
-  }
-
-  // ----------------------------
-  // Continue / Menu / Logout
-  // ----------------------------
-  if (continueBtn) {
-    continueBtn.addEventListener("click", () => {
-      modal.style.display = "none";
-      loadPage();
-    });
-  }
-  if (menuBtn) menuBtn.addEventListener("click", () => { window.location.href = "../hub.html"; });
-  if (logoutBtn) logoutBtn.addEventListener("click", () => {
+// ----------------------------
+// Logout Button — submits results and logs off
+// ----------------------------
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
     saveProgress();
+    await submitFinalResultsToForm();
     window.location.href = "../index.html";
   });
+}
 
   // ----------------------------
   // Load saved or start fresh
