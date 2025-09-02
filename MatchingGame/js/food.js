@@ -246,40 +246,66 @@ document.addEventListener("DOMContentLoaded", function () {
     return gridType;
   }
 
-  function buildDraggablesForPage(info,pageWords,gridType){
-    leftSigns.innerHTML=""; rightSigns.innerHTML="";
-    const pairsPerSide=(currentLevel<=2)?6:9; const TARGET_TOTAL=pairsPerSide*2;
-    const uniqueWords=Array.from(new Set(info.words));
-    let pool=[];
-    if(currentLevel>=3){
-      let priority=[];
-      for(let li=0;li<currentLevel;li++){ if(levelAttempts[li]?.incorrect?.length) priority=priority.concat(levelAttempts[li].incorrect); }
-      priority=Array.from(new Set(priority)).filter(w=>uniqueWords.includes(w));
-      pool.push(...priority);
+function buildDraggablesForPage(info, pageWords, gridType){
+    leftSigns.innerHTML = "";
+    rightSigns.innerHTML = "";
+    const pairsPerSide = (currentLevel <= 2) ? 6 : 9;
+    const TARGET_TOTAL = pairsPerSide * 2;
+    const uniqueWords = Array.from(new Set(info.words));
+    let pool = [];
+
+    if(currentLevel >= 3){
+        let priority = [];
+        for(let li = 0; li < currentLevel; li++){
+            if(levelAttempts[li]?.incorrect?.length) priority = priority.concat(levelAttempts[li].incorrect);
+        }
+        priority = Array.from(new Set(priority)).filter(w => uniqueWords.includes(w));
+        pool.push(...priority);
     }
-    pageWords.forEach(w=>{ if(!pool.includes(w) && uniqueWords.includes(w)) pool.push(w); });
-    uniqueWords.forEach(w=>{ if(!pool.includes(w)) pool.push(w); });
-    const notOnPage=uniqueWords.filter(w=>!pageWords.includes(w));
-    let safe=0;
-    while(pool.length<TARGET_TOTAL && safe<5000){
-      if(notOnPage.length>0) pool.push(notOnPage.shift());
-      else pool.push(uniqueWords[Math.floor(Math.random()*uniqueWords.length)]);
-      safe++;
+
+    pageWords.forEach(w => { if(!pool.includes(w) && uniqueWords.includes(w)) pool.push(w); });
+    uniqueWords.forEach(w => { if(!pool.includes(w)) pool.push(w); });
+
+    const notOnPage = uniqueWords.filter(w => !pageWords.includes(w));
+    let safe = 0;
+    while(pool.length < TARGET_TOTAL && safe < 5000){
+        if(notOnPage.length > 0) pool.push(notOnPage.shift());
+        else pool.push(uniqueWords[Math.floor(Math.random() * uniqueWords.length)]);
+        safe++;
     }
-    const finalList=shuffle(pool).slice(0,TARGET_TOTAL);
-    finalList.forEach((word,idx)=>{
-      const img=document.createElement("img");
-      img.className="draggable"; img.draggable=true; img.dataset.word=word;
-      let typeForWord=gridType;
-      if(gridType==="mixed"){ const slotEl=document.querySelector(`.slot[data-word='${word}']`); typeForWord=slotEl?.dataset?.gridType||"clipart"; }
-      const isSign=typeForWord==="sign";
-      img.src=`assets/food/${isSign?"signs":"clipart"}/${word}${isSign?'-sign':''}.png`;
-      img.addEventListener("dragstart",e=>{ e.dataTransfer.setData("text/plain",word); e.dataTransfer.setData("src",img.src); });
-      img.addEventListener("touchstart",touchStartHandler);
-      const wrap=document.createElement("div"); wrap.className="drag-wrapper"; wrap.appendChild(img);
-      if(idx%2===0) leftSigns.appendChild(wrap); else rightSigns.appendChild(wrap);
+
+    const finalList = shuffle(pool).slice(0, TARGET_TOTAL);
+
+    finalList.forEach((word, idx) => {
+        const img = document.createElement("img");
+        img.className = "draggable";
+        img.draggable = true;
+        img.dataset.word = word;
+
+        let typeForWord = gridType;
+        if(gridType === "mixed"){
+            const slotEl = document.querySelector(`.slot[data-word='${word}']`);
+            const slotType = slotEl?.dataset?.gridType || "clipart";
+            typeForWord = slotType === "sign" ? "clipart" : "sign"; // opposite
+        }
+
+        const isSign = typeForWord === "sign";
+        img.src = `assets/food/${isSign ? "signs" : "clipart"}/${word}${isSign ? '-sign' : ''}.png`;
+
+        img.addEventListener("dragstart", e => { 
+            e.dataTransfer.setData("text/plain", word); 
+            e.dataTransfer.setData("src", img.src); 
+        });
+        img.addEventListener("touchstart", touchStartHandler);
+
+        const wrap = document.createElement("div");
+        wrap.className = "drag-wrapper";
+        wrap.appendChild(img);
+
+        if(idx % 2 === 0) leftSigns.appendChild(wrap);
+        else rightSigns.appendChild(wrap);
     });
-  }
+}
 
   // ----------------------------
   // Page loading & progression
