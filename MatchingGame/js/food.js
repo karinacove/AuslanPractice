@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
   const rightSigns = document.getElementById("rightSigns");
+  const stopBtn = document.getElementById("stop-btn");
   const continueBtn = document.getElementById("continue-btn");
   const againBtn = document.getElementById("again-btn");
   const finishBtn = document.getElementById("finish-btn");
@@ -388,11 +389,28 @@ function buildDraggablesForPage(info, pageWords, gridType){
   // ----------------------------
   // End game / modal
   // ----------------------------
-  function endGame(){
-    gameEnded=true; pauseGame(); saveProgress(); submitFinalResultsToForm().catch(err=>console.warn("Final submit failed:",err));
-    if(modal) modal.style.display="flex";
-    showEndMenu();
+async function endGame() {
+  gameEnded = true;
+  pauseGame(); // stops timer/gameplay
+  saveProgress();
+
+  try {
+    await submitFinalResultsToForm();
+  } catch (err) {
+    console.warn("Final submit failed:", err);
   }
+
+  if (modal) modal.style.display = "flex";
+  showEndMenu(); // handles showing clap, score/time, and buttons
+}
+
+// Hook up stop button
+const stopBtn = document.getElementById("stop-btn");
+if (stopBtn) {
+  stopBtn.addEventListener("click", () => {
+    endGame();
+  });
+}
 
   function showEndMenu(){
     continueBtn.style.display="inline-block";
@@ -405,18 +423,30 @@ function buildDraggablesForPage(info, pageWords, gridType){
   // ----------------------------
   // Button logic
   // ----------------------------
-  if(continueBtn) continueBtn.addEventListener("click",()=>{
-    modal.style.display="none";
-    resumeGame();
-  });
-  if(againBtn) againBtn.addEventListener("click",async()=>{
-    saveProgress(); await submitFinalResultsToForm(); restartGame(); modal.style.display="none"; startTimer();
-  });
-  if(finishBtn) finishBtn.addEventListener("click",async()=>{
-    modal.style.display="none"; showClapGIF(); await new Promise(r=>setTimeout(r,5000)); window.location.href="../hub.html";
-  });
-  if(menuBtn) menuBtn.addEventListener("click",()=>{ window.location.href="../hub.html"; });
-  if(logoutBtn) logoutBtn.addEventListener("click",async()=>{ saveProgress(); await submitFinalResultsToForm(); window.location.href="../index.html"; });
+if (continueBtn) continueBtn.addEventListener("click", () => {
+  modal.style.display = "none";
+  resumeGame();
+});
+if (againBtn) againBtn.addEventListener("click", async () => {
+  await submitFinalResultsToForm();   
+  clearProgress();                  
+  restartGame();                      
+  modal.style.display = "none";
+  startTimer();
+});
+if (finishBtn) finishBtn.addEventListener("click", async () => {
+  await submitFinalResultsToForm();  
+  clearProgress();                    
+  modal.style.display = "none";
+  showClapGIF();
+  await new Promise(r => setTimeout(r, 5000));
+  window.location.href = "../hub.html";
+});
+if (logoutBtn) logoutBtn.addEventListener("click", async () => {
+  await submitFinalResultsToForm();  
+  clearProgress();                   
+  window.location.href = "../index.html";
+});
 
   // ----------------------------
   // Game init
