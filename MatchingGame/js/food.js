@@ -1,5 +1,6 @@
 // ==================================================
 // Food Matching Game — Levels 1–6 (with optional review)
+// Updated with Stop Button
 // ==================================================
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -28,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const menuBtn = document.getElementById("menu-btn");
   const logoutBtn = document.getElementById("logout-btn");
   const modal = document.getElementById("end-modal");
-  const finishBtn = document.getElementById("finish-btn");
+  const stopBtn = document.getElementById("stop-btn"); // <-- updated button
 
   studentInfoEl.innerText = `${studentName} (${studentClass})`;
 
@@ -192,19 +193,15 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!targetWord) return;
 
     if (word === targetWord) {
-      // correct
       if (!levelAttempts[currentLevel].correct.has(word)) {
         levelAttempts[currentLevel].correct.add(word);
       }
-
-      // display overlay image on slot
       slot.innerHTML = "";
       const overlay = document.createElement("img");
       overlay.className = "overlay";
       overlay.src = src;
       slot.appendChild(overlay);
 
-      // remove draggable icons of that word
       document.querySelectorAll(`img.draggable[data-word='${word}']`).forEach(el => el.remove());
 
       correctMatches++;
@@ -212,38 +209,30 @@ document.addEventListener("DOMContentLoaded", function () {
       updateScoreDisplay();
       saveProgress();
 
-      // check if page complete (use DOM slot count)
       const slotsOnPage = document.querySelectorAll(".slot").length;
       if (correctMatches >= slotsOnPage) {
-        // small delay for feedback then advance
         correctMatches = 0;
         (async () => {
           try {
-            await submitCurrentProgressToForm(currentLevel); // send LxPy for this page
+            await submitCurrentProgressToForm(currentLevel);
           } catch (err) {
             console.warn("Submit failed, continuing:", err);
           } finally {
-            // advance page or level
             currentPage++;
             const info = levelDefinitions[currentLevel];
             if (currentPage < info.pages) {
               saveProgress();
               setTimeout(loadPage, 700);
             } else {
-              // finished level
               currentLevel++;
               currentPage = 0;
               saveProgress();
               if (currentLevel >= levelDefinitions.length) {
-                // finished all levels -> finish game automatically
                 gameEnded = true;
                 saveProgress();
                 try {
                   await submitFinalResultsToForm();
-                } catch (err) {
-                  console.warn("Final submit failed:", err);
-                }
-                // show final modal (menu/again/logout), not continue
+                } catch (err) { console.warn("Final submit failed:", err); }
                 if (modal) modal.style.display = "flex";
                 showEndMenu();
               } else {
@@ -254,12 +243,10 @@ document.addEventListener("DOMContentLoaded", function () {
         })();
       }
     } else {
-      // incorrect
       levelAttempts[currentLevel].incorrect.push(word);
       showFeedback(false);
       updateScoreDisplay();
       saveProgress();
-      // small shake animation on wrong draggable if present
       const wrong = document.querySelector(`img.draggable[data-word='${word}']`);
       if (wrong) {
         wrong.classList.add("shake");
@@ -269,7 +256,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function touchStartHandler(e) {
-    // touch drag emulation
     if (!e.target || !e.target.classList.contains("draggable")) return;
     e.preventDefault();
     const target = e.target;
@@ -297,12 +283,9 @@ document.addEventListener("DOMContentLoaded", function () {
       const touch = ev.changedTouches[0];
       const el = document.elementFromPoint(touch.clientX, touch.clientY);
       if (el && el.classList.contains("slot")) {
-        // emulate drop
         dropHandler({
           preventDefault: () => {},
-          dataTransfer: {
-            getData: k => k === "text/plain" ? word : src
-          },
+          dataTransfer: { getData: k => k === "text/plain" ? word : src },
           currentTarget: el
         });
       }
@@ -316,7 +299,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ----------------------------
-  // Get unique set of words for a page (no duplicates on the same page)
+  // Page words & grid building
   // ----------------------------
   function getUniquePageWords(words, n = 9) {
     const picked = [];
@@ -331,9 +314,6 @@ document.addEventListener("DOMContentLoaded", function () {
     return shuffle(picked);
   }
 
-  // ----------------------------
-  // Build grid slots
-  // ----------------------------
   function buildGridForPage(pageWords, pageIdx) {
     gameBoard.innerHTML = "";
     const gridType = pageIdx === 0 ? "clipart" : pageIdx === 1 ? "sign" : "mixed";
@@ -342,18 +322,14 @@ document.addEventListener("DOMContentLoaded", function () {
       const slot = document.createElement("div");
       slot.className = "slot";
       slot.dataset.word = word;
-
       let slotType = gridType;
       if (gridType === "mixed") slotType = Math.random() < 0.5 ? "clipart" : "sign";
       slot.dataset.gridType = slotType;
-
       const url = `assets/food/${slotType === "sign" ? "signs" : "clipart"}/${word}${slotType === "sign" ? "-sign" : ""}.png`;
       slot.style.backgroundImage = `url('${url}')`;
-      // minimal style (if your CSS handles background-size etc, fine)
       gameBoard.appendChild(slot);
     });
 
-    // attach dragover/drop listeners
     document.querySelectorAll(".slot").forEach(slot => {
       slot.addEventListener("dragover", e => e.preventDefault());
       slot.addEventListener("drop", dropHandler);
@@ -362,9 +338,6 @@ document.addEventListener("DOMContentLoaded", function () {
     return gridType;
   }
 
-  // ----------------------------
-  // Build draggables for a page
-  // ----------------------------
   function buildDraggablesForPage(info, pageWords, gridType) {
     leftSigns.innerHTML = "";
     rightSigns.innerHTML = "";
@@ -374,7 +347,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const uniqueWords = Array.from(new Set(info.words));
 
-    // gather priority incorrects (only for review levels)
     let priority = [];
     if (currentLevel >= 3) {
       for (let li = 0; li < currentLevel; li++) {
@@ -385,16 +357,13 @@ document.addEventListener("DOMContentLoaded", function () {
       priority = Array.from(new Set(priority)).filter(w => uniqueWords.includes(w));
     }
 
-    // initial pool: priority -> page words -> all unique words
     const pool = [];
     priority.forEach(w => { if (!pool.includes(w)) pool.push(w); });
     pageWords.forEach(w => { if (!pool.includes(w) && uniqueWords.includes(w)) pool.push(w); });
     uniqueWords.forEach(w => { if (!pool.includes(w)) pool.push(w); });
 
-    // prefer decoys not on page
     const notOnPage = uniqueWords.filter(w => !pageWords.includes(w));
 
-    // fill up pool until target total reached
     let safe = 0;
     while (pool.length < TARGET_TOTAL && safe < 5000) {
       if (notOnPage.length > 0) {
@@ -407,27 +376,23 @@ document.addEventListener("DOMContentLoaded", function () {
       safe++;
     }
 
-    // final shuffle & trim
     const finalList = shuffle(pool).slice(0, TARGET_TOTAL);
 
-    // create draggables and append alternately
     finalList.forEach((word, idx) => {
       const img = document.createElement("img");
       img.className = "draggable";
       img.draggable = true;
       img.dataset.word = word;
 
-      // determine draggable image type: opposite of the slot if exists for that word
       let gridTypeForWord = gridType;
       if (gridType === "mixed") {
         const slotEl = document.querySelector(`.slot[data-word='${word}']`);
         gridTypeForWord = slotEl ? (slotEl.dataset.gridType || "clipart") : (Math.random() < 0.5 ? "clipart" : "sign");
       }
 
-      const draggableIsSign = (gridTypeForWord === "clipart"); // show sign if grid shows clipart
+      const draggableIsSign = (gridTypeForWord === "clipart");
       img.src = `assets/food/${draggableIsSign ? "signs" : "clipart"}/${word}${draggableIsSign ? "-sign" : ""}.png`;
 
-      // drag and touch handlers
       img.addEventListener("dragstart", e => {
         e.dataTransfer.setData("text/plain", word);
         e.dataTransfer.setData("src", img.src);
@@ -444,7 +409,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ----------------------------
-  // Page loading logic
+  // Page loading
   // ----------------------------
   function loadPage() {
     if (currentLevel >= levelDefinitions.length) {
@@ -454,12 +419,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const info = levelDefinitions[currentLevel];
     levelTitleEl.innerText = `Level ${currentLevel + 1}: ${info.name} (Page ${currentPage + 1})`;
-
-    // get 9 words for the grid (no duplicates on page)
     currentPageWords = getUniquePageWords(info.words, 9);
     correctMatches = 0;
 
-    // build grid and draggables
     const gridType = buildGridForPage(currentPageWords, currentPage);
     buildDraggablesForPage(info, currentPageWords, gridType);
 
@@ -467,9 +429,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ----------------------------
-  // Google Form submission helpers
-  // - per-page submission upon finishing a page (or finishing level)
-  // - final submission at end of all levels (with "Finished")
+  // Google Form Submission
   // ----------------------------
   async function submitCurrentProgressToForm(levelIdx) {
     if (typeof levelIdx !== "number" || levelIdx < 0 || levelIdx >= levelAttempts.length) return;
@@ -479,7 +439,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
 
     const levelNum = levelIdx + 1;
-    const pageNum = currentPage + 1; // currentPage still points to the page just completed
+    const pageNum = currentPage + 1;
     const levelPageString = `L${levelNum}P${pageNum}`;
 
     const formData = new FormData();
@@ -487,201 +447,89 @@ document.addEventListener("DOMContentLoaded", function () {
     formData.append(formEntries.studentClass, studentClass);
     formData.append(formEntries.subject, "Food");
     formData.append(formEntries.currentLevel, levelPageString);
-    // dynamic field keys exist in mapping
-    const correctKey = formEntries[`level${levelIdx + 1}Correct`];
-    const incorrectKey = formEntries[`level${levelIdx + 1}Incorrect`];
-    if (correctKey) formData.append(correctKey, Array.from(lvlAttempt.correct).join(","));
-    if (incorrectKey) formData.append(incorrectKey, lvlAttempt.incorrect.join(","));
-    formData.append(formEntries.timeTaken, Math.floor((Date.now() - startTime) / 1000));
+    const correctKey = formEntries[`level${levelNum}Correct`];
+    const incorrectKey = formEntries[`level${levelNum}Incorrect`];
+    formData.append(correctKey, Array.from(lvlAttempt.correct).join(","));
+    formData.append(incorrectKey, lvlAttempt.incorrect.join(","));
     formData.append(formEntries.percentage, percent);
+    formData.append(formEntries.timeTaken, Math.round((Date.now() - startTime) / 1000));
 
-    // fire and forget; catch errors but don't throw
-    try {
-      await fetch(formURL, { method: "POST", body: formData, mode: "no-cors" });
-    } catch (err) {
-      // no-cors may throw in dev — ignore
-      console.warn("Form submit (level) error:", err);
-    }
+    await fetch(formURL, { method: "POST", body: formData, mode: "no-cors" });
   }
 
   async function submitFinalResultsToForm() {
     const totalCorrect = levelAttempts.reduce((s, l) => s + l.correct.size, 0);
     const totalIncorrect = levelAttempts.reduce((s, l) => s + l.incorrect.length, 0);
-    const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
+    const percent = totalCorrect + totalIncorrect === 0 ? 0 : Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100);
+    const timeTaken = Math.round((Date.now() - startTime) / 1000);
 
     const formData = new FormData();
     formData.append(formEntries.studentName, studentName);
     formData.append(formEntries.studentClass, studentClass);
     formData.append(formEntries.subject, "Food");
-
-    // put "Finished" into the same currentLevel field
-    formData.append(formEntries.currentLevel, "Finished");
-
     formData.append(formEntries.totalCorrect, totalCorrect);
     formData.append(formEntries.totalIncorrect, totalIncorrect);
     formData.append(formEntries.percentage, percent);
-    formData.append(formEntries.timeTaken, Math.floor((Date.now() - startTime) / 1000));
+    formData.append(formEntries.timeTaken, timeTaken);
 
-    for (let i = 0; i < levelAttempts.length; i++) {
-      const lvl = levelAttempts[i];
-      const keyC = formEntries[`level${i + 1}Correct`];
-      const keyI = formEntries[`level${i + 1}Incorrect`];
-      if (keyC) formData.append(keyC, Array.from(lvl.correct).join(","));
-      if (keyI) formData.append(keyI, lvl.incorrect.join(","));
-    }
+    levelAttempts.forEach((lvl, idx) => {
+      const n = idx + 1;
+      formData.append(formEntries[`level${n}Correct`], Array.from(lvl.correct).join(","));
+      formData.append(formEntries[`level${n}Incorrect`], lvl.incorrect.join(","));
+    });
 
-    // for now 'Errors Reviewed' keeps N/A or aggregated from review flow if you implement it
-    formData.append(formEntries.errorsReviewed, "N/A");
-
-    try {
-      await fetch(formURL, { method: "POST", body: formData, mode: "no-cors" });
-    } catch (err) {
-      console.warn("Final form submit failed:", err);
-    }
+    await fetch(formURL, { method: "POST", body: formData, mode: "no-cors" });
   }
 
-// ----------------------------
-// End game / Finish button
-// ----------------------------
-
-  if (finishBtn) {
-    finishBtn.addEventListener("click", async () => {
-      gameEnded = true;
-      saveProgress();
-      await submitFinalResultsToForm();
-      showEndMenu();
-    });
+  // ----------------------------
+  // End game
+  // ----------------------------
+  function endGame() {
+    gameEnded = true;
+    saveProgress();
+    submitFinalResultsToForm().catch(err => console.warn("Final submit failed:", err));
+    if (modal) modal.style.display = "flex";
+    showEndMenu();
   }
 
   function showEndMenu() {
-    const hubUrl = "../hub.html";
-    document.body.classList.add("game-finished");
-
-    const endOverlay = document.createElement("div");
-    Object.assign(endOverlay.style, {
-      position: "fixed",
-      left: 0, right: 0, top: 0, bottom: 0,
-      backgroundColor: "rgba(0,0,0,0.6)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      zIndex: 10000
-    });
-
-    const container = document.createElement("div");
-    Object.assign(container.style, {
-      background: "#fff",
-      padding: "20px",
-      borderRadius: "10px",
-      textAlign: "center",
-      width: "min(520px, 92%)"
-    });
-
-    // Auslan clap GIF
-    const clapImg = document.createElement("img");
-    clapImg.src = "assets/auslan-clap.gif";
-    clapImg.alt = "Well done!";
-    clapImg.className = "end-clap";
-    container.appendChild(clapImg);
-
-    // Title
-    const title = document.createElement("h2");
-    title.innerText = "Well done!";
-    container.appendChild(title);
-
-    // Score & Time
-    const scoreP = document.createElement("p");
-    scoreP.innerText = `Score: ${getTotalCorrect()} correct, ${getTotalIncorrect()} incorrect`;
-    scoreP.className = "end-score";
-    container.appendChild(scoreP);
-
-    const timeP = document.createElement("p");
-    timeP.innerText = `Time: ${Math.floor((Date.now() - startTime) / 1000)}s`;
-    timeP.className = "end-time";
-    container.appendChild(timeP);
-
-    // Clone images (grid + draggables) at 120px
-    const cloneContainer = document.createElement("div");
-    cloneContainer.className = "end-clone-container";
-    const allImages = document.querySelectorAll(".slot, .draggable img");
-    allImages.forEach(img => {
-      const clone = img.cloneNode(true);
-      clone.style.width = "120px";
-      clone.style.height = "120px";
-      clone.style.objectFit = "contain";
-      cloneContainer.appendChild(clone);
-    });
-    container.appendChild(cloneContainer);
-
-    // Buttons
-    const buttons = document.createElement("div");
-    buttons.className = "end-buttons";
-
-    // Continue
-    const contImg = document.createElement("img");
-    contImg.src = "assets/continue.png";
-    contImg.className = "modal-button";
-    contImg.addEventListener("click", () => {
-      document.body.removeChild(endOverlay);
-      loadPage();
-    });
-
-    // Again (reset all)
-    const againImg = document.createElement("img");
-    againImg.src = "assets/again.png";
-    againImg.className = "modal-button";
-    againImg.addEventListener("click", () => {
-      localStorage.removeItem(SAVE_KEY);
-      for (let i = 0; i < levelAttempts.length; i++) {
-        levelAttempts[i] = { correct: new Set(), incorrect: [] };
-      }
-      currentLevel = 0;
-      currentPage = 0;
-      startTime = Date.now();
-      gameEnded = false;
-      document.body.removeChild(endOverlay);
-      loadPage();
-    });
-
-    // Menu
-    const menuImg = document.createElement("img");
-    menuImg.src = "assets/menu.png";
-    menuImg.className = "modal-button";
-    menuImg.addEventListener("click", () => window.location.href = hubUrl);
-
-    // Logout
-    const logoutImg = document.createElement("img");
-    logoutImg.src = "assets/logout.png";
-    logoutImg.className = "modal-button";
-    logoutImg.addEventListener("click", async () => {
-      localStorage.removeItem(SAVE_KEY);
-      localStorage.removeItem("studentName");
-      localStorage.removeItem("studentClass");
-      await submitFinalResultsToForm();
-      window.location.href = "../index.html";
-    });
-
-    buttons.appendChild(contImg);
-    buttons.appendChild(againImg);
-    buttons.appendChild(menuImg);
-    buttons.appendChild(logoutImg);
-    container.appendChild(buttons);
-
-    endOverlay.appendChild(container);
-    document.body.appendChild(endOverlay);
-  }
-
-  function getTotalCorrect() {
-    return levelAttempts.reduce((sum, l) => sum + l.correct.size, 0);
-  }
-
-  function getTotalIncorrect() {
-    return levelAttempts.reduce((sum, l) => sum + l.incorrect.length, 0);
+    if (continueBtn) continueBtn.style.display = "none";
+    if (menuBtn) menuBtn.style.display = "inline-block";
   }
 
   // ----------------------------
-  // Start
+  // Stop button
   // ----------------------------
-  const saved = restoreProgressFromData(JSON.parse(localStorage.getItem(SAVE_KEY)));
+  if (stopBtn) {
+    stopBtn.addEventListener("click", () => {
+      endGame();
+    });
+  }
+
+  // ----------------------------
+  // Continue / Menu / Logout
+  // ----------------------------
+  if (continueBtn) {
+    continueBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+      loadPage();
+    });
+  }
+  if (menuBtn) menuBtn.addEventListener("click", () => { window.location.href = "../hub.html"; });
+  if (logoutBtn) logoutBtn.addEventListener("click", () => {
+    saveProgress();
+    window.location.href = "../index.html";
+  });
+
+  // ----------------------------
+  // Load saved or start fresh
+  // ----------------------------
+  const saved = JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
+  if (!restoreProgressFromData(saved)) {
+    currentLevel = 0;
+    currentPage = 0;
+    startTime = Date.now();
+  }
+
   loadPage();
 });
