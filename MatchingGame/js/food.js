@@ -405,7 +405,6 @@ async function endGame() {
 }
 
 // Hook up stop button
-const stopBtn = document.getElementById("stop-btn");
 if (stopBtn) {
   stopBtn.addEventListener("click", () => {
     endGame();
