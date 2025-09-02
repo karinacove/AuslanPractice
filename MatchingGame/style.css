@@ -417,13 +417,25 @@ input, select, button {
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
 }
 
+#stop-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 100px;  
+  height: 100px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+/* Modal Buttons - all 120px */
 #end-modal-content img {
-  width: 120px !important;
-  height: 120px !important;
+  width: 100px !important;
+  height: 100px !important;
   object-fit: contain !important;
   margin: 10px;
   cursor: pointer;
 }
+
 
 #score-display {
   font-size: 24px;
