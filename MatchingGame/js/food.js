@@ -228,23 +228,32 @@ document.addEventListener("DOMContentLoaded", function () {
     return shuffle(picked);
   }
 
-  function buildGridForPage(pageWords,pageIdx){
-    gameBoard.innerHTML="";
-    const gridType = pageIdx===0?"clipart":pageIdx===1?"sign":"mixed";
-    pageWords.forEach(word=>{
-      const slot=document.createElement("div");
-      slot.className="slot"; slot.dataset.word=word;
-      let slotType=gridType;
-      if(gridType==="mixed") slotType=Math.random()<0.5?"clipart":"sign";
-      slot.dataset.gridType=slotType;
-      const url=`assets/food/${slotType==="sign"?"signs":"clipart"}/${word}${slotType==="sign"?'-sign':''}.png`;
-      slot.style.backgroundImage=`url('${url}')`;
-      slot.addEventListener("dragover",e=>e.preventDefault());
-      slot.addEventListener("drop",dropHandler);
-      gameBoard.appendChild(slot);
+function buildGridForPage(pageWords, pageIdx){
+    gameBoard.innerHTML = "";
+
+    // Page 0: clipart, Page 1: sign, Page 2: mixed
+    let gridType;
+    if(pageIdx === 0) gridType = "clipart";
+    else if(pageIdx === 1) gridType = "sign";
+    else gridType = "mixed";
+
+    pageWords.forEach(word => {
+        const slot = document.createElement("div");
+        slot.className = "slot";
+        slot.dataset.word = word;
+        let slotType = gridType;
+        if(gridType === "mixed") slotType = Math.random() < 0.5 ? "clipart" : "sign";
+        slot.dataset.gridType = slotType;
+        const url = `assets/food/${slotType === "sign" ? "signs" : "clipart"}/${word}${slotType === "sign" ? "-sign" : ""}.png`;
+        slot.style.backgroundImage = `url('${url}')`;
+        slot.addEventListener("dragover", e => e.preventDefault());
+        slot.addEventListener("drop", dropHandler);
+        gameBoard.appendChild(slot);
     });
+
     return gridType;
-  }
+}
+
 
 function buildDraggablesForPage(info, pageWords, gridType){
     leftSigns.innerHTML = "";
@@ -254,6 +263,7 @@ function buildDraggablesForPage(info, pageWords, gridType){
     const uniqueWords = Array.from(new Set(info.words));
     let pool = [];
 
+    // Include previous incorrect words for levels 4+
     if(currentLevel >= 3){
         let priority = [];
         for(let li = 0; li < currentLevel; li++){
@@ -263,9 +273,11 @@ function buildDraggablesForPage(info, pageWords, gridType){
         pool.push(...priority);
     }
 
+    // Add current page words and all other words to the pool
     pageWords.forEach(w => { if(!pool.includes(w) && uniqueWords.includes(w)) pool.push(w); });
     uniqueWords.forEach(w => { if(!pool.includes(w)) pool.push(w); });
 
+    // Fill pool to TARGET_TOTAL
     const notOnPage = uniqueWords.filter(w => !pageWords.includes(w));
     let safe = 0;
     while(pool.length < TARGET_TOTAL && safe < 5000){
@@ -282,15 +294,12 @@ function buildDraggablesForPage(info, pageWords, gridType){
         img.draggable = true;
         img.dataset.word = word;
 
-        let typeForWord = gridType;
-        if(gridType === "mixed"){
-            const slotEl = document.querySelector(`.slot[data-word='${word}']`);
-            const slotType = slotEl?.dataset?.gridType || "clipart";
-            typeForWord = slotType === "sign" ? "clipart" : "sign"; // opposite
-        }
+        // Determine slot type and assign opposite for draggable
+        const slotEl = document.querySelector(`.slot[data-word='${word}']`);
+        const slotType = slotEl?.dataset?.gridType || "clipart";
+        const draggableType = slotType === "sign" ? "clipart" : "sign";
 
-        const isSign = typeForWord === "sign";
-        img.src = `assets/food/${isSign ? "signs" : "clipart"}/${word}${isSign ? '-sign' : ''}.png`;
+        img.src = `assets/food/${draggableType === "sign" ? "signs" : "clipart"}/${word}${draggableType === "sign" ? '-sign' : ''}.png`;
 
         img.addEventListener("dragstart", e => { 
             e.dataTransfer.setData("text/plain", word); 
