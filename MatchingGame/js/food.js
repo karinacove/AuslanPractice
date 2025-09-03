@@ -747,7 +747,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Finish — submit results, clear save (but keep student info), show clap then go to hub
     const finishImg = document.createElement("img");
-    finishImg.src = "assets/continue.png"; // if you have a specific finish image, replace this path
+    finishImg.src = "assets/finish.png"; // if you have a specific finish image, replace this path
     finishImg.alt = "Finish";
     finishImg.style.width = "120px";
     finishImg.style.height = "120px";
@@ -864,7 +864,7 @@ document.addEventListener("DOMContentLoaded", function () {
       big.style.transform = "translate(-50%,-50%)";
       big.style.zIndex = 20000;
       document.body.appendChild(big);
-      setTimeout(() => { big.remove(); window.location.href = "../hub.html"; }, 2000);
+      setTimeout(() => { big.remove(); window.location.href = "../index.html"; }, 2000);
     });
   }
 
