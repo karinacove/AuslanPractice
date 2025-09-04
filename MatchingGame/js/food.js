@@ -769,7 +769,7 @@ document.addEventListener("DOMContentLoaded", function () {
       big.style.transform = "translate(-50%,-50%)";
       big.style.zIndex = 20000;
       document.body.appendChild(big);
-      setTimeout(() => { big.remove(); window.location.href = "../hub.html"; }, 2000);
+      setTimeout(() => { big.remove(); window.location.href = "../index.html"; }, 2000);
     });
 
     // Logout — submit results, clear save and student info, then go to index
