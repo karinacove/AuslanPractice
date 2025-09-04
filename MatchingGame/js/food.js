@@ -759,7 +759,7 @@ finishImg.addEventListener("click", async () => {
     console.warn("Submit failed:", err);
   }
   clearProgress(); // keep student name/class
-  window.location.href = "../hub.html";
+  window.location.href = "../index.html";
 });
 
 // add finish button to modal
