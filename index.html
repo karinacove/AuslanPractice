@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <script src="students.js"></script> <!-- NEW: load class & role data -->
   <style>
     body {
       font-family: 'Auslan Finger Spelling', sans-serif;
@@ -185,11 +186,20 @@
       z-index: 1500;
       display: none; /* hidden initially */
     }
-
+    
+    /* Slight tweaks for selects */
+    #modalContent select, #modalContent input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 12px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
   </style>
 </head>
 <body>
-
   <div id="greeting"></div>
   <img id="logout-btn" src="logout.png" alt="logoutBtn" />
 
@@ -203,19 +213,35 @@
   <!-- LOGIN POPUP MODAL -->
   <div id="loginModal">
     <div id="modalContent">
-      <h2>Please Log In</h2>
+      <h2>Student Log In</h2>
+
+      <!-- STUDENT LOGIN -->
       <form id="modalLoginForm">
-        <label for="modalName">Name:</label>
-        <input type="e.g. Sam F" id="modalName" name="modalName" required autocomplete="off" />
-        <label for="modalClass">Class:</label>
-        <input type="text" id="modalClass" name="modalClass" placeholder="e.g. PA, 12B, 34C, 56D" required autocomplete="off" />
+        <label for="classSelect">Class:</label>
+        <select id="classSelect" required>
+          <option value="">-- Select Class --</option>
+        </select>
+
+        <label for="nameSelect">Name:</label>
+        <select id="nameSelect" required disabled>
+          <option value="">-- Select Name --</option>
+        </select>
+
         <button type="submit">Login</button>
       </form>
+
       <hr />
-      <h3>Or Play as Home Guest</h3>
+
+      <!-- GUEST LOGIN -->
+      <h3>Guest Login</h3>
       <form id="modalGuestForm">
-        <label for="modalGuestName">Guest Name:</label>
-        <input type="text" id="modalGuestName" name="modalGuestName" required placeholder="Enter your name - e.g. Sam F 12B's Mum" autocomplete="off" />
+        <label for="roleSelect">I am a:</label>
+        <select id="roleSelect" required>
+          <option value="">-- Select Role --</option>
+        </select>
+
+        <label for="modalGuestName">Name:</label>
+        <input type="text" id="modalGuestName" name="modalGuestName" placeholder="Enter your name" required autocomplete="off" />
         <button type="submit">Play as Guest</button>
       </form>
     </div>
@@ -225,6 +251,41 @@
     const modal = document.getElementById('loginModal');
     const logoutBtn = document.getElementById('logout-btn');
     const greeting = document.getElementById('greeting');
+
+    const classSelect = document.getElementById("classSelect");
+    const nameSelect = document.getElementById("nameSelect");
+    const roleSelect = document.getElementById("roleSelect");
+
+    // === Fill dropdowns from students.js ===
+    Object.keys(classData).forEach(cls => {
+      const opt = document.createElement("option");
+      opt.value = cls;
+      opt.textContent = cls;
+      classSelect.appendChild(opt);
+    });
+
+    homeRoles.forEach(role => {
+      const opt = document.createElement("option");
+      opt.value = role;
+      opt.textContent = role;
+      roleSelect.appendChild(opt);
+    });
+
+    classSelect.addEventListener("change", function () {
+      const selectedClass = this.value;
+      nameSelect.innerHTML = '<option value="">-- Select Name --</option>';
+      if (selectedClass && classData[selectedClass]) {
+        classData[selectedClass].forEach(name => {
+          const opt = document.createElement("option");
+          opt.value = name;
+          opt.textContent = name;
+          nameSelect.appendChild(opt);
+        });
+        nameSelect.disabled = false;
+      } else {
+        nameSelect.disabled = true;
+      }
+    });
 
     function showModal() {
       modal.style.display = 'block';
@@ -252,41 +313,41 @@
         showModal();
       }
     }
-
     checkLogin();
 
-    // Handle login form submit
+    // === Handle student login ===
     document.getElementById('modalLoginForm').addEventListener('submit', function(e) {
       e.preventDefault();
-      const name = document.getElementById('modalName').value.trim();
-      const studentClass = document.getElementById('modalClass').value.trim();
+      const name = nameSelect.value;
+      const studentClass = classSelect.value;
       if (name && studentClass) {
         localStorage.setItem('studentName', name);
         localStorage.setItem('studentClass', studentClass);
+        localStorage.setItem('userType', 'Student');
         updateGreeting(name, studentClass);
         hideModal();
       }
     });
 
-    // Handle guest form submit
+    // === Handle home/guest login ===
     document.getElementById('modalGuestForm').addEventListener('submit', function(e) {
       e.preventDefault();
+      const role = roleSelect.value;
       const guestName = document.getElementById('modalGuestName').value.trim();
-      if (guestName) {
+      if (role && guestName) {
         localStorage.setItem('studentName', guestName);
-        localStorage.setItem('studentClass', 'Home Guest');
-        updateGreeting(guestName, 'Home Guest');
+        localStorage.setItem('studentClass', 'Home - ' + role);
+        localStorage.setItem('userType', role);
+        updateGreeting(guestName, 'Home - ' + role);
         hideModal();
       }
     });
 
-    // Logout button click
+    // === Logout button ===
     logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('studentName');
-      localStorage.removeItem('studentClass');
+      localStorage.clear();
       showModal();
     });
   </script>
-
 </body>
 </html>
