@@ -923,4 +923,30 @@ buttons.appendChild(finishImg);
     restartGame,
     endGame
   };
+  
+  // Zoom -------
+  let lastTap = 0;
+  let zoomedIn = false;
+
+document.addEventListener("touchend", function (event) {
+  const currentTime = new Date().getTime();
+  const tapLength = currentTime - lastTap;
+
+  if (tapLength < 300 && tapLength > 0) { // double tap within 300ms
+    event.preventDefault();
+
+    if (!zoomedIn) {
+      document.body.style.transform = "scale(1.5)";
+      document.body.style.transformOrigin = "center center";
+      document.body.style.transition = "transform 0.3s ease";
+      zoomedIn = true;
+    } else {
+      document.body.style.transform = "scale(1)";
+      zoomedIn = false;
+    }
+  }
+
+  lastTap = currentTime;
+});
+
 });
