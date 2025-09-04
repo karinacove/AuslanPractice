@@ -757,18 +757,6 @@ document.addEventListener("DOMContentLoaded", function () {
       clearProgress(false);
       if (modal) modal.style.display = "none";
       else overlay.remove();
-      // show clap GIF (slightly larger)
-      const big = document.createElement("img");
-      big.src = "assets/auslan-clap.gif";
-      big.style.width = "180px";
-      big.style.height = "180px";
-      big.style.objectFit = "contain";
-      big.style.position = "fixed";
-      big.style.left = "50%";
-      big.style.top = "50%";
-      big.style.transform = "translate(-50%,-50%)";
-      big.style.zIndex = 20000;
-      document.body.appendChild(big);
       setTimeout(() => { big.remove(); window.location.href = "../index.html"; }, 2000);
     });
 
