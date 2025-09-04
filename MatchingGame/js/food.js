@@ -746,19 +746,25 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Finish — submit results, clear save (but keep student info), show clap then go to hub
-    const finishImg = document.createElement("img");
-    finishImg.src = "assets/finish.png"; // if you have a specific finish image, replace this path
-    finishImg.alt = "Finish";
-    finishImg.style.width = "120px";
-    finishImg.style.height = "120px";
-    finishImg.style.cursor = "pointer";
-    finishImg.addEventListener("click", async () => {
-      try { await submitFinalResultsToForm(); } catch (err) { console.warn("Submit failed:", err); }
-      clearProgress(false);
-      if (modal) modal.style.display = "none";
-      else overlay.remove();
-      setTimeout(() => { big.remove(); window.location.href = "../index.html"; }, 2000);
-    });
+const finishImg = document.createElement("img");
+finishImg.src = "assets/finish.png";
+finishImg.alt = "Finish";
+finishImg.style.width = "120px";
+finishImg.style.height = "120px";
+finishImg.style.cursor = "pointer";
+finishImg.addEventListener("click", async () => {
+  try {
+    await submitFinalResultsToForm();
+  } catch (err) {
+    console.warn("Submit failed:", err);
+  }
+  clearProgress(); // keep student name/class
+  window.location.href = "../hub.html";
+});
+
+// add finish button to modal
+buttons.appendChild(finishImg);
+
 
     // Logout — submit results, clear save and student info, then go to index
     const logoutImg = document.createElement("img");
