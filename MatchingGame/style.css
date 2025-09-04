@@ -12,6 +12,10 @@ body {
   min-height: 100vh;
 }
 
+html, body {
+  touch-action: manipulation;
+}
+
 #topic-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(150px, 2fr));
