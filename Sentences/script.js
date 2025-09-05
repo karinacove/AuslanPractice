@@ -54,8 +54,29 @@ function buildDraggables(correctParts) {
   const optionDiv = document.getElementById("draggableOptions");
   optionDiv.innerHTML = "";
 
-  const decoys = ["two", "dog", "red", "pear", "run"];
-  const allOptions = [...new Set([...correctParts, ...decoys])];
+  let decoyPool = [];
+
+  // Determine decoy categories based on current sentence
+  correctParts.forEach(part => {
+    if (numbers.includes(part)) decoyPool.push(...numbers);
+    else if (animals.includes(part)) decoyPool.push(...animals);
+    else if (foods.includes(part)) decoyPool.push(...foods);
+    else if (colours.includes(part)) decoyPool.push(...colours);
+    else if (part === "want") decoyPool.push("want"); // verbs
+  });
+
+  // Remove correctParts from decoys to avoid duplicates
+  decoyPool = decoyPool.filter(item => !correctParts.includes(item));
+
+  // Shuffle decoys
+  decoyPool.sort(() => Math.random() - 0.5);
+
+  // Calculate how many decoys we need to reach 16 draggables
+  let numDecoysNeeded = 16 - correctParts.length;
+  const selectedDecoys = decoyPool.slice(0, numDecoysNeeded);
+
+  const allOptions = [...correctParts, ...selectedDecoys];
+  allOptions.sort(() => Math.random() - 0.5); // shuffle all options
 
   allOptions.forEach(opt => {
     const div = document.createElement("div");
@@ -79,7 +100,7 @@ function buildDraggables(correctParts) {
       img.style.maxHeight = "70px";
       div.appendChild(img);
     } else {
-      div.textContent = opt; // fallback for decoys
+      div.textContent = opt;
     }
 
     div.addEventListener("dragstart", e => {
