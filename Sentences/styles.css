@@ -6,12 +6,16 @@
 }
 
 body {
-  font-family: "Segoe UI", Arial, sans-serif;
-  background: #f4f7fb; /* light background similar to Wordle/Matching */
+  font-family: sans-serif;
+  background-color: #5b65a9;
   color: #333;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  align-items: center;
+  overflow-x: hidden;
+  min-height: 100vh;
 }
 
 /* ===== Header ===== */
