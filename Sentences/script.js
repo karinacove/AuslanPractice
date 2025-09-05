@@ -29,14 +29,15 @@ function generateSentence() {
   const num = numbers[Math.floor(Math.random() * numbers.length)];
   const food = foods[Math.floor(Math.random() * foods.length)];
   const colour = colours[Math.floor(Math.random() * colours.length)];
+  const verb = verbs[Math.floor(Math.random() * verbs.length)];
 
-  currentSentence = { animal, num, food, colour };
+  currentSentence = { animal, num, verb, food, colour };
 
   const promptDiv = document.getElementById("sentencePrompt");
   promptDiv.innerHTML = "";
 
   // New order: animal, number, verb, food, colour
-  const parts = [animal, num, "want", food, colour];
+  const parts = [animal, num, verb, food, colour];
 
   parts.forEach(part => {
     const span = document.createElement("div");
@@ -89,7 +90,7 @@ function buildDraggables(correctParts) {
     else if (animals.includes(opt)) src = `assets/signs/animals/${opt}-sign.png`;
     else if (foods.includes(opt)) src = `assets/signs/food/${opt}-sign.png`;
     else if (colours.includes(opt)) src = `assets/signs/colours/${opt}-sign.png`;
-    else if (opt === "want") src = `assets/signs/verbs/want-sign.png`;
+    else if (verbs.include(opt))) src = `assets/signs/verbs/${opt}-sign.png`;
 
     if (src) {
       const img = document.createElement("img");
