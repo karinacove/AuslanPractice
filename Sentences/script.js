@@ -90,7 +90,7 @@ function buildDraggables(correctParts) {
     else if (animals.includes(opt)) src = `assets/signs/animals/${opt}-sign.png`;
     else if (foods.includes(opt)) src = `assets/signs/food/${opt}-sign.png`;
     else if (colours.includes(opt)) src = `assets/signs/colours/${opt}-sign.png`;
-    else if (verbs.include(opt))) src = `assets/signs/verbs/${opt}-sign.png`;
+    else if (verbs.include(opt)) src = `assets/signs/verbs/${opt}-sign.png`;
 
     if (src) {
       const img = document.createElement("img");
