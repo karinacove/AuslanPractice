@@ -21,6 +21,7 @@ const verbs = ["want", "dontwant", "have", "donthave", "eat"];
 
 let currentSentence = {};
 let level = 1;
+let round = 0; // tracks number of sentences per level
 let correctCount = 0;
 let incorrectCount = 0;
 
@@ -30,7 +31,14 @@ function generateSentence() {
   const num = numbers[Math.floor(Math.random() * numbers.length)];
   const food = foods[Math.floor(Math.random() * foods.length)];
   const colour = colours[Math.floor(Math.random() * colours.length)];
-  const verb = verbs[Math.floor(Math.random() * verbs.length)];
+
+  // ✅ Restrict verbs for levels 1–5
+  let verb;
+  if (level <= 5) {
+    verb = "want";
+  } else {
+    verb = verbs[Math.floor(Math.random() * verbs.length)];
+  }
 
   currentSentence = { animal, num, verb, food, colour };
 
@@ -64,7 +72,7 @@ function buildDraggables(correctParts) {
     else if (animals.includes(part)) decoyPool.push(...animals);
     else if (foods.includes(part)) decoyPool.push(...foods);
     else if (colours.includes(part)) decoyPool.push(...colours);
-    else if (part === "want") decoyPool.push("want"); // verbs
+    else if (verbs.includes(part)) decoyPool.push(...verbs);
   });
 
   // Remove correctParts from decoys to avoid duplicates
@@ -91,7 +99,7 @@ function buildDraggables(correctParts) {
     else if (animals.includes(opt)) src = `assets/signs/animals/${opt}-sign.png`;
     else if (foods.includes(opt)) src = `assets/signs/food/${opt}-sign.png`;
     else if (colours.includes(opt)) src = `assets/signs/colours/${opt}-sign.png`;
-    else if (verbs.include(opt)) src = `assets/signs/verbs/${opt}-sign.png`;
+    else if (verbs.includes(opt)) src = `assets/signs/verbs/${opt}-sign.png`;
 
     if (src) {
       const img = document.createElement("img");
@@ -161,23 +169,32 @@ function checkAnswers() {
 
   correctCount += roundCorrect;
   incorrectCount += roundIncorrect;
+  round++;
+
+  // ✅ After 10 sentences, progress to next level
+  if (round >= 10) {
+    saveLevelResults();
+    if (level < 10) {
+      startLevel(level + 1);
+    } else {
+      finishGame();
+    }
+  } else {
+    generateSentence();
+  }
 }
 
 // ===== Level Control =====
 function startLevel(lvl) {
   level = lvl;
+  round = 0;
   correctCount = 0;
   incorrectCount = 0;
   generateSentence();
 }
 
-// ===== Submit Button =====
-document.getElementById("submitBtn").addEventListener("click", () => {
-  checkAnswers();
-});
-
-// ===== Stop Button (submit to Google Form) =====
-document.getElementById("stopBtn").addEventListener("click", () => {
+// ===== Save Level Results to Google Form Hidden Inputs =====
+function saveLevelResults() {
   if (level === 1) {
     document.querySelector("[name='entry.1150173566']").value = correctCount;
     document.querySelector("[name='entry.28043347']").value = incorrectCount;
@@ -194,8 +211,22 @@ document.getElementById("stopBtn").addEventListener("click", () => {
     document.querySelector("[name='entry.1405337882']").value = correctCount;
     document.querySelector("[name='entry.1513946929']").value = incorrectCount;
   }
+  // ✅ Add similar mappings for levels 5–10 if needed
+}
 
+// ===== Finish Game =====
+function finishGame() {
   document.getElementById("googleForm").submit();
-  alert("Results submitted! Redirecting...");
+  alert("All levels complete! Results submitted.");
   window.location.href = "../hub.html";
+}
+
+// ===== Buttons =====
+document.getElementById("submitBtn").addEventListener("click", () => {
+  checkAnswers();
+});
+
+document.getElementById("stopBtn").addEventListener("click", () => {
+  saveLevelResults();
+  finishGame();
 });
