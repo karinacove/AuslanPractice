@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Auslan Sentence Builder</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      margin: 0;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background: #f0f0f0;
+    }
+    #studentInfo {
+      font-weight: bold;
+    }
+    #stopBtn {
+      background: #d9534f;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 10px;
+    }
+    #sentencePrompt {
+      margin-top: 20px;
+      font-size: 24px;
+      display: flex;
+      gap: 10px;
+    }
+    #answerArea {
+      margin-top: 20px;
+      min-height: 100px;
+      border: 2px dashed #aaa;
+      border-radius: 10px;
+      width: 80%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+    }
+    #draggableOptions {
+      margin-top: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+    }
+    .draggable {
+      width: 80px;
+      height: 80px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: grab;
+      background: #fff;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    .dropzone {
+      min-width: 80px;
+      min-height: 80px;
+      border: 2px dashed #666;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fafafa;
+    }
+    #recordingControls {
+      margin-top: 20px;
+      display: none; /* hidden until Level 5 */
+    }
+    video {
+      max-width: 300px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div id="studentInfo">Name: <span id="studentName">---</span> | Class: <span id="studentClass">---</span></div>
+    <button id="stopBtn">Stop</button>
+  </header>
+
+  <main>
+    <div id="sentencePrompt">
+      <!-- signs/images making up the sentence go here -->
+    </div>
+
+    <div id="answerArea">
+      <!-- student drags answers here -->
+    </div>
+
+    <div id="draggableOptions">
+      <!-- pool of draggable signs/images (including decoys) -->
+    </div>
+
+    <!-- Recording area for Level 5 -->
+    <div id="recordingControls">
+      <button id="startRec">Start Recording</button>
+      <button id="stopRec" disabled>Stop Recording</button>
+      <video id="preview" autoplay muted></video>
+      <video id="playback" controls></video>
+    </div>
+  </main>
+
+  <!-- Hidden Google Form -->
+  <form id="googleForm" action="https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse" method="POST" target="hidden_iframe">
+    <input type="hidden" name="entry.123456" id="formName">
+    <input type="hidden" name="entry.654321" id="formClass">
+    <input type="hidden" name="entry.111111" id="formResults">
+    <input type="hidden" name="entry.222222" id="formVideo">
+  </form>
+  <iframe name="hidden_iframe" style="display:none;"></iframe>
+
+  <script src="script.js"></script>
+</body>
+</html>
