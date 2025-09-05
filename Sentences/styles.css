@@ -109,11 +109,12 @@ main {
   flex-wrap: wrap;
   justify-content: center;
   gap: 18px;
+  max-width: 460px; /* adjust width so 6 fit nicely per row */
 }
 
 .draggable {
-  width: 90px;
-  height: 90px;
+  width: 70px;
+  height: 70px;
   border: 2px solid #fbbf24; /* yellow border */
   border-radius: 12px;
   display: flex;
