@@ -17,6 +17,7 @@ const animals = ["bird", "cat", "chicken", "cockatoo", "cow", "crocodile", "dog"
 const foods = ["apple", "bacon", "banana", "bean", "blueberry", "bread", "burger", "cake", "carrot", "cereal", "cheese", "cherry", "chips", "corn", "cucumber", "egg", "grape", "lettuce", "meat", "mushroom", "onion", "orange", "pasta", "pear", "peas", "pineapple", "pizza", "potato", "pumpkin", "raspberry", "strawberry", "tomato", "watermelon"];
 const colours = ["red", "blue", "pink", "orange", "green", "black", "brown", "white", "purple", "yellow"];
 const numbers = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
+const verbs = ["want", "dontwant", "have", "donthave", "eat"];
 
 let currentSentence = {};
 let level = 1;
