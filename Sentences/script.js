@@ -13,10 +13,10 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 // ===== Word Banks =====
-const animals = ["lion", "dog", "cat"];
-const foods = ["apple", "banana", "pineapple"];
-const colours = ["red", "blue", "pink"];
-const numbers = [1, 2, 3, 4];
+const animals = ["bird", "cat", "chicken", "cockatoo", "cow", "crocodile", "dog", "duck", "echidna", "emu", "fish", "goat", "horse", "koala", "lizard", "mouse", "pig", "platypus", "possum", "mouse", "rabbit", "sheep", "wombat"];
+const foods = ["apple", "bacon", "banana", "bean", "blueberry", "bread", "burger", "cake", "carrot", "cereal", "cheese", "cherry", "chips", "corn", "cucumber", "egg", "grape", "lettuce", "meat", "mushroom", "onion", "orange", "pasta", "pear", "peas", "pineapple, "pizza", "potato", "pumpkin", "raspberry", "strawberry", "tomato", "watermelon"];
+const colours = ["red", "blue", "pink", "orange", "green", "black", "brown", "white", "purple", "yellow"];
+const numbers = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
 
 let currentSentence = {};
 let level = 1;
