@@ -13,8 +13,8 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 // ===== Word Banks =====
-const animals = ["bird", "cat", "chicken", "cockatoo", "cow", "crocodile", "dog", "duck", "echidna", "emu", "fish", "goat", "horse", "koala", "lizard", "mouse", "pig", "platypus", "possum", "mouse", "rabbit", "sheep", "wombat"];
-const foods = ["apple", "bacon", "banana", "bean", "blueberry", "bread", "burger", "cake", "carrot", "cereal", "cheese", "cherry", "chips", "corn", "cucumber", "egg", "grape", "lettuce", "meat", "mushroom", "onion", "orange", "pasta", "pear", "peas", "pineapple, "pizza", "potato", "pumpkin", "raspberry", "strawberry", "tomato", "watermelon"];
+const animals = ["bird", "cat", "chicken", "cockatoo", "cow", "crocodile", "dog", "duck", "echidna", "emu", "fish", "goat", "horse", "koala", "lizard", "mouse", "pig", "platypus", "possum", "rabbit", "sheep", "wombat"];
+const foods = ["apple", "bacon", "banana", "bean", "blueberry", "bread", "burger", "cake", "carrot", "cereal", "cheese", "cherry", "chips", "corn", "cucumber", "egg", "grape", "lettuce", "meat", "mushroom", "onion", "orange", "pasta", "pear", "peas", "pineapple", "pizza", "potato", "pumpkin", "raspberry", "strawberry", "tomato", "watermelon"];
 const colours = ["red", "blue", "pink", "orange", "green", "black", "brown", "white", "purple", "yellow"];
 const numbers = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
 
@@ -25,22 +25,24 @@ let incorrectCount = 0;
 
 // ===== Generate a Sentence =====
 function generateSentence() {
-  const num = numbers[Math.floor(Math.random() * numbers.length)];
   const animal = animals[Math.floor(Math.random() * animals.length)];
-  const colour = colours[Math.floor(Math.random() * colours.length)];
+  const num = numbers[Math.floor(Math.random() * numbers.length)];
   const food = foods[Math.floor(Math.random() * foods.length)];
+  const colour = colours[Math.floor(Math.random() * colours.length)];
 
-  currentSentence = { num, animal, colour, food };
+  currentSentence = { animal, num, food, colour };
 
   const promptDiv = document.getElementById("sentencePrompt");
   promptDiv.innerHTML = "";
 
-  const parts = [`${num}`, animal, "want", colour, food];
+  // New order: animal, number, verb, food, colour
+  const parts = [animal, num, "want", food, colour];
+
   parts.forEach(part => {
     const span = document.createElement("div");
     span.dataset.answer = part;
-    span.textContent = "?";
     span.classList.add("dropzone");
+    span.innerHTML = ""; // empty initially
     promptDiv.appendChild(span);
   });
 
@@ -52,15 +54,33 @@ function buildDraggables(correctParts) {
   const optionDiv = document.getElementById("draggableOptions");
   optionDiv.innerHTML = "";
 
-  // Mix in some decoys
-  const decoys = ["2", "fish", "yellow", "pear", "run"];
+  const decoys = ["two", "dog", "red", "pear", "run"];
   const allOptions = [...new Set([...correctParts, ...decoys])];
 
   allOptions.forEach(opt => {
     const div = document.createElement("div");
-    div.textContent = opt;
     div.classList.add("draggable");
     div.draggable = true;
+
+    // Determine image source
+    let src = "";
+    if (numbers.includes(opt)) src = `assets/signs/numbers/${opt}-sign.png`;
+    else if (animals.includes(opt)) src = `assets/signs/animals/${opt}-sign.png`;
+    else if (foods.includes(opt)) src = `assets/signs/food/${opt}-sign.png`;
+    else if (colours.includes(opt)) src = `assets/signs/colours/${opt}-sign.png`;
+    else if (opt === "want") src = `assets/signs/verbs/want-sign.png`;
+
+    if (src) {
+      const img = document.createElement("img");
+      img.src = src;
+      img.alt = opt;
+      img.dataset.value = opt;
+      img.style.maxWidth = "70px";
+      img.style.maxHeight = "70px";
+      div.appendChild(img);
+    } else {
+      div.textContent = opt; // fallback for decoys
+    }
 
     div.addEventListener("dragstart", e => {
       e.dataTransfer.setData("text/plain", opt);
@@ -78,10 +98,17 @@ function setupDropzones() {
 
   zones.forEach(zone => {
     zone.addEventListener("dragover", e => e.preventDefault());
+
     zone.addEventListener("drop", e => {
       e.preventDefault();
       const data = e.dataTransfer.getData("text/plain");
-      zone.textContent = data;
+      zone.innerHTML = ""; // clear previous
+      zone.dataset.filled = data;
+
+      // clone draggable image
+      const img = document.querySelector(`[data-value='${data}']`)?.cloneNode(true);
+      if (img) zone.appendChild(img);
+      else zone.textContent = data;
     });
   });
 }
@@ -93,7 +120,7 @@ function checkAnswers() {
 
   const zones = document.querySelectorAll(".dropzone");
   zones.forEach(zone => {
-    if (zone.textContent === zone.dataset.answer) {
+    if (zone.dataset.filled === zone.dataset.answer) {
       zone.style.background = "#c8e6c9"; // green
       roundCorrect++;
     } else {
@@ -101,8 +128,9 @@ function checkAnswers() {
       zone.classList.add("shake");
       setTimeout(() => {
         zone.classList.remove("shake");
-        zone.textContent = "?"; // reset
+        zone.innerHTML = "";
         zone.style.background = "";
+        delete zone.dataset.filled;
       }, 600);
       roundIncorrect++;
     }
@@ -120,10 +148,13 @@ function startLevel(lvl) {
   generateSentence();
 }
 
+// ===== Submit Button =====
+document.getElementById("submitBtn").addEventListener("click", () => {
+  checkAnswers();
+});
+
 // ===== Stop Button (submit to Google Form) =====
 document.getElementById("stopBtn").addEventListener("click", () => {
-  // Map counts into Google Form fields
-  document.getElementById("formResults").value = `Level ${level}`;
   if (level === 1) {
     document.querySelector("[name='entry.1150173566']").value = correctCount;
     document.querySelector("[name='entry.28043347']").value = incorrectCount;
