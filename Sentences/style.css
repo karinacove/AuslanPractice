@@ -30,19 +30,42 @@ header {
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-#stopBtn {
-  background: #fbbf24; /* school yellow accent */
-  border: none;
-  color: #1e3a8a;
-  font-size: 14px;
-  padding: 8px 14px;
-  border-radius: 8px;
-  cursor: pointer;
+/* Student Info Box */
+#student-info {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: #28a745;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 10px;
   font-weight: bold;
-  transition: background 0.3s;
+  font-family: sans-serif;
+  z-index: 1000;
+  font-size: 0.9rem;
 }
+
+#stop-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 100px;  
+  height: 100px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
 #stopBtn:hover {
   background: #f59e0b;
+}
+
+/* Modal Buttons - all 120px */
+#end-modal-content img {
+  width: 100px !important;
+  height: 100px !important;
+  object-fit: contain !important;
+  margin: 10px;
+  cursor: pointer;
 }
 
 /* ===== Main Content ===== */
