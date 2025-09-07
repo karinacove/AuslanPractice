@@ -1,197 +1,175 @@
-// ===== Student Info =====
-window.addEventListener("DOMContentLoaded", () => {
-  const studentName = localStorage.getItem("studentName") || "Guest";
-  const studentClass = localStorage.getItem("studentClass") || "Class";
+// ==================
+// Sentence Game Script
+// ==================
 
-  document.getElementById("studentName").textContent = studentName;
-  document.getElementById("studentClass").textContent = studentClass;
+let currentLevel = 1;
+let score = 0;
+let startTime;
+let selectedItems = [];
+let correctAnswer = [];
+let gameEnded = false;
 
-  document.getElementById("formName").value = studentName;
-  document.getElementById("formClass").value = studentClass;
+// ---------- Vocabulary Pools ----------
 
-  startLevel(1);
-});
+// Limited vocab (Levels 1–5)
+const level1to5Animals = ["dog", "cat", "mouse", "bird", "fish", "rabbit"];
+const level1to5Numbers = ["one","two","three","four","five","six","seven","eight","nine","ten"];
+const level1to5Foods = ["apple","banana","pear","grape","orange","strawberry","watermelon"];
+const level1to5Colours = ["red","yellow","white","green","pink","purple","black","brown","orange","blue"];
 
-// ===== Word Banks =====
-const animals = ["bird", "cat", "chicken", "cockatoo", "cow", "crocodile", "dog", "duck", "echidna", "emu", "fish", "goat", "horse", "koala", "lizard", "mouse", "pig", "platypus", "possum", "rabbit", "sheep", "wombat"];
-const foods = ["apple", "bacon", "banana", "bean", "blueberry", "bread", "burger", "cake", "carrot", "cereal", "cheese", "cherry", "chips", "corn", "cucumber", "egg", "grape", "lettuce", "meat", "mushroom", "onion", "orange", "pasta", "pear", "peas", "pineapple", "pizza", "potato", "pumpkin", "raspberry", "strawberry", "tomato", "watermelon"];
-const colours = ["red", "blue", "pink", "orange", "green", "black", "brown", "white", "purple", "yellow"];
-const numbers = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
-const verbs = ["want", "dontwant", "have", "donthave", "eat"];
+// Full vocab (Levels 6–10) – expand as needed
+const animals = ["dog","cat","mouse","bird","fish","rabbit","horse","cow","sheep","chicken","duck","goat","pig"];
+const numbers = ["one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve"];
+const foods = ["apple","banana","pear","grape","orange","strawberry","watermelon","carrot","cake","cheese","chips","egg","mushroom","tomato"];
+const colours = ["red","yellow","white","green","pink","purple","black","brown","orange","blue"];
+const verbs = ["want","eat","like","see","have"];
 
-let currentSentence = {};
-let level = 1;
-let round = 0; // tracks number of sentences per level
-let correctCount = 0;
-let incorrectCount = 0;
-
-// ===== Generate a Sentence =====
+// ---------- Sentence Generator ----------
 function generateSentence() {
-  const animal = animals[Math.floor(Math.random() * animals.length)];
-  const num = numbers[Math.floor(Math.random() * numbers.length)];
-  const food = foods[Math.floor(Math.random() * foods.length)];
-  const colour = colours[Math.floor(Math.random() * colours.length)];
+  let animalPool, numberPool, foodPool, colourPool, verbPool;
 
-  // ✅ Restrict verbs for levels 1–5
-  let verb;
-  if (level <= 5) {
-    verb = "want";
+  if (currentLevel <= 5) {
+    animalPool = level1to5Animals;
+    numberPool = level1to5Numbers;
+    foodPool = level1to5Foods;
+    colourPool = level1to5Colours;
+    verbPool = ["want"]; // only want
   } else {
-    verb = verbs[Math.floor(Math.random() * verbs.length)];
+    animalPool = animals;
+    numberPool = numbers;
+    foodPool = foods;
+    colourPool = colours;
+    verbPool = verbs; // full set
   }
 
-  currentSentence = { animal, num, verb, food, colour };
+  const animal = randomItem(animalPool);
+  const number = randomItem(numberPool);
+  const verb = randomItem(verbPool);
+  const food = randomItem(foodPool);
+  const colour = randomItem(colourPool);
 
-  const promptDiv = document.getElementById("sentencePrompt");
-  promptDiv.innerHTML = "";
-
-  // New order: animal, number, verb, food, colour
-  const parts = [animal, num, verb, food, colour];
-
-  parts.forEach(part => {
-    const span = document.createElement("div");
-    span.dataset.answer = part;
-    span.classList.add("dropzone");
-    span.innerHTML = ""; // empty initially
-    promptDiv.appendChild(span);
-  });
-
-  buildDraggables(parts);
+  // Sentence structure: animal, number, verb, food, colour
+  correctAnswer = [animal, number, verb, food, colour];
+  return `${animal} ${number} ${verb} ${food} ${colour}`;
 }
 
-// ===== Build Draggables (with decoys) =====
-function buildDraggables(correctParts) {
-  const optionDiv = document.getElementById("draggableOptions");
-  optionDiv.innerHTML = "";
+// ---------- Draggables (answer + decoys) ----------
+function buildDraggables() {
+  const container = document.getElementById("draggables");
+  container.innerHTML = "";
 
-  let decoyPool = [];
+  let pool = [...correctAnswer];
 
-  // Determine decoy categories based on current sentence
-  correctParts.forEach(part => {
-    if (numbers.includes(part)) decoyPool.push(...numbers);
-    else if (animals.includes(part)) decoyPool.push(...animals);
-    else if (foods.includes(part)) decoyPool.push(...foods);
-    else if (colours.includes(part)) decoyPool.push(...colours);
-    else if (verbs.includes(part)) decoyPool.push(...verbs);
-  });
+  if (currentLevel <= 5) {
+    pool.push(...getRandomDecoys(level1to5Animals, correctAnswer, 3));
+    pool.push(...getRandomDecoys(level1to5Numbers, correctAnswer, 3));
+    pool.push(...getRandomDecoys(level1to5Foods, correctAnswer, 3));
+    pool.push(...getRandomDecoys(level1to5Colours, correctAnswer, 3));
+  } else {
+    pool.push(...getRandomDecoys(animals, correctAnswer, 3));
+    pool.push(...getRandomDecoys(numbers, correctAnswer, 3));
+    pool.push(...getRandomDecoys(foods, correctAnswer, 3));
+    pool.push(...getRandomDecoys(colours, correctAnswer, 3));
+    pool.push(...getRandomDecoys(verbs, correctAnswer, 1));
+  }
 
-  // Remove correctParts from decoys to avoid duplicates
-  decoyPool = decoyPool.filter(item => !correctParts.includes(item));
+  // Trim to 16 items
+  pool = shuffleArray(pool).slice(0, 16);
 
-  // Shuffle decoys
-  decoyPool.sort(() => Math.random() - 0.5);
-
-  // Calculate how many decoys we need to reach 16 draggables
-  let numDecoysNeeded = 16 - correctParts.length;
-  const selectedDecoys = decoyPool.slice(0, numDecoysNeeded);
-
-  const allOptions = [...correctParts, ...selectedDecoys];
-  allOptions.sort(() => Math.random() - 0.5); // shuffle all options
-
-  allOptions.forEach(opt => {
+  pool.forEach(word => {
     const div = document.createElement("div");
-    div.classList.add("draggable");
+    div.className = "draggable";
+    div.textContent = word;
     div.draggable = true;
-
-    // Determine image source
-    let src = "";
-    if (numbers.includes(opt)) src = `assets/signs/numbers/${opt}-sign.png`;
-    else if (animals.includes(opt)) src = `assets/signs/animals/${opt}-sign.png`;
-    else if (foods.includes(opt)) src = `assets/signs/food/${opt}-sign.png`;
-    else if (colours.includes(opt)) src = `assets/signs/colours/${opt}-sign.png`;
-    else if (verbs.includes(opt)) src = `assets/signs/verbs/${opt}-sign.png`;
-
-    if (src) {
-      const img = document.createElement("img");
-      img.src = src;
-      img.alt = opt;
-      img.dataset.value = opt;
-      img.style.maxWidth = "70px";
-      img.style.maxHeight = "70px";
-      div.appendChild(img);
-    } else {
-      div.textContent = opt;
-    }
-
-    div.addEventListener("dragstart", e => {
-      e.dataTransfer.setData("text/plain", opt);
-    });
-
-    optionDiv.appendChild(div);
-  });
-
-  setupDropzones();
-}
-
-// ===== Dropzone Logic =====
-function setupDropzones() {
-  const zones = document.querySelectorAll(".dropzone");
-
-  zones.forEach(zone => {
-    zone.addEventListener("dragover", e => e.preventDefault());
-
-    zone.addEventListener("drop", e => {
-      e.preventDefault();
-      const data = e.dataTransfer.getData("text/plain");
-      zone.innerHTML = ""; // clear previous
-      zone.dataset.filled = data;
-
-      // clone draggable image
-      const img = document.querySelector(`[data-value='${data}']`)?.cloneNode(true);
-      if (img) zone.appendChild(img);
-      else zone.textContent = data;
-    });
+    div.addEventListener("dragstart", dragStart);
+    container.appendChild(div);
   });
 }
 
-// ===== Check Answers =====
-function checkAnswers() {
-  let roundCorrect = 0;
-  let roundIncorrect = 0;
+// ---------- Utility ----------
+function randomItem(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
-  const zones = document.querySelectorAll(".dropzone");
-  zones.forEach(zone => {
-    if (zone.dataset.filled === zone.dataset.answer) {
-      zone.style.background = "#c8e6c9"; // green
-      roundCorrect++;
-    } else {
-      zone.style.background = "#ffcdd2"; // red
-      zone.classList.add("shake");
-      setTimeout(() => {
-        zone.classList.remove("shake");
-        zone.innerHTML = "";
-        zone.style.background = "";
-        delete zone.dataset.filled;
-      }, 600);
-      roundIncorrect++;
-    }
-  });
+function getRandomDecoys(pool, exclude, count) {
+  const candidates = pool.filter(item => !exclude.includes(item));
+  return shuffleArray(candidates).slice(0, count);
+}
 
-  correctCount += roundCorrect;
-  incorrectCount += roundIncorrect;
-  round++;
+function shuffleArray(arr) {
+  return arr.sort(() => Math.random() - 0.5);
+}
 
-  // ✅ After 10 sentences, progress to next level
-  if (round >= 10) {
-    saveLevelResults();
-    if (level < 10) {
-      startLevel(level + 1);
-    } else {
-      finishGame();
-    }
-  } else {
-    generateSentence();
+// ---------- Drag & Drop ----------
+function dragStart(e) {
+  e.dataTransfer.setData("text/plain", e.target.textContent);
+}
+
+function allowDrop(e) {
+  e.preventDefault();
+}
+
+function drop(e) {
+  e.preventDefault();
+  const word = e.dataTransfer.getData("text/plain");
+  const target = e.target;
+
+  if (target.classList.contains("dropzone") && target.childElementCount === 0) {
+    const div = document.createElement("div");
+    div.textContent = word;
+    div.className = "dropped";
+    target.appendChild(div);
+    selectedItems.push(word);
+    checkCompletion();
   }
 }
 
-// ===== Level Control =====
-function startLevel(lvl) {
-  level = lvl;
-  round = 0;
-  correctCount = 0;
-  incorrectCount = 0;
-  generateSentence();
+function checkCompletion() {
+  const zones = document.querySelectorAll(".dropzone");
+  if (Array.from(zones).every(z => z.childElementCount > 0)) {
+    checkAnswer();
+  }
 }
+
+function checkAnswer() {
+  if (selectedItems.join(" ") === correctAnswer.join(" ")) {
+    score++;
+    alert("✅ Correct!");
+  } else {
+    alert("❌ Try again!");
+  }
+
+  selectedItems = [];
+  document.querySelectorAll(".dropzone").forEach(z => z.innerHTML = "");
+  currentLevel++;
+  if (currentLevel <= 10) {
+    startLevel();
+  } else {
+    endGame();
+  }
+}
+
+// ---------- Game Flow ----------
+function startLevel() {
+  const sentence = generateSentence();
+  document.getElementById("sentence").textContent = sentence;
+  buildDraggables();
+}
+
+function startGame() {
+  score = 0;
+  currentLevel = 1;
+  startTime = Date.now();
+  gameEnded = false;
+  startLevel();
+}
+
+function endGame() {
+  gameEnded = true;
+  const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+  const percentage = Math.round((score / 10) * 100);
+
+  alert(`Game Over!\nScore: ${score}/10\nTime: ${timeTaken}s\nAccuracy: ${percentage}%`);
 
 // ===== Save Level Results to Google Form Hidden Inputs =====
 function saveLevelResults() {
@@ -230,3 +208,7 @@ document.getElementById("stopBtn").addEventListener("click", () => {
   saveLevelResults();
   finishGame();
 });
+
+
+// Start automatically
+window.onload = startGame;
