@@ -61,6 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   finishBtn.addEventListener("click", () => {
     endGame();
+    localStorage.removeItem();
+    window.location.href = "../index.html";
   });
   
   againBtn.addEventListener("click", () => {
@@ -314,13 +316,6 @@ document.addEventListener("DOMContentLoaded", () => {
     pauseGame();
     clearBalloons();
 
-    const percentage = totalClicks > 0 ? Math.round((correctAnswers / totalClicks) * 100) : 0;
-    const correctList = [...correctAnswersList].sort().join(", ");
-    const incorrectList = [...incorrectAnswersList].sort().join(", ");
-
-    // Update modal score
-    scoreDisplayModal.textContent = `Score: ${score} (${percentage}%)`;
-
     // Submit to Google Form
     const form = document.createElement("form");
     form.action =
@@ -352,21 +347,15 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.appendChild(iframe);
     document.body.appendChild(form);
     form.submit();
-
-    // Hide Continue when fully finished
-    continueBtn.style.display = "none";
-    finishBtn.style.display = "inline-block";
-    againBtn.style.display = "inline-block";
-    logoutBtn.style.display = "inline-block";
-
-    setTimeout(() => {
-      endModal.style.display = "flex";
-    }, 400);
   }
 
   // 🟡 Stop modal
   function showStopModal() {
     const percentage = totalClicks > 0 ? Math.round((correctAnswers / totalClicks) * 100) : 0;
+    const correctList = [...correctAnswersList].sort().join(", ");
+    const incorrectList = [...incorrectAnswersList].sort().join(", ");
+
+    // Update modal score
     scoreDisplayModal.textContent = `Score: ${score} (${percentage}%)`;
 
     // Show Continue + Finish + Again + Logout
