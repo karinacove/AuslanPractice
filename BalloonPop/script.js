@@ -149,19 +149,7 @@
 
     if (finishBtn) {
       finishBtn.addEventListener("click", () => {
-        // Final finish: submit results, clear game progress, then return to menu
-        endGame(true).then(() => {
-          // after a short delay redirect to menu — do NOT clear login
-          setTimeout(() => {
-            clearGameState();
-            window.location.href = "../index.html";
-          }, 700);
-        }).catch((e) => {
-          console.warn("Finish submit failed:", e);
-          // still redirect
-          clearGameState();
-          window.location.href = "../index.html";
-        });
+        endGame(false, true);
       });
     }
 
@@ -494,32 +482,55 @@
       });
     }
 
-    // End game: submit and show modal. isFinal indicates truly finished (score 120 or Finish button)
-    async function endGame(isFinal = false) {
-      pauseGame();
-      clearAllFloating();
+   function endGame(showModal = true, redirectToMenu = false) {
+  pauseGame();
+  clearBalloons();
 
-      // update modal score
-      const percentage = state.totalClicks > 0 ? Math.round((state.correctAnswers / state.totalClicks) * 100) : 0;
-      if (scoreDisplayModal) scoreDisplayModal.textContent = `Score: ${state.score || 0} (${percentage}%)`;
+  // Submit to Google Form
+  const form = document.createElement("form");
+  form.action =
+    "https://docs.google.com/forms/d/e/1FAIpQLSeHCxQ4czHbx1Gdv649vlr5-Dz9-4DQu5M5OcIfC46WlL-6Qw/formResponse";
+  form.method = "POST";
+  form.target = "hidden_iframe";
+  form.style.display = "none";
 
-      // submit form silently
-      await submitResultsToForm();
+  const entries = {
+    "entry.1609572894": studentName,
+    "entry.1168342531": studentClass,
+    "entry.91913727": score,
+    "entry.63569940": totalClicks,
+    "entry.1746910343": correctAnswersList.sort().join(", "),
+    "entry.1748975026": incorrectAnswersList.sort().join(", "),
+  };
 
-      // configure modal buttons visibility:
-      // if final finish: hide Continue and Finish; show Again and Logout only
-      if (continueBtn) continueBtn.style.display = isFinal ? "none" : "inline-block";
-      if (finishBtn) finishBtn.style.display = isFinal ? "none" : "inline-block";
-      if (againBtn) againBtn.style.display = "inline-block";
-      if (logoutBtn) logoutBtn.style.display = "inline-block";
+  for (let key in entries) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = key;
+    input.value = entries[key];
+    form.appendChild(input);
+  }
 
-      // show modal
-      if (endModal) endModal.style.display = "flex";
+  const iframe = document.createElement("iframe");
+  iframe.name = "hidden_iframe";
+  iframe.style.display = "none";
+  document.body.appendChild(iframe);
+  document.body.appendChild(form);
+  form.submit();
 
-      // If final and user expects immediate redirect, that is handled by the caller (we do not clear login)
-      // Save final state (so teacher can view if needed) — but clear when starting new game
-      saveState(state);
-    }
+  if (showModal) {
+    const percentage = totalClicks > 0 ? Math.round((correctAnswers / totalClicks) * 100) : 0;
+    scoreDisplayModal.textContent = `Score: ${score} (${percentage}%)`;
+    endModal.style.display = "flex";
+  }
+
+  if (redirectToMenu) {
+    setTimeout(() => {
+      window.location.href = "../index.html";
+    }, 500); // allow form submission time
+  }
+}
+
 
     function showStopModal() {
       // update modal score and show appropriate buttons (not final)
