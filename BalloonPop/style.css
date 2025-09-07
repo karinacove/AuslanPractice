@@ -217,6 +217,7 @@ body, html {
   cursor: pointer;
   z-index: 1000;
   background: transparent;
+  border: none;
 }
 
 #stop-btn img {
