@@ -1,134 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Auslan Sentence Builder</title>
+  <meta charset="UTF-8" />
+  <title>Sentence Builder</title>
   <link rel="stylesheet" href="style.css">
-  <style>
-    body {
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      margin: 0;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      background: #f0f0f0;
-    }
-    #studentInfo {
-      font-weight: bold;
-    }
-    #stopBtn {
-      background: #d9534f;
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 10px;
-    }
-    #sentencePrompt {
-      margin-top: 20px;
-      font-size: 24px;
-      display: flex;
-      gap: 10px;
-    }
-    #answerArea {
-      margin-top: 20px;
-      min-height: 100px;
-      border: 2px dashed #aaa;
-      border-radius: 10px;
-      width: 80%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      padding: 10px;
-    }
-    #draggableOptions {
-      margin-top: 30px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 15px;
-    }
-    .draggable {
-      width: 80px;
-      height: 80px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: grab;
-      background: #fff;
-      box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-    }
-    .dropzone {
-      min-width: 80px;
-      min-height: 80px;
-      border: 2px dashed #666;
-      border-radius: 10px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #fafafa;
-    }
-    #recordingControls {
-      margin-top: 20px;
-      display: none; /* hidden until Level 5 */
-    }
-    video {
-      max-width: 300px;
-      margin-top: 10px;
-    }
-  </style>
 </head>
 <body>
   <header>
-    <div id="studentInfo">Name: <span id="studentName">---</span> | Class: <span id="studentClass">---</span></div>
+    <div id="studentInfo">
+      <span id="studentName"></span> (<span id="studentClass"></span>)
+    </div>
     <button id="stopBtn">Stop</button>
   </header>
 
   <main>
-    <div id="sentencePrompt">
-      <!-- signs/images making up the sentence go here -->
+    <div id="questionArea">
+      <!-- Top content: image/signs/video -->
+      <div id="promptDisplay"></div>
+
+      <!-- Dropzone area -->
+      <div id="answerArea"></div>
+
+      <!-- Check button -->
+      <button id="checkBtn">Check</button>
+
+      <!-- Feedback -->
+      <div id="feedback"></div>
     </div>
 
-    <div id="answerArea">
-      <!-- student drags answers here -->
-    </div>
-
-    <div id="draggableOptions">
-      <!-- pool of draggable signs/images (including decoys) -->
-    </div>
-
-    <!-- Recording area for Level 5 -->
-    <div id="recordingControls">
-      <button id="startRec">Start Recording</button>
-      <button id="stopRec" disabled>Stop Recording</button>
-      <video id="preview" autoplay muted></video>
-      <video id="playback" controls></video>
-    </div>
+    <!-- Draggable grid -->
+    <div id="draggableOptions"></div>
   </main>
 
   <!-- Hidden Google Form -->
-  <form id="googleForm" action="https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse" method="POST" target="hidden_iframe">
-    <input type="hidden" name="entry.123456" id="formName">
-    <input type="hidden" name="entry.654321" id="formClass">
-    <input type="hidden" name="entry.111111" id="formResults">
-    <input type="hidden" name="entry.222222" id="formVideo">
+  <form id="googleForm" action="https://docs.google.com/forms/d/e/1FAIpQLSeDjoRouuIIrum-BbkNWt7Rz-ALVAnupFI4RIWbuQulNH9NGw/formResponse" method="POST" target="hidden_iframe">
+    <input type="hidden" name="entry.1040637824" id="formName">
+    <input type="hidden" name="entry.1755746645" id="formClass">
+    <input type="hidden" name="entry.1979136660" value="Sentences">
+    <input type="hidden" name="entry.1150173566" id="formLevel1Correct">
+    <input type="hidden" name="entry.28043347" id="formLevel1Incorrect">
+    <input type="hidden" name="entry.1424808967" id="formLevel2Correct">
+    <input type="hidden" name="entry.352093752" id="formLevel2Incorrect">
+    <input type="hidden" name="entry.475324608" id="formLevel3Correct">
+    <input type="hidden" name="entry.1767451434" id="formLevel3Incorrect">
+    <input type="hidden" name="entry.1405337882" id="formLevel4Correct">
+    <input type="hidden" name="entry.1513946929" id="formLevel4Incorrect">
+    <input type="hidden" name="entry.116543611" id="formVideo1Upload">
+    <input type="hidden" name="entry.1475510168" id="formVideo2Upload">
   </form>
   <iframe name="hidden_iframe" style="display:none;"></iframe>
 
