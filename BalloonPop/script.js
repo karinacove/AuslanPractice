@@ -3,7 +3,7 @@ let studentClass = localStorage.getItem("studentClass") || "";
 
 const studentInfoDiv = document.getElementById("student-info");
 const gameContainer = document.getElementById("game-container");
-const stopBtn = document.getElementById("finish-btn"); // Top-right button now named Stop
+const stopBtn = document.getElementById("finish-btn"); // Top-right button now Stop
 
 const endModal = document.getElementById("end-modal");
 const scoreDisplayModal = document.getElementById("score-display");
@@ -295,7 +295,6 @@ document.addEventListener('DOMContentLoaded', () => {
       againBtn.style.display = 'inline-block';
       finishBtnModal.style.display = 'inline-block';
       logoutBtn.style.display = 'inline-block';
-      // Hide continue if game completed
       continueBtn.style.display = (score === 120) ? 'none' : 'inline-block';
     }, 400);
   }
@@ -328,7 +327,6 @@ document.addEventListener('DOMContentLoaded', () => {
   againBtn.addEventListener("click", () => resetGame());
 
   finishBtnModal.addEventListener("click", () => {
-    // Finish inside modal → redirect
     clearAllFloating();
     window.location.href = "../index.html";
   });
