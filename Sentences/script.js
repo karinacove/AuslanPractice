@@ -228,7 +228,7 @@ function saveLevelResults(){
 
 function finishGame(){
   document.getElementById("googleForm").submit();
-  window.location.href = "../hub.html";
+  window.location.href = "../index.html";
 }
 
 /* ===== Buttons ===== */
