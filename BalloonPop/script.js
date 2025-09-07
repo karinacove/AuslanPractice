@@ -482,52 +482,85 @@
       });
     }
 
-   function endGame(showModal = true, redirectToMenu = false) {
+function endGame(showModal = true, redirectToMenu = false) {
+  // Stop all intervals
   pauseGame();
-  clearBalloons();
 
-  // Submit to Google Form
-  const form = document.createElement("form");
-  form.action =
-    "https://docs.google.com/forms/d/e/1FAIpQLSeHCxQ4czHbx1Gdv649vlr5-Dz9-4DQu5M5OcIfC46WlL-6Qw/formResponse";
-  form.method = "POST";
-  form.target = "hidden_iframe";
-  form.style.display = "none";
+  // Remove all floating balloons
+  clearAllFloating();
 
-  const entries = {
-    "entry.1609572894": studentName,
-    "entry.1168342531": studentClass,
-    "entry.91913727": score,
-    "entry.63569940": totalClicks,
-    "entry.1746910343": correctAnswersList.sort().join(", "),
-    "entry.1748975026": incorrectAnswersList.sort().join(", "),
-  };
+  // Only submit scores if finishing mid-game or if explicitly requested
+  if (redirectToMenu) {
+    // Submit results to Google Form
+    const form = document.createElement("form");
+    form.action =
+      "https://docs.google.com/forms/d/e/1FAIpQLSeHCxQ4czHbx1Gdv649vlr5-Dz9-4DQu5M5OcIfC46WlL-6Qw/formResponse";
+    form.method = "POST";
+    form.target = "hidden_iframe";
+    form.style.display = "none";
 
-  for (let key in entries) {
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = key;
-    input.value = entries[key];
-    form.appendChild(input);
+    const entries = {
+      "entry.1609572894": studentName,
+      "entry.1168342531": studentClass,
+      "entry.91913727": state.score || 0,
+      "entry.63569940": state.totalClicks || 0,
+      "entry.1746910343": (state.correctAnswersList || []).sort().join(", "),
+      "entry.1748975026": (state.incorrectAnswersList || []).sort().join(", "),
+    };
+
+    for (let key in entries) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = entries[key];
+      form.appendChild(input);
+    }
+
+    const iframe = document.createElement("iframe");
+    iframe.name = "hidden_iframe";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+    document.body.appendChild(form);
+
+    // Submit form
+    form.submit();
   }
 
-  const iframe = document.createElement("iframe");
-  iframe.name = "hidden_iframe";
-  iframe.style.display = "none";
-  document.body.appendChild(iframe);
-  document.body.appendChild(form);
-  form.submit();
+  // Clear saved game state only (keep student login)
+  clearGameState();
 
-  if (showModal) {
-    const percentage = totalClicks > 0 ? Math.round((correctAnswers / totalClicks) * 100) : 0;
-    scoreDisplayModal.textContent = `Score: ${score} (${percentage}%)`;
+  // Show modal if requested
+  if (showModal && endModal && scoreDisplayModal) {
+    const percentage =
+      state.totalClicks > 0
+        ? Math.round((state.correctAnswers / state.totalClicks) * 100)
+        : 0;
+    scoreDisplayModal.textContent = `Score: ${state.score || 0} (${percentage}%)`;
     endModal.style.display = "flex";
+
+    if (redirectToMenu) {
+      // mid-game Finish → modal just disappears (no buttons)
+      if (continueBtn) continueBtn.style.display = "none";
+      if (againBtn) againBtn.style.display = "none";
+      if (finishBtn) finishBtn.style.display = "none";
+      if (logoutBtn) logoutBtn.style.display = "none";
+    } else {
+      // Full game completion → show Again, Menu, Logout
+      if (continueBtn) continueBtn.style.display = "none";
+      if (againBtn) againBtn.style.display = "inline-block";
+      if (finishBtn) {
+        finishBtn.textContent = "Menu";
+        finishBtn.style.display = "inline-block";
+      }
+      if (logoutBtn) logoutBtn.style.display = "inline-block";
+    }
   }
 
+  // Redirect if requested (e.g., mid-game Finish button)
   if (redirectToMenu) {
     setTimeout(() => {
       window.location.href = "../index.html";
-    }, 500); // allow form submission time
+    }, 500); // small delay to ensure form submission
   }
 }
 
