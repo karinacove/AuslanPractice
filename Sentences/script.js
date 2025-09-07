@@ -48,45 +48,43 @@ function getRandomDecoys(pool, exclude, count) {
 }
 
 /* ===== Sentence Generator ===== */
-function generateSentence(level, qType) {
+function generateSentence(level) {
   let animal = randomItem(level1to5Animals);
   let number = randomItem(level1to5Numbers);
   let food = randomItem(level1to5Foods);
   let colour = randomItem(level1to5Colours);
 
   if(level === 1){
-    if(qType === 1){
-      correctAnswer = [animal, number];
-      return {prompt: "I see what?", image: `assets/images/${animal}-${number}.png`};
-    } else {
-      correctAnswer = [`${animal}-${number}`];
-      return {prompt: `I see what? ${animal} ${number}`, image: null};
-    }
+    correctAnswer = [`${animal}-${number}`];
+    return { prompt: "I see what?", focus: "animal+number", 
+             sign: `assets/signs/verbs/${animal}-${number}.png`,
+             draggableType: "image", draggableItems: [animal, number] };
   }
 
   if(level === 2){
-    if(qType === 1){
-      correctAnswer = [food, colour];
-      return {prompt: "I see what?", image: `assets/images/${food}-${colour}.png`};
-    } else {
-      correctAnswer = [`${food}-${colour}`];
-      return {prompt: `I see what? ${food} ${colour}`, image: null};
-    }
+    correctAnswer = [`${food}-${colour}`];
+    return { prompt: "I see what?", focus: "food+colour", 
+             sign: `assets/signs/verbs/${food}-${colour}.png`,
+             draggableType: "image", draggableItems: [food, colour] };
   }
 
   if(level === 3){
     correctAnswer = [animal, number, "want", food, colour];
-    return {prompt: `${animal} ${number} want what?`, image: `assets/images/${food}-${colour}.png`};
+    return { prompt: `${animal} ${number} want what?`,
+             sign: `assets/signs/verbs/want.png`,
+             draggableType: "image", draggableItems: [animal, number, food, colour, "want"] };
   }
 
   if(level === 4){
     correctAnswer = [animal, number, "have", food, colour];
-    return {prompt: "Have vs don't have", image: null};
+    return { prompt: "Have vs don't have",
+             sign: null,
+             draggableType: "image", draggableItems: [animal, number, "have", food, colour] };
   }
 
   if(level === 5){
     correctAnswer = [];
-    return {prompt: "Video task", image: null};
+    return { prompt: "Video task", sign: null, draggableType: "none", draggableItems: [] };
   }
 }
 
@@ -97,19 +95,19 @@ function buildQuestion(){
   answerArea.innerHTML = "";
   draggableOptions.innerHTML = "";
 
-  const qData = generateSentence(currentLevel, currentQuestion);
+  const qData = generateSentence(currentLevel);
   sentenceDiv.textContent = qData.prompt;
   imageDiv.innerHTML = "";
 
-  if(qData.image){
+  if(qData.sign){
     const img = document.createElement("img");
-    img.src = qData.image;
+    img.src = qData.sign;
     img.className = "qImage";
     imageDiv.appendChild(img);
   }
 
   // Create dropzones dynamically
-  correctAnswer.forEach(_=>{
+  qData.draggableItems.forEach(_=>{
     const dz = document.createElement("div");
     dz.className = "dropzone";
     dz.addEventListener("dragover", allowDrop);
@@ -117,24 +115,32 @@ function buildQuestion(){
     answerArea.appendChild(dz);
   });
 
-  // Build draggables
-  buildDraggables();
+  // Build draggables using opposite source
+  buildDraggables(qData.draggableItems);
 }
 
 /* ===== Build Draggables ===== */
-function buildDraggables(){
-  let pool = [...correctAnswer];
-  pool.push(...getRandomDecoys(level1to5Animals, correctAnswer, 3));
-  pool.push(...getRandomDecoys(level1to5Numbers, correctAnswer, 3));
-  pool.push(...getRandomDecoys(level1to5Foods, correctAnswer, 3));
-  pool.push(...getRandomDecoys(level1to5Colours, correctAnswer, 3));
+function buildDraggables(items){
+  let pool = [...items];
+
+  // add decoys
+  pool.push(...getRandomDecoys(level1to5Animals, items, 3));
+  pool.push(...getRandomDecoys(level1to5Numbers, items, 3));
+  pool.push(...getRandomDecoys(level1to5Foods, items, 3));
+  pool.push(...getRandomDecoys(level1to5Colours, items, 3));
 
   pool = shuffleArray(pool).slice(0,15);
 
   pool.forEach(word=>{
     const div = document.createElement("div");
     div.className = "draggable";
-    div.textContent = word;
+
+    // image for draggable
+    const img = document.createElement("img");
+    img.src = `assets/images/${word}.png`;
+    img.alt = word;
+    div.appendChild(img);
+
     div.draggable = true;
     div.addEventListener("dragstart", dragStart);
     draggableOptions.appendChild(div);
@@ -142,7 +148,7 @@ function buildDraggables(){
 }
 
 /* ===== Drag & Drop ===== */
-function dragStart(e){ e.dataTransfer.setData("text/plain", e.target.textContent); }
+function dragStart(e){ e.dataTransfer.setData("text/plain", e.target.alt || e.target.textContent); }
 function allowDrop(e){ e.preventDefault(); }
 function drop(e){
   e.preventDefault();
