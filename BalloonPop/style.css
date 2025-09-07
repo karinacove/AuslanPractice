@@ -218,9 +218,9 @@ body, html {
   z-index: 1000;
 }
 
-#stop-Btn img {
-  width: 80px;
-  height: 80px;
+#stop-btn img {
+  width: 100px;
+  height: 100px;
   object-fit: contain;
 }
 /* End Modal Styles */
