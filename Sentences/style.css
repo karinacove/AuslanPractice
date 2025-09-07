@@ -31,9 +31,11 @@ body {
   font-family: sans-serif;
   z-index: 1000;
   font-size: 0.9rem;
+  display: block;  /* ensure it always shows */
 }
 
-#stop-btn {
+/* Stop Button */
+#stopBtn {
   position: fixed;
   top: 20px;
   right: 20px;
@@ -42,7 +44,6 @@ body {
   cursor: pointer;
   z-index: 1000;
 }
-
 #stopBtn:hover {
   background: #f59e0b;
 }
