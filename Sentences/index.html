@@ -17,24 +17,28 @@
 </header>
 
 
-  <main>
-    <div id="questionArea">
-      <!-- Top content: image/signs/video -->
-      <div id="promptDisplay"></div>
-
-      <!-- Dropzone area -->
-      <div id="answerArea"></div>
-
-      <!-- Check button -->
-      <button id="submitBtn">Check</button>
-
-      <!-- Feedback -->
-      <div id="feedback"></div>
+<main>
+  <div id="questionArea">
+    <!-- Top content: image/signs/video -->
+    <div id="promptDisplay">
+      <div id="sentence"></div>
+      <div id="questionImage"></div>
     </div>
 
-    <!-- Draggable grid -->
-    <div id="draggables"></div>
-  </main>
+    <!-- Dropzone area -->
+    <div id="answerArea"></div>
+
+    <!-- Check button -->
+    <button id="checkBtn">Check</button>
+
+    <!-- Feedback -->
+    <div id="feedback"></div>
+  </div>
+
+  <!-- Draggable grid -->
+  <div id="draggables"></div>
+</main>
+
 
   <!-- Hidden Google Form -->
   <form id="googleForm" action="https://docs.google.com/forms/d/e/1FAIpQLSeDjoRouuIIrum-BbkNWt7Rz-ALVAnupFI4RIWbuQulNH9NGw/formResponse" method="POST" target="hidden_iframe">
