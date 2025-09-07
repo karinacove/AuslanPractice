@@ -1,3 +1,27 @@
+// ===== Student Info =====
+let studentName = localStorage.getItem("studentName") || "";
+let studentClass = localStorage.getItem("studentClass") || "";
+
+const studentInfoDiv = document.getElementById("student-info");
+const stopBtn = document.getElementById("stopBtn");
+const promptDisplay = document.getElementById("promptDisplay");
+const answerArea = document.getElementById("answerArea");
+const draggableOptions = document.getElementById("draggableOptions");
+
+// Redirect if not signed in
+if (!studentName || !studentClass) {
+  alert("Please log in first.");
+  window.location.href = "../index.html";
+} else {
+  if (studentInfoDiv) {
+    studentInfoDiv.textContent = `${studentName} (${studentClass})`;
+  }
+
+  // Populate Google Form hidden inputs
+  document.getElementById("formName").value = studentName;
+  document.getElementById("formClass").value = studentClass;
+}
+
 // ==================
 // Sentence Game Script
 // ==================
