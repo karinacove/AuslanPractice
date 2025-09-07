@@ -147,11 +147,21 @@
       });
     }
 
-    if (finishBtn) {
-      finishBtn.addEventListener("click", () => {
-        endGame(false, true);
-      });
-    }
+  if (finishBtn) {
+    finishBtn.addEventListener("click", () => {
+      // Determine context: if the game is still running, it's mid-game
+      const gameRunning = balloonInterval !== null || correctBalloonInterval !== null;
+
+      if (gameRunning) {
+        // Mid-game Finish → submit scores, clear state, redirect
+        endGame(true, true); // showModal = true, redirectToMenu = true
+      } else {
+        // Full-game completion → just redirect to menu, no double submission
+        window.location.href = "../index.html";
+      }
+    });
+  }
+
 
     if (againBtn) {
       againBtn.addEventListener("click", () => {
