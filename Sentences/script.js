@@ -208,7 +208,3 @@ document.getElementById("stopBtn").addEventListener("click", () => {
   saveLevelResults();
   finishGame();
 });
-
-
-// Start automatically
-window.onload = startGame;
