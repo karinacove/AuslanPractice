@@ -208,3 +208,4 @@ document.getElementById("stopBtn").addEventListener("click", () => {
   saveLevelResults();
   finishGame();
 });
+}
