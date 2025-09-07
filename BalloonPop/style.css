@@ -213,6 +213,7 @@ body, html {
   top: 20px;
   right: 20px;
   width: 100px;
+  height: 100px;
   cursor: pointer;
   z-index: 1000;
 }
