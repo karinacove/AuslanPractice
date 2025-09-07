@@ -103,13 +103,13 @@ function generateSentence(level, qType) {
 // ---------- Build Question ----------
 function buildQuestion() {
   const qData = generateSentence(currentLevel, currentQuestion);
+
   const sentenceDiv = document.getElementById("sentence");
   const imageDiv = document.getElementById("questionImage");
-  const draggableDiv = document.getElementById("draggables");
 
   sentenceDiv.textContent = qData.prompt;
   imageDiv.innerHTML = "";
-  draggableDiv.innerHTML = "";
+  draggableOptions.innerHTML = "";
 
   if (qData.image) {
     const img = document.createElement("img");
@@ -123,7 +123,6 @@ function buildQuestion() {
 
 // ---------- Draggables ----------
 function buildDraggables() {
-  const container = document.getElementById("draggables");
   let pool = [...correctAnswer];
 
   pool.push(...getRandomDecoys(level1to5Animals, correctAnswer, 3));
@@ -139,7 +138,7 @@ function buildDraggables() {
     div.textContent = word;
     div.draggable = true;
     div.addEventListener("dragstart", dragStart);
-    container.appendChild(div);
+    draggableOptions.appendChild(div);
   });
 }
 
