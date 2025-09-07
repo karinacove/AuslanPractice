@@ -3,8 +3,11 @@
 // ==================
 
 let currentLevel = 1;
+let currentQuestion = 1;
 let score = 0;
 let startTime;
+let correctCount = 0;
+let incorrectCount = 0;
 let selectedItems = [];
 let correctAnswer = [];
 let gameEnded = false;
@@ -25,56 +28,86 @@ const colours = ["red","yellow","white","green","pink","purple","black","brown",
 const verbs = ["want","eat","like","see","have"];
 
 // ---------- Sentence Generator ----------
-function generateSentence() {
-  let animalPool, numberPool, foodPool, colourPool, verbPool;
+function generateSentence(level, qType) {
+  let animal = randomItem(level1to5Animals);
+  let number = randomItem(level1to5Numbers);
+  let food = randomItem(level1to5Foods);
+  let colour = randomItem(level1to5Colours);
 
-  if (currentLevel <= 5) {
-    animalPool = level1to5Animals;
-    numberPool = level1to5Numbers;
-    foodPool = level1to5Foods;
-    colourPool = level1to5Colours;
-    verbPool = ["want"]; // only want
-  } else {
-    animalPool = animals;
-    numberPool = numbers;
-    foodPool = foods;
-    colourPool = colours;
-    verbPool = verbs; // full set
+  if (level === 1) {
+    if (qType === 1) {
+      correctAnswer = [animal, number];
+      return { prompt: "I see what?", focus: "animal+number", image: `assets/images/${animal}-${number}.png` };
+    } else {
+      correctAnswer = [`${animal}-${number}`];
+      return { prompt: `I see what? ${animal} ${number}`, focus: "image", image: null };
+    }
   }
 
-  const animal = randomItem(animalPool);
-  const number = randomItem(numberPool);
-  const verb = randomItem(verbPool);
-  const food = randomItem(foodPool);
-  const colour = randomItem(colourPool);
+  if (level === 2) {
+    if (qType === 1) {
+      correctAnswer = [food, colour];
+      return { prompt: "I see what?", focus: "food+colour", image: `assets/images/${food}-${colour}.png` };
+    } else {
+      correctAnswer = [`${food}-${colour}`];
+      return { prompt: `I see what? ${food} ${colour}`, focus: "image", image: null };
+    }
+  }
 
-  // Sentence structure: animal, number, verb, food, colour
-  correctAnswer = [animal, number, verb, food, colour];
-  return `${animal} ${number} ${verb} ${food} ${colour}`;
+  if (level === 3) {
+    if (qType === 1) {
+      correctAnswer = [animal, number, "want", food, colour];
+      return { prompt: "{animal-number} want what?", focus: "drag signs", image: `assets/images/${food}-${colour}.png` };
+    } else {
+      correctAnswer = [`${food}-${colour}`];
+      return { prompt: `${animal} ${number} want what?`, focus: "image", image: null };
+    }
+  }
+
+  if (level === 4) {
+    correctAnswer = [animal, number, "have", food, colour];
+    return { prompt: "have vs don't have", focus: "drag signs/images", image: null };
+  }
+
+  if (level === 5) {
+    return { prompt: "Video task", focus: "video integration", image: null };
+  }
+
+  return { prompt: "placeholder", focus: "none", image: null };
 }
 
-// ---------- Draggables (answer + decoys) ----------
-function buildDraggables() {
-  const container = document.getElementById("draggables");
-  container.innerHTML = "";
+// ---------- Build Question ----------
+function buildQuestion() {
+  const qData = generateSentence(currentLevel, currentQuestion);
+  const sentenceDiv = document.getElementById("sentence");
+  const imageDiv = document.getElementById("questionImage");
+  const draggableDiv = document.getElementById("draggables");
 
-  let pool = [...correctAnswer];
+  sentenceDiv.textContent = qData.prompt;
+  imageDiv.innerHTML = "";
+  draggableDiv.innerHTML = "";
 
-  if (currentLevel <= 5) {
-    pool.push(...getRandomDecoys(level1to5Animals, correctAnswer, 3));
-    pool.push(...getRandomDecoys(level1to5Numbers, correctAnswer, 3));
-    pool.push(...getRandomDecoys(level1to5Foods, correctAnswer, 3));
-    pool.push(...getRandomDecoys(level1to5Colours, correctAnswer, 3));
-  } else {
-    pool.push(...getRandomDecoys(animals, correctAnswer, 3));
-    pool.push(...getRandomDecoys(numbers, correctAnswer, 3));
-    pool.push(...getRandomDecoys(foods, correctAnswer, 3));
-    pool.push(...getRandomDecoys(colours, correctAnswer, 3));
-    pool.push(...getRandomDecoys(verbs, correctAnswer, 1));
+  if (qData.image) {
+    const img = document.createElement("img");
+    img.src = qData.image;
+    img.className = "qImage";
+    imageDiv.appendChild(img);
   }
 
-  // Trim to 16 items
-  pool = shuffleArray(pool).slice(0, 16);
+  buildDraggables();
+}
+
+// ---------- Draggables ----------
+function buildDraggables() {
+  const container = document.getElementById("draggables");
+  let pool = [...correctAnswer];
+
+  pool.push(...getRandomDecoys(level1to5Animals, correctAnswer, 3));
+  pool.push(...getRandomDecoys(level1to5Numbers, correctAnswer, 3));
+  pool.push(...getRandomDecoys(level1to5Foods, correctAnswer, 3));
+  pool.push(...getRandomDecoys(level1to5Colours, correctAnswer, 3));
+
+  pool = shuffleArray(pool).slice(0, 15);
 
   pool.forEach(word => {
     const div = document.createElement("div");
@@ -90,12 +123,10 @@ function buildDraggables() {
 function randomItem(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
-
 function getRandomDecoys(pool, exclude, count) {
   const candidates = pool.filter(item => !exclude.includes(item));
   return shuffleArray(candidates).slice(0, count);
 }
-
 function shuffleArray(arr) {
   return arr.sort(() => Math.random() - 0.5);
 }
@@ -104,11 +135,9 @@ function shuffleArray(arr) {
 function dragStart(e) {
   e.dataTransfer.setData("text/plain", e.target.textContent);
 }
-
 function allowDrop(e) {
   e.preventDefault();
 }
-
 function drop(e) {
   e.preventDefault();
   const word = e.dataTransfer.getData("text/plain");
@@ -120,92 +149,89 @@ function drop(e) {
     div.className = "dropped";
     target.appendChild(div);
     selectedItems.push(word);
-    checkCompletion();
   }
 }
 
-function checkCompletion() {
-  const zones = document.querySelectorAll(".dropzone");
-  if (Array.from(zones).every(z => z.childElementCount > 0)) {
-    checkAnswer();
-  }
-}
-
-function checkAnswer() {
+// ---------- Check Answer ----------
+function checkAnswers() {
   if (selectedItems.join(" ") === correctAnswer.join(" ")) {
-    score++;
+    correctCount++;
     alert("✅ Correct!");
   } else {
-    alert("❌ Try again!");
+    incorrectCount++;
+    alert("❌ Incorrect!");
   }
 
   selectedItems = [];
   document.querySelectorAll(".dropzone").forEach(z => z.innerHTML = "");
-  currentLevel++;
-  if (currentLevel <= 10) {
-    startLevel();
+
+  if (currentQuestion === 1) {
+    currentQuestion = 2;
+    buildQuestion();
   } else {
-    endGame();
+    currentLevel++;
+    currentQuestion = 1;
+    if (currentLevel <= 5) {
+      buildQuestion();
+    } else {
+      endGame();
+    }
   }
 }
 
 // ---------- Game Flow ----------
-function startLevel() {
-  const sentence = generateSentence();
-  document.getElementById("sentence").textContent = sentence;
-  buildDraggables();
-}
-
 function startGame() {
   score = 0;
   currentLevel = 1;
+  currentQuestion = 1;
+  correctCount = 0;
+  incorrectCount = 0;
   startTime = Date.now();
   gameEnded = false;
-  startLevel();
+  buildQuestion();
 }
 
 function endGame() {
   gameEnded = true;
   const timeTaken = Math.floor((Date.now() - startTime) / 1000);
-  const percentage = Math.round((score / 10) * 100);
+  const percentage = Math.round((correctCount / (correctCount + incorrectCount)) * 100);
 
-  alert(`Game Over!\nScore: ${score}/10\nTime: ${timeTaken}s\nAccuracy: ${percentage}%`);
+  alert(`Game Over!\nCorrect: ${correctCount}\nIncorrect: ${incorrectCount}\nTime: ${timeTaken}s\nAccuracy: ${percentage}%`);
+  saveLevelResults();
+  finishGame();
+}
 
-// ===== Save Level Results to Google Form Hidden Inputs =====
+// ---------- Google Form Saving ----------
 function saveLevelResults() {
-  if (level === 1) {
+  if (currentLevel === 1) {
     document.querySelector("[name='entry.1150173566']").value = correctCount;
     document.querySelector("[name='entry.28043347']").value = incorrectCount;
   }
-  if (level === 2) {
+  if (currentLevel === 2) {
     document.querySelector("[name='entry.1424808967']").value = correctCount;
     document.querySelector("[name='entry.352093752']").value = incorrectCount;
   }
-  if (level === 3) {
+  if (currentLevel === 3) {
     document.querySelector("[name='entry.475324608']").value = correctCount;
     document.querySelector("[name='entry.1767451434']").value = incorrectCount;
   }
-  if (level === 4) {
+  if (currentLevel === 4) {
     document.querySelector("[name='entry.1405337882']").value = correctCount;
     document.querySelector("[name='entry.1513946929']").value = incorrectCount;
   }
-  // ✅ Add similar mappings for levels 5–10 if needed
 }
 
-// ===== Finish Game =====
 function finishGame() {
   document.getElementById("googleForm").submit();
   alert("All levels complete! Results submitted.");
   window.location.href = "../hub.html";
 }
 
-// ===== Buttons =====
+// ---------- Buttons ----------
 document.getElementById("submitBtn").addEventListener("click", () => {
   checkAnswers();
 });
-
 document.getElementById("stopBtn").addEventListener("click", () => {
   saveLevelResults();
   finishGame();
 });
-}
