@@ -216,6 +216,12 @@ body, html {
   cursor: pointer;
   z-index: 1000;
 }
+
+#stop-Btn img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
 /* End Modal Styles */
 #end-modal {
   display: none;
