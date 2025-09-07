@@ -207,6 +207,14 @@ body, html {
   z-index: 1000;
 }
 
+#stop-btn {
+  position: fixed;
+  finish: 20px;
+  right: 20px;
+  width: 100px;
+  cursor: pointer;
+  z-index: 1000;
+}
 /* End Modal Styles */
 #end-modal {
   display: none;
