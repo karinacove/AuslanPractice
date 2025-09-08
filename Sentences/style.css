@@ -77,7 +77,7 @@ body {
 .draggables {
   position: absolute;
   top: 100px; /* Below top bar */
-  width: 23vw;
+  width: 20vw;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 5px;
@@ -88,12 +88,12 @@ body {
 
 #draggablesLeft {
   left: 20px;
-  max-width: 23vw;
+  max-width: 20vw;
 }
 
 #draggablesRight {
   right: 20px;
-  max-width: 23vw;
+  max-width: 20vw;
 }
 
 /* Draggable Items */
@@ -114,7 +114,7 @@ body {
 =========================== */
 #centerArea {
   flex: 1;
-  margin: 120px 25vw 20px 25vw; /* leave space for side grids, pushed slightly down */
+  margin: 23vw 20px 23vw; /* leave space for side grids, pushed slightly down */
   display: flex;
   flex-direction: column;
   align-items: center;
