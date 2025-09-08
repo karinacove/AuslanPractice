@@ -1,23 +1,89 @@
 /* ===== Global Reset ===== */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+    h1 {
+      background: #004d40;
+      padding: 12px;
+      margin: 0;
+      font-size: 1.6rem;
+    }
 
-body {
-  font-family: sans-serif;
-  background-color: #5b65a9;
-  color: #333;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow-x: hidden;
-  min-height: 100vh;
-}
+    #game {
+      margin: 20px auto;
+      max-width: 1000px;
+    }
 
+    #prompt {
+      margin: 15px auto;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    #prompt img {
+      height: 100px;
+    }
+
+    #draggables {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      justify-items: center;
+      margin: 20px auto;
+    }
+
+    .draggable {
+      background: #00695c;
+      padding: 8px;
+      border-radius: 12px;
+      cursor: grab;
+      transition: transform 0.2s;
+    }
+
+    .draggable img {
+      max-height: 70px;
+    }
+
+    .draggable:active {
+      transform: scale(1.1);
+    }
+
+    #dropzone {
+      min-height: 120px;
+      border: 3px dashed #fff;
+      border-radius: 12px;
+      margin: 20px auto;
+      width: 85%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+    }
+
+    #dropzone img {
+      max-height: 100px;
+    }
+
+    #controls {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+    }
+
+    #controls img {
+      width: 120px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    #controls img:hover {
+      transform: scale(1.1);
+    }
+
+    #feedback img {
+      width: 120px;
+      margin-top: 15px;
+    }
 /* ===== Student Info Box ===== */
 #student-info {
   position: fixed;
