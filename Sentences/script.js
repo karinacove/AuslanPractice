@@ -159,24 +159,79 @@ function buildAnswerBoxes(isOdd) {
 }
 
 /* ===== BUILD DRAGGABLES ===== */
+/* ===== BUILD DRAGGABLES ===== */
 function buildDraggables(isOdd){
   leftDraggables.innerHTML = "";
   rightDraggables.innerHTML = "";
+
   let items = [];
   const totalItems = 16;
 
-  if(currentLevel===1){
-    items = [currentSentence.animal, currentSentence.number];
-  } else if(currentLevel===2){
-    items = [currentSentence.food, currentSentence.colour];
-  } else if(currentLevel>=3){
-    items = [currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour];
+  if (currentLevel === 1) {
+    if (isOdd) {
+      // Question = images, so draggables = signs
+      items = [currentSentence.animal, currentSentence.number];
+    } else {
+      // Question = signs, so draggables = composite image
+      items = [currentSentence.animal + "-" + currentSentence.number];
+    }
+  } 
+  else if (currentLevel === 2) {
+    if (isOdd) {
+      items = [currentSentence.food, currentSentence.colour];
+    } else {
+      items = [currentSentence.food + "-" + currentSentence.colour];
+    }
+  } 
+  else if (currentLevel === 3) {
+    if (isOdd) {
+      items = [
+        currentSentence.animal,
+        currentSentence.number,
+        currentSentence.verb,
+        currentSentence.food,
+        currentSentence.colour
+      ];
+    } else {
+      items = [
+        currentSentence.animal + "-" + currentSentence.number,
+        currentSentence.food + "-" + currentSentence.colour
+      ];
+    }
+  } 
+  else if (currentLevel === 4) {
+    if (isOdd) {
+      items = [
+        currentSentence.animal,
+        currentSentence.number,
+        currentSentence.verb,
+        currentSentence.food,
+        currentSentence.colour
+      ];
+    } else {
+      items = [
+        currentSentence.animal + "-" + currentSentence.number,
+        currentSentence.food + "-" + currentSentence.colour
+      ];
+    }
   }
 
   // add decoys
-  while(items.length<totalItems){
-    let decoy = randomItem([...animals,...numbers,...food,...colours]);
-    if(!items.includes(decoy)) items.push(decoy);
+  while(items.length < totalItems){
+    let decoy;
+    if(isOdd){
+      // decoy signs
+      decoy = randomItem([...animals, ...numbers, ...food, ...colours, ...verbs]);
+      if(!items.includes(decoy)) items.push(decoy);
+    } else {
+      // decoy combos
+      const allCombos = [
+        ...animals.map(a => a + "-" + randomItem(numbers)),
+        ...food.map(f => f + "-" + randomItem(colours))
+      ];
+      decoy = randomItem(allCombos);
+      if(!items.includes(decoy)) items.push(decoy);
+    }
   }
 
   items = shuffleArray(items);
@@ -192,13 +247,18 @@ function buildDraggables(isOdd){
       div.draggable=true;
       div.dataset.value=word;
       const img = document.createElement("img");
-      img.src = word.includes("-") ? compositeImagePath(word) : signPathFor(word);
+      if(isOdd){
+        img.src = signPathFor(word); // signs
+      } else {
+        img.src = compositeImagePath(word); // composite images
+      }
       div.appendChild(img);
       div.addEventListener("dragstart", e=>e.dataTransfer.setData("text/plain",word));
       container.appendChild(div);
     });
   });
 }
+
 
 /* ===== DROP HANDLER ===== */
 function dropHandler(e){
