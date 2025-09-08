@@ -196,7 +196,23 @@ body {
   transform: scale(1.1);
   transition: transform 0.2s;
 }
+#againBtn {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 15px;
+}
 
+#againBtn img {
+  width: 80px;
+  height: 80px;
+  cursor: pointer;
+}
+
+#againBtn img:hover {
+  transform: scale(1.1);
+  transition: transform 0.2s;
+}
 /* ===========================
    Feedback (Correct / Wrong)
 =========================== */
