@@ -11,8 +11,8 @@
     <span id="studentName">Guest</span> – <span id="studentClass">Class</span>
   </div>
   <button id="stopBtn">
-  <img src="assets/stop.png" alt="Stop" />
-</button>
+    <img src="assets/stop.png" alt="Stop" />
+  </button>
 </header>
 <main>
   <div id="questionArea">
@@ -21,13 +21,14 @@
       <div id="sentence"></div>
       <div id="questionImage"></div>
     </div>
-<div id="answerRow">
-  <div id="answerArea"></div>
-  <div id="actionButtons">
-    <img id="checkBtn" src="assets/check.png" alt="Check">
-    <img id="againBtn" src="assets/again.png" alt="Again">
-  </div>
-</div>
+
+    <div id="answerRow">
+      <div id="answerArea"></div>
+      <div id="actionButtons">
+        <img id="checkBtn" src="assets/check.png" alt="Check" style="display:none;">
+        <img id="againBtn" src="assets/again.png" alt="Again" style="display:none;">
+      </div>
+    </div>
 
     <!-- Feedback -->
     <div id="feedback"></div>
@@ -37,29 +38,28 @@
   <div id="draggables"></div>
 </main>
 
+<!-- Hidden Google Form -->
+<form id="googleForm" action="https://docs.google.com/forms/d/e/1FAIpQLSeDjoRouuIIrum-BbkNWt7Rz-ALVAnupFI4RIWbuQulNH9NGw/formResponse" method="POST" target="hidden_iframe">
+  <input type="hidden" name="entry.1040637824" id="formName">
+  <input type="hidden" name="entry.1755746645" id="formClass">
+  <input type="hidden" name="entry.1979136660" value="Sentences">
 
-  <!-- Hidden Google Form -->
-  <form id="googleForm" action="https://docs.google.com/forms/d/e/1FAIpQLSeDjoRouuIIrum-BbkNWt7Rz-ALVAnupFI4RIWbuQulNH9NGw/formResponse" method="POST" target="hidden_iframe">
-    <input type="hidden" name="entry.1040637824" id="formName">
-    <input type="hidden" name="entry.1755746645" id="formClass">
-    <input type="hidden" name="entry.1979136660" value="Sentences">
+  <!-- Level results -->
+  <input type="hidden" name="entry.1150173566" id="formLevel1Correct">
+  <input type="hidden" name="entry.28043347" id="formLevel1Incorrect">
+  <input type="hidden" name="entry.1424808967" id="formLevel2Correct">
+  <input type="hidden" name="entry.352093752" id="formLevel2Incorrect">
+  <input type="hidden" name="entry.475324608" id="formLevel3Correct">
+  <input type="hidden" name="entry.1767451434" id="formLevel3Incorrect">
+  <input type="hidden" name="entry.1405337882" id="formLevel4Correct">
+  <input type="hidden" name="entry.1513946929" id="formLevel4Incorrect">
 
-    <!-- Level results -->
-    <input type="hidden" name="entry.1150173566" id="formLevel1Correct">
-    <input type="hidden" name="entry.28043347" id="formLevel1Incorrect">
-    <input type="hidden" name="entry.1424808967" id="formLevel2Correct">
-    <input type="hidden" name="entry.352093752" id="formLevel2Incorrect">
-    <input type="hidden" name="entry.475324608" id="formLevel3Correct">
-    <input type="hidden" name="entry.1767451434" id="formLevel3Incorrect">
-    <input type="hidden" name="entry.1405337882" id="formLevel4Correct">
-    <input type="hidden" name="entry.1513946929" id="formLevel4Incorrect">
+  <!-- Level 5 video uploads -->
+  <input type="hidden" name="entry.116543611" id="formVideo1Upload">
+  <input type="hidden" name="entry.1475510168" id="formVideo2Upload">
+</form>
+<iframe name="hidden_iframe" style="display:none;"></iframe>
 
-    <!-- Level 5 video uploads -->
-    <input type="hidden" name="entry.116543611" id="formVideo1Upload">
-    <input type="hidden" name="entry.1475510168" id="formVideo2Upload">
-  </form>
-  <iframe name="hidden_iframe" style="display:none;"></iframe>
-
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
