@@ -19,7 +19,7 @@ body {
 /* ===========================
    Top Bar: Student Info & Score
 =========================== */
-#top-bar {
+#topBar {
   position: relative;
   display: flex;
   justify-content: space-between;
@@ -29,24 +29,7 @@ body {
   color: #fff;
 }
 
-#score-display, #scoreboard {
-  position: absolute;
-  left: 20px;
-  background: #28a745;
-  color: #fff;
-  font-weight: bold;
-  padding: 10px 10px;
-  border-radius: 8px;
-  display: flex;
-  font-size: 1rem;
-  align-items: center;
-  gap: 5px;
-  box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.2);
-  z-index: 5;
-  top: 62px;
-}
-
-#student-info {
+#studentInfo {
   position: absolute;
   left: 20px;
   top: 20px;
@@ -55,12 +38,25 @@ body {
   font-weight: bold;
   padding: 10px 10px;
   border-radius: 8px;
-  display: flex;
   font-size: 1rem;
-  align-items: center;
+  display: flex;
   gap: 5px;
   box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.2);
-  z-index: 5;
+}
+
+#scoreDisplay {
+  position: absolute;
+  left: 20px;
+  top: 70px;
+  background: #28a745;
+  color: #fff;
+  font-weight: bold;
+  padding: 10px 10px;
+  border-radius: 8px;
+  font-size: 1rem;
+  display: flex;
+  gap: 5px;
+  box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 /* Stop Button */
@@ -78,9 +74,9 @@ body {
 /* ===========================
    Draggables Grids
 =========================== */
-.draggables-grid {
+.draggables {
   position: absolute;
-  top: 100px; /* Below top bar */
+  top: 120px; /* Below top bar */
   width: 23vw;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -90,11 +86,11 @@ body {
   overflow-y: auto;
 }
 
-#draggables-left {
+#draggablesLeft {
   left: 20px;
 }
 
-#draggables-right {
+#draggablesRight {
   right: 20px;
 }
 
@@ -112,31 +108,25 @@ body {
 /* ===========================
    Main Question & Answer Section
 =========================== */
-main {
+#centerArea {
   flex: 1;
-  margin: 100px 25vw 20px 25vw; /* leave space for side grids */
+  margin: 120px 25vw 20px 25vw; /* leave space for side grids */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
 }
 
-#sentence {
+#questionArea {
   font-size: 1.2rem;
   margin-bottom: 15px;
+  text-align: center;
 }
 
-#questionImage {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-bottom: 15px;
-}
-
-#questionImage img {
+#questionArea img {
   max-width: 150px;
   max-height: 150px;
+  margin: 5px;
 }
 
 /* ===========================
@@ -162,7 +152,6 @@ main {
   color: #999;
   font-weight: bold;
   font-size: 0.9rem;
-  position: relative;
 }
 
 .dropzone.correct {
@@ -183,20 +172,20 @@ main {
 /* ===========================
    Action Buttons
 =========================== */
-#actionButtons {
+#controls {
   display: flex;
   gap: 15px;
   justify-content: center;
   margin-bottom: 20px;
 }
 
-#actionButtons img {
+#controls img {
   width: 100px;
   height: 100px;
   cursor: pointer;
 }
 
-#actionButtons img:hover {
+#controls img:hover {
   transform: scale(1.1);
   transition: transform 0.2s;
 }
@@ -226,7 +215,7 @@ main {
   z-index: 2000;
 }
 
-#endModalContent {
+.modalContent {
   background: #fff;
   padding: 20px;
   border-radius: 12px;
@@ -234,14 +223,14 @@ main {
   min-width: 320px;
 }
 
-#endButtons {
+.modalButtons {
   display: flex;
   gap: 15px;
   justify-content: center;
   margin-top: 20px;
 }
 
-#endButtons img {
+.modalButtons img {
   width: 80px;
   height: 80px;
   cursor: pointer;
