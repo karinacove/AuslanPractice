@@ -115,16 +115,19 @@ body {
 #centerArea {
   position: fixed;
   top: 100px;
-  max-width: 50vw;
-  margin: 0 auto;
+  left: 50%;           /* start at horizontal center */
+  transform: translateX(-50%); /* shift back by half its width to truly center */
+  max-width: 50vw;     /* maximum width 50% of viewport */
+  width: 100%;         /* take full width up to max-width */
   display: flex;
-  flex-direction: row;
+  flex-direction: column; /* if question above answer */
   align-items: center;
+  justify-content: flex-start;
+  gap: 15px;
 }
 
 #questionArea {
   font-size: 1.1rem;
-  margin: 2px;
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -134,13 +137,10 @@ body {
 }
 
 #questionArea img {
-  max-width: 120px; /* reduced size */
+  max-width: 120px; 
   max-height: 120px;
 }
 
-/* ===========================
-   Answer Area
-=========================== */
 #answerArea {
   display: flex;
   gap: 10px;
