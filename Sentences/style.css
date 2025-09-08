@@ -114,7 +114,9 @@ body {
 =========================== */
 #centerArea {
   flex: 1;
-  margin: 23vw 20px 23vw; /* leave space for side grids, pushed slightly down */
+  position: relative;
+  top: 100px;
+  max-width: 50vw;
   display: flex;
   flex-direction: column;
   align-items: center;
