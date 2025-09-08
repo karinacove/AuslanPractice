@@ -86,11 +86,11 @@ body {
   overflow-y: auto;
 }
 
-#draggables-left {
+#draggablesLeft {
   left: 20px;
 }
 
-#draggables-right {
+#draggablesRight {
   right: 20px;
 }
 
