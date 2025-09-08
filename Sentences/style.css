@@ -29,7 +29,7 @@ body {
   color: #fff;
 }
 
-#score-display, #scoreboard {
+#scoreDisplay, #scoreboard {
   position: absolute;
   left: 20px;
   background: #28a745;
@@ -43,7 +43,7 @@ body {
   top: 62px;
 }
 
-#student-info {
+#studentInfo {
   position: absolute;
   left: 20px;
   top: 20px;
@@ -74,7 +74,7 @@ body {
 /* ===========================
    Draggables Grids
 =========================== */
-.draggables-grid {
+.draggables {
   position: absolute;
   top: 100px; /* Below top bar */
   width: 23vw;
@@ -110,7 +110,7 @@ body {
 /* ===========================
    Main Question & Answer Section
 =========================== */
-main {
+#centerArea {
   flex: 1;
   margin: 120px 25vw 20px 25vw; /* leave space for side grids, pushed slightly down */
   display: flex;
@@ -119,12 +119,9 @@ main {
   justify-content: flex-start;
 }
 
-#sentence {
+#questionArea {
   font-size: 1.1rem;
   margin-bottom: 10px;
-}
-
-#questionImage {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -133,7 +130,7 @@ main {
   margin-top: -20px; /* move slightly higher */
 }
 
-#questionImage img {
+#questionArea img {
   max-width: 120px; /* reduced size */
   max-height: 120px;
 }
