@@ -80,7 +80,7 @@ body {
   width: 23vw;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  gap: 5px;
   padding: 10px;
   max-height: 75vh;
   overflow-y: auto;
@@ -96,8 +96,8 @@ body {
 
 /* Draggable Items */
 .draggable {
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   cursor: grab;
 }
 
