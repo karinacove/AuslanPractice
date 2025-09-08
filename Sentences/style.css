@@ -122,7 +122,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 15px;
+  gap: 5px;
   padding: 0 10px;   /* optional: small horizontal padding */
 }
 
@@ -146,7 +146,7 @@ body {
   gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
-  margin-bottom: 15px;
+  margin-bottom: 5px;
 }
 
 .dropzone {
@@ -184,9 +184,9 @@ body {
 =========================== */
 #checkBtn {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   justify-content: center;
-  margin-bottom: 15px;
+  margin: 0;
   background: transparent;
   border: none;
 }
@@ -203,9 +203,9 @@ body {
 }
 #againBtn {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   justify-content: center;
-  margin-bottom: 15px;
+  margin: 0;
   background: transparent;
   border: none;
 }
