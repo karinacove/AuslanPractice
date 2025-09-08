@@ -209,88 +209,93 @@ function buildAnswerDropzones() {
 }
 
 /* ===== DRAGGABLES ===== */
+/* ===== DRAGGABLES ===== */
 function buildDraggablesForCurrentQuestion() {
   draggableOptions.innerHTML = "";
+  
   let items = [];
-
   // Alternate question types: even Q = signs draggable, odd Q = images draggable
   const signsDraggable = roundInLevel % 2 === 0;
-
+  
   if (currentLevel === 1) {
+    // Level 1: animal + number (with decoys of same type)
     if (signsDraggable) {
       items = [currentSentence.animal, currentSentence.number];
+      items = addDecoys(items, allAnimals.concat(allNumbers), 8); // 8 total items
     } else {
       items = [`${currentSentence.animal}-${currentSentence.number}`];
+      items = addDecoys(items, allAnimalNumberCombos, 6); // 6 total items
     }
   } else if (currentLevel === 2) {
+    // Level 2: food + colour
     if (signsDraggable) {
       items = [currentSentence.food, currentSentence.colour];
+      items = addDecoys(items, allFoods.concat(allColours), 8);
     } else {
       items = [`${currentSentence.food}-${currentSentence.colour}`];
+      items = addDecoys(items, allFoodColourCombos, 6);
     }
   } else if (currentLevel === 3 || currentLevel === 4) {
+    // Levels 3–4: animal, number, food, colour
     if (signsDraggable) {
-      items = [
-        currentSentence.animal,
-        currentSentence.number,
-        currentSentence.food,
-        currentSentence.colour
-      ];
+      items = [currentSentence.animal, currentSentence.number, currentSentence.food, currentSentence.colour];
+      items = addDecoys(items, allAnimals.concat(allNumbers, allFoods, allColours), 10);
     } else {
       items = [
         `${currentSentence.animal}-${currentSentence.number}`,
         `${currentSentence.food}-${currentSentence.colour}`
       ];
+      items = addDecoys(items, allPairCombos, 8);
     }
   } else if (currentLevel === 5) {
-    // Level 5: matching my signed videos (5 questions)
-    // draggable options are the signs that match the video
-    items = currentSentence.videoSigns;  
-    // Show the video as the prompt
-    const promptDiv = document.getElementById("prompt");
-    promptDiv.innerHTML = `
-      <video controls autoplay width="240">
-        <source src="assets/videos/${currentSentence.video}" type="video/mp4">
-        Your browser does not support video.
-      </video>
-    `;
+    // Level 5: video signs only
+    items = [...currentSentence.videoSigns];
+    items = addDecoys(items, allVideoSigns, 6);
   } else if (currentLevel === 6) {
-    // Level 6: student uploads their own video (no draggables)
-    const promptDiv = document.getElementById("prompt");
-    promptDiv.innerHTML = `
-      <img src="assets/images/${currentSentence.image}" width="180">
-    `;
-    const answerArea = document.getElementById("answerArea");
-    answerArea.innerHTML = `
-      <div id="recordingControls">
-        <button id="startRec">Start Recording</button>
-        <button id="stopRec" disabled>Stop Recording</button>
-        <video id="preview" autoplay muted></video>
-      </div>
-    `;
-    setupRecordingHandlers();
-    return; // stop here, no draggables in Level 6
+    // Level 6: upload video — no draggables
+    items = [];
   }
-
-  // Build draggable elements (all levels except 6)
+  
+  // Build draggable DOM elements
   items.forEach(word => {
     const div = document.createElement("div");
     div.className = "draggable";
     div.draggable = true;
     div.dataset.value = word;
-
+    
     const img = document.createElement("img");
-    img.src = signPathFor(word) || compositeImagePath(word);
+    if (currentLevel === 5) {
+      img.src = videoThumbnailPath(word); // preview for video signs
+    } else {
+      img.src = signPathFor(word) || compositeImagePath(word);
+    }
     img.alt = word;
     img.className = "draggableImage";
     div.appendChild(img);
-
-    div.addEventListener("dragstart", e =>
-      e.dataTransfer.setData("text/plain", word)
-    );
-
+    
+    div.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", word));
+    
     draggableOptions.appendChild(div);
   });
+}
+
+/* ===== Add Decoys Helper ===== */
+function addDecoys(items, pool, totalCount) {
+  const result = [...items];
+  const needed = totalCount - result.length;
+  const available = pool.filter(x => !result.includes(x));
+  shuffleArray(available);
+  result.push(...available.slice(0, needed));
+  shuffleArray(result);
+  return result;
+}
+
+/* ===== Shuffle Helper ===== */
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
 }
 
 /* ===== DROP HANDLER ===== */
