@@ -88,10 +88,12 @@ body {
 
 #draggablesLeft {
   left: 20px;
+  max-width: 23vw;
 }
 
 #draggablesRight {
-  right: -20px;
+  right: 20px;
+  max-width: 23vw;
 }
 
 /* Draggable Items */
