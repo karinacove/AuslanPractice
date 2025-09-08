@@ -169,19 +169,74 @@ function dropHandler(e){
 }
 
 /* ===== DRAGGABLES ===== */
-function buildDraggablesForCurrentQuestion(){
-  draggableOptions.innerHTML="";
-  let items=[]; const signsDraggable=roundInLevel%2===0;
-  if(currentLevel===1) items=signsDraggable?addDecoys([currentSentence.animal,currentSentence.number],[...allAnimals,...allNumbers],10):addDecoys([`${currentSentence.animal}-${currentSentence.number}`],allAnimalNumberCombos,8);
-  else if(currentLevel===2) items=signsDraggable?addDecoys([currentSentence.food,currentSentence.colour],[...allFoods,...allColours],10):addDecoys([`${currentSentence.food}-${currentSentence.colour}`],allFoodColourCombos,8);
-  else if(currentLevel===3||currentLevel===4) items=signsDraggable?addDecoys([currentSentence.animal,currentSentence.number,currentSentence.food,currentSentence.colour],[...allAnimals,...allNumbers,...allFoods,...allColours],12):addDecoys([`${currentSentence.animal}-${currentSentence.number}`,`${currentSentence.food}-${currentSentence.colour}`],allPairCombos,8);
-  else if(currentLevel===5) items=Array.isArray(currentSentence.videoSigns)?addDecoys(currentSentence.videoSigns.slice(),allVideoSigns,8):[];
-  shuffleArray(items).forEach(word=>{
-    const div=document.createElement("div"); div.className="draggable"; div.draggable=true; div.dataset.value=word;
-    const img=document.createElement("img"); img.alt=word; img.className="draggableImage"; img.src=word.includes("-")?compositeImagePath(word):signPathFor(word)||""; div.appendChild(img);
-    div.addEventListener("dragstart",e=>e.dataTransfer.setData("text/plain",word)); draggableOptions.appendChild(div);
-  });
+function buildDraggablesForCurrentQuestion() {
+  draggableOptions.innerHTML = "";
+
+  // Create left & right containers
+  const leftContainer = document.createElement("div");
+  leftContainer.id = "draggablesLeft";
+  const rightContainer = document.createElement("div");
+  rightContainer.id = "draggablesRight";
+
+  draggableOptions.appendChild(leftContainer);
+  draggableOptions.appendChild(rightContainer);
+
+  let items = [];
+  const signsDraggable = roundInLevel % 2 === 0;
+
+  if (currentLevel === 1)
+    items = signsDraggable
+      ? addDecoys([currentSentence.animal, currentSentence.number], [...allAnimals, ...allNumbers], 10)
+      : addDecoys([`${currentSentence.animal}-${currentSentence.number}`], allAnimalNumberCombos, 8);
+  else if (currentLevel === 2)
+    items = signsDraggable
+      ? addDecoys([currentSentence.food, currentSentence.colour], [...allFoods, ...allColours], 10)
+      : addDecoys([`${currentSentence.food}-${currentSentence.colour}`], allFoodColourCombos, 8);
+  else if (currentLevel === 3 || currentLevel === 4)
+    items = signsDraggable
+      ? addDecoys(
+          [currentSentence.animal, currentSentence.number, currentSentence.food, currentSentence.colour],
+          [...allAnimals, ...allNumbers, ...allFoods, ...allColours],
+          12
+        )
+      : addDecoys(
+          [`${currentSentence.animal}-${currentSentence.number}`, `${currentSentence.food}-${currentSentence.colour}`],
+          allPairCombos,
+          8
+        );
+  else if (currentLevel === 5)
+    items = Array.isArray(currentSentence.videoSigns)
+      ? addDecoys(currentSentence.videoSigns.slice(), allVideoSigns, 8)
+      : [];
+
+  items = shuffleArray(items);
+
+  // Split items roughly in half for left/right
+  const midIndex = Math.ceil(items.length / 2);
+  const leftItems = items.slice(0, midIndex);
+  const rightItems = items.slice(midIndex);
+
+  function createDraggable(word, container) {
+    const div = document.createElement("div");
+    div.className = "draggable";
+    div.draggable = true;
+    div.dataset.value = word;
+
+    const img = document.createElement("img");
+    img.alt = word;
+    img.className = "draggableImage";
+    img.src = word.includes("-") ? compositeImagePath(word) : signPathFor(word) || "";
+    div.appendChild(img);
+
+    div.addEventListener("dragstart", (e) => e.dataTransfer.setData("text/plain", word));
+
+    container.appendChild(div);
+  }
+
+  leftItems.forEach((w) => createDraggable(w, leftContainer));
+  rightItems.forEach((w) => createDraggable(w, rightContainer));
 }
+
 
 /* ===== FEEDBACK ===== */
 function showFeedback(type){ feedbackDiv.innerHTML=`<img src="assets/${type}.png" alt="${type}">`; setTimeout(()=>{feedbackDiv.innerHTML="";},2000); }
