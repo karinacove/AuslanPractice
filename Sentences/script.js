@@ -50,6 +50,16 @@ if (!studentName || !studentClass) {
   if (document.getElementById("formClass")) document.getElementById("formClass").value = studentClass;
 }
 
+/* ===== SCORE DISPLAY ===== */
+let score = 0;
+const scoreDisplay = document.createElement("div");
+scoreDisplay.id = "scoreDisplay";
+scoreDisplay.style.fontSize = "1.2rem";
+scoreDisplay.style.color = "#004d40";
+scoreDisplay.style.marginTop = "5px";
+scoreDisplay.textContent = `Score: ${score}`;
+document.getElementById("student-info").appendChild(scoreDisplay);
+
 /* ===== GAME VARIABLES ===== */
 let currentLevel = 1;
 let roundInLevel = 0; // 0 .. 9
@@ -360,10 +370,11 @@ function startGame() {
   buildQuestion();
 }
 
-/* ===== BUTTON EVENTS ===== */
+/* ===== CHECK BUTTON LOGIC ===== */
 if (checkBtn) checkBtn.addEventListener("click",()=>{  
   const dropzones = Array.from(answerArea.querySelectorAll(".dropzone"));
   let allCorrect = true;
+
   dropzones.forEach(dz=>{
     const filled = dz.dataset.filled;
     if (!expectedDrops.includes(filled)) {
@@ -375,11 +386,40 @@ if (checkBtn) checkBtn.addEventListener("click",()=>{
       correctCount++;
     }
   });
-  if (allCorrect) nextRound();
+
+  const feedbackDiv = document.getElementById("feedback");
+  feedbackDiv.innerHTML = "";
+
+  if (allCorrect) {
+    feedbackDiv.innerHTML = `<img src="assets/correct.png" alt="Correct">`;
+    score += 1;
+    scoreDisplay.textContent = `Score: ${score}`;
+    setTimeout(nextRound, 1000);
+  } else {
+    feedbackDiv.innerHTML = `<img src="assets/wrong.png" alt="Wrong">`;
+    // Return draggables to original area
+    const draggablesDiv = document.getElementById("draggables");
+    dropzones.forEach(dz=>{
+      const img = dz.querySelector("img");
+      if(img) draggablesDiv.appendChild(img);
+      dz.dataset.filled = "";
+      dz.classList.remove("incorrect");
+    });
+  }
 });
 
-const againBtn = document.getElementById("againBtn");
-if (againBtn) againBtn.addEventListener("click",()=>{ buildQuestion(); });
+/* ===== AGAIN BUTTON LOGIC ===== */
+if (againBtn) againBtn.addEventListener("click",()=>{  
+  const draggablesDiv = document.getElementById("draggables");
+  const dropzones = Array.from(answerArea.querySelectorAll(".dropzone"));
+  dropzones.forEach(dz=>{
+    const img = dz.querySelector("img");
+    if(img) draggablesDiv.appendChild(img);
+    dz.dataset.filled = "";
+    dz.classList.remove("correct","incorrect");
+  });
+  feedbackDiv.innerHTML = "";
+});
 
 if (stopBtn) stopBtn.addEventListener("click",endGame);
 
