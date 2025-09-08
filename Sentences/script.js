@@ -159,7 +159,6 @@ function buildAnswerBoxes(isOdd) {
 }
 
 /* ===== BUILD DRAGGABLES ===== */
-/* ===== BUILD DRAGGABLES ===== */
 function buildDraggables(isOdd){
   leftDraggables.innerHTML = "";
   rightDraggables.innerHTML = "";
@@ -276,25 +275,43 @@ function dropHandler(e){
   checkBtn.style.display = allFilled ? "inline-block" : "none";
 }
 
-/* ===== BUTTON EVENTS ===== */
 checkBtn.addEventListener("click",()=>{
   const dropzones = Array.from(answerArea.querySelectorAll(".dropzone"));
   let allCorrect = true;
 
   dropzones.forEach((dz,i)=>{
     let expected="";
-    if(currentLevel===1){
-      expected = (roundInLevel%2===1) ? (i===0 ? currentSentence.animal : currentSentence.number)
-                                     : currentSentence.animal + "-" + currentSentence.number;
-    } else if(currentLevel===2){
-      expected = (roundInLevel%2===1) ? (i===0 ? currentSentence.food : currentSentence.colour)
-                                     : currentSentence.food + "-" + currentSentence.colour;
-    } else if(currentLevel>=3){
-      const sequence = [currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour];
-      expected = sequence[i] || "";
+
+    if (currentLevel === 1) {
+      expected = (roundInLevel % 2 === 1) 
+        ? (i===0 ? currentSentence.animal : currentSentence.number)
+        : currentSentence.animal + "-" + currentSentence.number;
+    } 
+    else if (currentLevel === 2) {
+      expected = (roundInLevel % 2 === 1) 
+        ? (i===0 ? currentSentence.food : currentSentence.colour)
+        : currentSentence.food + "-" + currentSentence.colour;
+    } 
+    else if (currentLevel === 3 || currentLevel === 4) {
+      if (roundInLevel % 2 === 1) {
+        const sequence = [
+          currentSentence.animal,
+          currentSentence.number,
+          currentSentence.verb,
+          currentSentence.food,
+          currentSentence.colour
+        ];
+        expected = sequence[i] || "";
+      } else {
+        const combos = [
+          currentSentence.animal + "-" + currentSentence.number,
+          currentSentence.food + "-" + currentSentence.colour
+        ];
+        expected = combos[i] || "";
+      }
     }
 
-    if(dz.dataset.filled===expected){
+    if (dz.dataset.filled === expected) {
       dz.classList.add("correct");
       correctCount++;
     } else {
