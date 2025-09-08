@@ -136,13 +136,6 @@ main {
 }
 
 /* ===== Draggables ===== */
-#draggables {
-  display: flex;
-  justify-content: space-between; /* left & right sides spread */
-  margin: 20px auto;
-  max-width: 120px;
-}
-
 #draggablesLeft,
 #draggablesRight {
   display: grid;
@@ -160,7 +153,15 @@ main {
   cursor: grab;
   transition: transform 0.2s;
 }
-
+.draggables img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  cursor: grab;
+  max-width: 100%;
+}
+  
 /* ===== Feedback ===== */
 #feedback {
   margin-top: 15px;
