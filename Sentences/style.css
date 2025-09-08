@@ -29,13 +29,38 @@ body {
   color: #fff;
 }
 
-#student-info, #score-display {
+#score-display, #scoreboard {
+  position: absolute;
+  left: 20px;
+  background: #28a745;
+  color: #fff;
   font-weight: bold;
+  padding: 10px 10px;
+  border-radius: 8px;
+  display: flex;
   font-size: 1rem;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 5;
+  top: 62px;
 }
 
-#score-display {
-  margin-left: 20px;
+#student-info {
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  background: #28a745;
+  color: #fff;
+  font-weight: bold;
+  padding: 10px 10px;
+  border-radius: 8px;
+  display: flex;
+  font-size: 1rem;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 5;
 }
 
 /* Stop Button */
@@ -75,13 +100,12 @@ body {
 
 /* Draggable Items */
 .draggable {
-  width: 100%;
+  width: 120px;
   cursor: grab;
 }
 
 .draggable img {
-  width: 100%;
-  max-height: 70px;
+  width: 120px;
   object-fit: contain;
 }
 
@@ -167,8 +191,8 @@ main {
 }
 
 #actionButtons img {
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
   cursor: pointer;
 }
 
