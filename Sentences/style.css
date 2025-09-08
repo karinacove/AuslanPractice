@@ -114,15 +114,16 @@ body {
 #centerArea {
   position: fixed;
   top: 100px;
-  left: 50%;           /* start at horizontal center */
-  transform: translateX(-50%); /* shift back by half its width to truly center */
-  max-width: 50vw;     /* maximum width 50% of viewport */
-  width: 100%;         /* take full width up to max-width */
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 50vw;   /* won't grow beyond 50% of viewport */
+  width: auto;       /* shrink to content if smaller */
   display: flex;
-  flex-direction: column; /* if question above answer */
+  flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   gap: 15px;
+  padding: 0 10px;   /* optional: small horizontal padding */
 }
 
 #questionArea {
