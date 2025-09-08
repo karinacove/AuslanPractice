@@ -135,23 +135,28 @@ main {
 
 /* ===== Draggables ===== */
 #draggables {
-  display: grid;
-  grid-template-columns: repeat(4, 90px);
-  grid-auto-rows: 90px;
-  gap: 12px;
-  justify-content: space-between;
-  width: calc(100% - 40px);
-  max-width: 600px;
-  padding: 0 10px;
-  margin: 10px auto;
+  display: flex;
+  justify-content: space-between; /* left & right sides spread */
+  margin: 20px auto;
+  width: 100%;
 }
-#draggables img {
+
+#draggablesLeft,
+#draggablesRight {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 columns per side */
+  gap: 15px;
+  max-width: 23vw;
+}
+
+#draggablesLeft { margin-left: 20px; }
+#draggablesRight { margin-right: 20px; }
+
+#draggablesLeft .draggable,
+#draggablesRight .draggable {
   max-height: 80px;
   cursor: grab;
   transition: transform 0.2s;
-}
-#draggables img:active {
-  transform: scale(1.1);
 }
 
 /* ===== Feedback ===== */
