@@ -124,23 +124,78 @@ function clearUI() {
 
 function buildPromptForCurrentQuestion() {
   imageDiv.innerHTML = "";
-  expectedDrops.forEach(comp => {
-    if (comp === 'animal-number') {
-      [currentSentence.animal,currentSentence.number].forEach(w=>{
-        const img = document.createElement("img");
-        img.src = signPathFor(w); img.alt = w; img.className = "promptSign"; imageDiv.appendChild(img);
-      });
-    } else if (comp === 'food-colour') {
-      [currentSentence.food,currentSentence.colour].forEach(w=>{
-        const img = document.createElement("img");
-        img.src = signPathFor(w); img.alt = w; img.className = "promptSign"; imageDiv.appendChild(img);
-      });
-    } else if (helperSigns.includes(comp) || verbsAll.includes(comp) || animals.includes(comp) || numbers.includes(comp) || foods.includes(comp) || colours.includes(comp)) {
+  
+  if (currentLevel === 1) {
+    // i see what? signs first
+    ['i','see','what'].forEach(w => {
       const img = document.createElement("img");
-      img.src = signPathFor(comp); img.alt = comp; img.className = "promptSign"; imageDiv.appendChild(img);
+      img.src = signPathFor(w);
+      img.alt = w;
+      img.className = "promptSign";
+      imageDiv.appendChild(img);
+    });
+
+    // main animal-number
+    const combo = `${currentSentence.animal}-${currentSentence.number}`;
+    const imgMain = document.createElement("img");
+    imgMain.src = compositeImagePath(combo);
+    imgMain.alt = combo;
+    imgMain.className = "promptImage";
+    imageDiv.appendChild(imgMain);
+
+  } else if (currentLevel === 2) {
+    ['i','see','what'].forEach(w => {
+      const img = document.createElement("img");
+      img.src = signPathFor(w);
+      img.alt = w;
+      img.className = "promptSign";
+      imageDiv.appendChild(img);
+    });
+
+    const combo = `${currentSentence.food}-${currentSentence.colour}`;
+    const imgMain = document.createElement("img");
+    imgMain.src = compositeImagePath(combo);
+    imgMain.alt = combo;
+    imgMain.className = "promptImage";
+    imageDiv.appendChild(imgMain);
+
+  } else if (currentLevel === 3 || currentLevel === 4) {
+    // Permanent sentence: animal-number + verb + food-colour
+    const comboAN = `${currentSentence.animal}-${currentSentence.number}`;
+    const comboFC = `${currentSentence.food}-${currentSentence.colour}`;
+    
+    const imgAN = document.createElement("img");
+    imgAN.src = compositeImagePath(comboAN);
+    imgAN.alt = comboAN;
+    imgAN.className = "promptImage";
+    
+    const imgFC = document.createElement("img");
+    imgFC.src = compositeImagePath(comboFC);
+    imgFC.alt = comboFC;
+    imgFC.className = "promptImage";
+    
+    imageDiv.appendChild(imgAN);
+    
+    // Verb display for Level 4: have/don't have
+    if (currentLevel === 4) {
+      imgFC.style.marginLeft = currentSentence.verb === "have" ? "0px" : "50px";
     }
-  });
+    
+    imageDiv.appendChild(imgFC);
+    
+  } else if (currentLevel === 5) {
+    // Level 5: 4 videos + 5 dropzones
+    // Display videos in imageDiv
+    currentSentence.videoURLs.forEach(url => {
+      const vid = document.createElement("video");
+      vid.src = url;
+      vid.controls = true;
+      vid.width = 120;
+      imageDiv.appendChild(vid);
+    });
+  }
 }
+
 
 /* ===== DROPZONES ===== */
 function buildAnswerDropzones() {
@@ -157,21 +212,42 @@ function buildAnswerDropzones() {
 /* ===== DRAGGABLES ===== */
 function buildDraggablesForCurrentQuestion() {
   draggableOptions.innerHTML = "";
-  const pool = new Set();
-  expectedDrops.forEach(exp=>{
-    if (exp.includes('-')) pool.add(`${currentSentence.animal}-${currentSentence.number}`||`${currentSentence.food}-${currentSentence.colour}`);
-    else pool.add(exp);
-  });
-  const categories = [animals,numbers,verbsAll,foods,colours,helperSigns];
-  let idx=0; while(pool.size<16){ const arr=categories[idx%categories.length]; pool.add(randomItem(arr)); idx++; }
-  shuffleArray(Array.from(pool)).forEach(w=>{
-    const div = document.createElement("div"); div.className="draggable"; div.draggable=true; div.dataset.value=w;
-    const img = document.createElement("img"); img.src = w.includes('-')?compositeImagePath(w):signPathFor(w)||""; img.alt=w; img.className="draggableImage";
+  
+  let items = [];
+  // Alternate question types: even Q = signs draggable, odd Q = images draggable
+  const signsDraggable = roundInLevel % 2 === 0;
+  
+  if (currentLevel === 1) {
+    if (signsDraggable) items = [currentSentence.animal, currentSentence.number];
+    else items = [`${currentSentence.animal}-${currentSentence.number}`];
+  } else if (currentLevel === 2) {
+    if (signsDraggable) items = [currentSentence.food, currentSentence.colour];
+    else items = [`${currentSentence.food}-${currentSentence.colour}`];
+  } else if (currentLevel === 3 || currentLevel === 4) {
+    if (signsDraggable) items = [currentSentence.animal, currentSentence.number, currentSentence.food, currentSentence.colour];
+    else items = [`${currentSentence.animal}-${currentSentence.number}`, `${currentSentence.food}-${currentSentence.colour}`];
+  } else if (currentLevel === 5) {
+    items = currentSentence.videoSigns; // signs from watched videos
+  }
+  
+  items.forEach(word => {
+    const div = document.createElement("div");
+    div.className = "draggable";
+    div.draggable = true;
+    div.dataset.value = word;
+    
+    const img = document.createElement("img");
+    img.src = signPathFor(word) || compositeImagePath(word);
+    img.alt = word;
+    img.className = "draggableImage";
     div.appendChild(img);
-    div.addEventListener("dragstart", e=>e.dataTransfer.setData("text/plain", w));
+    
+    div.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", word));
+    
     draggableOptions.appendChild(div);
   });
 }
+
 
 /* ===== DROP HANDLER ===== */
 function dropHandler(e){
