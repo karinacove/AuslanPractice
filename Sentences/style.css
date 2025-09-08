@@ -179,20 +179,20 @@ body {
 /* ===========================
    Action Buttons
 =========================== */
-#actionButtons {
+#checkBtn {
   display: flex;
   gap: 10px;
   justify-content: center;
   margin-bottom: 15px;
 }
 
-#actionButtons img {
+#checkBtn img {
   width: 80px;
   height: 80px;
   cursor: pointer;
 }
 
-#actionButtons img:hover {
+#checkBtn img:hover {
   transform: scale(1.1);
   transition: transform 0.2s;
 }
