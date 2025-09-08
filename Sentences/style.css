@@ -9,7 +9,7 @@
 
 body {
   font-family: sans-serif;
-  background: #f0f4f5;
+  background: #5b65a9; /* Game background */
   height: 100vh;
   overflow: hidden;
   display: flex;
@@ -19,114 +19,123 @@ body {
 /* ===========================
    Top Bar: Student Info & Score
 =========================== */
-#topBar {
+#top-bar {
   position: relative;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   padding: 10px 20px;
-  background: #28a745;
+  background: transparent; /* Transparent top bar */
   color: #fff;
 }
 
-#studentInfo {
+#score-display, #scoreboard {
+  position: absolute;
+  left: 20px;
+  background: #28a745;
+  color: #fff;
+  font-weight: bold;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 5;
+  top: 62px;
+}
+
+#student-info {
   position: absolute;
   left: 20px;
   top: 20px;
   background: #28a745;
   color: #fff;
   font-weight: bold;
-  padding: 10px 10px;
+  padding: 8px 10px;
   border-radius: 8px;
-  font-size: 1rem;
-  display: flex;
-  gap: 5px;
+  font-size: 0.9rem;
   box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.2);
-}
-
-#scoreDisplay {
-  position: absolute;
-  left: 20px;
-  top: 70px;
-  background: #28a745;
-  color: #fff;
-  font-weight: bold;
-  padding: 10px 10px;
-  border-radius: 8px;
-  font-size: 1rem;
-  display: flex;
-  gap: 5px;
-  box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 5;
 }
 
 /* Stop Button */
 #stopBtn {
   background: none;
   border: none;
-  height: 100px;
   cursor: pointer;
+  position: absolute;
+  right: 20px; /* 20px from right */
+  top: 20px;
 }
 #stopBtn img {
-  width: 100px;
-  height: 100px;
+  width: 80px; /* slightly smaller for iPad */
+  height: 80px;
 }
 
 /* ===========================
    Draggables Grids
 =========================== */
-.draggables {
+.draggables-grid {
   position: absolute;
-  top: 120px; /* Below top bar */
+  top: 100px; /* Below top bar */
   width: 23vw;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
+  gap: 10px;
   padding: 10px;
-  max-height: 80vh;
+  max-height: 75vh;
   overflow-y: auto;
 }
 
-#draggablesLeft {
+#draggables-left {
   left: 20px;
 }
 
-#draggablesRight {
+#draggables-right {
   right: 20px;
 }
 
 /* Draggable Items */
 .draggable {
-  width: 120px;
+  width: 100px;
+  height: 100px;
   cursor: grab;
 }
 
 .draggable img {
-  width: 120px;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
 }
 
 /* ===========================
    Main Question & Answer Section
 =========================== */
-#centerArea {
+main {
   flex: 1;
-  margin: 120px 25vw 20px 25vw; /* leave space for side grids */
+  margin: 120px 25vw 20px 25vw; /* leave space for side grids, pushed slightly down */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
 }
 
-#questionArea {
-  font-size: 1.2rem;
-  margin-bottom: 15px;
-  text-align: center;
+#sentence {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
 }
 
-#questionArea img {
-  max-width: 150px;
-  max-height: 150px;
-  margin: 5px;
+#questionImage {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 15px;
+  margin-top: -20px; /* move slightly higher */
+}
+
+#questionImage img {
+  max-width: 120px; /* reduced size */
+  max-height: 120px;
 }
 
 /* ===========================
@@ -134,10 +143,10 @@ body {
 =========================== */
 #answerArea {
   display: flex;
-  gap: 15px;
+  gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .dropzone {
@@ -151,7 +160,8 @@ body {
   background: #fafafa;
   color: #999;
   font-weight: bold;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  position: relative;
 }
 
 .dropzone.correct {
@@ -172,20 +182,20 @@ body {
 /* ===========================
    Action Buttons
 =========================== */
-#controls {
+#actionButtons {
   display: flex;
-  gap: 15px;
+  gap: 10px;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
-#controls img {
-  width: 100px;
-  height: 100px;
+#actionButtons img {
+  width: 80px;
+  height: 80px;
   cursor: pointer;
 }
 
-#controls img:hover {
+#actionButtons img:hover {
   transform: scale(1.1);
   transition: transform 0.2s;
 }
@@ -194,11 +204,11 @@ body {
    Feedback (Correct / Wrong)
 =========================== */
 #feedback {
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: bold;
   text-align: center;
-  margin-bottom: 20px;
-  min-height: 40px;
+  margin-bottom: 15px;
+  min-height: 30px;
 }
 
 /* ===========================
@@ -215,23 +225,23 @@ body {
   z-index: 2000;
 }
 
-.modalContent {
+#endModalContent {
   background: #fff;
-  padding: 20px;
+  padding: 15px;
   border-radius: 12px;
   text-align: center;
-  min-width: 320px;
+  min-width: 280px;
 }
 
-.modalButtons {
+#endButtons {
   display: flex;
-  gap: 15px;
+  gap: 10px;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 15px;
 }
 
-.modalButtons img {
-  width: 80px;
-  height: 80px;
+#endButtons img {
+  width: 70px;
+  height: 70px;
   cursor: pointer;
 }
