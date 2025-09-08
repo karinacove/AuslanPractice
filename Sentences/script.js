@@ -35,10 +35,12 @@ let gameEnded = false;
 let startTime;
 
 /* ===== Vocabulary ===== */
-const level1to5Animals = ["dog", "cat", "mouse", "bird", "fish", "rabbit"];
-const level1to5Numbers = ["one","two","three","four","five","six","seven","eight","nine","ten"];
-const level1to5Foods = ["apple","banana","pear","grape","orange","strawberry","watermelon"];
-const level1to5Colours = ["red","yellow","white","green","pink","purple","black","brown","orange","blue"];
+const animals = ["dog", "cat", "mouse", "bird", "fish", "rabbit"];
+const numbers = ["one","two","three","four","five","six","seven","eight","nine","ten"];
+const foods = ["apple","banana","pear","grape","orange","strawberry","watermelon"];
+const colours = ["red","yellow","white","green","pink","purple","black","brown","orange","blue"];
+const verbsBasic = ["want"];
+const verbsAll = ["want","eat","like","have"];
 
 /* ===== Utility Functions ===== */
 function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
@@ -49,42 +51,40 @@ function getRandomDecoys(pool, exclude, count) {
 
 /* ===== Sentence Generator ===== */
 function generateSentence(level) {
-  let animal = randomItem(level1to5Animals);
-  let number = randomItem(level1to5Numbers);
-  let food = randomItem(level1to5Foods);
-  let colour = randomItem(level1to5Colours);
+  let animal = randomItem(animals);
+  let number = randomItem(numbers);
+  let food = randomItem(foods);
+  let colour = randomItem(colours);
 
   if(level === 1){
-    correctAnswer = [`${animal}-${number}`];
-    return { prompt: "I see what?", focus: "animal+number", 
-             sign: `assets/signs/verbs/${animal}-${number}.png`,
-             draggableType: "image", draggableItems: [animal, number] };
+    let combo = `${animal}-${number}`;
+    correctAnswer = [combo];
+    return { 
+      prompt: "Select the correct animal with number",
+      sign: `assets/signs/animals/${animal}-sign.png`,
+      draggableItems: [combo] 
+    };
   }
 
   if(level === 2){
-    correctAnswer = [`${food}-${colour}`];
-    return { prompt: "I see what?", focus: "food+colour", 
-             sign: `assets/signs/verbs/${food}-${colour}.png`,
-             draggableType: "image", draggableItems: [food, colour] };
+    let combo = `${food}-${colour}`;
+    correctAnswer = [combo];
+    return { 
+      prompt: "Select the correct food with colour",
+      sign: `assets/signs/food/${food}-sign.png`,
+      draggableItems: [combo] 
+    };
   }
 
-  if(level === 3){
-    correctAnswer = [animal, number, "want", food, colour];
-    return { prompt: `${animal} ${number} want what?`,
-             sign: `assets/signs/verbs/want.png`,
-             draggableType: "image", draggableItems: [animal, number, food, colour, "want"] };
-  }
-
-  if(level === 4){
-    correctAnswer = [animal, number, "have", food, colour];
-    return { prompt: "Have vs don't have",
-             sign: null,
-             draggableType: "image", draggableItems: [animal, number, "have", food, colour] };
-  }
-
-  if(level === 5){
-    correctAnswer = [];
-    return { prompt: "Video task", sign: null, draggableType: "none", draggableItems: [] };
+  if(level >= 3){
+    let verbs = level <= 5 ? verbsBasic : verbsAll;
+    let verb = randomItem(verbs);
+    correctAnswer = [animal, number, verb, food, colour];
+    return { 
+      prompt: `${animal} ${number} ${verb} ${colour} ${food}`,
+      sign: `assets/signs/verbs/${verb}-sign.png`,
+      draggableItems: [animal, number, verb, food, colour] 
+    };
   }
 }
 
@@ -115,7 +115,7 @@ function buildQuestion(){
     answerArea.appendChild(dz);
   });
 
-  // Build draggables using opposite source
+  // Build draggables
   buildDraggables(qData.draggableItems);
 }
 
@@ -124,23 +124,40 @@ function buildDraggables(items){
   let pool = [...items];
 
   // add decoys
-  pool.push(...getRandomDecoys(level1to5Animals, items, 3));
-  pool.push(...getRandomDecoys(level1to5Numbers, items, 3));
-  pool.push(...getRandomDecoys(level1to5Foods, items, 3));
-  pool.push(...getRandomDecoys(level1to5Colours, items, 3));
+  pool.push(...getRandomDecoys(animals, items, 3));
+  pool.push(...getRandomDecoys(numbers, items, 3));
+  pool.push(...getRandomDecoys(foods, items, 3));
+  pool.push(...getRandomDecoys(colours, items, 3));
+  if(currentLevel >= 3){
+    let verbs = currentLevel <= 5 ? verbsBasic : verbsAll;
+    pool.push(...getRandomDecoys(verbs, items, 2));
+  }
 
-  pool = shuffleArray(pool).slice(0,15);
+  pool = shuffleArray(pool).slice(0,16);
 
   pool.forEach(word=>{
     const div = document.createElement("div");
     div.className = "draggable";
-
-    // image for draggable
     const img = document.createElement("img");
-    img.src = `assets/images/${word}.png`;
+
+    // decide path
+    if(animals.includes(word)){
+      img.src = `assets/signs/animals/${word}-sign.png`;
+    } else if(numbers.includes(word)){
+      img.src = `assets/signs/numbers/${word}-sign.png`;
+    } else if(foods.includes(word)){
+      img.src = `assets/signs/food/${word}-sign.png`;
+    } else if(colours.includes(word)){
+      img.src = `assets/signs/colours/${word}-sign.png`;
+    } else if(verbsAll.includes(word)){
+      img.src = `assets/signs/verbs/${word}-sign.png`;
+    } else if(word.includes("-")) {
+      // composite image (e.g., dog-one or apple-red)
+      img.src = `assets/images/${word}.png`;
+    }
+
     img.alt = word;
     div.appendChild(img);
-
     div.draggable = true;
     div.addEventListener("dragstart", dragStart);
     draggableOptions.appendChild(div);
@@ -183,7 +200,7 @@ function checkAnswers(){
     answerArea.innerHTML = "";
     currentQuestion = currentQuestion === 1 ? 2 : 1;
     if(currentQuestion === 1){ currentLevel++; }
-    if(currentLevel <= 5){
+    if(currentLevel <= 10){
       buildQuestion();
     } else {
       endGame();
