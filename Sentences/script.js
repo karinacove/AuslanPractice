@@ -137,11 +137,22 @@ function buildPromptForCurrentQuestion(){
 /* ===== DROPZONES ===== */
 function buildAnswerDropzones(){
   answerArea.innerHTML="";
-  const dropCount = expectedDrops.length || 2;
+  let dropCount = expectedDrops.length || 2; // default
+
+  // Level 5 (video) always has 3 dropzones
+  if(currentLevel===5) dropCount = 3;
+
   for(let i=0;i<dropCount;i++){
-    const dz=document.createElement("div"); dz.className="dropzone"; dz.dataset.filled=""; dz.addEventListener("dragover",e=>e.preventDefault()); dz.addEventListener("drop",dropHandler); answerArea.appendChild(dz);
+    const dz=document.createElement("div");
+    dz.className="dropzone";
+    dz.dataset.filled="";
+    dz.addEventListener("dragover", e=>e.preventDefault());
+    dz.addEventListener("drop", dropHandler);
+    answerArea.appendChild(dz);
   }
-  if(againBtn) againBtn.style.display="none"; if(checkBtn) checkBtn.style.display="none";
+
+  if(againBtn) againBtn.style.display="none";
+  if(checkBtn) checkBtn.style.display="none";
 }
 
 /* ===== DROP HANDLER ===== */
