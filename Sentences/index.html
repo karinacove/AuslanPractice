@@ -1,70 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sentences Game</title>
-<link rel="stylesheet" href="style.css">
-</head>
 <body>
-
-<!-- ===== Top Bar ===== -->
-<div id="top-bar">
-  <div id="student-info">
-    <span id="studentName">Student Name</span> | 
-    <span id="studentClass">Class</span>
-  </div>
-  <div id="score-display">Level 1 - Question 1/10</div>
-  <button id="stopBtn"><img src="assets/stop.png" alt="Stop"></button>
-</div>
-
-<!-- ===== Left & Right Draggables ===== -->
-<div id="draggables-left" class="draggables-grid"></div>
-<div id="draggables-right" class="draggables-grid"></div>
-
-<!-- ===== Main Question & Answer Section ===== -->
-<main>
-  <!-- Question section -->
-  <div id="sentence"></div>
-  <div id="questionImage"></div>
-
-  <!-- Answer section -->
-  <div id="answerArea"></div>
-</main>
-
-<!-- ===== Buttons ===== -->
-<div id="actionButtons">
-  <img id="againBtn" src="assets/again.png" alt="Again" style="display:none;">
-  <img id="checkBtn" src="assets/check.png" alt="Check" style="display:none;">
-</div>
-
-<!-- ===== Feedback ===== -->
-<div id="feedback"></div>
-
-<!-- ===== End Modal ===== -->
-<div id="endModal" style="display:none;">
-  <div id="endModalContent">
-    <h2>Well done!</h2>
-    <p>Score: <span id="finalScore"></span></p>
-    <p>Percent: <span id="finalPercent"></span></p>
-    <div id="endButtons">
-      <img id="againEndBtn" src="assets/again.png" alt="Play Again">
-      <img id="finishBtn" src="assets/finish.png" alt="Finish">
-      <img id="logoutBtn" src="assets/logout.png" alt="Logout">
+  <div id="topBar">
+    <div id="studentInfo">
+      <span id="studentName"></span> | <span id="studentClass"></span>
     </div>
+    <div id="scoreDisplay"></div>
+    <button id="stopBtn"><img src="assets/stop.png" alt="Stop"></button>
   </div>
-</div>
 
-<!-- ===== Google Form ===== -->
-<form id="googleForm" action="YOUR_GOOGLE_FORM_ACTION_URL" method="POST" style="display:none;">
-  <input type="hidden" name="entry.1040637824" id="formName">
-  <input type="hidden" name="entry.1755746645" id="formClass">
-  <input type="hidden" name="entry.1979136660" value="Sentences">
-  <input type="hidden" name="entry.120322685" value="">
-  <input type="hidden" name="entry.1519181393" value="">
-  <!-- Add per-level correct/incorrect hidden inputs here -->
-</form>
+  <div id="gameArea">
+    <div id="draggablesLeft" class="draggables"></div>
 
-<script src="script.js"></script>
+    <div id="centerArea">
+      <div id="questionArea"></div>
+      <div id="answerArea"></div>
+      <div id="feedback"></div>
+      <div id="controls">
+        <button id="checkBtn"><img src="assets/check.png" alt="Check"></button>
+        <button id="againBtn"><img src="assets/again.png" alt="Again"></button>
+      </div>
+    </div>
+
+    <div id="draggablesRight" class="draggables"></div>
+  </div>
+
+  <!-- End Modal -->
+  <div id="endModal" style="display:none;">
+    <p>Final Score: <span id="finalScore"></span></p>
+    <p>Percentage: <span id="finalPercent"></span></p>
+    <button id="playAgain"><img src="assets/again.png" alt="Play Again"></button>
+    <button id="finish"><img src="assets/menu.png" alt="Finish"></button>
+    <button id="logout"><img src="assets/logout.png" alt="Logout"></button>
+  </div>
+
+  <!-- Hidden Google Form -->
+  <form id="googleForm" action="YOUR_GOOGLE_FORM_URL" method="POST" style="display:none;"></form>
+
+  <script src="script.js"></script>
 </body>
-</html>
