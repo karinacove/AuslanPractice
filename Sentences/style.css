@@ -42,6 +42,7 @@ body {
 #stopBtn {
   background: none;
   border: none;
+  height: 100px;
   cursor: pointer;
 }
 #stopBtn img {
