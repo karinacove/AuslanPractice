@@ -62,6 +62,20 @@ main {
   background-color: #d97706;
 }
 
+#scoreboard {
+  position: absolute;
+  top: 62px;
+  left: 20px;
+  background: white;
+  padding: 10px 10px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  display: flex;
+  gap: 15px;
+  font-size: 18px;
+  z-index: 5;
+}
+
 /* ===== Prompt Display ===== */
 #promptDisplay {
   display: flex;
