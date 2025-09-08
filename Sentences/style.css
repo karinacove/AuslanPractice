@@ -1,108 +1,133 @@
-/* ===== Global Reset ===== */
-h1 {
-  background: #004d40;
-  padding: 12px;
+/* ===========================
+   Global Reset
+=========================== */
+* {
+  box-sizing: border-box;
   margin: 0;
-  font-size: 1.6rem;
-  color: #fff;
+  padding: 0;
 }
 
 body {
   font-family: sans-serif;
-  margin: 0;
-  padding: 0;
   background: #f0f4f5;
-}
-
-/* ===== Main Layout ===== */
-main {
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* vertical centering */
-  align-items: center;     /* horizontal centering */
-  min-height: 100vh;
-  padding: 20px;
-  box-sizing: border-box;
 }
 
-/* ===== Student Info Box ===== */
-#student-info {
-  position: fixed;
-  top: 20px;
-  left: 20px;
+/* ===========================
+   Top Bar: Student Info & Score
+=========================== */
+#top-bar {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 10px 20px;
   background: #28a745;
   color: #fff;
-  padding: 8px 16px;
-  border-radius: 10px;
-  font-weight: bold;
-  z-index: 1000;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  box-shadow: 1px 2px 6px rgba(0,0,0,0.2);
 }
 
-/* ===== Stop Button ===== */
+#student-info, #score-display {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+#score-display {
+  margin-left: 20px;
+}
+
+/* Stop Button */
 #stopBtn {
-  position: fixed;
-  top: 20px;
-  right: 20px;
   background: none;
   border: none;
   cursor: pointer;
-  z-index: 1000;
 }
 #stopBtn img {
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
+}
+
+/* ===========================
+   Draggables Grids
+=========================== */
+.draggables-grid {
+  position: absolute;
+  top: 100px; /* Below top bar */
+  width: 23vw;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  padding: 10px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+#draggables-left {
+  left: 20px;
+}
+
+#draggables-right {
+  right: 20px;
+}
+
+/* Draggable Items */
+.draggable {
+  width: 100%;
+  cursor: grab;
+}
+
+.draggable img {
+  width: 100%;
+  max-height: 70px;
   object-fit: contain;
 }
-#stopBtn:hover {
-  background-color: #d97706;
-}
 
-#scoreboard {
-  position: absolute;
-  top: 62px;
-  left: 20px;
-  background: #28a745;
-  color: #fff;
-  font-weight: bold;
-  padding: 10px 10px;
-  border-radius: 8px;
-  display: flex;
-  font-size: 1rem;
-  align-items: center;
-  gap: 5px;
-  box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.2);
-  z-index: 5;
-
-/* ===== Prompt Display ===== */
-#promptDisplay {
+/* ===========================
+   Main Question & Answer Section
+=========================== */
+main {
+  flex: 1;
+  margin: 100px 25vw 20px 25vw; /* leave space for side grids */
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
-  margin-bottom: 40px;
+  justify-content: flex-start;
 }
-#promptDisplay img {
+
+#sentence {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+}
+
+#questionImage {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+#questionImage img {
   max-width: 150px;
   max-height: 150px;
 }
 
-/* ===== Answer Area: 4x4 Dropzones ===== */
+/* ===========================
+   Answer Area
+=========================== */
 #answerArea {
-  display: grid;
-  grid-template-columns: repeat(5, 100px);
-  width: calc(100% - 400px);
-  max-width: 5500px;
-  gap: 10px;
-  justify-content: space-between; /* left 2 columns left, right 2 columns right */
-  padding: 0 10px;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 20px;
 }
 
-#answerArea .dropzone {
+.dropzone {
+  min-width: 100px;
+  min-height: 100px;
   border: 3px dashed #bbb;
   border-radius: 12px;
   display: flex;
@@ -110,135 +135,89 @@ main {
   align-items: center;
   background: #fafafa;
   color: #999;
-  padding: 5px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  position: relative;
 }
-#answerArea img {
+
+.dropzone.correct {
+  background-color: #bbf7d0;
+  border-color: #22c55e;
+}
+
+.dropzone.incorrect {
+  background-color: #fecaca;
+  border-color: #dc2626;
+}
+
+.dropzone img {
   max-width: 100px;
   max-height: 100px;
 }
 
-/* ===== Action Buttons ===== */
+/* ===========================
+   Action Buttons
+=========================== */
 #actionButtons {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 20px;
 }
+
 #actionButtons img {
+  width: 80px;
+  height: 80px;
   cursor: pointer;
-  width: 120px;
-  height: 120px;
-  object-fit: contain;
-  display: block;
 }
+
 #actionButtons img:hover {
   transform: scale(1.1);
   transition: transform 0.2s;
 }
 
-/* ===== Draggables ===== */
-#draggablesLeft,
-#draggablesRight {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 2 columns per side */
-  gap: 15px;
-  max-width: 23vw;
-}
-
-#draggablesLeft { margin-left: 20px; }
-#draggablesRight { margin-right: 20px; }
-
-#draggablesLeft .draggable,
-#draggablesRight .draggable {
-  max-height: 80px;
-  cursor: grab;
-  transition: transform 0.2s;
-}
-.draggables img {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 1 / 1;
-  object-fit: contain;
-  cursor: grab;
-  max-width: 100%;
-}
-  
-/* ===== Feedback ===== */
+/* ===========================
+   Feedback (Correct / Wrong)
+=========================== */
 #feedback {
-  margin-top: 15px;
-}
-.correct {
-  background: #bbf7d0 !important;
-  border-color: #22c55e !important;
-}
-.incorrect {
-  background: #fecaca !important;
-  border-color: #dc2626 !important;
-}
-.shake {
-  animation: shake 0.6s;
-}
-@keyframes shake {
-  0%,100% { transform: translateX(0px); }
-  25% { transform: translateX(-5px); }
-  50% { transform: translateX(5px); }
-  75% { transform: translateX(-5px); }
-}
-
-/* ===== End Modal Buttons ===== */
-#end-modal-content img {
-  width: 100px !important;
-  height: 100px !important;
-  object-fit: contain !important;
-  margin: 10px;
-  cursor: pointer;
-}
-
-/* ===== Score Display ===== */
-#score-display {
-  font-size: 24px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
   margin-bottom: 20px;
+  min-height: 40px;
 }
 
-/* ===== Submit / Recording Controls ===== */
-#submitBtn {
-  margin-top: 20px;
-  background: #1e3a8a;
-  color: #fbbf24;
-  border: none;
-  font-size: 16px;
-  padding: 10px 18px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.3s;
-}
-#submitBtn:hover {
-  background: #2563eb;
-}
-
-#recordingControls {
-  margin-top: 25px;
+/* ===========================
+   End Modal
+=========================== */
+#endModal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  gap: 10px;
+  z-index: 2000;
 }
-#recordingControls button {
-  background: #fbbf24;
-  border: none;
-  color: #1e3a8a;
-  padding: 8px 16px;
-  border-radius: 8px;
+
+#endModalContent {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  min-width: 320px;
+}
+
+#endButtons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+#endButtons img {
+  width: 80px;
+  height: 80px;
   cursor: pointer;
-  font-weight: bold;
-}
-#recordingControls button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-video {
-  max-width: 320px;
-  border-radius: 10px;
-  margin-top: 10px;
-  box-shadow: 2px 2px 6px rgba(0,0,0,0.15);
 }
