@@ -64,9 +64,9 @@ let mode = "image";
 let startTime = null;
 
 /* ===== VOCABULARY & DECOY POOLS ===== */
-const animals = ["dog","cat","mouse","bird","fish","rabbit","cow","sheep","horse","pig"];
+const animals = ["dog", "cat", "mouse", "bird", "fish", "rabbit"];
 const numbers = ["one","two","three","four","five","six","seven","eight","nine","ten"];
-const foods = ["apple","banana","pear","grape","orange","strawberry","watermelon","bread","cake","pizza"];
+const foods = ["apple","banana","pear","grape","orange","strawberry","watermelon"];
 const colours = ["red","yellow","white","green","pink","purple","black","brown","orange","blue"];
 const verbsBasic = ["want"];
 const verbsAll = ["want","eat","like","have","see"];
