@@ -184,6 +184,7 @@ body {
   gap: 10px;
   justify-content: center;
   margin-bottom: 15px;
+  background: transparent;
 }
 
 #checkBtn img {
@@ -201,6 +202,7 @@ body {
   gap: 10px;
   justify-content: center;
   margin-bottom: 15px;
+  background: transparent;
 }
 
 #againBtn img {
