@@ -350,7 +350,7 @@ function endGame(){
   if(googleForm){ try{ googleForm.submit(); } catch(err){ console.warn(err); } }
   stopLocalStream();
   alert(`Finished. Correct:${correctCount} | Incorrect:${incorrectCount} | Time:${timeTaken}s | Accuracy:${percent}%`);
-  window.location.href="../hub.html";
+  window.location.href="../index.html";
 }
 
 /* ===== BUTTONS ===== */
