@@ -1,6 +1,6 @@
 /* ============================
    Sentences Game - script.js
-   Fully merged: dropzones, again/check logic, Level-specific draggables
+   Fully merged: dropzones, again/check logic, Level-specific draggables, feedback & score
    ============================ */
 
 /* ===== CONFIG ===== */
@@ -38,8 +38,18 @@ const answerArea = document.getElementById("answerArea");
 const draggableOptions = document.getElementById("draggables");
 const feedbackDiv = document.getElementById("feedback");
 const checkBtn = document.getElementById("checkBtn");
+const againBtn = document.getElementById("againBtn");
 const googleForm = document.getElementById("googleForm");
 
+/* ===== SCORE ===== */
+const scoreDisplay = document.createElement("div");
+scoreDisplay.style.fontSize = "18px";
+scoreDisplay.style.marginTop = "10px";
+scoreDisplay.style.fontWeight = "bold";
+if(studentNameSpan.parentNode) studentNameSpan.parentNode.appendChild(scoreDisplay);
+let score = 0;
+
+/* ===== INIT STUDENT INFO ===== */
 if (!studentName || !studentClass) {
   alert("Please log in first.");
   window.location.href = "../index.html";
@@ -48,17 +58,8 @@ if (!studentName || !studentClass) {
   studentClassSpan.textContent = studentClass;
   if (document.getElementById("formName")) document.getElementById("formName").value = studentName;
   if (document.getElementById("formClass")) document.getElementById("formClass").value = studentClass;
+  scoreDisplay.textContent = `Score: ${score}`;
 }
-
-/* ===== SCORE DISPLAY ===== */
-let score = 0;
-const scoreDisplay = document.createElement("div");
-scoreDisplay.id = "scoreDisplay";
-scoreDisplay.style.fontSize = "1.2rem";
-scoreDisplay.style.color = "#004d40";
-scoreDisplay.style.marginTop = "5px";
-scoreDisplay.textContent = `Score: ${score}`;
-document.getElementById("student-info").appendChild(scoreDisplay);
 
 /* ===== GAME VARIABLES ===== */
 let currentLevel = 1;
@@ -68,7 +69,6 @@ let incorrectCount = 0;
 let currentSentence = {};
 let expectedDrops = [];
 let mode = "image";
-let collectedVideoURLs = [];
 let startTime = null;
 
 /* ===== VOCABULARY & DECOY POOLS ===== */
@@ -103,9 +103,7 @@ function shuffleArray(arr) {
   }
   return a;
 }
-
 function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-
 function signPathFor(word) {
   if (animals.includes(word)) return `assets/signs/animals/${word}-sign.png`;
   if (numbers.includes(word)) return `assets/signs/numbers/${word}-sign.png`;
@@ -115,11 +113,7 @@ function signPathFor(word) {
   if (helperSigns.includes(word)) return `assets/signs/helpers/${word}.png`;
   return null;
 }
-
-function compositeImagePath(combo) {
-  return `assets/images/${combo}.png`;
-}
-
+function compositeImagePath(combo) { return `assets/images/${combo}.png`; }
 function addDecoys(items, pool, totalCount) {
   const result = [...items];
   const needed = totalCount - result.length;
@@ -170,7 +164,7 @@ function expectedComponentsFor(level, mode) {
   return [];
 }
 
-/* ===== UI helpers ===== */
+/* ===== UI HELPERS ===== */
 function clearUI() {
   sentenceDiv.textContent = "";
   imageDiv.innerHTML = "";
@@ -178,7 +172,6 @@ function clearUI() {
   draggableOptions.innerHTML = "";
   feedbackDiv.innerHTML = "";
   if (checkBtn) checkBtn.style.display = "none";
-  const againBtn = document.getElementById("againBtn");
   if (againBtn) againBtn.style.display = "none";
 }
 
@@ -211,18 +204,7 @@ function buildPromptForCurrentQuestion() {
 /* ===== DROPZONES ===== */
 function buildAnswerDropzones() {
   answerArea.innerHTML = "";
-  let dropCount = 0;
-
-  if (currentLevel === 1 || currentLevel === 2 || currentLevel === 3) {
-    dropCount = [0,2,4,6,8].includes(roundInLevel) ? 2 : 1;
-  } else if (currentLevel === 4) {
-    dropCount = [0,2,4,6,8].includes(roundInLevel) ? 5 : 3;
-  } else if (currentLevel === 5) {
-    dropCount = 3;
-  } else if (currentLevel === 6) {
-    dropCount = 0;
-  }
-
+  const dropCount = expectedDrops.length || 2;
   for (let i = 0; i < dropCount; i++) {
     const dz = document.createElement("div");
     dz.className = "dropzone";
@@ -231,8 +213,6 @@ function buildAnswerDropzones() {
     dz.addEventListener("drop", dropHandler);
     answerArea.appendChild(dz);
   }
-
-  const againBtn = document.getElementById("againBtn");
   if (againBtn) againBtn.style.display = "none";
   if (checkBtn) checkBtn.style.display = "none";
 }
@@ -248,7 +228,6 @@ function dropHandler(e) {
   img.src = value.includes("-") ? compositeImagePath(value) : signPathFor(value) || "";
   dz.appendChild(img); dz.dataset.filled = value;
 
-  const againBtn = document.getElementById("againBtn");
   if (againBtn && againBtn.style.display === "none") againBtn.style.display = "inline-block";
 
   const dropzones = Array.from(answerArea.querySelectorAll(".dropzone"));
@@ -287,60 +266,37 @@ function buildDraggablesForCurrentQuestion() {
   });
 }
 
+/* ===== FEEDBACK ===== */
+function showFeedback(type) {
+  feedbackDiv.innerHTML = `<img src="assets/${type}.png" alt="${type}">`;
+  setTimeout(() => { feedbackDiv.innerHTML = ""; }, 2000);
+}
+
 /* ===== BUILD QUESTION ===== */
-function buildQuestion() {
+function buildQuestion(resetDraggables = true) {
   clearUI();
-  generateSentenceForLevel(currentLevel);
 
-  if (currentLevel === 5) {
-    mode = "video-match";
-    sentenceDiv.textContent = "Watch the video and drag the sign(s) that match.";
-    buildPromptForCurrentQuestion();
-    answerArea.innerHTML = "";
-    for (let i = 0; i < 3; i++) {
-      const dz = document.createElement("div");
-      dz.className = "dropzone"; dz.dataset.expected="sign"; dz.dataset.filled="";
-      dz.addEventListener("dragover", e=>e.preventDefault());
-      dz.addEventListener("drop", dropHandler);
-      answerArea.appendChild(dz);
-    }
-    buildDraggablesForCurrentQuestion();
-    return;
-  }
-
-  if (currentLevel === 6) {
-    mode = "record"; expectedDrops = [];
-    sentenceDiv.textContent = "Record yourself signing the image.";
-    buildPromptForCurrentQuestion();
-    startRecordingUI();
-    return;
-  }
+  // Generate new sentence only if not retrying
+  if (resetDraggables) generateSentenceForLevel(currentLevel);
 
   mode = (roundInLevel % 2 === 0) ? "sign" : "image";
   expectedDrops = expectedComponentsFor(currentLevel, mode);
+
   buildPromptForCurrentQuestion();
   buildAnswerDropzones();
-  buildDraggablesForCurrentQuestion();
+  if(resetDraggables) buildDraggablesForCurrentQuestion();
 }
 
 /* ===== GAME FLOW ===== */
 function nextRound() {
   roundInLevel++;
-  if (roundInLevel >= 10) {
-    endLevel();
-  } else {
-    buildQuestion();
-  }
+  if (roundInLevel >= 10) endLevel();
+  else buildQuestion();
 }
-
 function endLevel() {
   currentLevel++;
-  if (currentLevel > 6) {
-    endGame();
-  } else {
-    roundInLevel = 0;
-    buildQuestion();
-  }
+  if (currentLevel > 6) endGame();
+  else { roundInLevel = 0; buildQuestion(); }
 }
 
 /* ===== END GAME ===== */
@@ -348,7 +304,6 @@ async function endGame() {
   const endTime = Date.now();
   const timeTaken = Math.round((endTime - startTime)/1000);
 
-  // Optional: submit data to Google Form
   const formData = new FormData();
   formData.append(FORM_FIELD_MAP.name, studentName);
   formData.append(FORM_FIELD_MAP.class, studentClass);
@@ -356,21 +311,14 @@ async function endGame() {
   formData.append(FORM_FIELD_MAP.timeTaken,timeTaken);
   formData.append(FORM_FIELD_MAP.percent,Math.round((correctCount/(correctCount+incorrectCount))*100));
 
-  try {
-    await fetch(googleForm.action, { method:"POST", body: formData, mode:"no-cors" });
-  } catch(err) { console.warn("Google Form submit failed:",err); }
+  try { await fetch(googleForm.action, { method:"POST", body: formData, mode:"no-cors" }); }
+  catch(err) { console.warn("Google Form submit failed:",err); }
 
   alert(`Well done! You finished the game.\nScore: ${correctCount}/${correctCount+incorrectCount}\nTime: ${timeTaken}s`);
   window.location.href="../hub.html";
 }
 
-/* ===== INIT GAME ===== */
-function startGame() {
-  startTime = Date.now();
-  buildQuestion();
-}
-
-/* ===== CHECK BUTTON LOGIC ===== */
+/* ===== BUTTON EVENTS ===== */
 if (checkBtn) checkBtn.addEventListener("click",()=>{  
   const dropzones = Array.from(answerArea.querySelectorAll(".dropzone"));
   let allCorrect = true;
@@ -387,17 +335,14 @@ if (checkBtn) checkBtn.addEventListener("click",()=>{
     }
   });
 
-  const feedbackDiv = document.getElementById("feedback");
-  feedbackDiv.innerHTML = "";
-
   if (allCorrect) {
-    feedbackDiv.innerHTML = `<img src="assets/correct.png" alt="Correct">`;
     score += 1;
     scoreDisplay.textContent = `Score: ${score}`;
-    setTimeout(nextRound, 1000);
+    showFeedback("correct");
+    setTimeout(nextRound, 2000);
   } else {
-    feedbackDiv.innerHTML = `<img src="assets/wrong.png" alt="Wrong">`;
-    // Return draggables to original area
+    showFeedback("wrong");
+    // Return draggables
     const draggablesDiv = document.getElementById("draggables");
     dropzones.forEach(dz=>{
       const img = dz.querySelector("img");
@@ -408,19 +353,11 @@ if (checkBtn) checkBtn.addEventListener("click",()=>{
   }
 });
 
-/* ===== AGAIN BUTTON LOGIC ===== */
-if (againBtn) againBtn.addEventListener("click",()=>{  
-  const draggablesDiv = document.getElementById("draggables");
-  const dropzones = Array.from(answerArea.querySelectorAll(".dropzone"));
-  dropzones.forEach(dz=>{
-    const img = dz.querySelector("img");
-    if(img) draggablesDiv.appendChild(img);
-    dz.dataset.filled = "";
-    dz.classList.remove("correct","incorrect");
-  });
-  feedbackDiv.innerHTML = "";
-});
+if (againBtn) againBtn.addEventListener("click",()=>{ buildQuestion(false); });
 
 if (stopBtn) stopBtn.addEventListener("click",endGame);
+
+/* ===== INIT GAME ===== */
+function startGame() { startTime = Date.now(); buildQuestion(); }
 
 startGame();
