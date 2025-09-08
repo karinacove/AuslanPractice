@@ -14,14 +14,15 @@ body {
   background: #f0f4f5;
 }
 
+/* ===== Main Layout ===== */
 main {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  overflow-y: auto;
+  justify-content: center; /* vertical centering */
+  align-items: center;     /* horizontal centering */
+  min-height: 100vh;
   padding: 20px;
-  width: 85%;
+  box-sizing: border-box;
 }
 
 /* ===== Student Info Box ===== */
@@ -67,30 +68,26 @@ main {
   flex-direction: column;
   align-items: center;
   gap: 15px;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
 }
 #promptDisplay img {
   max-width: 150px;
   max-height: 150px;
 }
 
-/* ===== Answer Row ===== */
-#answerRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 15px;
-  margin-bottom: 15px;
-}
-
+/* ===== Answer Area: 4x4 Dropzones ===== */
 #answerArea {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(4, 100px);
+  grid-template-rows: repeat(4, 100px);
+  width: calc(100% - 40px);  /* 20px padding left/right */
+  max-width: 600px;
+  gap: 20px;
+  justify-content: space-between; /* left 2 columns left, right 2 columns right */
+  padding: 0 20px;
 }
 
 #answerArea .dropzone {
-  min-width: 100px;
-  min-height: 100px;
   border: 3px dashed #bbb;
   border-radius: 12px;
   display: flex;
@@ -100,7 +97,6 @@ main {
   color: #999;
   padding: 5px;
 }
-
 #answerArea img {
   max-width: 100px;
   max-height: 100px;
@@ -127,9 +123,13 @@ main {
 /* ===== Draggables ===== */
 #draggables {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  grid-template-columns: repeat(4, 80px);
+  grid-auto-rows: 80px;
   gap: 12px;
-  justify-items: center;
+  justify-content: space-between;
+  width: calc(100% - 40px);
+  max-width: 600px;
+  padding: 0 20px;
   margin: 20px auto;
 }
 #draggables img {
