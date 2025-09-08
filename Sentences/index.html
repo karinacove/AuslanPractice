@@ -1,35 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sentences Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
 <body>
+  <!-- Top bar -->
   <div id="topBar">
     <div id="studentInfo">
       <span id="studentName"></span> | <span id="studentClass"></span>
     </div>
     <div id="scoreDisplay"></div>
-    <button id="stopBtn"><img src="assets/stop.png" alt="Stop"></button>
+    <button id="stopBtn" class="iconButton">
+      <img src="assets/stop.png" alt="Stop">
+    </button>
   </div>
 
+  <!-- Game area -->
   <div id="gameArea">
+    <!-- Left draggables -->
     <div id="draggablesLeft" class="draggables"></div>
 
+    <!-- Center: question + answer -->
     <div id="centerArea">
       <div id="questionArea"></div>
       <div id="answerArea"></div>
       <div id="feedback"></div>
       <div id="controls">
-        <button id="checkBtn"><img src="assets/check.png" alt="Check"></button>
-        <button id="againBtn"><img src="assets/again.png" alt="Again"></button>
+        <button id="checkBtn" class="iconButton">
+          <img src="assets/check.png" alt="Check">
+        </button>
+        <button id="againBtn" class="iconButton">
+          <img src="assets/again.png" alt="Again">
+        </button>
       </div>
     </div>
 
+    <!-- Right draggables -->
     <div id="draggablesRight" class="draggables"></div>
   </div>
 
-  <!-- End Modal -->
-  <div id="endModal" style="display:none;">
-    <p>Final Score: <span id="finalScore"></span></p>
-    <p>Percentage: <span id="finalPercent"></span></p>
-    <button id="playAgain"><img src="assets/again.png" alt="Play Again"></button>
-    <button id="finish"><img src="assets/menu.png" alt="Finish"></button>
-    <button id="logout"><img src="assets/logout.png" alt="Logout"></button>
+  <!-- End modal -->
+  <div id="endModal" class="modal" style="display:none;">
+    <div class="modalContent">
+      <h2>Game Over</h2>
+      <p>Final Score: <span id="finalScore"></span></p>
+      <p>Percentage: <span id="finalPercent"></span></p>
+      <div class="modalButtons">
+        <button id="playAgain" class="iconButton">
+          <img src="assets/again.png" alt="Play Again">
+        </button>
+        <button id="finish" class="iconButton">
+          <img src="assets/menu.png" alt="Finish">
+        </button>
+        <button id="logout" class="iconButton">
+          <img src="assets/logout.png" alt="Logout">
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Hidden Google Form -->
@@ -37,3 +67,4 @@
 
   <script src="script.js"></script>
 </body>
+</html>
