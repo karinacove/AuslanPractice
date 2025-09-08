@@ -1,6 +1,10 @@
-/* ===== CONFIG ===== */
-const UPLOAD_ENDPOINT = ""; // Optional upload endpoint
+/* ============================
+   Sentences Game - Full JS
+   Levels 1–4, odd/even questions
+   Left/Right draggables, answer dropzones
+   ============================ */
 
+/* ===== CONFIG ===== */
 const FORM_FIELD_MAP = {
   name: "entry.1040637824",
   class: "entry.1755746645",
@@ -10,283 +14,322 @@ const FORM_FIELD_MAP = {
   level1: { correct: "entry.1150173566", incorrect: "entry.28043347" },
   level2: { correct: "entry.1424808967", incorrect: "entry.352093752" },
   level3: { correct: "entry.475324608", incorrect: "entry.1767451434" },
-  level4: { correct: "entry.1405337882", incorrect: "entry.1513946929" },
-  level5: { correct: "entry.level5_correct", incorrect: "entry.level5_incorrect" },
-  level6: { correct: "entry.level6_correct", incorrect: "entry.level6_incorrect" },
-  level7: { correct: "entry.level7_correct", incorrect: "entry.level7_incorrect" },
-  level8: { correct: "entry.level8_correct", incorrect: "entry.level8_incorrect" },
-  level9: { correct: "entry.level9_correct", incorrect: "entry.level9_incorrect" },
-  level10: { correct: "entry.level10_correct", incorrect: "entry.level10_incorrect" },
-  videoField: "entry.116543611"
+  level4: { correct: "entry.1405337882", incorrect: "entry.1513946929" }
 };
 
-/* ===== DOM & Student Info ===== */
-let studentName = localStorage.getItem("studentName") || "";
-let studentClass = localStorage.getItem("studentClass") || "";
-
+/* ===== DOM Elements ===== */
 const studentNameSpan = document.getElementById("studentName");
 const studentClassSpan = document.getElementById("studentClass");
+const scoreDisplay = document.getElementById("scoreDisplay");
 const stopBtn = document.getElementById("stopBtn");
-const sentenceDiv = document.getElementById("sentence");
-const imageDiv = document.getElementById("questionImage");
+const leftDraggables = document.getElementById("draggablesLeft");
+const rightDraggables = document.getElementById("draggablesRight");
+const questionArea = document.getElementById("questionArea");
 const answerArea = document.getElementById("answerArea");
-const draggableOptions = document.getElementById("draggables");
 const feedbackDiv = document.getElementById("feedback");
 const checkBtn = document.getElementById("checkBtn");
 const againBtn = document.getElementById("againBtn");
+const endModal = document.getElementById("endModal");
 const googleForm = document.getElementById("googleForm");
 
-/* ===== SCORE ===== */
-const scoreDisplay = document.createElement("div");
-if(studentNameSpan.parentNode) studentNameSpan.parentNode.appendChild(scoreDisplay);
-let score = 0;
+/* ===== STUDENT INFO ===== */
+let studentName = localStorage.getItem("studentName") || "";
+let studentClass = localStorage.getItem("studentClass") || "";
 
-/* ===== INIT STUDENT INFO ===== */
 if (!studentName || !studentClass) {
   alert("Please log in first.");
   window.location.href = "../index.html";
 } else {
   studentNameSpan.textContent = studentName;
   studentClassSpan.textContent = studentClass;
-  if (document.getElementById("formName")) document.getElementById("formName").value = studentName;
-  if (document.getElementById("formClass")) document.getElementById("formClass").value = studentClass;
-  scoreDisplay.textContent = `Score: ${score}`;
 }
 
 /* ===== GAME VARIABLES ===== */
 let currentLevel = 1;
-let roundInLevel = 0;
+let roundInLevel = 0; // 0..9
 let correctCount = 0;
 let incorrectCount = 0;
 let currentSentence = {};
 let expectedDrops = [];
-let mode = "image";
 let startTime = null;
 
-/* ===== VOCABULARY & DECOY POOLS ===== */
-const animals = ["dog", "cat", "mouse", "bird", "fish", "rabbit"];
+/* ===== VOCAB ===== */
+const animals = ["dog","cat","mouse","rabbit","fish","bird"];
 const numbers = ["one","two","three","four","five","six","seven","eight","nine","ten"];
-const foods = ["apple","banana","pear","grape","orange","strawberry","watermelon"];
-const colours = ["red","yellow","white","green","pink","purple","black","brown","orange","blue"];
-const verbsBasic = ["want"];
-const verbsAll = ["want","eat","like","have","see"];
-const helperSigns = ["i","see","what"];
-const allAnimals = [...animals];
-const allNumbers = [...numbers];
-const allFoods = [...foods];
-const allColours = [...colours];
-const allAnimalNumberCombos = []; animals.forEach(a => numbers.forEach(n => allAnimalNumberCombos.push(`${a}-${n}`)));
-const allFoodColourCombos = []; foods.forEach(f => colours.forEach(c => allFoodColourCombos.push(`${f}-${c}`)));
-const allPairCombos = [...allAnimalNumberCombos,...allFoodColourCombos];
-const allVideoSigns = Array.from(new Set([...animals,...foods,...colours,...numbers,...verbsAll]));
+const colours = ["red","green","blue","orange","yellow","pink","purple","brown","black","white"];
+const food = ["apple","banana","blueberry","grape","orange","pear","pineapple","raspberry","strawberry","watermelon"];
+const verbs = ["want","have","donthave"];
+const helpers = ["i","see","what"];
 
 /* ===== HELPERS ===== */
-function shuffleArray(arr) { const a=arr.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
-function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-function signPathFor(word){ if(animals.includes(word)) return `assets/signs/animals/${word}-sign.png`; if(numbers.includes(word)) return `assets/signs/numbers/${word}-sign.png`; if(foods.includes(word)) return `assets/signs/food/${word}-sign.png`; if(colours.includes(word)) return `assets/signs/colours/${word}-sign.png`; if(verbsAll.includes(word)) return `assets/signs/verbs/${word}-sign.png`; if(helperSigns.includes(word)) return `assets/signs/helpers/${word}.png`; return null; }
-function compositeImagePath(combo){ return `assets/images/${combo}.png`; }
-function addDecoys(items,pool,totalCount){ const result=[...items]; const needed=totalCount-result.length; if(needed<=0) return shuffleArray(result); const available=pool.filter(x=>!result.includes(x)); result.push(...shuffleArray(available).slice(0,needed)); return shuffleArray(result); }
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function signPathFor(word) {
+  if (animals.includes(word)) return `assets/signs/animals/${word}-sign.png`;
+  if (numbers.includes(word)) return `assets/signs/numbers/${word}-sign.png`;
+  if (food.includes(word)) return `assets/signs/food/${word}-sign.png`;
+  if (colours.includes(word)) return `assets/signs/colours/${word}-sign.png`;
+  if (verbs.includes(word)) return `assets/signs/verbs/${word}-sign.png`;
+  if (helpers.includes(word)) return `assets/signs/helpers/${word}.png`;
+  return "";
+}
+
+function compositeImagePath(combo) { return `assets/images/${combo}.png`; }
 
 /* ===== SENTENCE GENERATION ===== */
-function generateSentenceForLevel(level){
-  const animal=randomItem(animals); const number=randomItem(numbers);
-  const food=randomItem(foods); const colour=randomItem(colours);
-  const verbs=(level<=5)?verbsBasic:verbsAll; const verb=randomItem(verbs);
-  if(level===5){
-    const sampleVideos=[
-      {video:"level5_q1.mp4",videoSigns:["dog","cat","bird"]},
-      {video:"level5_q2.mp4",videoSigns:["apple","banana","pear"]},
-      {video:"level5_q3.mp4",videoSigns:["one","two","three"]},
-      {video:"level5_q4.mp4",videoSigns:["red","blue","pink"]},
-      {video:"level5_q5.mp4",videoSigns:["want","eat","have"]}
-    ];
-    const pick=randomItem(sampleVideos);
-    currentSentence={animal,number,verb,food,colour,video:pick.video,videoSigns:pick.videoSigns.slice()};
-    return currentSentence;
+function generateSentence() {
+  const animal = randomItem(animals);
+  const number = randomItem(numbers);
+  const foodItem = randomItem(food);
+  const colour = randomItem(colours);
+  const verb = (currentLevel===4)?randomItem(["have","donthave"]):"want";
+  currentSentence = { animal, number, food: foodItem, colour, verb };
+}
+
+/* ===== BUILD QUESTION DISPLAY ===== */
+function buildQuestion() {
+  questionArea.innerHTML = "";
+  answerArea.innerHTML = "";
+  feedbackDiv.innerHTML = "";
+  checkBtn.style.display = "none";
+  againBtn.style.display = "none";
+
+  const isOdd = roundInLevel % 2 === 0 ? false : true; // odd = 1,3,5...
+  const helperDiv = document.createElement("div");
+  helperDiv.className = "helperSigns";
+  helpers.forEach(h => {
+    const img = document.createElement("img");
+    img.src = signPathFor(h);
+    helperDiv.appendChild(img);
+  });
+  questionArea.appendChild(helperDiv);
+
+  const comboDiv = document.createElement("div");
+  comboDiv.className = "comboImages";
+  if (isOdd) {
+    if (currentLevel===1) comboDiv.innerHTML = `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}">`;
+    if (currentLevel===2) comboDiv.innerHTML = `<img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`;
+  } else {
+    if (currentLevel===1) {
+      comboDiv.innerHTML = `<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}">`;
+    }
+    if (currentLevel===2) {
+      comboDiv.innerHTML = `<img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
+    }
   }
-  currentSentence={animal,number,verb,food,colour};
-  return currentSentence;
+  questionArea.appendChild(comboDiv);
+
+  buildAnswerBoxes(isOdd);
+  buildDraggables(isOdd);
+  updateScoreDisplay();
 }
 
-/* ===== EXPECTED COMPONENTS ===== */
-function expectedComponentsFor(level,mode){
-  if(mode==="image"){ if(level===1) return ['animal-number']; if(level===2) return ['food-colour']; return ['animal-number','food-colour']; }
-  if(mode==="sign"){ if(level===1) return ['i','see','what','animal','number']; if(level===2) return ['food','colour']; return ['i','see','what','animal','number','verb','food','colour']; }
-  return [];
-}
-
-/* ===== UI HELPERS ===== */
-function clearUI(){ sentenceDiv.textContent=""; imageDiv.innerHTML=""; answerArea.innerHTML=""; draggableOptions.innerHTML=""; feedbackDiv.innerHTML=""; if(checkBtn) checkBtn.style.display="none"; if(againBtn) againBtn.style.display="none"; }
-
-/* ===== BUILD PROMPTS ===== */
-function buildPromptForCurrentQuestion(){
-  imageDiv.innerHTML="";
-  if(currentLevel<=4){
-    const combos=[];
-    if(currentLevel===1) combos.push(`${currentSentence.animal}-${currentSentence.number}`);
-    else if(currentLevel===2) combos.push(`${currentSentence.food}-${currentSentence.colour}`);
-    else combos.push(`${currentSentence.animal}-${currentSentence.number}`,`${currentSentence.food}-${currentSentence.colour}`);
-    combos.forEach(c=>{const img=document.createElement("img"); img.src=compositeImagePath(c); img.alt=c; img.className="promptImage"; imageDiv.appendChild(img);});
-  } else if(currentLevel===5 && currentSentence.video){
-    const vid=document.createElement("video"); vid.controls=true; vid.width=320;
-    const src=document.createElement("source"); src.src=`assets/videos/${currentSentence.video}`; src.type="video/mp4";
-    vid.appendChild(src); imageDiv.appendChild(vid);
-  }
-}
-
-/* ===== DROPZONES ===== */
-function buildAnswerDropzones(){
-  answerArea.innerHTML="";
-  let dropCount = expectedDrops.length || 2; // default
-
-  // Level 5 (video) always has 3 dropzones
-  if(currentLevel===5) dropCount = 3;
-
-  for(let i=0;i<dropCount;i++){
-    const dz=document.createElement("div");
-    dz.className="dropzone";
-    dz.dataset.filled="";
+/* ===== BUILD ANSWER BOXES ===== */
+function buildAnswerBoxes(isOdd) {
+  answerArea.innerHTML = "";
+  const dropCount = (currentLevel<=2)? (isOdd?2:1) : (isOdd?4:3); // simplified for 1-4
+  for (let i=0;i<dropCount;i++) {
+    const dz = document.createElement("div");
+    dz.className = "dropzone";
+    dz.dataset.filled = "";
+    dz.dataset.hint = ""; // can later add "animal-number" etc
     dz.addEventListener("dragover", e=>e.preventDefault());
     dz.addEventListener("drop", dropHandler);
     answerArea.appendChild(dz);
   }
-
-  if(againBtn) againBtn.style.display="none";
-  if(checkBtn) checkBtn.style.display="none";
 }
 
-/* ===== DROP HANDLER ===== */
-function dropHandler(e){
-  e.preventDefault();
-  const dz=e.currentTarget;
-  if(dz.childElementCount>0) return;
-  const value=e.dataTransfer.getData("text/plain");
-  const img=document.createElement("img"); img.className="droppedImage"; img.alt=value; img.src=value.includes("-")?compositeImagePath(value):signPathFor(value)||"";
-  dz.appendChild(img); dz.dataset.filled=value;
-  if(againBtn && againBtn.style.display==="none") againBtn.style.display="inline-block";
-  const allFilled=Array.from(answerArea.querySelectorAll(".dropzone")).every(d=>d.dataset.filled && d.dataset.filled.length>0);
-  if(checkBtn) checkBtn.style.display=allFilled?"inline-block":"none";
-}
-
-/* ===== DRAGGABLES ===== */
-function buildDraggablesForCurrentQuestion() {
-  draggableOptions.innerHTML = "";
-
-  // Create left & right containers
-  const leftContainer = document.createElement("div");
-  leftContainer.id = "draggablesLeft";
-  const rightContainer = document.createElement("div");
-  rightContainer.id = "draggablesRight";
-
-  draggableOptions.appendChild(leftContainer);
-  draggableOptions.appendChild(rightContainer);
-
+/* ===== DRAG & DROP ===== */
+function buildDraggables(isOdd) {
+  leftDraggables.innerHTML = "";
+  rightDraggables.innerHTML = "";
   let items = [];
-  const signsDraggable = roundInLevel % 2 === 0;
+  const totalItems = 16;
 
-  if (currentLevel === 1)
-    items = signsDraggable
-      ? addDecoys([currentSentence.animal, currentSentence.number], [...allAnimals, ...allNumbers], 10)
-      : addDecoys([`${currentSentence.animal}-${currentSentence.number}`], allAnimalNumberCombos, 8);
-  else if (currentLevel === 2)
-    items = signsDraggable
-      ? addDecoys([currentSentence.food, currentSentence.colour], [...allFoods, ...allColours], 10)
-      : addDecoys([`${currentSentence.food}-${currentSentence.colour}`], allFoodColourCombos, 8);
-  else if (currentLevel === 3 || currentLevel === 4)
-    items = signsDraggable
-      ? addDecoys(
-          [currentSentence.animal, currentSentence.number, currentSentence.food, currentSentence.colour],
-          [...allAnimals, ...allNumbers, ...allFoods, ...allColours],
-          12
-        )
-      : addDecoys(
-          [`${currentSentence.animal}-${currentSentence.number}`, `${currentSentence.food}-${currentSentence.colour}`],
-          allPairCombos,
-          8
-        );
-  else if (currentLevel === 5)
-    items = Array.isArray(currentSentence.videoSigns)
-      ? addDecoys(currentSentence.videoSigns.slice(), allVideoSigns, 8)
-      : [];
+  // populate draggables depending on level
+  if (currentLevel===1) {
+    if (isOdd) items = [currentSentence.animal, currentSentence.number];
+    else items = [currentSentence.animal, currentSentence.number];
+  }
+  if (currentLevel===2) {
+    if (isOdd) items = [currentSentence.food, currentSentence.colour];
+    else items = [currentSentence.food, currentSentence.colour];
+  }
+  if (currentLevel>=3) {
+    items = [currentSentence.animal,currentSentence.number,currentSentence.food,currentSentence.colour,currentSentence.verb];
+  }
+
+  // add decoys
+  while(items.length < totalItems) {
+    let decoy = randomItem([...animals,...numbers,...food,...colours]);
+    if(!items.includes(decoy)) items.push(decoy);
+  }
 
   items = shuffleArray(items);
 
-  // Split items roughly in half for left/right
-  const midIndex = Math.ceil(items.length / 2);
-  const leftItems = items.slice(0, midIndex);
-  const rightItems = items.slice(midIndex);
+  // split into left/right 2x2 grids
+  const leftItems = items.slice(0,8);
+  const rightItems = items.slice(8,16);
 
-  function createDraggable(word, container) {
-    const div = document.createElement("div");
-    div.className = "draggable";
-    div.draggable = true;
-    div.dataset.value = word;
-
-    const img = document.createElement("img");
-    img.alt = word;
-    img.className = "draggableImage";
-    img.src = word.includes("-") ? compositeImagePath(word) : signPathFor(word) || "";
-    div.appendChild(img);
-
-    div.addEventListener("dragstart", (e) => e.dataTransfer.setData("text/plain", word));
-
-    container.appendChild(div);
-  }
-
-  leftItems.forEach((w) => createDraggable(w, leftContainer));
-  rightItems.forEach((w) => createDraggable(w, rightContainer));
+  [leftItems,leftItems].forEach((group,idx)=>{
+    const container = idx===0? leftDraggables : rightDraggables;
+    container.innerHTML = "";
+    group.forEach(word=>{
+      const div = document.createElement("div");
+      div.className="draggable";
+      div.draggable=true;
+      div.dataset.value=word;
+      const img = document.createElement("img");
+      img.src = word.includes("-")? compositeImagePath(word) : signPathFor(word);
+      div.appendChild(img);
+      div.addEventListener("dragstart",e=>e.dataTransfer.setData("text/plain",word));
+      container.appendChild(div);
+    });
+  });
 }
 
+function dropHandler(e) {
+  e.preventDefault();
+  const dz = e.currentTarget;
+  if(dz.childElementCount>0) return;
+  const value = e.dataTransfer.getData("text/plain");
+  const img = document.createElement("img");
+  img.src = value.includes("-")? compositeImagePath(value) : signPathFor(value);
+  dz.appendChild(img);
+  dz.dataset.filled = value;
 
-/* ===== FEEDBACK ===== */
-function showFeedback(type){ feedbackDiv.innerHTML=`<img src="assets/${type}.png" alt="${type}">`; setTimeout(()=>{feedbackDiv.innerHTML="";},2000); }
-
-/* ===== BUILD QUESTION ===== */
-function buildQuestion(resetDraggables=true){
-  clearUI();
-  if(resetDraggables) generateSentenceForLevel(currentLevel);
-  mode=(roundInLevel%2===0)?"sign":"image";
-  expectedDrops=expectedComponentsFor(currentLevel,mode);
-  buildPromptForCurrentQuestion();
-  buildAnswerDropzones();
-  if(resetDraggables) buildDraggablesForCurrentQuestion();
-}
-
-/* ===== GAME FLOW ===== */
-function nextRound(){ roundInLevel++; if(roundInLevel>=10) endLevel(); else buildQuestion(); }
-function endLevel(){ currentLevel++; if(currentLevel>6) endGame(); else { roundInLevel=0; buildQuestion(); } }
-
-/* ===== END GAME ===== */
-async function endGame(){
-  const timeTaken=Math.round((Date.now()-startTime)/1000);
-  const formData=new FormData();
-  formData.append(FORM_FIELD_MAP.name,studentName);
-  formData.append(FORM_FIELD_MAP.class,studentClass);
-  formData.append(FORM_FIELD_MAP.subject,"Sentences");
-  formData.append(FORM_FIELD_MAP.timeTaken,timeTaken);
-  formData.append(FORM_FIELD_MAP.percent,Math.round((correctCount/(correctCount+incorrectCount))*100));
-  try{ await fetch(googleForm.action,{method:"POST",body:formData,mode:"no-cors"});} catch(err){console.warn("Google Form submit failed:",err);}
-  alert(`Well done! You finished the game.\nScore: ${correctCount}/${correctCount+incorrectCount}\nTime: ${timeTaken}s`);
-  window.location.href="../hub.html";
+  // show buttons when first drop
+  againBtn.style.display = "inline-block";
+  const allFilled = Array.from(answerArea.querySelectorAll(".dropzone")).every(d=>d.dataset.filled.length>0);
+  checkBtn.style.display = allFilled ? "inline-block" : "none";
 }
 
 /* ===== BUTTON EVENTS ===== */
-if(checkBtn) checkBtn.addEventListener("click",()=>{
-  const dropzones=Array.from(answerArea.querySelectorAll(".dropzone"));
-  let allCorrect=true;
-  dropzones.forEach(dz=>{
-    const filled=dz.dataset.filled;
-    if(!expectedDrops.includes(filled)){ dz.classList.add("incorrect"); allCorrect=false; incorrectCount++; }
-    else{ dz.classList.add("correct"); correctCount++; }
+checkBtn.addEventListener("click",()=>{
+  const dropzones = Array.from(answerArea.querySelectorAll(".dropzone"));
+  let allCorrect = true;
+  dropzones.forEach((dz,i)=>{
+    let expected="";
+    if(currentLevel===1){
+      expected = (roundInLevel%2===1)? (i===0?currentSentence.an
+      expected = (roundInLevel%2===1) ? (i===0 ? currentSentence.animal : currentSentence.number) : currentSentence.animal + "-" + currentSentence.number;
+    } else if(currentLevel===2){
+      expected = (roundInLevel%2===1) ? (i===0 ? currentSentence.food : currentSentence.colour) : currentSentence.food + "-" + currentSentence.colour;
+    } else if(currentLevel>=3){
+      const sequence = [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour];
+      expected = sequence[i] || "";
+    }
+
+    if(dz.dataset.filled === expected){
+      dz.classList.add("correct");
+      correctCount++;
+    } else {
+      dz.classList.add("incorrect");
+      allCorrect = false;
+      incorrectCount++;
+    }
   });
-  if(allCorrect){ score++; scoreDisplay.textContent=`Score: ${score}`; showFeedback("correct"); setTimeout(nextRound,2000); }
-  else{ showFeedback("wrong"); const draggablesDiv=document.getElementById("draggables"); dropzones.forEach(dz=>{ const img=dz.querySelector("img"); if(img) draggablesDiv.appendChild(img); dz.dataset.filled=""; dz.classList.remove("incorrect"); }); }
+
+  // show feedback image for 2 seconds
+  const feedbackImg = document.createElement("img");
+  feedbackImg.src = allCorrect ? "assets/correct.png" : "assets/wrong.png";
+  feedbackDiv.appendChild(feedbackImg);
+
+  setTimeout(()=>{
+    feedbackDiv.innerHTML="";
+    if(allCorrect){
+      nextRound();
+    } else {
+      // reset draggables for retry
+      buildDraggables(roundInLevel%2===1);
+      dropzones.forEach(dz=>dz.innerHTML=""); dz.dataset.filled="";
+      checkBtn.style.display="none";
+      againBtn.style.display="inline-block";
+    }
+  },2000);
 });
 
-if(againBtn) againBtn.addEventListener("click",()=>{ buildQuestion(false); buildDraggablesForCurrentQuestion(); });
+againBtn.addEventListener("click",()=>{
+  buildDraggables(roundInLevel%2===1);
+  const dropzones = Array.from(answerArea.querySelectorAll(".dropzone"));
+  dropzones.forEach(dz=>{dz.innerHTML=""; dz.dataset.filled=""; dz.classList.remove("correct","incorrect");});
+  checkBtn.style.display="none";
+  againBtn.style.display="none";
+});
 
-if(stopBtn) stopBtn.addEventListener("click",endGame);
+stopBtn.addEventListener("click",()=>{
+  const endTime = Date.now();
+  const timeTaken = Math.round((endTime - startTime)/1000);
+  alert(`Game paused\nScore: ${correctCount}/${correctCount+incorrectCount}\nTime: ${Math.floor(timeTaken/60)}m ${timeTaken%60}s`);
+  // optionally implement modal with continue/finish/again
+});
 
-/* ===== INIT GAME ===== */
-function startGame(){ startTime=Date.now(); buildQuestion(); }
+function nextRound(){
+  roundInLevel++;
+  if(roundInLevel>=10){
+    endLevel();
+  } else {
+    buildQuestion();
+  }
+}
+
+async function endLevel(){
+  // submit results to Google Form
+  const endTime = Date.now();
+  const timeTaken = Math.round((endTime - startTime)/1000);
+  const percent = Math.round((correctCount/(correctCount+incorrectCount))*100);
+
+  const formData = new FormData();
+  formData.append(FORM_FIELD_MAP.name, studentName);
+  formData.append(FORM_FIELD_MAP.class, studentClass);
+  formData.append(FORM_FIELD_MAP.subject,"Sentences");
+  formData.append(FORM_FIELD_MAP.timeTaken,timeTaken);
+  formData.append(FORM_FIELD_MAP.percent, percent);
+
+  // append per-level correct/incorrect
+  for(let l=1;l<=currentLevel;l++){
+    const correctField = FORM_FIELD_MAP[`level${l}`]?.correct;
+    const incorrectField = FORM_FIELD_MAP[`level${l}`]?.incorrect;
+    if(correctField) formData.append(correctField, correctCount);
+    if(incorrectField) formData.append(incorrectField, incorrectCount);
+  }
+
+  try { await fetch(googleForm.action,{method:"POST",body:formData,mode:"no-cors"}); }
+  catch(err){ console.warn("Form submit failed",err); }
+
+  if(currentLevel>=4){
+    // end modal with final results
+    endModal.style.display="block";
+    document.getElementById("finalScore").textContent = `${correctCount}/${correctCount+incorrectCount}`;
+    document.getElementById("finalPercent").textContent = percent + "%";
+  } else {
+    currentLevel++;
+    roundInLevel=0;
+    buildQuestion();
+  }
+}
+
+function startGame(){
+  startTime = Date.now();
+  currentLevel = 1;
+  roundInLevel = 0;
+  correctCount = 0;
+  incorrectCount = 0;
+  buildQuestion();
+}
+
+function updateScoreDisplay(){
+  scoreDisplay.textContent = `Level ${currentLevel} - Question ${roundInLevel+1}/10`;
+}
+
+/* ===== INIT ===== */
 startGame();
