@@ -215,23 +215,41 @@ function buildDraggables(isOdd){
     }
   }
 
-  // add decoys
-  while(items.length < totalItems){
-    let decoy;
-    if(isOdd){
-      // decoy signs
+// add decoys
+while (items.length < totalItems) {
+  let decoy;
+
+  if (isOdd) {
+    // Decoy = individual signs
+    if (currentLevel === 1) {
+      decoy = randomItem([...animals, ...numbers]);
+    } else if (currentLevel === 2) {
+      decoy = randomItem([...food, ...colours]);
+    } else if (currentLevel === 3) {
+      decoy = randomItem([...animals, ...numbers, ...food, ...colours]);
+    } else if (currentLevel === 4) {
       decoy = randomItem([...animals, ...numbers, ...food, ...colours, ...verbs]);
-      if(!items.includes(decoy)) items.push(decoy);
-    } else {
-      // decoy combos
-      const allCombos = [
-        ...animals.map(a => a + "-" + randomItem(numbers)),
-        ...food.map(f => f + "-" + randomItem(colours))
-      ];
-      decoy = randomItem(allCombos);
-      if(!items.includes(decoy)) items.push(decoy);
     }
+  } else {
+    // Decoy = combos
+    let allCombos = [];
+    if (currentLevel === 1) {
+      allCombos = animals.flatMap(a => numbers.map(n => `${a}-${n}`));
+    } else if (currentLevel === 2) {
+      allCombos = food.flatMap(f => colours.map(c => `${f}-${c}`));
+    } else if (currentLevel >= 3) {
+      allCombos = [
+        ...animals.flatMap(a => numbers.map(n => `${a}-${n}`)),
+        ...food.flatMap(f => colours.map(c => `${f}-${c}`))
+      ];
+    }
+    decoy = randomItem(allCombos);
   }
+
+  if (!items.includes(decoy)) {
+    items.push(decoy);
+  }
+}
 
   items = shuffleArray(items);
   const leftItems = items.slice(0,8);
