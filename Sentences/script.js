@@ -43,9 +43,6 @@ const googleForm = document.getElementById("googleForm");
 
 /* ===== SCORE ===== */
 const scoreDisplay = document.createElement("div");
-scoreDisplay.style.fontSize = "18px";
-scoreDisplay.style.marginTop = "10px";
-scoreDisplay.style.fontWeight = "bold";
 if(studentNameSpan.parentNode) studentNameSpan.parentNode.appendChild(scoreDisplay);
 let score = 0;
 
