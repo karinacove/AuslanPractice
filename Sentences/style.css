@@ -113,14 +113,12 @@ body {
    Main Question & Answer Section
 =========================== */
 #centerArea {
-  flex: 1;
-  position: relative;
+  position: fixed;
   top: 100px;
   max-width: 50vw;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: flex-start;
 }
 
 #questionArea {
