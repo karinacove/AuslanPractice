@@ -31,7 +31,6 @@ const againBtnEnd = document.getElementById("againBtnEnd");
 const againBtnStop = document.getElementById("againBtnStop");
 const finishBtn = document.getElementById("finishBtn");
 const finishBtnStop = document.getElementById("finishBtnStop");
-const finalTimeSpan = document.getElementById("finalTime");
 
 /* ===== STUDENT INFO ===== */
 let studentName = localStorage.getItem("studentName") || "";
@@ -182,16 +181,21 @@ function buildAnswerBoxes(isOdd){
   });
 }
 
-/* ===== BUILD DRAGGABLES ===== */
+/* ===== BUILD DRAGGABLES & UNIFIED DRAG ===== */
+let dragItem=null, dragClone=null, isTouch=false;
+
 function buildDraggables(isOdd){
   leftDraggables.innerHTML=""; rightDraggables.innerHTML="";
   let items=[], totalItems=16;
+
+  // Correct answers
   if(currentLevel===1) items=isOdd?[currentSentence.animal,currentSentence.number]:[currentSentence.animal+"-"+currentSentence.number];
   else if(currentLevel===2) items=isOdd?[currentSentence.food,currentSentence.colour]:[currentSentence.food+"-"+currentSentence.colour];
   else if(currentLevel===3) items=isOdd?[currentSentence.animal,currentSentence.number,currentSentence.food,currentSentence.colour]:[currentSentence.animal+"-"+currentSentence.number,currentSentence.food+"-"+currentSentence.colour];
   else if(currentLevel===4) items=[`${currentSentence.animal}-${currentSentence.number}-${currentSentence.verb}-${currentSentence.food}-${currentSentence.colour}`];
 
-  const used=new Set(items);
+  // Add decoys
+  const used = new Set(items);
   while(items.length<totalItems){
     let decoy;
     if(isOdd){
@@ -210,148 +214,181 @@ function buildDraggables(isOdd){
   }
 
   items=shuffleArray(items);
-  [items.slice(0,8),items.slice(8,16)].forEach((group,idx)=>{
+  const halves=[items.slice(0,8),items.slice(8,16)];
+
+  halves.forEach((group,idx)=>{
     const container=idx===0?leftDraggables:rightDraggables;
     group.forEach(word=>{
       const div=document.createElement("div"); div.className="draggable"; div.draggable=true; div.dataset.value=word;
       const img=document.createElement("img");
-      if(currentLevel===4 && word.includes("donthave")){ const parts=word.split("-"); img.src=compositeImagePath(parts[3]+"-"+parts[4]); const wrapper=document.createElement("div"); wrapper.className="dontHaveWrapper"; wrapper.appendChild(img); const xOverlay=document.createElement("div"); xOverlay.className="xOverlay"; xOverlay.textContent="X"; wrapper.appendChild(xOverlay); div.appendChild(wrapper); }
-      else if(currentLevel===4 && word.includes("have")){ const parts=word.split("-"); img.src=compositeImagePath(parts[3]+"-"+parts[4]); div.appendChild(img); }
-      else{ img.src=word.includes("-")?compositeImagePath(word):signPathFor(word); div.appendChild(img); }
+      if(currentLevel===4 && word.includes("donthave")){
+        const parts=word.split("-"); img.src=compositeImagePath(parts[3]+"-"+parts[4]);
+        const wrapper=document.createElement("div"); wrapper.className="dontHaveWrapper"; wrapper.appendChild(img);
+        const xOverlay=document.createElement("div"); xOverlay.className="xOverlay"; xOverlay.textContent="X"; wrapper.appendChild(xOverlay);
+        div.appendChild(wrapper);
+      } else if(currentLevel===4 && word.includes("have")){
+        const parts=word.split("-"); img.src=compositeImagePath(parts[3]+"-"+parts[4]); div.appendChild(img);
+      } else { img.src=word.includes("-")?compositeImagePath(word):signPathFor(word); div.appendChild(img); }
+
       div.addEventListener("dragstart", e=>e.dataTransfer.setData("text/plain", word));
       container.appendChild(div);
     });
   });
 }
 
-/* ===== DRAG & DROP ===== */
-let dragItem=null, dragClone=null, isTouch=false;
+/* ===== UNIFIED DRAG & DROP ===== */
 function startDrag(e){
   const target=e.target.closest(".draggable"); if(!target) return;
   dragItem=target; isTouch=e.type.startsWith("touch");
   const rect=target.getBoundingClientRect();
-  dragClone=target.cloneNode(true); dragClone.style.position="fixed"; dragClone.style.left=rect.left+"px"; dragClone.style.top=rect.top+"px"; dragClone.style.width=rect.width+"px"; dragClone.style.height=rect.height+"px"; dragClone.style.opacity="0.7"; dragClone.style.pointerEvents="none"; dragClone.style.zIndex="10000"; document.body.appendChild(dragClone); e.preventDefault();
+  dragClone=target.cloneNode(true); dragClone.style.position="fixed"; dragClone.style.left=rect.left+"px"; dragClone.style.top=rect.top+"px"; dragClone.style.width=rect.width+"px"; dragClone.style.height=rect.height+"px"; dragClone.style.opacity="0.7"; dragClone.style.pointerEvents="none"; dragClone.style.zIndex="10000";
+  document.body.appendChild(dragClone); e.preventDefault();
   if(isTouch){ document.addEventListener("touchmove", moveDrag,{passive:false}); document.addEventListener("touchend", endDrag); }
   else { document.addEventListener("mousemove", moveDrag); document.addEventListener("mouseup", endDrag); }
 }
+
 function moveDrag(e){
   if(!dragClone) return;
   let clientX,clientY;
   if(isTouch&&e.touches.length>0){ clientX=e.touches[0].clientX; clientY=e.touches[0].clientY; }
   else { clientX=e.clientX; clientY=e.clientY; }
-  dragClone.style.left=clientX-20+"px"; dragClone.style.top=clientY-20+"px";
+  dragClone.style.left=clientX-dragClone.offsetWidth/2+"px";
+  dragClone.style.top=clientY-dragClone.offsetHeight/2+"px";
 }
-function endDrag(e){
-  if(!dragClone||!dragItem) return;
-  document.removeEventListener("mousemove", moveDrag);
-  document.removeEventListener("mouseup", endDrag);
-  document.removeEventListener("touchmove", moveDrag);
-  document.removeEventListener("touchend", endDrag);
 
-  let drop=null;
-  document.querySelectorAll(".dropzone").forEach(dz=>{
+function endDrag(e){
+  if(!dragItem||!dragClone) return;
+  let clientX,clientY;
+  if(isTouch&&e.changedTouches&&e.changedTouches.length>0){ clientX=e.changedTouches[0].clientX; clientY=e.changedTouches[0].clientY; }
+  else { clientX=e.clientX; clientY=e.clientY; }
+
+  const dropzones=document.querySelectorAll(".dropzone"); let dropped=false;
+  dropzones.forEach(dz=>{
     const rect=dz.getBoundingClientRect();
-    const x=(isTouch?e.changedTouches[0].clientX:e.clientX);
-    const y=(isTouch?e.changedTouches[0].clientY:e.clientY);
-    if(x>rect.left && x<rect.right && y>rect.top && y<rect.bottom){ drop=dz; }
+    if(clientX>=rect.left&&clientX<=rect.right&&clientY>=rect.top&&clientY<=rect.bottom&&dz.childElementCount===0){
+      const value=dragItem.dataset.value;
+      if(currentLevel===4 && value.includes("-")){
+        const [animal,number,verb,food,colour]=value.split("-");
+        document.querySelectorAll(".dropzone").forEach(dzBox=>{
+          dzBox.innerHTML=""; dzBox.classList.add("filled");
+          if(dzBox.dataset.placeholder==="animal+howmany?"){ const img=document.createElement("img"); img.src=compositeImagePath(`${animal}-${number}`); dzBox.appendChild(img); dzBox.dataset.filled=`${animal}-${number}`; }
+          else if(dzBox.dataset.placeholder==="verb"){ const img=document.createElement("img"); img.src=signPathFor(verb); dzBox.appendChild(img); dzBox.dataset.filled=verb; }
+          else if(dzBox.dataset.placeholder==="food+colour"){ const img=document.createElement("img"); img.src=compositeImagePath(`${food}-${colour}`); dzBox.appendChild(img); dzBox.dataset.filled=verb==="donthave"?"donthave":`${food}-${colour}`; if(verb==="donthave"){ const xDiv=document.createElement("div"); xDiv.className="xOverlay"; xDiv.textContent="X"; dzBox.appendChild(xDiv); } }
+        });
+      } else { const img=document.createElement("img"); img.src=value.includes("-")?compositeImagePath(value):signPathFor(value); dz.appendChild(img); dz.dataset.filled=value; dz.classList.add("filled"); }
+      dropped=true;
+    }
   });
 
-  if(drop&&(!drop.dataset.permanent)){
-    drop.innerHTML=""; drop.appendChild(dragClone.cloneNode(true)); drop.dataset.filled=dragItem.dataset.value; drop.classList.add("filled");
-  }
-  dragClone.remove(); dragClone=null; dragItem=null;
-  if(drop) checkBtn.style.display="inline-block";
+  if(dragClone) document.body.removeChild(dragClone);
+  dragClone=null; dragItem=null;
+  if(isTouch){ document.removeEventListener("touchmove", moveDrag,{passive:false}); document.removeEventListener("touchend", endDrag); }
+  else { document.removeEventListener("mousemove", moveDrag); document.removeEventListener("mouseup", endDrag); }
+
+  if(dropped){ againBtn.style.display="inline-block"; const allFilled=Array.from(document.querySelectorAll(".dropzone")).every(d=>d.dataset.filled); checkBtn.style.display=allFilled?"inline-block":"none"; }
 }
+
+document.addEventListener("mousedown", startDrag);
+document.addEventListener("touchstart", startDrag, {passive:false});
+
+/* ===== DROP HANDLER PLACEHOLDER ===== */
 function dropHandler(e){ e.preventDefault(); }
 
-/* ===== CHECK ANSWERS ===== */
-checkBtn.onclick=function(){
-  const dropzones=document.querySelectorAll(".dropzone");
-  let correctThisRound=0, incorrectThisRound=0;
-  dropzones.forEach(dz=>{
-    if(dz.dataset.permanent==="true") return;
-    const filled=dz.dataset.filled||"";
+/* ===== CHECK ANSWER ===== */
+checkBtn.addEventListener("click",()=>{
+  const dropzones=Array.from(answerArea.querySelectorAll(".dropzone"));
+  let allCorrect=true;
+
+  dropzones.forEach((dz,i)=>{
+    if(dz.dataset.permanent==="true"){ dz.classList.add("correct"); return; }
+
     let expected="";
-    if(dz.dataset.placeholder.includes("animal")) expected=currentSentence.animal;
-    else if(dz.dataset.placeholder.includes("howmany")) expected=currentSentence.number;
-    else if(dz.dataset.placeholder.includes("food")) expected=currentSentence.food;
-    else if(dz.dataset.placeholder.includes("colour")) expected=currentSentence.colour;
-    else if(dz.dataset.placeholder.includes("verb")) expected=currentSentence.verb;
-    if(filled===expected) correctThisRound++; else incorrectThisRound++;
+    if(currentLevel===1) expected=(roundInLevel%2===1)?(i===0?currentSentence.animal:currentSentence.number):currentSentence.animal+"-"+currentSentence.number;
+    else if(currentLevel===2) expected=(roundInLevel%2===1)?(i===0?currentSentence.food:currentSentence.colour):currentSentence.food+"-"+currentSentence.colour;
+    else if(currentLevel===3){ const seq=roundInLevel%2===1?[currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour]:[currentSentence.animal+"-"+currentSentence.number,currentSentence.verb,currentSentence.food+"-"+currentSentence.colour]; expected=seq[i]||""; }
+    else if(currentLevel===4){ const seq=[currentSentence.animal+"-"+currentSentence.number,currentSentence.verb,currentSentence.food+"-"+currentSentence.colour]; if(dz.dataset.placeholder==="animal+howmany?") expected=seq[0]; else if(dz.dataset.placeholder==="verb") expected=seq[1]; else if(dz.dataset.placeholder==="food+colour") expected=currentSentence.verb==="donthave"?"donthave":seq[2]; }
+
+    if(dz.dataset.filled===expected){ correctCount++; levelCorrect[currentLevel]++; dz.classList.add("correct"); }
+    else{ incorrectCount++; levelIncorrect[currentLevel]++; allCorrect=false; dz.innerHTML=""; dz.dataset.filled=""; dz.classList.remove("correct","filled"); dz.classList.add("incorrect"); }
   });
-  levelCorrect[currentLevel]+=correctThisRound;
-  levelIncorrect[currentLevel]+=incorrectThisRound;
-  feedbackDiv.textContent=`Correct: ${correctThisRound} | Incorrect: ${incorrectThisRound}`;
-  correctCount+=correctThisRound; incorrectCount+=incorrectThisRound;
-  againBtn.style.display="inline-block"; checkBtn.style.display="none";
-};
 
-/* ===== AGAIN BUTTONS ===== */
-againBtn.onclick=()=>{ nextRound(); };
-againBtnEnd.onclick=()=>{ endModal.style.display="none"; nextRound(); };
-againBtnStop.onclick=()=>{ endModal.style.display="none"; nextRound(); };
-
-function nextRound(){
-  roundInLevel++;
-  if(roundInLevel>=3) endLevel(); else buildQuestion();
-}
-
-/* ===== END LEVEL ===== */
-async function endLevel(){
+  const fb=document.createElement("img"); fb.src=allCorrect?"assets/correct.png":"assets/wrong.png"; feedbackDiv.appendChild(fb);
   saveProgress();
-  endModal.style.display="block";
-  document.getElementById("endGif").src="assets/auslan-clap.gif";
-  const total=correctCount+incorrectCount;
-  const percent=total>0?Math.round(correctCount/total*100):0;
-  document.getElementById("finalScore").textContent=`${correctCount}/${total}`;
-  document.getElementById("finalPercent").textContent=percent+"%";
-  if(finalTimeSpan) finalTimeSpan.textContent=`${getTimeElapsed()}s`;
-  await submitToGoogleForm();
-}
 
-/* ===== UPDATE SCORE DISPLAY ===== */
-function updateScoreDisplay(){
-  scoreDisplay.textContent=`Level ${currentLevel} Q${roundInLevel+1} | Score ${correctCount}/${correctCount+incorrectCount}`;
-}
-
-/* ===== RESET GAME ===== */
-function resetGame(){
-  currentLevel=1; roundInLevel=0; correctCount=0; incorrectCount=0;
-  levelCorrect={1:0,2:0,3:0,4:0}; levelIncorrect={1:0,2:0,3:0,4:0};
-  answersHistory=[]; setTimeElapsed(0); buildQuestion();
-}
-
-/* ===== GOOGLE FORM SUBMISSION ===== */
-async function submitToGoogleForm(){
-  const url="https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse";
-  const formData=new FormData();
-  formData.append(FORM_FIELD_MAP.name,studentName);
-  formData.append(FORM_FIELD_MAP.class,studentClass);
-  formData.append(FORM_FIELD_MAP.subject,"Sentences");
-  formData.append(FORM_FIELD_MAP.timeTaken,getTimeElapsed());
-  const total=correctCount+incorrectCount;
-  formData.append(FORM_FIELD_MAP.percent,total>0?Math.round(correctCount/total*100):0);
-  for(let i=1;i<=TOTAL_LEVELS;i++){
-    formData.append(FORM_FIELD_MAP["level"+i].correct,levelCorrect[i]);
-    formData.append(FORM_FIELD_MAP["level"+i].incorrect,levelIncorrect[i]);
-  }
-  try{ await fetch(url,{method:"POST",body:formData,mode:"no-cors"}); }
-  catch(e){ console.warn("Form submit failed",e); }
-}
-
-/* ===== INITIALIZE GAME ===== */
-document.addEventListener("DOMContentLoaded",()=>{
-  const saved=loadProgress(); if(saved) showResumeModal(saved); else resetGame();
-  document.addEventListener("mousedown", startDrag);
-  document.addEventListener("touchstart", startDrag,{passive:false});
+  setTimeout(()=>{
+    feedbackDiv.innerHTML="";
+    if(allCorrect) nextRound();
+    else{ buildDraggables(roundInLevel%2===1); checkBtn.style.display="none"; againBtn.style.display="inline-block"; }
+  },2000);
 });
 
-/* ===== STOP BUTTON ===== */
-stopBtn.onclick=async ()=>{
-  saveProgress(); endModal.style.display="block"; await endLevel();
-  window.location.href="../index.html";
-};
+/* ===== AGAIN BUTTON ===== */
+againBtn.addEventListener("click",()=>{
+  buildDraggables(roundInLevel%2===1);
+  Array.from(answerArea.querySelectorAll(".dropzone")).forEach(dz=>{
+    if(dz.dataset.permanent!=="true"){ dz.innerHTML=""; dz.dataset.filled=""; dz.classList.remove("correct","incorrect","filled"); }
+    else dz.classList.add("correct");
+  });
+  checkBtn.style.display="none"; againBtn.style.display="none";
+});
 
-/* ===== FINISH BUTTONS ===== */
-if(finishBtn) finishBtn.onclick=()=>{ endModal.style.display="none"; window.location.href="../index.html"; };
-if(finishBtnStop) finishBtnStop.onclick=()=>{ endModal.style.display="none"; window.location.href="../index.html"; };
+/* ===== GAME FLOW ===== */
+function nextRound(){ roundInLevel++; if(roundInLevel>=10) endLevel(); else{ buildQuestion(); saveProgress(); } }
+
+async function endLevel(){
+  const timeTaken=getTimeElapsed();
+  const percent=Math.round((correctCount/(correctCount+incorrectCount))*100);
+
+  if(currentLevel<TOTAL_LEVELS){ currentLevel++; roundInLevel=0; startGame(); saveProgress(); return; }
+
+  const fd=new FormData();
+  fd.append(FORM_FIELD_MAP.name,studentName);
+  fd.append(FORM_FIELD_MAP.class,studentClass);
+  fd.append(FORM_FIELD_MAP.subject,"Sentences");
+  fd.append(FORM_FIELD_MAP.timeTaken,timeTaken);
+  fd.append(FORM_FIELD_MAP.percent,percent);
+
+  for(let l=1;l<=TOTAL_LEVELS;l++){
+    const cf=FORM_FIELD_MAP[`level${l}`]?.correct;
+    const inf=FORM_FIELD_MAP[`level${l}`]?.incorrect;
+    if(cf) fd.append(cf,levelCorrect[l]);
+    if(inf) fd.append(inf,levelIncorrect[l]);
+  }
+
+  try{ await fetch(googleForm.action,{method:"POST",body:fd,mode:"no-cors"}); }catch(err){ console.warn("Form submission failed",err); }
+
+  clearProgress();
+  endModal.style.display="block";
+  document.getElementById("endGif").src="assets/auslan-clap.gif";
+  document.getElementById("finalScore").textContent=`${correctCount}/${correctCount+incorrectCount}`;
+  document.getElementById("finalPercent").textContent=percent+"%";
+}
+
+/* ===== END MODAL BUTTONS ===== */
+finishBtn.onclick=()=>window.location.href="../index.html";
+againBtnEnd.onclick=()=>{ endModal.style.display="none"; resetGame(); };
+
+/* ===== STOP BUTTON ===== */
+stopBtn.addEventListener("click",()=>{
+  savedTimeElapsed=getTimeElapsed();
+  const percent=Math.round((correctCount/(correctCount+incorrectCount))*100);
+  const modal=document.getElementById("stopModal"); modal.style.display="block";
+  document.getElementById("stopTime").textContent=`${Math.floor(savedTimeElapsed/60)}m ${savedTimeElapsed%60}s`;
+  document.getElementById("stopPercent").textContent=percent+"%";
+
+  document.getElementById("continueBtn").onclick=()=>{ modal.style.display="none"; startTime=Date.now(); };
+  document.getElementById("againBtnStop").onclick=()=>{ modal.style.display="none"; resetGame(); };
+  document.getElementById("finishBtnStop").onclick=async()=>{ modal.style.display="none"; await endLevel(); window.location.href="../index.html"; };
+});
+
+/* ===== START/RESET GAME ===== */
+function startGame(){ startTime=Date.now(); buildQuestion(); }
+function resetGame(){ currentLevel=1; roundInLevel=0; correctCount=0; incorrectCount=0; savedTimeElapsed=0; startGame(); }
+function updateScoreDisplay(){ scoreDisplay.textContent=`Level ${currentLevel} - Question ${roundInLevel+1}/10`; }
+
+/* ===== INIT ===== */
+window.addEventListener("load",()=>{
+  const saved=loadProgress();
+  if(saved&&saved.studentName){ showResumeModal(saved); }
+  else resetGame();
+});
