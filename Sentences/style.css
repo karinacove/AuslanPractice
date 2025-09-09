@@ -227,7 +227,7 @@ body {
 #feedback {
   font-size: 1rem;
   font-weight: bold;
-  text-align: center;
+  position: center center;
   margin: 5px 0;
   height: 80px;
   z-index: 500;
