@@ -44,10 +44,11 @@ let roundInLevel = 0; // 0..9
 let correctCount = 0;
 let incorrectCount = 0;
 let currentSentence = {};
-let startTime = null;
-let savedTimeElapsed = 0;
+let startTime = Date.now();
+let savedTimeElapsed = 0; // for resume
 let answersHistory = [];
 
+// Per-level tracking
 const TOTAL_LEVELS = 4;
 let perLevelResults = Array.from({ length: TOTAL_LEVELS }, () => ({ correct: 0, incorrect: 0 }));
 
@@ -89,29 +90,13 @@ function setTimeElapsed(seconds) {
   startTime = Date.now();
 }
 
-/* ===== PROGRESS SAVE/RESUME ===== */
+/* ===== SAVE / LOAD PROGRESS ===== */
 const SAVE_KEY = "sentencesGameSave";
-
 function saveProgress() {
-  const saveData = {
-    studentName,
-    studentClass,
-    currentLevel,
-    roundInLevel,
-    correctCount,
-    incorrectCount,
-    answersHistory,
-    timeElapsed: getTimeElapsed()
-  };
+  const saveData = { studentName, studentClass, currentLevel, roundInLevel, correctCount, incorrectCount, answersHistory, timeElapsed: getTimeElapsed() };
   localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
 }
-
-function loadProgress() {
-  try {
-    return JSON.parse(localStorage.getItem(SAVE_KEY));
-  } catch { return null; }
-}
-
+function loadProgress() { try { return JSON.parse(localStorage.getItem(SAVE_KEY)); } catch { return null; } }
 function clearProgress() { localStorage.removeItem(SAVE_KEY); }
 
 /* ===== SENTENCE GENERATION ===== */
@@ -120,10 +105,11 @@ function generateSentence() {
   const number = randomItem(numbers);
   const foodItem = randomItem(food);
   const colour = randomItem(colours);
-  const verb = (currentLevel === 4) ? randomItem(["have","donthave"]) : "want";
+  const verb = (currentLevel===4)?randomItem(["have","donthave"]):"want";
   currentSentence = { animal, number, food: foodItem, colour, verb };
 }
 
+/* ===== BUILD QUESTION ===== */
 function buildQuestion() {
   generateSentence();
   questionArea.innerHTML = "";
@@ -133,10 +119,49 @@ function buildQuestion() {
   againBtn.style.display = "none";
 
   const isOdd = roundInLevel % 2 === 1;
-  const comboDiv = document.createElement("div");
 
-  // Question images logic simplified for brevity
-  // (Use your existing composite images as in your previous code)
+  // HELPER SIGNS Level 1 & 2
+  if (currentLevel <= 2) {
+    const helperDiv = document.createElement("div");
+    helpers.forEach(h => { const img = document.createElement("img"); img.src = signPathFor(h); helperDiv.appendChild(img); });
+    questionArea.appendChild(helperDiv);
+  }
+
+  const comboDiv = document.createElement("div");
+  // --- QUESTION IMAGES ---
+  if (isOdd) {
+    if (currentLevel === 1) comboDiv.innerHTML = `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}">`;
+    else if (currentLevel === 2) comboDiv.innerHTML = `<img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`;
+    else if (currentLevel === 3) comboDiv.innerHTML =
+      `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}">
+       <img src="${signPathFor('want')}">
+       <img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`;
+    else if (currentLevel === 4) {
+      const verbImg = currentSentence.verb === "donthave"
+        ? `<div class="dontHaveWrapper"><img src="${signPathFor('have')}"><div class="xOverlay">X</div></div>`
+        : `<img src="${signPathFor('have')}">`;
+      comboDiv.innerHTML =
+        `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}">
+         ${verbImg}
+         <img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`;
+    }
+  } else {
+    if (currentLevel === 1) comboDiv.innerHTML = `<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}">`;
+    else if (currentLevel === 2) comboDiv.innerHTML = `<img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
+    else if (currentLevel === 3) comboDiv.innerHTML =
+      `<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}">
+       <img src="${signPathFor('want')}">
+       <img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
+    else if (currentLevel === 4) {
+      const verbImg = currentSentence.verb === "donthave"
+        ? `<div class="dontHaveWrapper"><img src="${signPathFor('have')}"><div class="xOverlay">X</div></div>`
+        : `<img src="${signPathFor('have')}">`;
+      comboDiv.innerHTML =
+        `<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}">
+         ${verbImg}
+         <img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
+    }
+  }
   questionArea.appendChild(comboDiv);
 
   buildAnswerBoxes(isOdd);
@@ -150,128 +175,223 @@ function buildAnswerBoxes(isOdd) {
   let dropLabels = [];
   if (currentLevel === 1) dropLabels = isOdd ? ["animal","how many?"] : ["animal+howmany?"];
   else if (currentLevel === 2) dropLabels = isOdd ? ["food","colour"] : ["food+colour"];
-  else dropLabels = isOdd ? ["animal","how many?","verb","food","colour"] : ["animal+howmany?","verb","food+colour"];
+  else if (currentLevel === 3) dropLabels = isOdd ? ["animal","how many?","verb","food","colour"] : ["animal+howmany?","verb","food+colour"];
+  else if (currentLevel === 4) dropLabels = isOdd ? ["animal","how many?","verb","food","colour"] : ["animal+howmany?","verb","food+colour"];
 
-  dropLabels.forEach(label => {
-    const dz = document.createElement("div");
-    dz.className = "dropzone";
-    dz.dataset.placeholder = label;
-    dz.addEventListener("dragover", e => e.preventDefault());
+  dropLabels.forEach((label,i)=>{
+    const dz=document.createElement("div");
+    dz.className="dropzone";
+    dz.dataset.placeholder=label;
+    dz.addEventListener("dragover", e=>e.preventDefault());
     dz.addEventListener("drop", dropHandler);
-    if (currentLevel === 3 && label === "verb") {
-      const img = document.createElement("img");
-      img.src = signPathFor("want");
+
+    if(currentLevel===3 && label==="verb"){
+      const img=document.createElement("img");
+      img.src=signPathFor("want");
       dz.appendChild(img);
-      dz.dataset.filled = "want";
+      dz.dataset.filled="want";
       dz.classList.add("filled");
-      dz.dataset.permanent = "true";
+      dz.dataset.permanent="true";
     }
+
     answerArea.appendChild(dz);
   });
 }
 
 /* ===== BUILD DRAGGABLES ===== */
 function buildDraggables(isOdd){
-  leftDraggables.innerHTML = "";
-  rightDraggables.innerHTML = "";
-  let items = [];
-  const totalItems = 16;
+  leftDraggables.innerHTML="";
+  rightDraggables.innerHTML="";
+  let items=[];
+  const totalItems=16;
 
-  if (currentLevel === 1) items = isOdd ? [currentSentence.animal,currentSentence.number] : [currentSentence.animal+"-"+currentSentence.number];
-  else if (currentLevel === 2) items = isOdd ? [currentSentence.food,currentSentence.colour] : [currentSentence.food+"-"+currentSentence.colour];
-  else if (currentLevel === 3) items = isOdd ? [currentSentence.animal,currentSentence.number,currentSentence.food,currentSentence.colour] : [currentSentence.animal+"-"+currentSentence.number,currentSentence.food+"-"+currentSentence.colour];
-  else if (currentLevel === 4) items = [`${currentSentence.animal}-${currentSentence.number}-${currentSentence.verb}-${currentSentence.food}-${currentSentence.colour}`];
-
-  // Fill decoys
-  const used = new Set(items);
-  while (items.length < totalItems) {
-    let decoy;
-    if (isOdd) {
-      if (currentLevel === 1) decoy = randomItem([...animals,...numbers]);
-      else if (currentLevel === 2) decoy = randomItem([...food,...colours]);
-      else if (currentLevel === 3) decoy = randomItem([...animals,...numbers,...food,...colours]);
-      else decoy = randomItem([...animals,...numbers,...food,...colours,...verbs]);
-    } else {
-      let allCombos = [];
-      if (currentLevel === 1) allCombos = animals.flatMap(a=>numbers.map(n=>`${a}-${n}`));
-      else if (currentLevel === 2) allCombos = food.flatMap(f=>colours.map(c=>`${f}-${c}`));
-      else if (currentLevel === 3) allCombos = [...animals.flatMap(a=>numbers.map(n=>`${a}-${n}`)),...food.flatMap(f=>colours.map(c=>`${f}-${c}`))];
-      decoy = randomItem(allCombos);
-    }
-    if (!used.has(decoy)) { items.push(decoy); used.add(decoy); }
+  if(currentLevel===1) items = isOdd?[currentSentence.animal,currentSentence.number]:[currentSentence.animal+"-"+currentSentence.number];
+  else if(currentLevel===2) items = isOdd?[currentSentence.food,currentSentence.colour]:[currentSentence.food+"-"+currentSentence.colour];
+  else if(currentLevel===3) items = isOdd?[currentSentence.animal,currentSentence.number,currentSentence.food,currentSentence.colour]:[currentSentence.animal+"-"+currentSentence.number,currentSentence.food+"-"+currentSentence.colour];
+  else if(currentLevel===4) {
+    const verb=currentSentence.verb;
+    const label=`${currentSentence.animal}-${currentSentence.number}-${verb}-${currentSentence.food}-${currentSentence.colour}`;
+    items=[label];
   }
 
-  items = shuffleArray(items);
-  const halves = [items.slice(0,8),items.slice(8,16)];
-  halves.forEach((group, idx) => {
-    const container = idx === 0 ? leftDraggables : rightDraggables;
-    group.forEach(word => {
-      const div = document.createElement("div");
-      div.className = "draggable"; div.draggable = true; div.dataset.value = word;
-      const img = document.createElement("img");
-      img.src = word.includes("-") ? compositeImagePath(word) : signPathFor(word);
+  // Add decoys
+  const used=new Set(items);
+  while(items.length<totalItems){
+    let decoy;
+    if(isOdd){
+      if(currentLevel===1) decoy=randomItem([...animals,...numbers]);
+      else if(currentLevel===2) decoy=randomItem([...food,...colours]);
+      else if(currentLevel===3) decoy=randomItem([...animals,...numbers,...food,...colours]);
+      else decoy=randomItem([...animals,...numbers,...food,...colours,...verbs]);
+    } else {
+      let allCombos=[];
+      if(currentLevel===1) allCombos=animals.flatMap(a=>numbers.map(n=>`${a}-${n}`));
+      else if(currentLevel===2) allCombos=food.flatMap(f=>colours.map(c=>`${f}-${c}`));
+      else if(currentLevel===3) allCombos=[...animals.flatMap(a=>numbers.map(n=>`${a}-${n}`)),...food.flatMap(f=>colours.map(c=>`${f}-${c}`))];
+      decoy=randomItem(allCombos);
+    }
+    if(!used.has(decoy)){ items.push(decoy); used.add(decoy); }
+  }
+
+  items=shuffleArray(items);
+  const halves=[items.slice(0,8),items.slice(8,16)];
+  halves.forEach((group,idx)=>{
+    const container=idx===0?leftDraggables:rightDraggables;
+    group.forEach(word=>{
+      const div=document.createElement("div");
+      div.className="draggable"; div.draggable=true; div.dataset.value=word;
+      const img=document.createElement("img");
+      if(currentLevel===4 && word.includes("donthave")){
+        const parts=word.split("-");
+        img.src=compositeImagePath(parts[3]+"-"+parts[4]);
+        const wrapper=document.createElement("div"); wrapper.className="dontHaveWrapper"; wrapper.appendChild(img);
+        const xOverlay=document.createElement("div"); xOverlay.className="xOverlay"; xOverlay.textContent="X";
+        wrapper.appendChild(xOverlay); div.appendChild(wrapper);
+      } else if(currentLevel===4 && word.includes("have")){
+        const parts=word.split("-");
+        img.src=compositeImagePath(parts[3]+"-"+parts[4]);
+        div.appendChild(img);
+      } else img.src=word.includes("-")?compositeImagePath(word):signPathFor(word);
       div.appendChild(img);
-      div.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", word));
+      div.addEventListener("dragstart", e=>e.dataTransfer.setData("text/plain",word));
       container.appendChild(div);
     });
   });
 }
 
-/* ===== DRAG & DROP HANDLERS ===== */
-function dropHandler(e){ e.preventDefault(); }
-
-/* ===== SCORE DISPLAY ===== */
-function updateScoreDisplay() {
-  const total = correctCount + incorrectCount;
-  scoreDisplay.textContent = `Score: ${correctCount}/${total}`;
+/* ===== UNIFIED DRAG & DROP ===== */
+let dragItem=null, dragClone=null, isTouch=false;
+function startDrag(e){
+  const target=e.target.closest(".draggable"); if(!target) return;
+  dragItem=target; isTouch=e.type.startsWith("touch");
+  const rect=target.getBoundingClientRect();
+  dragClone=target.cloneNode(true);
+  dragClone.style.position="fixed"; dragClone.style.left=rect.left+"px"; dragClone.style.top=rect.top+"px";
+  dragClone.style.width=rect.width+"px"; dragClone.style.height=rect.height+"px"; dragClone.style.opacity="0.7";
+  dragClone.style.pointerEvents="none"; dragClone.style.zIndex="10000";
+  document.body.appendChild(dragClone); e.preventDefault();
+  if(isTouch){ document.addEventListener("touchmove", moveDrag,{passive:false}); document.addEventListener("touchend", endDrag); }
+  else { document.addEventListener("mousemove", moveDrag); document.addEventListener("mouseup", endDrag); }
 }
+function moveDrag(e){
+  if(!dragClone) return;
+  let clientX,clientY;
+  if(isTouch&&e.touches.length>0){ clientX=e.touches[0].clientX; clientY=e.touches[0].clientY; }
+  else { clientX=e.clientX; clientY=e.clientY; }
+  dragClone.style.left=clientX-dragClone.offsetWidth/2+"px";
+  dragClone.style.top=clientY-dragClone.offsetHeight/2+"px";
+}
+function endDrag(e){
+  if(!dragItem||!dragClone) return;
+  let clientX,clientY;
+  if(isTouch&&e.changedTouches&&e.changedTouches.length>0){ clientX=e.changedTouches[0].clientX; clientY=e.changedTouches[0].clientY; }
+  else { clientX=e.clientX; clientY=e.clientY; }
+  const dropzones=document.querySelectorAll(".dropzone"); let dropped=false;
+  dropzones.forEach(dz=>{
+    const rect=dz.getBoundingClientRect();
+    if(clientX>=rect.left&&clientX<=rect.right&&clientY>=rect.top&&clientY<=rect.bottom&&dz.childElementCount===0){
+      const value=dragItem.dataset.value;
+      const img=document.createElement("img");
+      img.src=value.includes("-")?compositeImagePath(value):signPathFor(value);
+      dz.appendChild(img); dz.dataset.filled=value; dz.classList.add("filled");
+      dropped=true;
+    }
+  });
+  if(dragClone) document.body.removeChild(dragClone);
+  dragClone=null; dragItem=null;
+  if(isTouch){ document.removeEventListener("touchmove", moveDrag,{passive:false}); document.removeEventListener("touchend", endDrag); }
+  else { document.removeEventListener("mousemove", moveDrag); document.removeEventListener("mouseup", endDrag); }
 
-/* ===== GAME FLOW ===== */
-function nextRound() {
+  if(dropped){ againBtn.style.display="inline-block";
+    const allFilled=Array.from(document.querySelectorAll(".dropzone")).every(d=>d.dataset.filled);
+    checkBtn.style.display=allFilled?"inline-block":"none";
+  }
+}
+document.addEventListener("mousedown", startDrag);
+document.addEventListener("touchstart", startDrag, {passive:false});
+
+/* ===== CHECK ANSWER ===== */
+checkBtn.addEventListener("click", () => {
+  const dropzones=Array.from(answerArea.querySelectorAll(".dropzone"));
+  let allCorrect=true;
+  dropzones.forEach((dz,i)=>{
+    if(dz.dataset.permanent==="true"){ dz.classList.add("correct"); return; }
+    let expected="";
+    if(currentLevel===1) expected=(roundInLevel%2===1)?(i===0?currentSentence.animal:currentSentence.number):currentSentence.animal+"-"+currentSentence.number;
+    else if(currentLevel===2) expected=(roundInLevel%2===1)?(i===0?currentSentence.food:currentSentence.colour):currentSentence.food+"-"+currentSentence.colour;
+    else if(currentLevel===3){
+      const seq=(roundInLevel%2===1)?[currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour]:[currentSentence.animal+"-"+currentSentence.number,currentSentence.verb,currentSentence.food+"-"+currentSentence.colour];
+      expected=seq[i]||"";
+    } else if(currentLevel===4){
+      const seq=[currentSentence.animal+"-"+currentSentence.number,currentSentence.verb,currentSentence.food+"-"+currentSentence.colour];
+      if(dz.dataset.placeholder==="animal+number") expected=seq[0];
+      else if(dz.dataset.placeholder==="verb") expected=seq[1];
+      else if(dz.dataset.placeholder==="food+colour") expected=seq[2];
+    }
+    if(dz.dataset.filled===expected) dz.classList.add("correct");
+    else { dz.classList.add("wrong"); allCorrect=false; }
+  });
+  if(allCorrect){ correctCount++; perLevelResults[currentLevel-1].correct++; feedbackDiv.textContent="Correct!"; nextRound(); }
+  else { incorrectCount++; perLevelResults[currentLevel-1].incorrect++; feedbackDiv.textContent="Incorrect. Click 'Again' to retry."; }
+});
+
+/* ===== AGAIN BUTTON ===== */
+againBtn.addEventListener("click",()=>{ buildQuestion(); });
+
+/* ===== SCORE ===== */
+function updateScoreDisplay(){ scoreDisplay.textContent=`Score: ${correctCount}/${correctCount+incorrectCount}`; }
+
+/* ===== LEVEL FLOW ===== */
+function nextRound(){
   roundInLevel++;
-  if (roundInLevel >= 10) endLevel();
-  else { buildQuestion(); saveProgress(); }
+  if(roundInLevel>=10) endLevel();
+  else{ buildQuestion(); saveProgress(); }
+}
+function endLevel(){
+  if(currentLevel<TOTAL_LEVELS){ currentLevel++; roundInLevel=0; saveProgress(); buildQuestion(); }
+  else endGame();
 }
 
-async function endLevel() {
-  if (currentLevel < TOTAL_LEVELS) {
-    currentLevel++; roundInLevel=0; saveProgress(); buildQuestion();
-  } else { await endGame(); }
-}
+/* ===== END GAME ===== */
+async function endGame(){
+  const timeTaken=getTimeElapsed();
+  const total=correctCount+incorrectCount;
+  const percent=total>0?Math.round((correctCount/total)*100):0;
 
-async function endGame() {
-  const timeTaken = getTimeElapsed();
-  const total = correctCount + incorrectCount;
-  const percent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+  const fd=new FormData();
+  fd.append(FORM_FIELD_MAP.name,studentName);
+  fd.append(FORM_FIELD_MAP.class,studentClass);
+  fd.append(FORM_FIELD_MAP.subject,"Sentences");
+  fd.append(FORM_FIELD_MAP.timeTaken,timeTaken);
+  fd.append(FORM_FIELD_MAP.percent,percent);
 
-  // --- Submit to Google Form ---
-  const fd = new FormData();
-  fd.append(FORM_FIELD_MAP.name, studentName);
-  fd.append(FORM_FIELD_MAP.class, studentClass);
-  fd.append(FORM_FIELD_MAP.subject, "Sentences");
-  fd.append(FORM_FIELD_MAP.timeTaken, timeTaken);
-  fd.append(FORM_FIELD_MAP.percent, percent);
-
-  for (let l = 1; l <= TOTAL_LEVELS; l++) {
-    const cf = FORM_FIELD_MAP[`level${l}`]?.correct;
-    const inf = FORM_FIELD_MAP[`level${l}`]?.incorrect;
-    if (cf) fd.append(cf, perLevelResults[l-1].correct);
-    if (inf) fd.append(inf, perLevelResults[l-1].incorrect);
+  for(let l=1;l<=TOTAL_LEVELS;l++){
+    const cf=FORM_FIELD_MAP[`level${l}`]?.correct;
+    const inf=FORM_FIELD_MAP[`level${l}`]?.incorrect;
+    if(cf) fd.append(cf,perLevelResults[l-1].correct);
+    if(inf) fd.append(inf,perLevelResults[l-1].incorrect);
   }
 
-  try { await fetch(googleForm.action,{method:"POST",body:fd,mode:"no-cors"}); }
-  catch(err){ console.warn("Form submission failed",err); }
+  try{ await fetch(googleForm.action,{method:"POST",body:fd,mode:"no-cors"}); } catch(err){ console.warn(err); }
 
   clearProgress();
 
   document.getElementById("endGif").src="assets/auslan-clap.gif";
   document.getElementById("finalTime").textContent=`${Math.floor(timeTaken/60)}:${(timeTaken%60).toString().padStart(2,"0")}`;
   document.getElementById("finalScore").textContent=`${correctCount}/${total}`;
-  document.getElementById("finalPercent").textContent=percent + "%";
-
-  endModal.style.display = "block";
+  document.getElementById("finalPercent").textContent=percent+"%";
+  endModal.style.display="block";
 }
 
+/* ===== STOP / RESUME MODAL ===== */
+stopBtn.addEventListener("click",()=>{
+  savedTimeElapsed=getTimeElapsed();
+  saveProgress();
+  alert("Progress saved. You can resume later.");
+  window.location.href="../hub.html";
+});
+
 /* ===== INITIALIZE GAME ===== */
-startTime = Date.now();
+const saved=loadProgress();
+if(saved){ currentLevel=saved.currentLevel; roundInLevel=saved.roundInLevel; correctCount=saved.correctCount; incorrectCount=saved.incorrectCount; savedTimeElapsed=saved.timeElapsed; }
 buildQuestion();
