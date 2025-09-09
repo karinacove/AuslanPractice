@@ -196,6 +196,25 @@ body {
   max-height: 100px;
 }
 
+.dontHaveWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.xOverlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2em;
+  color: red;
+  font-weight: bold;
+  pointer-events: none;
+}
+
+
 /* ===========================
    Action Buttons
 =========================== */
