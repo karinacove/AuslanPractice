@@ -205,20 +205,38 @@ function buildQuestion() {
   updateScoreDisplay();
 }
 
-/* ===== BUILD ANSWER BOXES ===== */
 function buildAnswerBoxes(isOdd) {
   answerArea.innerHTML = "";
-  let dropCount = 0;
-  if(currentLevel<=2){ dropCount = isOdd ? 2 : 1; }
-  else { dropCount = isOdd ? 4 : 2; }
+  let dropLabels = [];
 
-  for(let i=0;i<dropCount;i++){
+  if (currentLevel === 1) {
+    dropLabels = isOdd ? ["animal", "number"] : ["animal+number"];
+  } else if (currentLevel === 2) {
+    dropLabels = isOdd ? ["food", "colour"] : ["food+colour"];
+  } else if (currentLevel >= 3) {
+    if (isOdd) dropLabels = ["animal", "number", "verb", "food", "colour"];
+    else dropLabels = ["animal+number", "food+colour"];
+  }
+
+  dropLabels.forEach((label, i) => {
     const dz = document.createElement("div");
     dz.className = "dropzone";
-    dz.addEventListener("dragover", e=>e.preventDefault());
+    dz.dataset.placeholder = label; // 👈 placeholder text for CSS
+
+    dz.addEventListener("dragover", e => e.preventDefault());
     dz.addEventListener("drop", dropHandler);
+
+    // Prefill verb at Level 3+ odd questions
+    if (currentLevel >= 3 && isOdd && label === "verb") {
+      const img = document.createElement("img");
+      img.src = signPathFor(currentSentence.verb);
+      dz.appendChild(img);
+      dz.dataset.filled = currentSentence.verb;
+      dz.classList.add("filled");
+    }
+
     answerArea.appendChild(dz);
-  }
+  });
 }
 
 /* ===== BUILD DRAGGABLES ===== */
@@ -270,56 +288,91 @@ function buildDraggables(isOdd){
 }
 
 /* ===== DROP HANDLER ===== */
-function dropHandler(e){
+function dropHandler(e) {
   e.preventDefault();
   const dz = e.currentTarget;
-  if(dz.childElementCount>0) return;
+  if (dz.childElementCount > 0) return; // already filled
+
   const value = e.dataTransfer.getData("text/plain");
   const img = document.createElement("img");
   img.src = value.includes("-") ? compositeImagePath(value) : signPathFor(value);
+
   dz.appendChild(img);
   dz.dataset.filled = value;
+  dz.classList.add("filled"); // 👈 hide placeholder
+
   againBtn.style.display = "inline-block";
-  const allFilled = Array.from(answerArea.querySelectorAll(".dropzone")).every(d=>d.dataset.filled);
+
+  const allFilled = Array.from(answerArea.querySelectorAll(".dropzone"))
+    .every(d => d.dataset.filled);
   checkBtn.style.display = allFilled ? "inline-block" : "none";
 }
 
 /* ===== CHECK ANSWER ===== */
-checkBtn.addEventListener("click",()=>{
+checkBtn.addEventListener("click", () => {
   const dropzones = Array.from(answerArea.querySelectorAll(".dropzone"));
   let allCorrect = true;
-  dropzones.forEach((dz,i)=>{
-    let expected="";
-    if (currentLevel===1) expected = (roundInLevel%2===1) ? (i===0?currentSentence.animal:currentSentence.number) : currentSentence.animal+"-"+currentSentence.number;
-    else if (currentLevel===2) expected = (roundInLevel%2===1) ? (i===0?currentSentence.food:currentSentence.colour) : currentSentence.food+"-"+currentSentence.colour;
-    else {
-      if (roundInLevel%2===1){
-        const seq=[currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour];
-        expected=seq[i]||"";
+
+  dropzones.forEach((dz, i) => {
+    let expected = "";
+    if (currentLevel === 1) {
+      expected = (roundInLevel % 2 === 1)
+        ? (i === 0 ? currentSentence.animal : currentSentence.number)
+        : currentSentence.animal + "-" + currentSentence.number;
+    } else if (currentLevel === 2) {
+      expected = (roundInLevel % 2 === 1)
+        ? (i === 0 ? currentSentence.food : currentSentence.colour)
+        : currentSentence.food + "-" + currentSentence.colour;
+    } else {
+      if (roundInLevel % 2 === 1) {
+        const seq = [
+          currentSentence.animal,
+          currentSentence.number,
+          currentSentence.verb,
+          currentSentence.food,
+          currentSentence.colour,
+        ];
+        expected = seq[i] || "";
       } else {
-        const combos=[currentSentence.animal+"-"+currentSentence.number,currentSentence.food+"-"+currentSentence.colour];
-        expected=combos[i]||"";
+        const combos = [
+          currentSentence.animal + "-" + currentSentence.number,
+          currentSentence.food + "-" + currentSentence.colour,
+        ];
+        expected = combos[i] || "";
       }
     }
-    if (dz.dataset.filled===expected){ correctCount++; dz.classList.add("correct"); }
-    else { incorrectCount++; allCorrect=false; dz.classList.add("incorrect"); }
+
+    if (dz.dataset.filled === expected) {
+      correctCount++;
+      dz.classList.add("correct");
+    } else {
+      incorrectCount++;
+      allCorrect = false;
+      dz.classList.add("incorrect");
+
+      // ❌ clear incorrect only
+      dz.innerHTML = "";
+      dz.dataset.filled = "";
+      dz.classList.remove("filled");
+    }
   });
 
-  const fb=document.createElement("img");
-  fb.src=allCorrect?"assets/correct.png":"assets/wrong.png";
+  const fb = document.createElement("img");
+  fb.src = allCorrect ? "assets/correct.png" : "assets/wrong.png";
   feedbackDiv.appendChild(fb);
 
   saveProgress();
 
-  setTimeout(()=>{
-    feedbackDiv.innerHTML="";
-    if(allCorrect) nextRound();
-    else {
-      buildDraggables(roundInLevel%2===1);
-      dropzones.forEach(dz=>{ dz.innerHTML=""; dz.dataset.filled=""; dz.classList.remove("correct","incorrect"); });
-      checkBtn.style.display="none"; againBtn.style.display="inline-block";
+  setTimeout(() => {
+    feedbackDiv.innerHTML = "";
+    if (allCorrect) {
+      nextRound();
+    } else {
+      buildDraggables(roundInLevel % 2 === 1);
+      checkBtn.style.display = "none";
+      againBtn.style.display = "inline-block";
     }
-  },2000);
+  }, 2000);
 });
 
 againBtn.addEventListener("click",()=>{
