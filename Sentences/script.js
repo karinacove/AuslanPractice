@@ -350,12 +350,14 @@ function buildDraggables(isOdd){
         div.appendChild(img);
       }
 
-      div.addEventListener("dragstart", e=>e.dataTransfer.setData("text/plain",word));
-      div.addEventListener("touchstart", touchStartHandler);
+      // --- Drag & touch support ---
+      div.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", word));
+      // no touchStartHandler needed; unified drag handles touch
       container.appendChild(div);
     });
   });
 }
+
 /* ===== UNIFIED DRAG & DROP ===== */
 let dragItem=null, dragClone=null, isTouch=false;
 function startDrag(e){
