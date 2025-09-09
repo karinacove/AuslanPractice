@@ -256,6 +256,25 @@ body {
   transform: scale(1.1);
   transition: transform 0.2s;
 }
+
+#againBtnStop {
+   width: 120px;
+   height: 120px;
+   cursor: pointer;
+}
+
+#finishBtnStop
+   width: 120px;
+   height: 120px;
+   cursor: pointer;
+}
+
+#continueBtn
+   width: 120px;
+   height: 120px;
+   cursor: pointer;
+}
+
 /* ===========================
    Feedback (Correct / Wrong)
 =========================== */
