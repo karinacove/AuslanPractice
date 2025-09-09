@@ -121,50 +121,25 @@ function clearProgress() {
 }
 
 function showResumeModal(saved) {
-  const modal = document.createElement("div");
-  modal.id = "resumeModal";
-  modal.style.position = "fixed";
-  modal.style.top = "0";
-  modal.style.left = "0";
-  modal.style.width = "100%";
-  modal.style.height = "100%";
-  modal.style.background = "rgba(0,0,0,0.7)";
+  const modal = document.getElementById("resumeModal");
+  const msg = document.getElementById("resumeMessage");
+  const cont = document.getElementById("resumeContinue");
+  const again = document.getElementById("resumeAgain");
+
+  msg.textContent = `Welcome back ${saved.studentName}! Continue from Level ${saved.currentLevel}, Question ${saved.roundInLevel + 1}?`;
+
+  cont.onclick = () => {
+    modal.style.display = "none";
+    restoreProgress(saved);
+  };
+
+  again.onclick = () => {
+    modal.style.display = "none";
+    clearProgress();
+    resetGame();
+  };
+
   modal.style.display = "flex";
-  modal.style.justifyContent = "center";
-  modal.style.alignItems = "center";
-  modal.style.zIndex = "2000";
-
-  const box = document.createElement("div");
-  box.style.background = "#fff";
-  box.style.padding = "20px";
-  box.style.borderRadius = "12px";
-  box.style.textAlign = "center";
-  box.style.maxWidth = "400px";
-
-  const msg = document.createElement("p");
-  msg.textContent = `Welcome back ${saved.studentName}! Continue from Level ${saved.currentLevel}, Question ${saved.roundInLevel+1}?`;
-  msg.style.marginBottom = "20px";
-
-  const cont = document.createElement("img");
-  cont.src = "assets/continue.png";
-  cont.style.width = "150px";
-  cont.style.cursor = "pointer";
-  cont.style.margin = "10px";
-
-  const again = document.createElement("img");
-  again.src = "assets/again.png";
-  again.style.width = "150px";
-  again.style.cursor = "pointer";
-  again.style.margin = "10px";
-
-  cont.onclick = () => { modal.remove(); restoreProgress(saved); };
-  again.onclick = () => { modal.remove(); clearProgress(); resetGame(); };
-
-  box.appendChild(msg);
-  box.appendChild(cont);
-  box.appendChild(again);
-  modal.appendChild(box);
-  document.body.appendChild(modal);
 }
 
 function restoreProgress(saved) {
