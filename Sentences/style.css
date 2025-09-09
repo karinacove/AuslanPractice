@@ -309,6 +309,16 @@ body {
   cursor: pointer;
 }
 
+#endGif {
+   width: 100px;
+}
+
+#finishBtn, againBtnEnd {
+   width: 100px;
+   height: 100px;
+   cursor: pointer;
+}
+
 /* ===========================
    Resume Modal
 =========================== */
