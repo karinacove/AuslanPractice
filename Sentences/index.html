@@ -43,25 +43,25 @@
     <div id="draggablesRight" class="draggables"></div>
   </div>
 
-  <!-- End modal -->
-  <div id="endModal" class="modal" style="display:none;">
-    <div class="modalContent">
-      <h2>Game Over</h2>
-      <p>Final Score: <span id="finalScore"></span></p>
-      <p>Percentage: <span id="finalPercent"></span></p>
-      <div class="modalButtons">
-        <button id="playAgain" class="iconButton">
-          <img src="assets/again.png" alt="Play Again">
-        </button>
-        <button id="finish" class="iconButton">
-          <img src="assets/menu.png" alt="Finish">
-        </button>
-        <button id="logout" class="iconButton">
-          <img src="assets/logout.png" alt="Logout">
-        </button>
-      </div>
-    </div>
-  </div>
+<!-- End Modal -->
+<div id="endModal" style="display:none;">
+  <img id="endGif" src="" alt="Clap">
+  <p>Time: <span id="finalTime"></span></p>
+  <p>Score: <span id="finalScore"></span></p>
+  <p>Percentage: <span id="finalPercent"></span></p>
+  <img id="finishBtn" src="assets/finish.png" alt="Finish">
+  <img id="againBtnEnd" src="assets/again.png" alt="Play Again">
+  <img id="logoffBtn" src="assets/logoff.png" alt="Logoff">
+</div>
+
+<!-- Stop Modal -->
+<div id="stopModal" style="display:none;">
+  <p>Time: <span id="stopTime"></span></p>
+  <p>Percentage: <span id="stopPercent"></span></p>
+  <img id="continueBtn" src="assets/continue.png" alt="Continue">
+  <img id="againBtnStop" src="assets/again.png" alt="Play Again">
+  <img id="finishBtnStop" src="assets/finish.png" alt="Finish">
+</div>
 
 <div id="resumeModal">
   <div class="modal-content">
