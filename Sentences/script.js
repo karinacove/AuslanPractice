@@ -582,18 +582,6 @@ async function endLevel() {
   document.getElementById("finalPercent").textContent = percent + "%";
 }
 
-
-  // --- Show End Modal ---
-  clearProgress();
-  endModal.style.display = "block";
-
-  // Display Auslan clap GIF
-  document.getElementById("endGif").src = "assets/auslan-clap.gif";
-
-  // Display time and percentage
-  document.getElementById("finalScore").textContent = `${correctCount}/${correctCount + incorrectCount}`;
-  document.getElementById("finalPercent").textContent = percent + "%";
-
 /* ===== END MODAL BUTTONS ===== */
 document.getElementById("finishBtn").onclick = () => { 
   window.location.href = "../index.html"; 
