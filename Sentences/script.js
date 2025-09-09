@@ -255,6 +255,7 @@ function buildQuestion() {
 }
 
 
+/* ===== BUILD ANSWER BOXES ===== */
 function buildAnswerBoxes(isOdd) {
   answerArea.innerHTML = "";
   let dropLabels = [];
@@ -263,25 +264,26 @@ function buildAnswerBoxes(isOdd) {
     dropLabels = isOdd ? ["animal", "number"] : ["animal+number"];
   } else if (currentLevel === 2) {
     dropLabels = isOdd ? ["food", "colour"] : ["food+colour"];
-  } else if (currentLevel >= 3) {
-    if (isOdd) dropLabels = ["animal", "number", "verb", "food", "colour"];
-    else dropLabels = ["animal+number", "food+colour"];
+  } else if (currentLevel === 3) {
+    dropLabels = isOdd ? ["animal", "number", "verb", "food", "colour"] : ["animal+number", "food+colour"];
+  } else if (currentLevel === 4) {
+    dropLabels = isOdd ? ["animal", "number", "verb", "food", "colour"] : ["animal+number", "food+colour"];
   }
 
   dropLabels.forEach((label, i) => {
     const dz = document.createElement("div");
     dz.className = "dropzone";
-    dz.dataset.placeholder = label; // 👈 placeholder text for CSS
+    dz.dataset.placeholder = label;
 
     dz.addEventListener("dragover", e => e.preventDefault());
     dz.addEventListener("drop", dropHandler);
 
-    // Prefill verb at Level 3+ odd questions
-    if (currentLevel >= 3 && isOdd && label === "verb") {
+    // Level 3: prefill verb ("want") in odd questions
+    if (currentLevel === 3 && isOdd && label === "verb") {
       const img = document.createElement("img");
-      img.src = signPathFor(currentSentence.verb);
+      img.src = signPathFor("want");
       dz.appendChild(img);
-      dz.dataset.filled = currentSentence.verb;
+      dz.dataset.filled = "want";
       dz.classList.add("filled");
     }
 
@@ -296,12 +298,18 @@ function buildDraggables(isOdd){
   let items = [];
   const totalItems = 16;
 
-  // Correct answers
+  // --- Correct answers ---
   if (currentLevel === 1) items = isOdd ? [currentSentence.animal,currentSentence.number] : [currentSentence.animal+"-"+currentSentence.number];
   else if (currentLevel === 2) items = isOdd ? [currentSentence.food,currentSentence.colour] : [currentSentence.food+"-"+currentSentence.colour];
-  else if (currentLevel >= 3) items = isOdd ? [currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour] : [currentSentence.animal+"-"+currentSentence.number,currentSentence.food+"-"+currentSentence.colour];
+  else if (currentLevel === 3) items = isOdd ? [currentSentence.animal,currentSentence.number,currentSentence.food,currentSentence.colour] : [currentSentence.animal+"-"+currentSentence.number,currentSentence.food+"-"+currentSentence.colour];
+  else if (currentLevel === 4) {
+    // Level 4: pair animal-number + have/donthave + food-colour as single draggable
+    const verb = currentSentence.verb; // "have" or "donthave"
+    const label = `${currentSentence.animal}-${currentSentence.number}-${verb}-${currentSentence.food}-${currentSentence.colour}`;
+    items = [label];
+  }
 
-  // Decoys
+  // --- Add decoys ---
   while (items.length < totalItems) {
     let decoy;
     if (isOdd) {
@@ -321,20 +329,80 @@ function buildDraggables(isOdd){
 
   items = shuffleArray(items);
   const halves = [items.slice(0,8), items.slice(8,16)];
+
   halves.forEach((group,idx)=>{
     const container = idx===0 ? leftDraggables : rightDraggables;
     group.forEach(word=>{
       const div = document.createElement("div");
       div.className="draggable";
       div.draggable=true;
-      div.dataset.value=word;
+      div.dataset.value = word;
+
+      // --- image for draggable ---
       const img = document.createElement("img");
-      img.src = word.includes("-") ? compositeImagePath(word) : signPathFor(word);
-      div.appendChild(img);
+      if (currentLevel === 4 && word.includes("donthave")) {
+        // split label to overlay X
+        const parts = word.split("-");
+        img.src = compositeImagePath(parts[3]+"-"+parts[4]); // food-colour
+        const wrapper = document.createElement("div");
+        wrapper.className = "dontHaveWrapper";
+        wrapper.appendChild(img);
+        const xOverlay = document.createElement("div");
+        xOverlay.className = "xOverlay";
+        xOverlay.textContent = "X";
+        wrapper.appendChild(xOverlay);
+        div.appendChild(wrapper);
+      } else if (currentLevel === 4 && word.includes("have")) {
+        const parts = word.split("-");
+        img.src = compositeImagePath(parts[3]+"-"+parts[4]);
+        div.appendChild(img);
+      } else {
+        img.src = word.includes("-") ? compositeImagePath(word) : signPathFor(word);
+        div.appendChild(img);
+      }
+
+      // --- Drag events ---
       div.addEventListener("dragstart", e=>e.dataTransfer.setData("text/plain",word));
+      // --- Touch support ---
+      div.addEventListener("touchstart", touchStartHandler);
       container.appendChild(div);
     });
   });
+}
+
+/* ===== TOUCH HANDLER ===== */
+let draggedItem = null;
+function touchStartHandler(e) {
+  draggedItem = e.currentTarget;
+  const moveHandler = evt => {
+    evt.preventDefault();
+    const touch = evt.touches[0];
+    draggedItem.style.position = "absolute";
+    draggedItem.style.left = touch.clientX - draggedItem.offsetWidth/2 + "px";
+    draggedItem.style.top = touch.clientY - draggedItem.offsetHeight/2 + "px";
+  };
+  const endHandler = evt => {
+    document.removeEventListener("touchmove", moveHandler);
+    document.removeEventListener("touchend", endHandler);
+
+    const dropzones = Array.from(answerArea.querySelectorAll(".dropzone"));
+    dropzones.forEach(dz => {
+      const rect = dz.getBoundingClientRect();
+      const touch = evt.changedTouches[0];
+      if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+          touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+        dz.dispatchEvent(new DragEvent("drop", { dataTransfer: new DataTransfer(), currentTarget: dz }));
+      }
+    });
+
+    // Reset position
+    draggedItem.style.position = "";
+    draggedItem.style.left = "";
+    draggedItem.style.top = "";
+    draggedItem = null;
+  };
+  document.addEventListener("touchmove", moveHandler, { passive: false });
+  document.addEventListener("touchend", endHandler);
 }
 
 /* ===== DROP HANDLER ===== */
@@ -343,13 +411,62 @@ function dropHandler(e) {
   const dz = e.currentTarget;
   if (dz.childElementCount > 0) return; // already filled
 
-  const value = e.dataTransfer.getData("text/plain");
-  const img = document.createElement("img");
-  img.src = value.includes("-") ? compositeImagePath(value) : signPathFor(value);
+  let value = "";
+  if (e.dataTransfer) {
+    value = e.dataTransfer.getData("text/plain");
+  } else if (draggedItem) {
+    value = draggedItem.dataset.value;
+  }
 
-  dz.appendChild(img);
-  dz.dataset.filled = value;
-  dz.classList.add("filled"); // 👈 hide placeholder
+  // --- Level 4 combined draggable ---
+  if (currentLevel === 4 && value.includes("-")) {
+    const parts = value.split("-");
+    const animal = parts[0];
+    const number = parts[1];
+    const verb = parts[2];
+    const food = parts[3];
+    const colour = parts[4];
+
+    // Fill dropzones in order: animal+number, verb, food+colour
+    const dzs = Array.from(answerArea.querySelectorAll(".dropzone"));
+
+    dzs.forEach(dzBox => {
+      const ph = dzBox.dataset.placeholder;
+      dzBox.innerHTML = "";
+      dzBox.classList.add("filled");
+      if (ph === "animal+number") {
+        const img = document.createElement("img");
+        img.src = compositeImagePath(`${animal}-${number}`);
+        dzBox.appendChild(img);
+        dzBox.dataset.filled = `${animal}-${number}`;
+      } else if (ph === "verb") {
+        const img = document.createElement("img");
+        img.src = signPathFor(verb);
+        dzBox.appendChild(img);
+        dzBox.dataset.filled = verb;
+      } else if (ph === "food+colour") {
+        const img = document.createElement("img");
+        img.src = compositeImagePath(`${food}-${colour}`);
+        dzBox.appendChild(img);
+        dzBox.dataset.filled = verb === "donthave" ? "donthave" : `${food}-${colour}`;
+
+        // show X overlay if 'donthave'
+        if (verb === "donthave") {
+          const xDiv = document.createElement("div");
+          xDiv.className = "xOverlay";
+          xDiv.textContent = "X";
+          dzBox.appendChild(xDiv);
+        }
+      }
+    });
+  } else {
+    // normal drop for other levels
+    const img = document.createElement("img");
+    img.src = value.includes("-") ? compositeImagePath(value) : signPathFor(value);
+    dz.appendChild(img);
+    dz.dataset.filled = value;
+    dz.classList.add("filled");
+  }
 
   againBtn.style.display = "inline-block";
 
