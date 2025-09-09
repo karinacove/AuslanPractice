@@ -308,6 +308,85 @@ function dropHandler(e) {
   checkBtn.style.display = allFilled ? "inline-block" : "none";
 }
 
+/* ===== TOUCH SUPPORT ===== */
+let touchItem = null;
+let touchClone = null;
+
+function handleTouchStart(e) {
+  if (e.target.closest(".draggable")) {
+    const item = e.target.closest(".draggable");
+    touchItem = item;
+    const rect = item.getBoundingClientRect();
+
+    // clone for "floating" drag preview
+    touchClone = item.cloneNode(true);
+    touchClone.style.position = "fixed";
+    touchClone.style.left = rect.left + "px";
+    touchClone.style.top = rect.top + "px";
+    touchClone.style.width = rect.width + "px";
+    touchClone.style.height = rect.height + "px";
+    touchClone.style.opacity = "0.7";
+    touchClone.style.pointerEvents = "none";
+    touchClone.style.zIndex = "10000";
+    document.body.appendChild(touchClone);
+
+    e.preventDefault();
+  }
+}
+
+function handleTouchMove(e) {
+  if (touchClone && e.touches.length > 0) {
+    const touch = e.touches[0];
+    touchClone.style.left = touch.clientX - touchClone.offsetWidth / 2 + "px";
+    touchClone.style.top = touch.clientY - touchClone.offsetHeight / 2 + "px";
+  }
+}
+
+function handleTouchEnd(e) {
+  if (!touchItem || !touchClone) return;
+
+  const touch = e.changedTouches[0];
+  const dropzones = document.querySelectorAll(".dropzone");
+
+  let dropped = false;
+  dropzones.forEach(dz => {
+    const rect = dz.getBoundingClientRect();
+    if (
+      touch.clientX >= rect.left &&
+      touch.clientX <= rect.right &&
+      touch.clientY >= rect.top &&
+      touch.clientY <= rect.bottom
+    ) {
+      if (dz.childElementCount === 0) {
+        const value = touchItem.dataset.value;
+        const img = document.createElement("img");
+        img.src = value.includes("-") ? compositeImagePath(value) : signPathFor(value);
+        dz.appendChild(img);
+        dz.dataset.filled = value;
+        dz.classList.add("filled");
+        dropped = true;
+      }
+    }
+  });
+
+  // cleanup
+  document.body.removeChild(touchClone);
+  touchClone = null;
+  touchItem = null;
+
+  if (dropped) {
+    againBtn.style.display = "inline-block";
+    const allFilled = Array.from(answerArea.querySelectorAll(".dropzone"))
+      .every(d => d.dataset.filled);
+    checkBtn.style.display = allFilled ? "inline-block" : "none";
+  }
+}
+
+// attach globally
+document.addEventListener("touchstart", handleTouchStart, { passive: false });
+document.addEventListener("touchmove", handleTouchMove, { passive: false });
+document.addEventListener("touchend", handleTouchEnd, { passive: false });
+
 /* ===== CHECK ANSWER ===== */
 checkBtn.addEventListener("click", () => {
   const dropzones = Array.from(answerArea.querySelectorAll(".dropzone"));
