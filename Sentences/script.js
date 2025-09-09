@@ -597,7 +597,7 @@ for (let l = 1; l <= TOTAL_LEVELS; l++) {
   document.getElementById("endGif").src = "assets/auslan-clap.gif";
   document.getElementById("finalTime").textContent = `${mins}:${secs.toString().padStart(2,"0")}`;
   document.getElementById("finalScore").textContent = `${correctCount}/${total}`;
-  document.getElementById("finalPercent").textContent = percent + "%`;
+  document.getElementById("finalPercent").textContent = percent + "%";
 
   endModal.style.display = "block";
 }
