@@ -74,7 +74,7 @@ body {
   grid-template-columns: repeat(2, 1fr);
   gap: 1px;
   padding: 5px;
-  max-height: 75vh;
+  max-height: 80vh;
   overflow-y: auto;
 }
 
