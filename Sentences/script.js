@@ -167,7 +167,6 @@ function generateSentence() {
   currentSentence = { animal, number, food: foodItem, colour, verb };
 }
 
-/* ===== BUILD QUESTION DISPLAY ===== */
 function buildQuestion() {
   generateSentence();
   questionArea.innerHTML = "";
@@ -178,32 +177,83 @@ function buildQuestion() {
 
   const isOdd = roundInLevel % 2 === 1;
 
-  // helper signs
-  const helperDiv = document.createElement("div");
-  helpers.forEach(h => {
-    const img = document.createElement("img");
-    img.src = signPathFor(h);
-    helperDiv.appendChild(img);
-  });
-  questionArea.appendChild(helperDiv);
-
-  // question images
-  const comboDiv = document.createElement("div");
-  if (isOdd) {
-    if (currentLevel===1) comboDiv.innerHTML = `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}">`;
-    if (currentLevel===2) comboDiv.innerHTML = `<img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`;
-    if (currentLevel>=3) comboDiv.innerHTML = `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}"><img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`;
-  } else {
-    if (currentLevel===1) comboDiv.innerHTML = `<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}">`;
-    if (currentLevel===2) comboDiv.innerHTML = `<img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
-    if (currentLevel>=3) comboDiv.innerHTML = `<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}"><img src="${signPathFor(currentSentence.verb)}"><img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
+  // --- HELPER SIGNS (Level 1 & 2 only) ---
+  if (currentLevel <= 2) {
+    const helperDiv = document.createElement("div");
+    helpers.forEach(h => {
+      const img = document.createElement("img");
+      img.src = signPathFor(h);
+      helperDiv.appendChild(img);
+    });
+    questionArea.appendChild(helperDiv);
   }
+
+  // --- QUESTION IMAGES ---
+  const comboDiv = document.createElement("div");
+
+  if (isOdd) {
+    if (currentLevel === 1) {
+      comboDiv.innerHTML = `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}">`;
+    } else if (currentLevel === 2) {
+      comboDiv.innerHTML = `<img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`;
+    } else if (currentLevel === 3) {
+      // Level 3: animal-number, "want", food-colour
+      comboDiv.innerHTML =
+        `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}">
+         <img src="${signPathFor('want')}">
+         <img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`;
+    } else if (currentLevel === 4) {
+      // Level 4: animal-number + have/donthave + food-colour
+      const verbImg = currentSentence.verb === "donthave"
+        ? `<div class="dontHaveWrapper"><img src="${signPathFor('have')}"><div class="xOverlay">X</div></div>`
+        : `<img src="${signPathFor('have')}">`;
+
+      comboDiv.innerHTML =
+        `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}">
+         ${verbImg}
+         <img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`;
+    }
+  } else {
+    if (currentLevel === 1) {
+      comboDiv.innerHTML =
+        `<img src="${signPathFor(currentSentence.animal)}">
+         <img src="${signPathFor(currentSentence.number)}">`;
+    } else if (currentLevel === 2) {
+      comboDiv.innerHTML =
+        `<img src="${signPathFor(currentSentence.food)}">
+         <img src="${signPathFor(currentSentence.colour)}">`;
+    } else if (currentLevel === 3) {
+      comboDiv.innerHTML =
+        `<img src="${signPathFor(currentSentence.animal)}">
+         <img src="${signPathFor(currentSentence.number)}">
+         <img src="${signPathFor('want')}">
+         <img src="${signPathFor(currentSentence.food)}">
+         <img src="${signPathFor(currentSentence.colour)}">`;
+    } else if (currentLevel === 4) {
+      const verbImg = currentSentence.verb === "donthave"
+        ? `<div class="dontHaveWrapper"><img src="${signPathFor('have')}"><div class="xOverlay">X</div></div>`
+        : `<img src="${signPathFor('have')}">`;
+
+      comboDiv.innerHTML =
+        `<img src="${signPathFor(currentSentence.animal)}">
+         <img src="${signPathFor(currentSentence.number)}">
+         ${verbImg}
+         <img src="${signPathFor(currentSentence.food)}">
+         <img src="${signPathFor(currentSentence.colour)}">`;
+    }
+  }
+
   questionArea.appendChild(comboDiv);
 
+  // --- ANSWER BOXES ---
   buildAnswerBoxes(isOdd);
+
+  // --- DRAGGABLES ---
   buildDraggables(isOdd);
+
   updateScoreDisplay();
 }
+
 
 function buildAnswerBoxes(isOdd) {
   answerArea.innerHTML = "";
