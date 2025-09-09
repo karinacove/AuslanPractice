@@ -499,22 +499,80 @@ againBtn.addEventListener("click", () => {
 });
 
 /* ===== GAME FLOW ===== */
-stopBtn.addEventListener("click",()=>{
-  alert(`Game paused\nScore: ${correctCount}/${correctCount+incorrectCount}\nTime: ${Math.floor(getTimeElapsed()/60)}m ${getTimeElapsed()%60}s`);
-  saveProgress();
+stopBtn.addEventListener("click", () => {
+  savedTimeElapsed = getTimeElapsed(); // pause timer
+  const percent = Math.round((correctCount / (correctCount + incorrectCount)) * 100);
+
+  // Show stop modal
+  const modal = document.getElementById("stopModal");
+  modal.style.display = "block";
+  document.getElementById("stopTime").textContent = `${Math.floor(savedTimeElapsed/60)}m ${savedTimeElapsed%60}s`;
+  document.getElementById("stopPercent").textContent = percent + "%";
+
+  // Buttons inside modal
+  document.getElementById("continueBtn").onclick = () => { 
+    modal.style.display = "none"; 
+    startTime = Date.now(); // resume timer
+  };
+  document.getElementById("againBtnStop").onclick = () => { 
+    modal.style.display = "none"; 
+    resetGame(); 
+  };
+  document.getElementById("finishBtnStop").onclick = async () => {
+    modal.style.display = "none"; 
+    await endLevel(); 
+    window.location.href = "../index.html"; 
+  };
 });
 
 function nextRound(){ roundInLevel++; if(roundInLevel>=10) endLevel(); else { buildQuestion(); saveProgress(); } }
 
 async function endLevel(){
-  const timeTaken=getTimeElapsed(); const percent=Math.round((correctCount/(correctCount+incorrectCount))*100);
-  const fd=new FormData();
-  fd.append(FORM_FIELD_MAP.name,studentName); fd.append(FORM_FIELD_MAP.class,studentClass); fd.append(FORM_FIELD_MAP.subject,"Sentences"); fd.append(FORM_FIELD_MAP.timeTaken,timeTaken); fd.append(FORM_FIELD_MAP.percent,percent);
-  for(let l=1;l<=currentLevel;l++){ const cf=FORM_FIELD_MAP[`level${l}`]?.correct; const inf=FORM_FIELD_MAP[`level${l}`]?.incorrect; if(cf) fd.append(cf,correctCount); if(inf) fd.append(inf,incorrectCount); }
-  try{ await fetch(googleForm.action,{method:"POST",body:fd,mode:"no-cors"});}catch{}
-  if(currentLevel>=4){ clearProgress(); endModal.style.display="block"; document.getElementById("finalScore").textContent=`${correctCount}/${correctCount+incorrectCount}`; document.getElementById("finalPercent").textContent=percent+"%"; }
-  else { currentLevel++; roundInLevel=0; buildQuestion(); saveProgress(); }
+  const timeTaken = getTimeElapsed();
+  const percent = Math.round((correctCount / (correctCount + incorrectCount)) * 100);
+
+  // --- Submit score to Google Form ---
+  const fd = new FormData();
+  fd.append(FORM_FIELD_MAP.name, studentName);
+  fd.append(FORM_FIELD_MAP.class, studentClass);
+  fd.append(FORM_FIELD_MAP.subject, "Sentences");
+  fd.append(FORM_FIELD_MAP.timeTaken, timeTaken);
+  fd.append(FORM_FIELD_MAP.percent, percent);
+
+  // Append per-level correct/incorrect counts
+  for(let l = 1; l <= currentLevel; l++){
+    const cf = FORM_FIELD_MAP[`level${l}`]?.correct;
+    const inf = FORM_FIELD_MAP[`level${l}`]?.incorrect;
+    if(cf) fd.append(cf, correctCount);
+    if(inf) fd.append(inf, incorrectCount);
+  }
+
+  try { await fetch(googleForm.action, { method: "POST", body: fd, mode: "no-cors" }); } 
+  catch (err) { console.warn("Form submission failed", err); }
+
+  // --- Show End Modal ---
+  clearProgress();
+  endModal.style.display = "block";
+
+  // Display Auslan clap GIF
+  document.getElementById("endGif").src = "assets/auslan-clap.gif";
+
+  // Display time and percentage
+  document.getElementById("finalScore").textContent = `${correctCount}/${correctCount + incorrectCount}`;
+  document.getElementById("finalPercent").textContent = percent + "%";
 }
+
+/* ===== END MODAL BUTTONS ===== */
+document.getElementById("finishBtn").onclick = () => { 
+  window.location.href = "../index.html"; 
+};
+document.getElementById("againBtnEnd").onclick = () => { 
+  endModal.style.display = "none"; 
+  resetGame(); 
+};
+document.getElementById("logoffBtn").onclick = () => { 
+  window.location.href = "../index.html"; 
+};
 
 function startGame(){ startTime=Date.now(); buildQuestion(); }
 function resetGame(){ currentLevel=1; roundInLevel=0; correctCount=0; incorrectCount=0; savedTimeElapsed=0; startGame(); }
