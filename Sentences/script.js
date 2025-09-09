@@ -561,15 +561,18 @@ checkBtn.addEventListener("click", () => {
 
   dropzones.forEach((dz, i) => {
     let expected = "";
+
     if (currentLevel === 1) {
       expected = (roundInLevel % 2 === 1)
         ? (i === 0 ? currentSentence.animal : currentSentence.number)
         : currentSentence.animal + "-" + currentSentence.number;
+
     } else if (currentLevel === 2) {
       expected = (roundInLevel % 2 === 1)
         ? (i === 0 ? currentSentence.food : currentSentence.colour)
         : currentSentence.food + "-" + currentSentence.colour;
-    } else {
+
+    } else if (currentLevel === 3) {
       if (roundInLevel % 2 === 1) {
         const seq = [
           currentSentence.animal,
@@ -586,8 +589,23 @@ checkBtn.addEventListener("click", () => {
         ];
         expected = combos[i] || "";
       }
+
+    } else if (currentLevel === 4) {
+      // Level 4 combined draggable: animal-number + verb + food-colour
+      const seq = [
+        currentSentence.animal + "-" + currentSentence.number,
+        currentSentence.verb,
+        currentSentence.food + "-" + currentSentence.colour
+      ];
+
+      if (dz.dataset.placeholder === "animal+number") expected = seq[0];
+      else if (dz.dataset.placeholder === "verb") expected = seq[1];
+      else if (dz.dataset.placeholder === "food+colour") {
+        expected = currentSentence.verb === "donthave" ? "donthave" : seq[2];
+      }
     }
 
+    // ✅ check correctness
     if (dz.dataset.filled === expected) {
       correctCount++;
       dz.classList.add("correct");
