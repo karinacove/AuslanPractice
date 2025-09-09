@@ -1,10 +1,3 @@
-/* ============================
-   Sentences Game - Full JS
-   Levels 1–4, odd/even questions
-   Left/Right draggables, answer dropzones
-   Includes Progress Save/Resume
-   ============================ */
-
 /* ===== CONFIG ===== */
 const FORM_FIELD_MAP = {
   name: "entry.1040637824",
@@ -32,6 +25,8 @@ const checkBtn = document.getElementById("checkBtn");
 const againBtn = document.getElementById("againBtn");
 const endModal = document.getElementById("endModal");
 const googleForm = document.getElementById("googleForm");
+const cont = document.getElementById("resumeContinue");
+const again = document.getElementById("resumeAgain");
 
 /* ===== STUDENT INFO ===== */
 let studentName = localStorage.getItem("studentName") || "";
@@ -47,12 +42,12 @@ if (!studentName || !studentClass) {
 
 /* ===== GAME VARIABLES ===== */
 let currentLevel = 1;
-let roundInLevel = 0;
+let roundInLevel = 0; // 0..9
 let correctCount = 0;
 let incorrectCount = 0;
 let currentSentence = {};
 let startTime = null;
-let savedTimeElapsed = 0;
+let savedTimeElapsed = 0; // for resume
 let answersHistory = [];
 
 /* ===== VOCAB ===== */
@@ -64,184 +59,303 @@ const verbs = ["want","have","donthave"];
 const helpers = ["i","see","what"];
 
 /* ===== HELPERS ===== */
-function shuffleArray(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-function signPathFor(word){
-  if(animals.includes(word)) return `assets/signs/animals/${word}-sign.png`;
-  if(numbers.includes(word)) return `assets/signs/numbers/${word}-sign.png`;
-  if(food.includes(word)) return `assets/signs/food/${word}-sign.png`;
-  if(colours.includes(word)) return `assets/signs/colours/${word}-sign.png`;
-  if(verbs.includes(word)) return `assets/signs/verbs/${word}-sign.png`;
-  if(helpers.includes(word)) return `assets/signs/helpers/${word}.png`;
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function signPathFor(word) {
+  if (animals.includes(word)) return `assets/signs/animals/${word}-sign.png`;
+  if (numbers.includes(word)) return `assets/signs/numbers/${word}-sign.png`;
+  if (food.includes(word)) return `assets/signs/food/${word}-sign.png`;
+  if (colours.includes(word)) return `assets/signs/colours/${word}-sign.png`;
+  if (verbs.includes(word)) return `assets/signs/verbs/${word}-sign.png`;
+  if (helpers.includes(word)) return `assets/signs/helpers/${word}.png`;
   return "";
 }
-function compositeImagePath(combo){ return `assets/images/${combo}.png`; }
+function compositeImagePath(combo) { return `assets/images/${combo}.png`; }
 
 /* ===== TIMER HELPERS ===== */
-function getTimeElapsed(){ return savedTimeElapsed+Math.round((Date.now()-startTime)/1000); }
-function setTimeElapsed(seconds){ savedTimeElapsed=seconds; startTime=Date.now(); }
+function getTimeElapsed() {
+  return savedTimeElapsed + Math.round((Date.now() - startTime) / 1000);
+}
+function setTimeElapsed(seconds) {
+  savedTimeElapsed = seconds;
+  startTime = Date.now();
+}
 
 /* ===== PROGRESS SAVE/RESUME ===== */
 const SAVE_KEY = "sentencesGameSave";
-function saveProgress(){
-  const saveData={ studentName, studentClass, currentLevel, roundInLevel, correctCount, incorrectCount, answersHistory, timeElapsed:getTimeElapsed() };
-  localStorage.setItem(SAVE_KEY,JSON.stringify(saveData));
+
+function saveProgress() {
+  const saveData = {
+    studentName,
+    studentClass,
+    currentLevel,
+    roundInLevel,
+    correctCount,
+    incorrectCount,
+    answersHistory,
+    timeElapsed: getTimeElapsed()
+  };
+  localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
 }
-function loadProgress(){ try{ return JSON.parse(localStorage.getItem(SAVE_KEY)); }catch{return null;} }
-function clearProgress(){ localStorage.removeItem(SAVE_KEY); }
 
-/* ===== RESUME MODAL ===== */
-function showResumeModal(saved){
-  const modal=document.getElementById("resumeModal");
-  const msg=document.getElementById("resumeMessage");
-  const cont=document.getElementById("resumeContinue");
-  const again=document.getElementById("resumeAgain");
-
-  msg.textContent=`Welcome back ${saved.studentName}! Continue from Level ${saved.currentLevel}, Question ${saved.roundInLevel+1}?`;
-
-  cont.onclick=()=>{ modal.style.display="none"; restoreProgress(saved); };
-  again.onclick=()=>{ modal.style.display="none"; clearProgress(); resetGame(); };
-  modal.style.display="flex";
+function loadProgress() {
+  try {
+    return JSON.parse(localStorage.getItem(SAVE_KEY));
+  } catch { return null; }
 }
-function restoreProgress(saved){
-  studentName=saved.studentName;
-  studentClass=saved.studentClass;
-  currentLevel=saved.currentLevel;
-  roundInLevel=saved.roundInLevel;
-  correctCount=saved.correctCount;
-  incorrectCount=saved.incorrectCount;
-  answersHistory=saved.answersHistory||[];
-  setTimeElapsed(saved.timeElapsed||0);
+
+function clearProgress() {
+  localStorage.removeItem(SAVE_KEY);
+}
+
+function showResumeModal(saved) {
+  const modal = document.getElementById("resumeModal");
+  const msg = document.getElementById("resumeMessage");
+  const cont = document.getElementById("resumeContinue");
+  const again = document.getElementById("resumeAgain");
+
+  msg.textContent = `Welcome back ${saved.studentName}! Continue from Level ${saved.currentLevel}, Question ${saved.roundInLevel + 1}?`;
+
+  cont.onclick = () => {
+    modal.style.display = "none";
+    restoreProgress(saved);
+  };
+
+  again.onclick = () => {
+    modal.style.display = "none";
+    clearProgress();
+    resetGame();
+  };
+
+  modal.style.display = "flex";
+}
+
+function restoreProgress(saved) {
+  studentName = saved.studentName;
+  studentClass = saved.studentClass;
+  currentLevel = saved.currentLevel;
+  roundInLevel = saved.roundInLevel;
+  correctCount = saved.correctCount;
+  incorrectCount = saved.incorrectCount;
+  answersHistory = saved.answersHistory || [];
+  setTimeElapsed(saved.timeElapsed || 0);
   buildQuestion();
 }
 
 /* ===== SENTENCE GENERATION ===== */
-function generateSentence(){
-  const animal=randomItem(animals);
-  const number=randomItem(numbers);
-  const foodItem=randomItem(food);
-  const colour=randomItem(colours);
-  const verb=(currentLevel===4)?randomItem(["have","donthave"]):"want";
-  currentSentence={ animal, number, food:foodItem, colour, verb };
+function generateSentence() {
+  const animal = randomItem(animals);
+  const number = randomItem(numbers);
+  const foodItem = randomItem(food);
+  const colour = randomItem(colours);
+  const verb = (currentLevel===4)?randomItem(["have","donthave"]):"want";
+  currentSentence = { animal, number, food: foodItem, colour, verb };
 }
-function buildQuestion(){
+
+function buildQuestion() {
   generateSentence();
-  questionArea.innerHTML=""; answerArea.innerHTML=""; feedbackDiv.innerHTML="";
-  checkBtn.style.display="none"; againBtn.style.display="none";
-  const isOdd=roundInLevel%2===1;
+  questionArea.innerHTML = "";
+  answerArea.innerHTML = "";
+  feedbackDiv.innerHTML = "";
+  checkBtn.style.display = "none";
+  againBtn.style.display = "none";
 
-  // --- QUESTION ---
-  const comboDiv=document.createElement("div");
+  const isOdd = roundInLevel % 2 === 1;
 
-  if(isOdd){
-    if(currentLevel===1) comboDiv.innerHTML=`<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}">`;
-    else if(currentLevel===2) comboDiv.innerHTML=`<img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`;
-    else if(currentLevel===3) comboDiv.innerHTML=
-      `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}">
-       <img src="${signPathFor('want')}">
-       <img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`;
-    else if(currentLevel===4){
-      const verbImg=currentSentence.verb==="donthave"
+  // --- HELPER SIGNS (Level 1 & 2 only) ---
+  if (currentLevel <= 2) {
+    const helperDiv = document.createElement("div");
+    helpers.forEach(h => {
+      const img = document.createElement("img");
+      img.src = signPathFor(h);
+      helperDiv.appendChild(img);
+    });
+    questionArea.appendChild(helperDiv);
+  }
+
+  // --- QUESTION IMAGES ---
+  const comboDiv = document.createElement("div");
+
+  if (isOdd) {
+    if (currentLevel === 1) {
+      comboDiv.innerHTML = `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}">`;
+    } else if (currentLevel === 2) {
+      comboDiv.innerHTML = `<img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`;
+    } else if (currentLevel === 3) {
+      comboDiv.innerHTML =
+        `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}">
+         <img src="${signPathFor('want')}">
+         <img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`;
+    } else if (currentLevel === 4) {
+      const verbImg = currentSentence.verb === "donthave"
         ? `<div class="dontHaveWrapper"><img src="${signPathFor('have')}"><div class="xOverlay">X</div></div>`
         : `<img src="${signPathFor('have')}">`;
-      comboDiv.innerHTML=
+
+      comboDiv.innerHTML =
         `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}">
          ${verbImg}
          <img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`;
     }
   } else {
-    if(currentLevel===1) comboDiv.innerHTML=`<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}">`;
-    else if(currentLevel===2) comboDiv.innerHTML=`<img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
-    else if(currentLevel===3) comboDiv.innerHTML=
-      `<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}">
-       <img src="${signPathFor('want')}">
-       <img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
-    else if(currentLevel===4){
-      const verbImg=currentSentence.verb==="donthave"
+    if (currentLevel === 1) {
+      comboDiv.innerHTML =
+        `<img src="${signPathFor(currentSentence.animal)}">
+         <img src="${signPathFor(currentSentence.number)}">`;
+    } else if (currentLevel === 2) {
+      comboDiv.innerHTML =
+        `<img src="${signPathFor(currentSentence.food)}">
+         <img src="${signPathFor(currentSentence.colour)}">`;
+    } else if (currentLevel === 3) {
+      comboDiv.innerHTML =
+        `<img src="${signPathFor(currentSentence.animal)}">
+         <img src="${signPathFor(currentSentence.number)}">
+         <img src="${signPathFor('want')}">
+         <img src="${signPathFor(currentSentence.food)}">
+         <img src="${signPathFor(currentSentence.colour)}">`;
+    } else if (currentLevel === 4) {
+      const verbImg = currentSentence.verb === "donthave"
         ? `<div class="dontHaveWrapper"><img src="${signPathFor('have')}"><div class="xOverlay">X</div></div>`
         : `<img src="${signPathFor('have')}">`;
-      comboDiv.innerHTML=
-        `<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}">
+
+      comboDiv.innerHTML =
+        `<img src="${signPathFor(currentSentence.animal)}">
+         <img src="${signPathFor(currentSentence.number)}">
          ${verbImg}
-         <img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
+         <img src="${signPathFor(currentSentence.food)}">
+         <img src="${signPathFor(currentSentence.colour)}">`;
     }
   }
 
   questionArea.appendChild(comboDiv);
+
+  // --- ANSWER BOXES ---
   buildAnswerBoxes(isOdd);
+
+  // --- DRAGGABLES ---
   buildDraggables(isOdd);
+
   updateScoreDisplay();
 }
 
-/* ===== ANSWER BOXES ===== */
-function buildAnswerBoxes(isOdd){
-  answerArea.innerHTML="";
-  let dropLabels=[];
-  if(currentLevel===1) dropLabels=isOdd?["animal","number"]:["animal+number"];
-  else if(currentLevel===2) dropLabels=isOdd?["food","colour"]:["food+colour"];
-  else if(currentLevel===3 || currentLevel===4) dropLabels=isOdd?["animal","number","verb","food","colour"]:["animal+number","food+colour"];
+/* ===== BUILD ANSWER BOXES ===== */
+function buildAnswerBoxes(isOdd) {
+  answerArea.innerHTML = "";
+  let dropLabels = [];
 
-  dropLabels.forEach((label)=>{
-    const dz=document.createElement("div");
-    dz.className="dropzone"; dz.dataset.placeholder=label;
-    dz.addEventListener("dragover", e=>e.preventDefault());
+  if (currentLevel === 1) {
+    dropLabels = isOdd ? ["animal", "number"] : ["animal+number"];
+  } else if (currentLevel === 2) {
+    dropLabels = isOdd ? ["food", "colour"] : ["food+colour"];
+  } else if (currentLevel === 3) {
+    dropLabels = isOdd ? ["animal", "number", "verb", "food", "colour"] : ["animal+number", "verb", "food+colour"];
+  } else if (currentLevel === 4) {
+    dropLabels = isOdd ? ["animal", "number", "verb", "food", "colour"] : ["animal+number", "verb", "food+colour"];
+  }
+
+  dropLabels.forEach((label, i) => {
+    const dz = document.createElement("div");
+    dz.className = "dropzone";
+    dz.dataset.placeholder = label;
+
+    dz.addEventListener("dragover", e => e.preventDefault());
     dz.addEventListener("drop", dropHandler);
+
+    // Level 3: prefill verb ("want") in all questions
+    if (currentLevel === 3 && label === "verb") {
+      const img = document.createElement("img");
+      img.src = signPathFor("want");
+      dz.appendChild(img);
+      dz.dataset.filled = "want";
+      dz.classList.add("filled");
+    }
+
     answerArea.appendChild(dz);
   });
 }
 
-/* ===== DRAGGABLES ===== */
+/* ===== BUILD DRAGGABLES ===== */
 function buildDraggables(isOdd){
-  leftDraggables.innerHTML=""; rightDraggables.innerHTML="";
-  let items=[],totalItems=16;
+  leftDraggables.innerHTML = "";
+  rightDraggables.innerHTML = "";
+  let items = [];
+  const totalItems = 16;
 
-  if(currentLevel===1) items=isOdd?[currentSentence.animal,currentSentence.number]:[currentSentence.animal+"-"+currentSentence.number];
-  else if(currentLevel===2) items=isOdd?[currentSentence.food,currentSentence.colour]:[currentSentence.food+"-"+currentSentence.colour];
-  else if(currentLevel===3) items=isOdd?[currentSentence.animal,currentSentence.number,currentSentence.food,currentSentence.colour]:[currentSentence.animal+"-"+currentSentence.number,currentSentence.food+"-"+currentSentence.colour];
-  else if(currentLevel===4){
-    const label=`${currentSentence.animal}-${currentSentence.number}-${currentSentence.verb}-${currentSentence.food}-${currentSentence.colour}`;
-    items=[label];
+  // --- Correct answers ---
+  if (currentLevel === 1) items = isOdd ? [currentSentence.animal,currentSentence.number] : [currentSentence.animal+"-"+currentSentence.number];
+  else if (currentLevel === 2) items = isOdd ? [currentSentence.food,currentSentence.colour] : [currentSentence.food+"-"+currentSentence.colour];
+  else if (currentLevel === 3) {
+    // exclude "want" from draggables
+    items = isOdd ? [currentSentence.animal,currentSentence.number,currentSentence.food,currentSentence.colour]
+                  : [currentSentence.animal+"-"+currentSentence.number,currentSentence.food+"-"+currentSentence.colour];
+  } else if (currentLevel === 4) {
+    const verb = currentSentence.verb;
+    const label = `${currentSentence.animal}-${currentSentence.number}-${verb}-${currentSentence.food}-${currentSentence.colour}`;
+    items = [label];
   }
 
-  while(items.length<totalItems){
+  // --- Add decoys ---
+  while (items.length < totalItems) {
     let decoy;
-    if(isOdd){
-      if(currentLevel===1) decoy=randomItem([...animals,...numbers]);
-      else if(currentLevel===2) decoy=randomItem([...food,...colours]);
-      else decoy=randomItem([...animals,...numbers,...food,...colours,...verbs]);
+    if (isOdd) {
+      if (currentLevel===1) decoy = randomItem([...animals,...numbers]);
+      else if (currentLevel===2) decoy = randomItem([...food,...colours]);
+      else if (currentLevel===3) decoy = randomItem([...animals,...numbers,...food,...colours]);
+      else decoy = randomItem([...animals,...numbers,...food,...colours,...verbs]);
     } else {
-      let allCombos=[];
-      if(currentLevel===1) allCombos=animals.flatMap(a=>numbers.map(n=>`${a}-${n}`));
-      else if(currentLevel===2) allCombos=food.flatMap(f=>colours.map(c=>`${f}-${c}`));
-      else allCombos=[...animals.flatMap(a=>numbers.map(n=>`${a}-${n}`)),...food.flatMap(f=>colours.map(c=>`${f}-${c}`))];
-      decoy=randomItem(allCombos);
+      let allCombos = [];
+      if (currentLevel===1) allCombos = animals.flatMap(a => numbers.map(n=>`${a}-${n}`));
+      else if (currentLevel===2) allCombos = food.flatMap(f => colours.map(c=>`${f}-${c}`));
+      else allCombos = [...animals.flatMap(a=>numbers.map(n=>`${a}-${n}`)),...food.flatMap(f=>colours.map(c=>`${f}-${c}`))];
+      decoy = randomItem(allCombos);
     }
-    if(!items.includes(decoy)) items.push(decoy);
+    if (!items.includes(decoy)) items.push(decoy);
   }
 
-  items=shuffleArray(items);
-  const halves=[items.slice(0,8),items.slice(8,16)];
+  items = shuffleArray(items);
+  const halves = [items.slice(0,8), items.slice(8,16)];
+
   halves.forEach((group,idx)=>{
-    const container=idx===0?leftDraggables:rightDraggables;
+    const container = idx===0 ? leftDraggables : rightDraggables;
     group.forEach(word=>{
-      const div=document.createElement("div"); div.className="draggable"; div.draggable=true; div.dataset.value=word;
-      const img=document.createElement("img");
-      if(currentLevel===4 && word.includes("donthave")){
-        const parts=word.split("-");
-        img.src=compositeImagePath(parts[3]+"-"+parts[4]);
-        const wrapper=document.createElement("div");
-        wrapper.className="dontHaveWrapper"; wrapper.appendChild(img);
-        const xDiv=document.createElement("div"); xDiv.className="xOverlay"; xDiv.textContent="X"; wrapper.appendChild(xDiv);
+      const div = document.createElement("div");
+      div.className="draggable";
+      div.draggable=true;
+      div.dataset.value = word;
+
+      const img = document.createElement("img");
+      if (currentLevel === 4 && word.includes("donthave")) {
+        const parts = word.split("-");
+        img.src = compositeImagePath(parts[3]+"-"+parts[4]);
+        const wrapper = document.createElement("div");
+        wrapper.className = "dontHaveWrapper";
+        wrapper.appendChild(img);
+        const xOverlay = document.createElement("div");
+        xOverlay.className = "xOverlay";
+        xOverlay.textContent = "X";
+        wrapper.appendChild(xOverlay);
         div.appendChild(wrapper);
-      } else img.src=word.includes("-")?compositeImagePath(word):signPathFor(word);
-      if(!div.hasChildNodes()) div.appendChild(img);
+      } else if (currentLevel === 4 && word.includes("have")) {
+        const parts = word.split("-");
+        img.src = compositeImagePath(parts[3]+"-"+parts[4]);
+        div.appendChild(img);
+      } else {
+        img.src = word.includes("-") ? compositeImagePath(word) : signPathFor(word);
+        div.appendChild(img);
+      }
+
       div.addEventListener("dragstart", e=>e.dataTransfer.setData("text/plain",word));
-      div.addEventListener("touchstart", startDrag, {passive:false});
+      div.addEventListener("touchstart", touchStartHandler);
       container.appendChild(div);
     });
   });
 }
-
 /* ===== UNIFIED DRAG & DROP ===== */
 let dragItem=null, dragClone=null, isTouch=false;
 function startDrag(e){
