@@ -358,14 +358,6 @@ function buildDraggables(isOdd){
         div.appendChild(img);
       }
 
-      div.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", word));
-      div.addEventListener("touchstart", touchStartHandler);
-      container.appendChild(div);
-    });
-  });
-}
-
-
       // --- Drag & touch support ---
       div.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", word));
       // no touchStartHandler needed; unified drag handles touch
