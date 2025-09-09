@@ -536,8 +536,6 @@ stopBtn.addEventListener("click", () => {
 });
 
 /* ===== GAME FLOW ===== */
-const TOTAL_LEVELS = 4; // number of levels
-
 function nextRound() {
   roundInLevel++;
   if (roundInLevel >= 10) {
