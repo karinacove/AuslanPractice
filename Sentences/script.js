@@ -59,8 +59,6 @@ const food = ["apple","banana","blueberry","grape","orange","pear","pineapple","
 const verbs = ["want","have","donthave"];
 const helpers = ["i","see","what"];
 
-const TOTAL_LEVELS = 4; // number of levels in the game
-
 /* ===== HELPERS ===== */
 function shuffleArray(arr) {
   const a = arr.slice();
