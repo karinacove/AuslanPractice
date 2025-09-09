@@ -593,7 +593,6 @@ async function endLevel() {
   // Display time and percentage
   document.getElementById("finalScore").textContent = `${correctCount}/${correctCount + incorrectCount}`;
   document.getElementById("finalPercent").textContent = percent + "%";
-}
 
 /* ===== END MODAL BUTTONS ===== */
 document.getElementById("finishBtn").onclick = () => { 
