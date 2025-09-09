@@ -541,19 +541,25 @@ function nextRound() {
 }
 
 async function endLevel() {
-  const timeTaken = getTimeElapsed();
-  const percent = Math.round((correctCount / (correctCount + incorrectCount)) * 100);
-
+  // still more levels to go?
   if (currentLevel < TOTAL_LEVELS) {
-    // move to next level
     currentLevel++;
     roundInLevel = 0;
-    startGame(); // starts next level
     saveProgress();
+    startGame(); // build next level
     return;
   }
 
-  // --- Only after final level: submit to Google Form ---
+  // all levels done → end game
+  await endGame();
+}
+
+async function endGame() {
+  const timeTaken = getTimeElapsed();
+  const total = correctCount + incorrectCount;
+  const percent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+
+  // --- Submit final results to Google Form ---
   const fd = new FormData();
   fd.append(FORM_FIELD_MAP.name, studentName);
   fd.append(FORM_FIELD_MAP.class, studentClass);
@@ -564,7 +570,7 @@ async function endLevel() {
   for (let l = 1; l <= TOTAL_LEVELS; l++) {
     const cf = FORM_FIELD_MAP[`level${l}`]?.correct;
     const inf = FORM_FIELD_MAP[`level${l}`]?.incorrect;
-    if (cf) fd.append(cf, correctCount);  // optionally track per-level counts
+    if (cf) fd.append(cf, correctCount);    // you can change these to per-level counters
     if (inf) fd.append(inf, incorrectCount);
   }
 
@@ -574,36 +580,17 @@ async function endLevel() {
     console.warn("Form submission failed", err);
   }
 
-  // --- Show End Modal ---
   clearProgress();
-  endModal.style.display = "block";
+
+  // --- Show End Modal ---
+  const elapsedSecs = Math.floor((Date.now() - startTime + savedTimeElapsed) / 1000);
+  const mins = Math.floor(elapsedSecs / 60);
+  const secs = elapsedSecs % 60;
+
   document.getElementById("endGif").src = "assets/auslan-clap.gif";
-  document.getElementById("finalScore").textContent = `${correctCount}/${correctCount + incorrectCount}`;
-  document.getElementById("finalPercent").textContent = percent + "%";
+  document.getElementById("finalTime").textContent = `${mins}:${secs.toString().padStart(2,"0")}`;
+  document.getElementById("finalScore").textContent = `${correctCount}/${total}`;
+  document.getElementById("finalPercent").textContent = percent + "%`;
+
+  endModal.style.display = "block";
 }
-
-/* ===== END MODAL BUTTONS ===== */
-document.getElementById("finishBtn").onclick = () => { 
-  window.location.href = "../index.html"; 
-};
-document.getElementById("againBtnEnd").onclick = () => { 
-  endModal.style.display = "none"; 
-  resetGame(); 
-};
-document.getElementById("logoffBtn").onclick = () => { 
-  window.location.href = "../index.html"; 
-};
-
-function startGame(){ startTime=Date.now(); buildQuestion(); }
-function resetGame(){ currentLevel=1; roundInLevel=0; correctCount=0; incorrectCount=0; savedTimeElapsed=0; startGame(); }
-function updateScoreDisplay(){ scoreDisplay.textContent=`Level ${currentLevel} - Question ${roundInLevel+1}/10`; }
-
-/* ===== INIT ===== */
-window.addEventListener("load",()=>{
-  const saved=loadProgress();
-  if(saved&&saved.studentName){ showResumeModal(saved); }
-  else { resetGame(); }
-});
-
-/* ===== DROP HANDLER PLACEHOLDER ===== */
-function dropHandler(e){ e.preventDefault(); }
