@@ -292,7 +292,8 @@ body {
   max-width: 400px;
 }
 
-#resumeModal .modal-buttons img {
+#resumeModal .modal-buttons img,
+#stopModal .modal-buttons img {
   width: 120px;
   cursor: pointer;
   margin: 10px;
