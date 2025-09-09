@@ -60,7 +60,6 @@ const verbs = ["want","have","donthave"];
 const helpers = ["i","see","what"];
 
 const TOTAL_LEVELS = 4; // number of levels in the game
-let currentLevel = 1;    // start at level 1
 
 /* ===== HELPERS ===== */
 function shuffleArray(arr) {
