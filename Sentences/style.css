@@ -227,11 +227,14 @@ body {
 #feedback {
   font-size: 1rem;
   font-weight: bold;
-  position: center center;
   margin: 5px 0;
   height: 80px;
+  display: flex;
+  justify-content: center; /* horizontal */
+  align-items: center;     /* vertical */
   z-index: 500;
 }
+
 
 /* ===========================
    End Modal
