@@ -28,6 +28,7 @@ const googleForm = document.getElementById("googleForm");
 const cont = document.getElementById("resumeContinue");
 const again = document.getElementById("resumeAgain");
 
+
 /* ===== STUDENT INFO ===== */
 let studentName = localStorage.getItem("studentName") || "";
 let studentClass = localStorage.getItem("studentClass") || "";
@@ -57,6 +58,9 @@ const colours = ["red","green","blue","orange","yellow","pink","purple","brown",
 const food = ["apple","banana","blueberry","grape","orange","pear","pineapple","raspberry","strawberry","watermelon"];
 const verbs = ["want","have","donthave"];
 const helpers = ["i","see","what"];
+
+const TOTAL_LEVELS = 4; // number of levels in the game
+let currentLevel = 1;    // start at level 1
 
 /* ===== HELPERS ===== */
 function shuffleArray(arr) {
@@ -525,13 +529,34 @@ stopBtn.addEventListener("click", () => {
   };
 });
 
-function nextRound(){ roundInLevel++; if(roundInLevel>=10) endLevel(); else { buildQuestion(); saveProgress(); } }
+/* ===== GAME FLOW ===== */
+const TOTAL_LEVELS = 4; // number of levels
 
-async function endLevel(){
+function nextRound() {
+  roundInLevel++;
+  if (roundInLevel >= 10) {
+    // completed all rounds in current level
+    endLevel();
+  } else {
+    buildQuestion();
+    saveProgress();
+  }
+}
+
+async function endLevel() {
   const timeTaken = getTimeElapsed();
   const percent = Math.round((correctCount / (correctCount + incorrectCount)) * 100);
 
-  // --- Submit score to Google Form ---
+  if (currentLevel < TOTAL_LEVELS) {
+    // move to next level
+    currentLevel++;
+    roundInLevel = 0;
+    startGame(); // starts next level
+    saveProgress();
+    return;
+  }
+
+  // --- Only after final level: submit to Google Form ---
   const fd = new FormData();
   fd.append(FORM_FIELD_MAP.name, studentName);
   fd.append(FORM_FIELD_MAP.class, studentClass);
@@ -539,16 +564,27 @@ async function endLevel(){
   fd.append(FORM_FIELD_MAP.timeTaken, timeTaken);
   fd.append(FORM_FIELD_MAP.percent, percent);
 
-  // Append per-level correct/incorrect counts
-  for(let l = 1; l <= currentLevel; l++){
+  for (let l = 1; l <= TOTAL_LEVELS; l++) {
     const cf = FORM_FIELD_MAP[`level${l}`]?.correct;
     const inf = FORM_FIELD_MAP[`level${l}`]?.incorrect;
-    if(cf) fd.append(cf, correctCount);
-    if(inf) fd.append(inf, incorrectCount);
+    if (cf) fd.append(cf, correctCount);  // optionally track per-level counts
+    if (inf) fd.append(inf, incorrectCount);
   }
 
-  try { await fetch(googleForm.action, { method: "POST", body: fd, mode: "no-cors" }); } 
-  catch (err) { console.warn("Form submission failed", err); }
+  try {
+    await fetch(googleForm.action, { method: "POST", body: fd, mode: "no-cors" });
+  } catch (err) {
+    console.warn("Form submission failed", err);
+  }
+
+  // --- Show End Modal ---
+  clearProgress();
+  endModal.style.display = "block";
+  document.getElementById("endGif").src = "assets/auslan-clap.gif";
+  document.getElementById("finalScore").textContent = `${correctCount}/${correctCount + incorrectCount}`;
+  document.getElementById("finalPercent").textContent = percent + "%";
+}
+
 
   // --- Show End Modal ---
   clearProgress();
