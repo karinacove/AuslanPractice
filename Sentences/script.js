@@ -267,13 +267,14 @@ function buildAnswerBoxes(isOdd) {
     dz.addEventListener("dragover", e => e.preventDefault());
     dz.addEventListener("drop", dropHandler);
 
-    // Level 3: prefill verb ("want") in all questions
+    // Level 3: prefill verb ("want") in all questions, permanent
     if (currentLevel === 3 && label === "verb") {
       const img = document.createElement("img");
       img.src = signPathFor("want");
       dz.appendChild(img);
       dz.dataset.filled = "want";
       dz.classList.add("filled");
+      dz.dataset.permanent = "true"; // NEW: mark as permanent
     }
 
     answerArea.appendChild(dz);
@@ -416,39 +417,78 @@ document.addEventListener("mousedown", startDrag);
 document.addEventListener("touchstart", startDrag, {passive:false});
 
 /* ===== CHECK ANSWER ===== */
-checkBtn.addEventListener("click",()=>{
-  const dropzones=Array.from(answerArea.querySelectorAll(".dropzone"));
-  let allCorrect=true;
-  dropzones.forEach((dz,i)=>{
-    let expected="";
-    if(currentLevel===1) expected=(roundInLevel%2===1)?(i===0?currentSentence.animal:currentSentence.number):currentSentence.animal+"-"+currentSentence.number;
-    else if(currentLevel===2) expected=(roundInLevel%2===1)?(i===0?currentSentence.food:currentSentence.colour):currentSentence.food+"-"+currentSentence.colour;
-    else if(currentLevel===3){ const seq=roundInLevel%2===1?[currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour]:[currentSentence.animal+"-"+currentSentence.number,currentSentence.food+"-"+currentSentence.colour]; expected=seq[i]||""; }
-    else if(currentLevel===4){
-      const seq=[currentSentence.animal+"-"+currentSentence.number,currentSentence.verb,currentSentence.food+"-"+currentSentence.colour];
-      if(dz.dataset.placeholder==="animal+number") expected=seq[0];
-      else if(dz.dataset.placeholder==="verb") expected=seq[1];
-      else if(dz.dataset.placeholder==="food+colour") expected=currentSentence.verb==="donthave"?"donthave":seq[2];
+checkBtn.addEventListener("click", () => {
+  const dropzones = Array.from(answerArea.querySelectorAll(".dropzone"));
+  let allCorrect = true;
+
+  dropzones.forEach((dz, i) => {
+    // Permanent "want" is always correct
+    if (dz.dataset.permanent === "true") {
+      dz.classList.add("correct");
+      return;
     }
-    if(dz.dataset.filled===expected){ correctCount++; dz.classList.add("correct"); }
-    else { incorrectCount++; allCorrect=false; dz.classList.add("incorrect"); dz.innerHTML=""; dz.dataset.filled=""; dz.classList.remove("filled"); }
+
+    let expected = "";
+    if (currentLevel === 1) {
+      expected = (roundInLevel % 2 === 1) ? (i === 0 ? currentSentence.animal : currentSentence.number) : currentSentence.animal + "-" + currentSentence.number;
+    } else if (currentLevel === 2) {
+      expected = (roundInLevel % 2 === 1) ? (i === 0 ? currentSentence.food : currentSentence.colour) : currentSentence.food + "-" + currentSentence.colour;
+    } else if (currentLevel === 3) {
+      const seq = roundInLevel % 2 === 1
+        ? [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour]
+        : [currentSentence.animal + "-" + currentSentence.number, currentSentence.verb, currentSentence.food + "-" + currentSentence.colour];
+      expected = seq[i] || "";
+    } else if (currentLevel === 4) {
+      const seq = [currentSentence.animal + "-" + currentSentence.number, currentSentence.verb, currentSentence.food + "-" + currentSentence.colour];
+      if (dz.dataset.placeholder === "animal+number") expected = seq[0];
+      else if (dz.dataset.placeholder === "verb") expected = seq[1];
+      else if (dz.dataset.placeholder === "food+colour") expected = currentSentence.verb === "donthave" ? "donthave" : seq[2];
+    }
+
+    if (dz.dataset.filled === expected) {
+      correctCount++;
+      dz.classList.add("correct");
+    } else {
+      incorrectCount++;
+      allCorrect = false;
+      dz.classList.remove("filled");
+      dz.classList.remove("correct");
+      dz.classList.add("incorrect");
+      dz.innerHTML = ""; 
+      dz.dataset.filled = "";
+    }
   });
 
-  const fb=document.createElement("img");
-  fb.src=allCorrect?"assets/correct.png":"assets/wrong.png";
+  const fb = document.createElement("img");
+  fb.src = allCorrect ? "assets/correct.png" : "assets/wrong.png";
   feedbackDiv.appendChild(fb);
+
   saveProgress();
-  setTimeout(()=>{
-    feedbackDiv.innerHTML="";
-    if(allCorrect) nextRound();
-    else { buildDraggables(roundInLevel%2===1); checkBtn.style.display="none"; againBtn.style.display="inline-block"; }
-  },2000);
+  setTimeout(() => {
+    feedbackDiv.innerHTML = "";
+    if (allCorrect) nextRound();
+    else {
+      buildDraggables(roundInLevel % 2 === 1);
+      checkBtn.style.display = "none";
+      againBtn.style.display = "inline-block";
+    }
+  }, 2000);
 });
 
-againBtn.addEventListener("click",()=>{
-  buildDraggables(roundInLevel%2===1);
-  Array.from(answerArea.querySelectorAll(".dropzone")).forEach(dz=>{ dz.innerHTML=""; dz.dataset.filled=""; dz.classList.remove("correct","incorrect"); });
-  checkBtn.style.display="none"; againBtn.style.display="none";
+/* ===== AGAIN BUTTON ===== */
+againBtn.addEventListener("click", () => {
+  buildDraggables(roundInLevel % 2 === 1);
+  Array.from(answerArea.querySelectorAll(".dropzone")).forEach(dz => {
+    if (dz.dataset.permanent !== "true") { // don't clear permanent "want"
+      dz.innerHTML = "";
+      dz.dataset.filled = "";
+      dz.classList.remove("correct", "incorrect", "filled");
+    } else {
+      dz.classList.add("correct"); // permanent "want" always correct
+    }
+  });
+  checkBtn.style.display = "none";
+  againBtn.style.display = "none";
 });
 
 /* ===== GAME FLOW ===== */
