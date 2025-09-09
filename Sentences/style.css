@@ -292,6 +292,11 @@ body {
   max-width: 400px;
 }
 
+#resumeModal .modal-buttons img {
+  width: 150px;
+  cursor: pointer;
+}
+
 #resumeModalContent h2 {
   margin-bottom: 10px;
   font-size: 1.3rem;
@@ -302,20 +307,23 @@ body {
   font-size: 1rem;
 }
 
-#resumeButtons {
+#resume {
   display: flex;
   gap: 15px;
   justify-content: center;
   margin-top: 10px;
 }
 
-#resumeButtons img {
+#resumeContinue {
   width: 120px;
   height: 120px;
   cursor: pointer;
   transition: transform 0.2s;
 }
 
-#resumeButtons img:hover {
-  transform: scale(1.1);
+#resumeAgain {
+  width: 120px;
+  height: 120px;
+  cursor: pointer;
+  transition: transform 0.2s;
 }
