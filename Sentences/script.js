@@ -32,6 +32,9 @@ const checkBtn = document.getElementById("checkBtn");
 const againBtn = document.getElementById("againBtn");
 const endModal = document.getElementById("endModal");
 const googleForm = document.getElementById("googleForm");
+const cont = document.getElementById("resumeContinue");
+const again = document.getElementById("resumeAgain");
+
 
 /* ===== STUDENT INFO ===== */
 let studentName = localStorage.getItem("studentName") || "";
