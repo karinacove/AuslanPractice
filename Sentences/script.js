@@ -250,13 +250,13 @@ function buildAnswerBoxes(isOdd) {
   let dropLabels = [];
 
   if (currentLevel === 1) {
-    dropLabels = isOdd ? ["animal", "number"] : ["animal+number"];
+    dropLabels = isOdd ? ["animal", "how many?"] : ["animal+howmany?"];
   } else if (currentLevel === 2) {
     dropLabels = isOdd ? ["food", "colour"] : ["food+colour"];
   } else if (currentLevel === 3) {
-    dropLabels = isOdd ? ["animal", "number", "verb", "food", "colour"] : ["animal+number", "verb", "food+colour"];
+    dropLabels = isOdd ? ["animal", "how many?", "verb", "food", "colour"] : ["animal+howmany?", "verb", "food+colour"];
   } else if (currentLevel === 4) {
-    dropLabels = isOdd ? ["animal", "number", "verb", "food", "colour"] : ["animal+number", "verb", "food+colour"];
+    dropLabels = isOdd ? ["animal", "how many?", "verb", "food", "colour"] : ["animal+howmany?", "verb", "food+colour"];
   }
 
   dropLabels.forEach((label, i) => {
