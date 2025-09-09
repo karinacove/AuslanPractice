@@ -51,6 +51,13 @@ let startTime = null;
 let savedTimeElapsed = 0; // for resume
 let answersHistory = [];
 
+// NEW: per-level tracking
+const TOTAL_LEVELS = 4;   // adjust if you add more later
+let perLevelResults = Array.from({ length: TOTAL_LEVELS }, () => ({
+  correct: 0,
+  incorrect: 0
+}));
+
 /* ===== VOCAB ===== */
 const animals = ["dog","cat","mouse","rabbit","fish","bird"];
 const numbers = ["one","two","three","four","five","six","seven","eight","nine","ten"];
@@ -455,9 +462,11 @@ checkBtn.addEventListener("click", () => {
 
     if (dz.dataset.filled === expected) {
       correctCount++;
+      perLevelResults[currentLevel - 1].correct++;
       dz.classList.add("correct");
     } else {
       incorrectCount++;
+      perLevelResults[currentLevel - 1].incorrect++;
       allCorrect = false;
       dz.classList.remove("filled");
       dz.classList.remove("correct");
@@ -567,12 +576,12 @@ async function endGame() {
   fd.append(FORM_FIELD_MAP.timeTaken, timeTaken);
   fd.append(FORM_FIELD_MAP.percent, percent);
 
-  for (let l = 1; l <= TOTAL_LEVELS; l++) {
-    const cf = FORM_FIELD_MAP[`level${l}`]?.correct;
-    const inf = FORM_FIELD_MAP[`level${l}`]?.incorrect;
-    if (cf) fd.append(cf, correctCount);    // you can change these to per-level counters
-    if (inf) fd.append(inf, incorrectCount);
-  }
+for (let l = 1; l <= TOTAL_LEVELS; l++) {
+  const cf = FORM_FIELD_MAP[`level${l}`]?.correct;
+  const inf = FORM_FIELD_MAP[`level${l}`]?.incorrect;
+  if (cf) fd.append(cf, perLevelResults[l-1].correct);
+  if (inf) fd.append(inf, perLevelResults[l-1].incorrect);
+}
 
   try {
     await fetch(googleForm.action, { method: "POST", body: fd, mode: "no-cors" });
