@@ -2,6 +2,7 @@
    Sentences Game - Full JS
    Levels 1–4, odd/even questions
    Left/Right draggables, answer dropzones
+   Includes Progress Save/Resume
    ============================ */
 
 /* ===== CONFIG ===== */
@@ -51,6 +52,8 @@ let correctCount = 0;
 let incorrectCount = 0;
 let currentSentence = {};
 let startTime = null;
+let savedTimeElapsed = 0; // for resume
+let answersHistory = [];
 
 /* ===== VOCAB ===== */
 const animals = ["dog","cat","mouse","rabbit","fish","bird"];
@@ -69,9 +72,7 @@ function shuffleArray(arr) {
   }
   return a;
 }
-
 function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-
 function signPathFor(word) {
   if (animals.includes(word)) return `assets/signs/animals/${word}-sign.png`;
   if (numbers.includes(word)) return `assets/signs/numbers/${word}-sign.png`;
@@ -81,8 +82,102 @@ function signPathFor(word) {
   if (helpers.includes(word)) return `assets/signs/helpers/${word}.png`;
   return "";
 }
-
 function compositeImagePath(combo) { return `assets/images/${combo}.png`; }
+
+/* ===== TIMER HELPERS ===== */
+function getTimeElapsed() {
+  return savedTimeElapsed + Math.round((Date.now() - startTime) / 1000);
+}
+function setTimeElapsed(seconds) {
+  savedTimeElapsed = seconds;
+  startTime = Date.now();
+}
+
+/* ===== PROGRESS SAVE/RESUME ===== */
+const SAVE_KEY = "sentencesGameSave";
+
+function saveProgress() {
+  const saveData = {
+    studentName,
+    studentClass,
+    currentLevel,
+    roundInLevel,
+    correctCount,
+    incorrectCount,
+    answersHistory,
+    timeElapsed: getTimeElapsed()
+  };
+  localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+}
+
+function loadProgress() {
+  try {
+    return JSON.parse(localStorage.getItem(SAVE_KEY));
+  } catch { return null; }
+}
+
+function clearProgress() {
+  localStorage.removeItem(SAVE_KEY);
+}
+
+function showResumeModal(saved) {
+  const modal = document.createElement("div");
+  modal.id = "resumeModal";
+  modal.style.position = "fixed";
+  modal.style.top = "0";
+  modal.style.left = "0";
+  modal.style.width = "100%";
+  modal.style.height = "100%";
+  modal.style.background = "rgba(0,0,0,0.7)";
+  modal.style.display = "flex";
+  modal.style.justifyContent = "center";
+  modal.style.alignItems = "center";
+  modal.style.zIndex = "2000";
+
+  const box = document.createElement("div");
+  box.style.background = "#fff";
+  box.style.padding = "20px";
+  box.style.borderRadius = "12px";
+  box.style.textAlign = "center";
+  box.style.maxWidth = "400px";
+
+  const msg = document.createElement("p");
+  msg.textContent = `Welcome back ${saved.studentName}! Continue from Level ${saved.currentLevel}, Question ${saved.roundInLevel+1}?`;
+  msg.style.marginBottom = "20px";
+
+  const cont = document.createElement("img");
+  cont.src = "assets/continue.png";
+  cont.style.width = "150px";
+  cont.style.cursor = "pointer";
+  cont.style.margin = "10px";
+
+  const again = document.createElement("img");
+  again.src = "assets/again.png";
+  again.style.width = "150px";
+  again.style.cursor = "pointer";
+  again.style.margin = "10px";
+
+  cont.onclick = () => { modal.remove(); restoreProgress(saved); };
+  again.onclick = () => { modal.remove(); clearProgress(); resetGame(); };
+
+  box.appendChild(msg);
+  box.appendChild(cont);
+  box.appendChild(again);
+  modal.appendChild(box);
+  document.body.appendChild(modal);
+}
+
+function restoreProgress(saved) {
+  studentName = saved.studentName;
+  studentClass = saved.studentClass;
+  currentLevel = saved.currentLevel;
+  roundInLevel = saved.roundInLevel;
+  correctCount = saved.correctCount;
+  incorrectCount = saved.incorrectCount;
+  answersHistory = saved.answersHistory || [];
+  setTimeElapsed(saved.timeElapsed || 0);
+  buildQuestion();
+}
 
 /* ===== SENTENCE GENERATION ===== */
 function generateSentence() {
@@ -103,11 +198,10 @@ function buildQuestion() {
   checkBtn.style.display = "none";
   againBtn.style.display = "none";
 
-  const isOdd = roundInLevel % 2 === 0 ? false : true; // odd = 1,3,5...
+  const isOdd = roundInLevel % 2 === 1;
 
   // helper signs
   const helperDiv = document.createElement("div");
-  helperDiv.className = "helperSigns";
   helpers.forEach(h => {
     const img = document.createElement("img");
     img.src = signPathFor(h);
@@ -117,8 +211,6 @@ function buildQuestion() {
 
   // question images
   const comboDiv = document.createElement("div");
-  comboDiv.className = "comboImages";
-
   if (isOdd) {
     if (currentLevel===1) comboDiv.innerHTML = `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}">`;
     if (currentLevel===2) comboDiv.innerHTML = `<img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`;
@@ -139,19 +231,12 @@ function buildQuestion() {
 function buildAnswerBoxes(isOdd) {
   answerArea.innerHTML = "";
   let dropCount = 0;
-  if(currentLevel<=2){
-    dropCount = isOdd ? 2 : 1;
-  } else if(currentLevel===3){
-    dropCount = isOdd ? 4 : 3;
-  } else if(currentLevel===4){
-    dropCount = isOdd ? 4 : 3;
-  }
+  if(currentLevel<=2){ dropCount = isOdd ? 2 : 1; }
+  else { dropCount = isOdd ? 4 : 2; }
 
   for(let i=0;i<dropCount;i++){
     const dz = document.createElement("div");
     dz.className = "dropzone";
-    dz.dataset.filled = "";
-    dz.dataset.hint = ""; 
     dz.addEventListener("dragover", e=>e.preventDefault());
     dz.addEventListener("drop", dropHandler);
     answerArea.appendChild(dz);
@@ -162,120 +247,49 @@ function buildAnswerBoxes(isOdd) {
 function buildDraggables(isOdd){
   leftDraggables.innerHTML = "";
   rightDraggables.innerHTML = "";
-
   let items = [];
   const totalItems = 16;
 
-  if (currentLevel === 1) {
-    if (isOdd) {
-      // Question = images, so draggables = signs
-      items = [currentSentence.animal, currentSentence.number];
-    } else {
-      // Question = signs, so draggables = composite image
-      items = [currentSentence.animal + "-" + currentSentence.number];
-    }
-  } 
-  else if (currentLevel === 2) {
-    if (isOdd) {
-      items = [currentSentence.food, currentSentence.colour];
-    } else {
-      items = [currentSentence.food + "-" + currentSentence.colour];
-    }
-  } 
-  else if (currentLevel === 3) {
-    if (isOdd) {
-      items = [
-        currentSentence.animal,
-        currentSentence.number,
-        currentSentence.verb,
-        currentSentence.food,
-        currentSentence.colour
-      ];
-    } else {
-      items = [
-        currentSentence.animal + "-" + currentSentence.number,
-        currentSentence.food + "-" + currentSentence.colour
-      ];
-    }
-  } 
-  else if (currentLevel === 4) {
-    if (isOdd) {
-      items = [
-        currentSentence.animal,
-        currentSentence.number,
-        currentSentence.verb,
-        currentSentence.food,
-        currentSentence.colour
-      ];
-    } else {
-      items = [
-        currentSentence.animal + "-" + currentSentence.number,
-        currentSentence.food + "-" + currentSentence.colour
-      ];
-    }
-  }
+  // Correct answers
+  if (currentLevel === 1) items = isOdd ? [currentSentence.animal,currentSentence.number] : [currentSentence.animal+"-"+currentSentence.number];
+  else if (currentLevel === 2) items = isOdd ? [currentSentence.food,currentSentence.colour] : [currentSentence.food+"-"+currentSentence.colour];
+  else if (currentLevel >= 3) items = isOdd ? [currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour] : [currentSentence.animal+"-"+currentSentence.number,currentSentence.food+"-"+currentSentence.colour];
 
-// add decoys
-while (items.length < totalItems) {
-  let decoy;
-
-  if (isOdd) {
-    // Decoy = individual signs
-    if (currentLevel === 1) {
-      decoy = randomItem([...animals, ...numbers]);
-    } else if (currentLevel === 2) {
-      decoy = randomItem([...food, ...colours]);
-    } else if (currentLevel === 3) {
-      decoy = randomItem([...animals, ...numbers, ...food, ...colours]);
-    } else if (currentLevel === 4) {
-      decoy = randomItem([...animals, ...numbers, ...food, ...colours, ...verbs]);
+  // Decoys
+  while (items.length < totalItems) {
+    let decoy;
+    if (isOdd) {
+      if (currentLevel===1) decoy = randomItem([...animals,...numbers]);
+      else if (currentLevel===2) decoy = randomItem([...food,...colours]);
+      else if (currentLevel===3) decoy = randomItem([...animals,...numbers,...food,...colours]);
+      else decoy = randomItem([...animals,...numbers,...food,...colours,...verbs]);
+    } else {
+      let allCombos = [];
+      if (currentLevel===1) allCombos = animals.flatMap(a => numbers.map(n=>`${a}-${n}`));
+      else if (currentLevel===2) allCombos = food.flatMap(f => colours.map(c=>`${f}-${c}`));
+      else allCombos = [...animals.flatMap(a=>numbers.map(n=>`${a}-${n}`)),...food.flatMap(f=>colours.map(c=>`${f}-${c}`))];
+      decoy = randomItem(allCombos);
     }
-  } else {
-    // Decoy = combos
-    let allCombos = [];
-    if (currentLevel === 1) {
-      allCombos = animals.flatMap(a => numbers.map(n => `${a}-${n}`));
-    } else if (currentLevel === 2) {
-      allCombos = food.flatMap(f => colours.map(c => `${f}-${c}`));
-    } else if (currentLevel >= 3) {
-      allCombos = [
-        ...animals.flatMap(a => numbers.map(n => `${a}-${n}`)),
-        ...food.flatMap(f => colours.map(c => `${f}-${c}`))
-      ];
-    }
-    decoy = randomItem(allCombos);
+    if (!items.includes(decoy)) items.push(decoy);
   }
-
-  if (!items.includes(decoy)) {
-    items.push(decoy);
-  }
-}
 
   items = shuffleArray(items);
-  const leftItems = items.slice(0,8);
-  const rightItems = items.slice(8,16);
-
-  [leftItems,rightItems].forEach((group,idx)=>{
+  const halves = [items.slice(0,8), items.slice(8,16)];
+  halves.forEach((group,idx)=>{
     const container = idx===0 ? leftDraggables : rightDraggables;
-    container.innerHTML = "";
     group.forEach(word=>{
       const div = document.createElement("div");
       div.className="draggable";
       div.draggable=true;
       div.dataset.value=word;
       const img = document.createElement("img");
-      if(isOdd){
-        img.src = signPathFor(word); // signs
-      } else {
-        img.src = compositeImagePath(word); // composite images
-      }
+      img.src = word.includes("-") ? compositeImagePath(word) : signPathFor(word);
       div.appendChild(img);
       div.addEventListener("dragstart", e=>e.dataTransfer.setData("text/plain",word));
       container.appendChild(div);
     });
   });
 }
-
 
 /* ===== DROP HANDLER ===== */
 function dropHandler(e){
@@ -287,152 +301,102 @@ function dropHandler(e){
   img.src = value.includes("-") ? compositeImagePath(value) : signPathFor(value);
   dz.appendChild(img);
   dz.dataset.filled = value;
-
   againBtn.style.display = "inline-block";
-  const allFilled = Array.from(answerArea.querySelectorAll(".dropzone")).every(d=>d.dataset.filled.length>0);
+  const allFilled = Array.from(answerArea.querySelectorAll(".dropzone")).every(d=>d.dataset.filled);
   checkBtn.style.display = allFilled ? "inline-block" : "none";
 }
 
+/* ===== CHECK ANSWER ===== */
 checkBtn.addEventListener("click",()=>{
   const dropzones = Array.from(answerArea.querySelectorAll(".dropzone"));
   let allCorrect = true;
-
   dropzones.forEach((dz,i)=>{
     let expected="";
-
-    if (currentLevel === 1) {
-      expected = (roundInLevel % 2 === 1) 
-        ? (i===0 ? currentSentence.animal : currentSentence.number)
-        : currentSentence.animal + "-" + currentSentence.number;
-    } 
-    else if (currentLevel === 2) {
-      expected = (roundInLevel % 2 === 1) 
-        ? (i===0 ? currentSentence.food : currentSentence.colour)
-        : currentSentence.food + "-" + currentSentence.colour;
-    } 
-    else if (currentLevel === 3 || currentLevel === 4) {
-      if (roundInLevel % 2 === 1) {
-        const sequence = [
-          currentSentence.animal,
-          currentSentence.number,
-          currentSentence.verb,
-          currentSentence.food,
-          currentSentence.colour
-        ];
-        expected = sequence[i] || "";
+    if (currentLevel===1) expected = (roundInLevel%2===1) ? (i===0?currentSentence.animal:currentSentence.number) : currentSentence.animal+"-"+currentSentence.number;
+    else if (currentLevel===2) expected = (roundInLevel%2===1) ? (i===0?currentSentence.food:currentSentence.colour) : currentSentence.food+"-"+currentSentence.colour;
+    else {
+      if (roundInLevel%2===1){
+        const seq=[currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour];
+        expected=seq[i]||"";
       } else {
-        const combos = [
-          currentSentence.animal + "-" + currentSentence.number,
-          currentSentence.food + "-" + currentSentence.colour
-        ];
-        expected = combos[i] || "";
+        const combos=[currentSentence.animal+"-"+currentSentence.number,currentSentence.food+"-"+currentSentence.colour];
+        expected=combos[i]||"";
       }
     }
-
-    if (dz.dataset.filled === expected) {
-      dz.classList.add("correct");
-      correctCount++;
-    } else {
-      dz.classList.add("incorrect");
-      allCorrect=false;
-      incorrectCount++;
-    }
+    if (dz.dataset.filled===expected){ correctCount++; dz.classList.add("correct"); }
+    else { incorrectCount++; allCorrect=false; dz.classList.add("incorrect"); }
   });
 
-  const feedbackImg = document.createElement("img");
-  feedbackImg.src = allCorrect ? "assets/correct.png" : "assets/wrong.png";
-  feedbackDiv.appendChild(feedbackImg);
+  const fb=document.createElement("img");
+  fb.src=allCorrect?"assets/correct.png":"assets/wrong.png";
+  feedbackDiv.appendChild(fb);
+
+  saveProgress();
 
   setTimeout(()=>{
     feedbackDiv.innerHTML="";
-    if(allCorrect){
-      nextRound();
-    } else {
+    if(allCorrect) nextRound();
+    else {
       buildDraggables(roundInLevel%2===1);
-      const dropzones = Array.from(answerArea.querySelectorAll(".dropzone"));
-      dropzones.forEach(dz=>{
-        dz.innerHTML="";
-        dz.dataset.filled="";
-        dz.classList.remove("correct","incorrect");
-      });
-      checkBtn.style.display="none";
-      againBtn.style.display="inline-block";
+      dropzones.forEach(dz=>{ dz.innerHTML=""; dz.dataset.filled=""; dz.classList.remove("correct","incorrect"); });
+      checkBtn.style.display="none"; againBtn.style.display="inline-block";
     }
   },2000);
 });
 
 againBtn.addEventListener("click",()=>{
   buildDraggables(roundInLevel%2===1);
-  const dropzones = Array.from(answerArea.querySelectorAll(".dropzone"));
-  dropzones.forEach(dz=>{
-    dz.innerHTML="";
-    dz.dataset.filled="";
-    dz.classList.remove("correct","incorrect");
-  });
-  checkBtn.style.display="none";
-  againBtn.style.display="none";
+  Array.from(answerArea.querySelectorAll(".dropzone")).forEach(dz=>{ dz.innerHTML=""; dz.dataset.filled=""; dz.classList.remove("correct","incorrect"); });
+  checkBtn.style.display="none"; againBtn.style.display="none";
 });
 
+/* ===== GAME FLOW ===== */
 stopBtn.addEventListener("click",()=>{
-  const endTime = Date.now();
-  const timeTaken = Math.round((endTime - startTime)/1000);
-  alert(`Game paused\nScore: ${correctCount}/${correctCount+incorrectCount}\nTime: ${Math.floor(timeTaken/60)}m ${timeTaken%60}s`);
+  alert(`Game paused\nScore: ${correctCount}/${correctCount+incorrectCount}\nTime: ${Math.floor(getTimeElapsed()/60)}m ${getTimeElapsed()%60}s`);
+  saveProgress();
 });
 
 function nextRound(){
   roundInLevel++;
-  if(roundInLevel>=10){
-    endLevel();
-  } else {
-    buildQuestion();
-  }
+  if(roundInLevel>=10) endLevel();
+  else { buildQuestion(); saveProgress(); }
 }
 
 async function endLevel(){
-  const endTime = Date.now();
-  const timeTaken = Math.round((endTime - startTime)/1000);
-  const percent = Math.round((correctCount/(correctCount+incorrectCount))*100);
+  const timeTaken=getTimeElapsed();
+  const percent=Math.round((correctCount/(correctCount+incorrectCount))*100);
 
-  const formData = new FormData();
-  formData.append(FORM_FIELD_MAP.name, studentName);
-  formData.append(FORM_FIELD_MAP.class, studentClass);
-  formData.append(FORM_FIELD_MAP.subject,"Sentences");
-  formData.append(FORM_FIELD_MAP.timeTaken,timeTaken);
-  formData.append(FORM_FIELD_MAP.percent, percent);
-
+  const fd=new FormData();
+  fd.append(FORM_FIELD_MAP.name, studentName);
+  fd.append(FORM_FIELD_MAP.class, studentClass);
+  fd.append(FORM_FIELD_MAP.subject,"Sentences");
+  fd.append(FORM_FIELD_MAP.timeTaken,timeTaken);
+  fd.append(FORM_FIELD_MAP.percent, percent);
   for(let l=1;l<=currentLevel;l++){
-    const correctField = FORM_FIELD_MAP[`level${l}`]?.correct;
-    const incorrectField = FORM_FIELD_MAP[`level${l}`]?.incorrect;
-    if(correctField) formData.append(correctField, correctCount);
-    if(incorrectField) formData.append(incorrectField, incorrectCount);
+    const cf=FORM_FIELD_MAP[`level${l}`]?.correct;
+    const inf=FORM_FIELD_MAP[`level${l}`]?.incorrect;
+    if(cf) fd.append(cf, correctCount);
+    if(inf) fd.append(inf, incorrectCount);
   }
-
-  try { await fetch(googleForm.action,{method:"POST",body:formData,mode:"no-cors"}); }
-  catch(err){ console.warn("Form submit failed",err); }
+  try{ await fetch(googleForm.action,{method:"POST",body:fd,mode:"no-cors"});}catch{}
 
   if(currentLevel>=4){
+    clearProgress();
     endModal.style.display="block";
-    document.getElementById("finalScore").textContent = `${correctCount}/${correctCount+incorrectCount}`;
-    document.getElementById("finalPercent").textContent = percent + "%";
+    document.getElementById("finalScore").textContent=`${correctCount}/${correctCount+incorrectCount}`;
+    document.getElementById("finalPercent").textContent=percent+"%";
   } else {
-    currentLevel++;
-    roundInLevel=0;
-    buildQuestion();
+    currentLevel++; roundInLevel=0; buildQuestion(); saveProgress();
   }
 }
 
-function startGame(){
-  startTime = Date.now();
-  currentLevel=1;
-  roundInLevel=0;
-  correctCount=0;
-  incorrectCount=0;
-  buildQuestion();
-}
-
-function updateScoreDisplay(){
-  scoreDisplay.textContent = `Level ${currentLevel} - Question ${roundInLevel+1}/10`;
-}
+function startGame(){ startTime=Date.now(); buildQuestion(); }
+function resetGame(){ currentLevel=1; roundInLevel=0; correctCount=0; incorrectCount=0; savedTimeElapsed=0; startGame(); }
+function updateScoreDisplay(){ scoreDisplay.textContent=`Level ${currentLevel} - Question ${roundInLevel+1}/10`; }
 
 /* ===== INIT ===== */
-startGame();
+window.addEventListener("load",()=>{
+  const saved=loadProgress();
+  if(saved && saved.studentName){ showResumeModal(saved); }
+  else { resetGame(); }
+});
