@@ -289,45 +289,52 @@ function buildDraggables(isOdd){
   const totalItems = 16;
 
   // --- Correct answers ---
-  if (currentLevel === 1) items = isOdd ? [currentSentence.animal,currentSentence.number] : [currentSentence.animal+"-"+currentSentence.number];
-  else if (currentLevel === 2) items = isOdd ? [currentSentence.food,currentSentence.colour] : [currentSentence.food+"-"+currentSentence.colour];
-  else if (currentLevel === 3) {
-    // exclude "want" from draggables
-    items = isOdd ? [currentSentence.animal,currentSentence.number,currentSentence.food,currentSentence.colour]
-                  : [currentSentence.animal+"-"+currentSentence.number,currentSentence.food+"-"+currentSentence.colour];
+  if (currentLevel === 1) {
+    items = isOdd ? [currentSentence.animal, currentSentence.number] : [currentSentence.animal+"-"+currentSentence.number];
+  } else if (currentLevel === 2) {
+    items = isOdd ? [currentSentence.food, currentSentence.colour] : [currentSentence.food+"-"+currentSentence.colour];
+  } else if (currentLevel === 3) {
+    // Level 3: NO verbs draggable
+    items = isOdd
+      ? [currentSentence.animal, currentSentence.number, currentSentence.food, currentSentence.colour]
+      : [currentSentence.animal+"-"+currentSentence.number, currentSentence.food+"-"+currentSentence.colour];
   } else if (currentLevel === 4) {
     const verb = currentSentence.verb;
     const label = `${currentSentence.animal}-${currentSentence.number}-${verb}-${currentSentence.food}-${currentSentence.colour}`;
     items = [label];
   }
 
-  // --- Add decoys ---
+  // --- Add decoys, ensuring uniqueness ---
+  const used = new Set(items);
   while (items.length < totalItems) {
     let decoy;
     if (isOdd) {
-      if (currentLevel===1) decoy = randomItem([...animals,...numbers]);
-      else if (currentLevel===2) decoy = randomItem([...food,...colours]);
-      else if (currentLevel===3) decoy = randomItem([...animals,...numbers,...food,...colours]);
-      else decoy = randomItem([...animals,...numbers,...food,...colours,...verbs]);
+      if (currentLevel === 1) decoy = randomItem([...animals, ...numbers]);
+      else if (currentLevel === 2) decoy = randomItem([...food, ...colours]);
+      else if (currentLevel === 3) decoy = randomItem([...animals, ...numbers, ...food, ...colours]); // verbs excluded
+      else decoy = randomItem([...animals, ...numbers, ...food, ...colours, ...verbs]);
     } else {
       let allCombos = [];
-      if (currentLevel===1) allCombos = animals.flatMap(a => numbers.map(n=>`${a}-${n}`));
-      else if (currentLevel===2) allCombos = food.flatMap(f => colours.map(c=>`${f}-${c}`));
-      else allCombos = [...animals.flatMap(a=>numbers.map(n=>`${a}-${n}`)),...food.flatMap(f=>colours.map(c=>`${f}-${c}`))];
+      if (currentLevel === 1) allCombos = animals.flatMap(a => numbers.map(n => `${a}-${n}`));
+      else if (currentLevel === 2) allCombos = food.flatMap(f => colours.map(c => `${f}-${c}`));
+      else if (currentLevel === 3) allCombos = [
+        ...animals.flatMap(a => numbers.map(n => `${a}-${n}`)),
+        ...food.flatMap(f => colours.map(c => `${f}-${c}`))
+      ]; // verbs excluded
       decoy = randomItem(allCombos);
     }
-    if (!items.includes(decoy)) items.push(decoy);
+    if (!used.has(decoy)) { items.push(decoy); used.add(decoy); }
   }
 
   items = shuffleArray(items);
   const halves = [items.slice(0,8), items.slice(8,16)];
 
-  halves.forEach((group,idx)=>{
-    const container = idx===0 ? leftDraggables : rightDraggables;
-    group.forEach(word=>{
+  halves.forEach((group, idx) => {
+    const container = idx === 0 ? leftDraggables : rightDraggables;
+    group.forEach(word => {
       const div = document.createElement("div");
-      div.className="draggable";
-      div.draggable=true;
+      div.className = "draggable";
+      div.draggable = true;
       div.dataset.value = word;
 
       const img = document.createElement("img");
@@ -350,6 +357,14 @@ function buildDraggables(isOdd){
         img.src = word.includes("-") ? compositeImagePath(word) : signPathFor(word);
         div.appendChild(img);
       }
+
+      div.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", word));
+      div.addEventListener("touchstart", touchStartHandler);
+      container.appendChild(div);
+    });
+  });
+}
+
 
       // --- Drag & touch support ---
       div.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", word));
