@@ -11,7 +11,7 @@ const FORM_FIELD_MAP = {
   level4: { correct: "entry.1405337882", incorrect: "entry.1513946929" }
 };
 
-/* ===== DOM ELEMENTS ===== */
+/* ===== DOM Elements ===== */
 const studentNameSpan = document.getElementById("studentName");
 const studentClassSpan = document.getElementById("studentClass");
 const scoreDisplay = document.getElementById("scoreDisplay");
@@ -162,9 +162,7 @@ function buildQuestion(){
   buildAnswerBoxes(isOdd); buildDraggables(isOdd); updateScoreDisplay();
 }
 
-/* ===== FULL ANSWER BOX + DRAGGABLE + CHECK/AGAIN LOGIC ===== */
-let dragItem=null, dragClone=null, isTouch=false;
-
+/* ===== BUILD ANSWER BOXES ===== */
 function buildAnswerBoxes(isOdd){
   answerArea.innerHTML="";
   let dropLabels=[];
@@ -175,27 +173,28 @@ function buildAnswerBoxes(isOdd){
 
   dropLabels.forEach(label=>{
     const dz=document.createElement("div"); dz.className="dropzone"; dz.dataset.placeholder=label;
-    dz.addEventListener("dragover", e=>e.preventDefault());
-    dz.addEventListener("drop", dropHandler);
+    dz.addEventListener("dragover", e=>e.preventDefault()); dz.addEventListener("drop", dropHandler);
 
-    if(currentLevel===3 && label==="verb"){
-      const img=document.createElement("img"); img.src=signPathFor("want");
-      dz.appendChild(img);
-      dz.dataset.filled="want"; dz.classList.add("filled"); dz.dataset.permanent="true";
-    }
+    if(currentLevel===3 && label==="verb"){ const img=document.createElement("img"); img.src=signPathFor("want"); dz.appendChild(img); dz.dataset.filled="want"; dz.classList.add("filled"); dz.dataset.permanent="true"; }
+
     answerArea.appendChild(dz);
   });
 }
+
+/* ===== BUILD DRAGGABLES & UNIFIED DRAG ===== */
+let dragItem=null, dragClone=null, isTouch=false;
 
 function buildDraggables(isOdd){
   leftDraggables.innerHTML=""; rightDraggables.innerHTML="";
   let items=[], totalItems=16;
 
+  // Correct answers
   if(currentLevel===1) items=isOdd?[currentSentence.animal,currentSentence.number]:[currentSentence.animal+"-"+currentSentence.number];
   else if(currentLevel===2) items=isOdd?[currentSentence.food,currentSentence.colour]:[currentSentence.food+"-"+currentSentence.colour];
   else if(currentLevel===3) items=isOdd?[currentSentence.animal,currentSentence.number,currentSentence.food,currentSentence.colour]:[currentSentence.animal+"-"+currentSentence.number,currentSentence.food+"-"+currentSentence.colour];
   else if(currentLevel===4) items=[`${currentSentence.animal}-${currentSentence.number}-${currentSentence.verb}-${currentSentence.food}-${currentSentence.colour}`];
 
+  // Add decoys
   const used = new Set(items);
   while(items.length<totalItems){
     let decoy;
@@ -216,107 +215,271 @@ function buildDraggables(isOdd){
 
   items=shuffleArray(items);
   const halves=[items.slice(0,8),items.slice(8,16)];
+
   halves.forEach((group,idx)=>{
     const container=idx===0?leftDraggables:rightDraggables;
     group.forEach(word=>{
-      const div=document.createElement("div"); div.className="draggable"; div.draggable=true; div.dataset.word=word;
-      const img=document.createElement("img"); 
-      img.src=isOdd?signPathFor(word.includes('-')?word.split('-')[0]:word):compositeImagePath(word);
-      div.appendChild(img);
-      div.addEventListener("dragstart", dragStart); div.addEventListener("touchstart", touchStart);
+      const div=document.createElement("div"); div.className="draggable"; div.draggable=true; div.dataset.value=word;
+      div.dataset.originalParent = idx === 0 ? "draggablesLeft" : "draggablesRight";
+      const img=document.createElement("img");
+      if(currentLevel===4 && word.includes("donthave")){
+        const parts=word.split("-"); img.src=compositeImagePath(parts[3]+"-"+parts[4]);
+        const wrapper=document.createElement("div"); wrapper.className="dontHaveWrapper"; wrapper.appendChild(img);
+        const xOverlay=document.createElement("div"); xOverlay.className="xOverlay"; xOverlay.textContent="X"; wrapper.appendChild(xOverlay);
+        div.appendChild(wrapper);
+      } else if(currentLevel===4 && word.includes("have")){
+        const parts=word.split("-"); img.src=compositeImagePath(parts[3]+"-"+parts[4]); div.appendChild(img);
+      } else { img.src=word.includes("-")?compositeImagePath(word):signPathFor(word); div.appendChild(img); }
+
+      div.addEventListener("dragstart", e=>e.dataTransfer.setData("text/plain", word));
       container.appendChild(div);
     });
   });
 }
 
-/* ===== DRAG & DROP ===== */
-function dragStart(e){ dragItem=this; }
-function dropHandler(e){
-  e.preventDefault();
-  if(this.dataset.permanent==="true") return;
-  const draggedWord=dragItem.dataset.word;
-  this.innerHTML=""; const img=document.createElement("img"); img.src=dragItem.querySelector("img").src; this.appendChild(img);
-  this.dataset.filled=draggedWord; this.classList.add("filled");
-  dragItem.remove(); dragItem=null;
-  checkBtn.style.display="inline-block";
+/* ===== UNIFIED DRAG & DROP ===== */
+function startDrag(e){
+  const target=e.target.closest(".draggable"); if(!target) return;
+  dragItem=target; isTouch=e.type.startsWith("touch");
+  const rect=target.getBoundingClientRect();
+  dragClone=target.cloneNode(true); dragClone.style.position="fixed"; dragClone.style.left=rect.left+"px"; dragClone.style.top=rect.top+"px"; dragClone.style.width=rect.width+"px"; dragClone.style.height=rect.height+"px"; dragClone.style.opacity="0.7"; dragClone.style.pointerEvents="none"; dragClone.style.zIndex="10000";
+  document.body.appendChild(dragClone); e.preventDefault();
+  if(isTouch){ document.addEventListener("touchmove", moveDrag,{passive:false}); document.addEventListener("touchend", endDrag); }
+  else { document.addEventListener("mousemove", moveDrag); document.addEventListener("mouseup", endDrag); }
 }
 
-/* ===== TOUCH SUPPORT ===== */
-function touchStart(e){ dragItem=this; isTouch=true; }
-function touchMove(e){ if(!isTouch) return; e.preventDefault(); }
-function touchEnd(e){ isTouch=false; }
+function moveDrag(e){
+  if(!dragClone) return;
+  let clientX,clientY;
+  if(isTouch&&e.touches.length>0){ clientX=e.touches[0].clientX; clientY=e.touches[0].clientY; }
+  else { clientX=e.clientX; clientY=e.clientY; }
+  dragClone.style.left=clientX-dragClone.offsetWidth/2+"px";
+  dragClone.style.top=clientY-dragClone.offsetHeight/2+"px";
+}
 
-/* ===== CHECK / AGAIN BUTTONS ===== */
-checkBtn.addEventListener("click", ()=>{
-  let correct=true;
-  const dzs=[...document.querySelectorAll(".dropzone")];
-  dzs.forEach(dz=>{
-    if(!dz.dataset.permanent){
-      if(dz.dataset.filled!==dz.dataset.placeholder) correct=false;
+function endDrag(e){
+  if(!dragItem||!dragClone) return;
+  let clientX,clientY;
+  if(isTouch&&e.changedTouches&&e.changedTouches.length>0){ clientX=e.changedTouches[0].clientX; clientY=e.changedTouches[0].clientY; }
+  else { clientX=e.clientX; clientY=e.clientY; }
+
+  const dropzones=document.querySelectorAll(".dropzone"); let dropped=false;
+  dropzones.forEach(dz=>{
+    const rect=dz.getBoundingClientRect();
+    if(clientX>=rect.left&&clientX<=rect.right&&clientY>=rect.top&&clientY<=rect.bottom&&dz.childElementCount===0){
+      const value=dragItem.dataset.value;
+      if(currentLevel===4 && value.includes("-")){
+        const [animal,number,verb,food,colour]=value.split("-");
+        document.querySelectorAll(".dropzone").forEach(dzBox=>{
+          dzBox.innerHTML=""; dzBox.classList.add("filled");
+          if(dzBox.dataset.placeholder==="animal+howmany?"){ const img=document.createElement("img"); img.src=compositeImagePath(`${animal}-${number}`); dzBox.appendChild(img); dzBox.dataset.filled=`${animal}-${number}`; }
+          else if(dzBox.dataset.placeholder==="verb"){ const img=document.createElement("img"); img.src=signPathFor(verb); dzBox.appendChild(img); dzBox.dataset.filled=verb; }
+          else if(dzBox.dataset.placeholder==="food+colour"){ const img=document.createElement("img"); img.src=compositeImagePath(`${food}-${colour}`); dzBox.appendChild(img); dzBox.dataset.filled=verb==="donthave"?"donthave":`${food}-${colour}`; if(verb==="donthave"){ const xDiv=document.createElement("div"); xDiv.className="xOverlay"; xDiv.textContent="X"; dzBox.appendChild(xDiv); } }
+        });
+      } else { const img=document.createElement("img"); img.src=value.includes("-")?compositeImagePath(value):signPathFor(value); dz.appendChild(img); dz.dataset.filled=value; dz.classList.add("filled"); }
+      dropped=true;
     }
   });
-  if(correct){
-    feedbackDiv.textContent="Correct!";
-    correctCount++; levelCorrect[currentLevel]++;
-    answersHistory.push({sentence:currentSentence,correct:true});
-    nextRound();
-  } else {
-    feedbackDiv.textContent="Some items are incorrect.";
-    incorrectCount++; levelIncorrect[currentLevel]++;
-    answersHistory.push({sentence:currentSentence,correct:false});
-    againBtn.style.display="inline-block";
-  }
+
+  if(dragClone) document.body.removeChild(dragClone);
+  dragClone=null; dragItem=null;
+  if(isTouch){ document.removeEventListener("touchmove", moveDrag,{passive:false}); document.removeEventListener("touchend", endDrag); }
+  else { document.removeEventListener("mousemove", moveDrag); document.removeEventListener("mouseup", endDrag); }
+
+  if(dropped){ againBtn.style.display="inline-block"; const allFilled=Array.from(document.querySelectorAll(".dropzone")).every(d=>d.dataset.filled); checkBtn.style.display=allFilled?"inline-block":"none"; }
+}
+
+document.addEventListener("mousedown", startDrag);
+document.addEventListener("touchstart", startDrag, {passive:false});
+
+/* ===== DROP HANDLER PLACEHOLDER ===== */
+function dropHandler(e){ e.preventDefault(); }
+
+/* ===== CHECK ANSWER ===== */
+checkBtn.addEventListener("click", () => {
+  const dropzones = Array.from(answerArea.querySelectorAll(".dropzone"));
+  let allCorrect = true;
+
+  dropzones.forEach((dz, i) => {
+    if(dz.dataset.permanent === "true") { dz.classList.add("correct"); return; }
+
+    let expected = "";
+    if(currentLevel === 1) expected = (roundInLevel % 2 === 1) ? (i === 0 ? currentSentence.animal : currentSentence.number) : currentSentence.animal + "-" + currentSentence.number;
+    else if(currentLevel === 2) expected = (roundInLevel % 2 === 1) ? (i === 0 ? currentSentence.food : currentSentence.colour) : currentSentence.food + "-" + currentSentence.colour;
+    else if(currentLevel === 3) {
+      const seq = roundInLevel % 2 === 1 ? 
+        [currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour] :
+        [currentSentence.animal+"-"+currentSentence.number,currentSentence.verb,currentSentence.food+"-"+currentSentence.colour];
+      expected = seq[i] || "";
+    }
+    else if(currentLevel === 4) {
+      const seq = [currentSentence.animal+"-"+currentSentence.number,currentSentence.verb,currentSentence.food+"-"+currentSentence.colour];
+      if(dz.dataset.placeholder === "animal+howmany?") expected = seq[0];
+      else if(dz.dataset.placeholder === "verb") expected = seq[1];
+      else if(dz.dataset.placeholder === "food+colour") expected = currentSentence.verb==="donthave" ? "donthave" : seq[2];
+    }
+
+    const isCorrect = dz.dataset.filled === expected;
+
+    // Push to answersHistory for Google Forms
+    const items = dz.dataset.filled.split("-").map(v => v.trim());
+    const labels = dz.dataset.placeholder.includes("+") ? dz.dataset.placeholder.split("+") : [dz.dataset.placeholder];
+    labels.forEach((lbl, idx) => {
+      answersHistory.push({
+        level: currentLevel,
+        label: lbl,
+        value: items[idx] || "",
+        correct: isCorrect
+      });
+    });
+
+    if(isCorrect){
+      correctCount++; 
+      levelCorrect[currentLevel]++; 
+      dz.classList.add("correct");
+    } else {
+      incorrectCount++; 
+      levelIncorrect[currentLevel]++; 
+      allCorrect=false; 
+      dz.innerHTML=""; dz.dataset.filled=""; dz.classList.remove("correct","filled"); dz.classList.add("incorrect");
+    }
+  });
+
+  const fb = document.createElement("img");
+  fb.src = allCorrect ? "assets/correct.png" : "assets/wrong.png";
+  feedbackDiv.appendChild(fb);
+  saveProgress();
+
+  setTimeout(() => {
+    feedbackDiv.innerHTML="";
+    if(allCorrect) nextRound();
+    else {
+      buildDraggables(roundInLevel % 2 === 1);
+      checkBtn.style.display="none";
+      againBtn.style.display="inline-block";
+    }
+  },2000);
 });
 
-againBtn.addEventListener("click", ()=>{ buildQuestion(); });
+/* ===== AGAIN BUTTON ===== */
+againBtn.addEventListener("click", () => {
+  // Return dragged items to original containers
+  const draggables = document.querySelectorAll(".draggable");
+  draggables.forEach(draggable => {
+    const parentId = draggable.dataset.originalParent; // store this when first creating draggables
+    const container = document.getElementById(parentId);
+    if(container) container.appendChild(draggable);
+    draggable.classList.remove("placed"); // remove any class you use for "placed in dropzone"
+  });
 
-function nextRound(){
+  // Clear incorrect dropzones but keep permanent / correct answers
+  Array.from(answerArea.querySelectorAll(".dropzone")).forEach(dz => {
+    if(dz.dataset.permanent !== "true"){
+      dz.innerHTML = "";
+      dz.dataset.filled = "";
+      dz.classList.remove("incorrect", "filled", "correct");
+    } else {
+      dz.classList.add("correct");
+    }
+  });
+
+  checkBtn.style.display = "none";
+  againBtn.style.display = "none";
+});
+
+/* ===== GAME FLOW ===== */
+function nextRound() {
   roundInLevel++;
-  if(roundInLevel>=4){ // per level pages
-    currentLevel++;
-    roundInLevel=0;
+  if(roundInLevel>=10) {
+    if(currentLevel<TOTAL_LEVELS){
+      currentLevel++;
+      roundInLevel=0;
+      buildQuestion();
+      saveProgress();
+    } else {
+      endLevel();
+    }
+  } else {
+    buildQuestion();
+    saveProgress();
   }
-  if(currentLevel> TOTAL_LEVELS){ endGame(); return; }
-  buildQuestion();
 }
 
-function updateScoreDisplay(){ scoreDisplay.textContent=`Correct: ${correctCount} | Incorrect: ${incorrectCount}`; }
+/* ===== FULLY MERGED STOP/FINISH/AGAIN WITH GOOGLE FORM SUBMISSION ===== */
+async function submitResults(){
+  const timeTaken=getTimeElapsed();
+  const totalCorrect = Object.values(levelCorrect).reduce((a,b)=>a+b,0);
+  const totalAttempts = totalCorrect + Object.values(levelIncorrect).reduce((a,b)=>a+b,0);
+  const percent = totalAttempts>0?Math.round((totalCorrect/totalAttempts)*100):0;
 
-/* ===== END GAME ===== */
-function endGame(){
-  saveProgress();
-  const percent=Math.round((correctCount/(correctCount+incorrectCount))*100);
-  endModal.querySelector("#scoreDisplayEnd").textContent=`Your score: ${percent}%`;
-  endModal.style.display="flex";
-  submitToGoogleForm(percent);
+  const fd = new FormData();
+  fd.append(FORM_FIELD_MAP.name,studentName);
+  fd.append(FORM_FIELD_MAP.class,studentClass);
+  fd.append(FORM_FIELD_MAP.subject,"Sentences");
+  fd.append(FORM_FIELD_MAP.timeTaken,timeTaken);
+  fd.append(FORM_FIELD_MAP.percent,percent);
+
+for(let l=1;l<=TOTAL_LEVELS;l++){
+  const cf=FORM_FIELD_MAP[`level${l}`]?.correct;
+  const inf=FORM_FIELD_MAP[`level${l}`]?.incorrect;
+  if(cf) fd.append(cf, formatAnswersForLevel(l,true));
+  if(inf) fd.append(inf, formatAnswersForLevel(l,false));
 }
 
-async function submitToGoogleForm(percent){
-  const formData=new FormData();
-  formData.append(FORM_FIELD_MAP.name,studentName);
-  formData.append(FORM_FIELD_MAP.class,studentClass);
-  formData.append(FORM_FIELD_MAP.subject,"Sentences");
-  formData.append(FORM_FIELD_MAP.timeTaken,getTimeElapsed());
-  formData.append(FORM_FIELD_MAP.percent,percent);
-  for(let lvl=1;lvl<=TOTAL_LEVELS;lvl++){
-    formData.append(FORM_FIELD_MAP[`level${lvl}`].correct,levelCorrect[lvl]);
-    formData.append(FORM_FIELD_MAP[`level${lvl}`].incorrect,levelIncorrect[lvl]);
-  }
-  await fetch(googleForm.action,{method:"POST",body:formData,mode:"no-cors"});
+  try{ await fetch(googleForm.action,{method:"POST",body:fd,mode:"no-cors"}); }catch(err){ console.warn("Form submission failed",err); }
+}
+
+function formatAnswersForLevel(level, correct=true){
+  // Filter by level and correctness
+  const items = answersHistory
+    .filter(a => a.level === level && a.correct === correct)
+    .sort((a,b) => a.label.localeCompare(b.label)) // alphabetical by label
+    .map(a => `${a.label}-${a.value}`);
+  return items.join(",");
+}
+
+/* ===== END LEVEL/FINISH LOGIC ===== */
+async function endLevel(){
+  await submitResults();
   clearProgress();
+  endModal.style.display="block";
+  document.getElementById("endGif").src="assets/auslan-clap.gif";
+  const totalCorrect = correctCount;
+  const totalAttempts = correctCount+incorrectCount;
+  document.getElementById("finalScore").textContent=`${totalCorrect}/${totalAttempts}`;
+  document.getElementById("finalPercent").textContent=Math.round((totalCorrect/totalAttempts)*100)+"%";
 }
 
-/* ===== RESET GAME ===== */
-function resetGame(){
-  currentLevel=1; roundInLevel=0; correctCount=0; incorrectCount=0;
-  answersHistory=[]; levelCorrect={1:0,2:0,3:0,4:0}; levelIncorrect={1:0,2:0,3:0,4:0};
-  savedTimeElapsed=0; startTime=Date.now();
-  buildQuestion();
-}
+/* ===== END MODAL BUTTONS ===== */
+finishBtn.onclick=()=>window.location.href="../index.html";
+againBtnEnd.onclick=()=>{ endModal.style.display="none"; resetGame(); };
+
+/* ===== STOP BUTTON ===== */
+stopBtn.addEventListener("click",()=>{
+  savedTimeElapsed=getTimeElapsed();
+  const percent=Math.round((correctCount/(correctCount+incorrectCount))*100);
+  const modal=document.getElementById("stopModal"); modal.style.display="block";
+  document.getElementById("stopTime").textContent=`${Math.floor(savedTimeElapsed/60)}m ${savedTimeElapsed%60}s`;
+  document.getElementById("stopPercent").textContent=percent+"%";
+
+  document.getElementById("continueBtn").onclick=()=>{ modal.style.display="none"; startTime=Date.now(); };
+  document.getElementById("againBtnStop").onclick=()=>{ modal.style.display="none"; resetGame(); };
+  document.getElementById("finishBtnStop").onclick=async()=>{
+    modal.style.display="none";
+    await submitResults();
+    clearProgress();
+    window.location.href="../index.html";
+  };
+});
+
+/* ===== START/RESET GAME ===== */
+function startGame(){ startTime=Date.now(); buildQuestion(); }
+function resetGame(){ currentLevel=1; roundInLevel=0; correctCount=0; incorrectCount=0; savedTimeElapsed=0; startGame(); }
+function updateScoreDisplay(){ scoreDisplay.textContent=`Level ${currentLevel} - Question ${roundInLevel+1}/10`; }
 
 /* ===== INIT ===== */
 window.addEventListener("load",()=>{
   const saved=loadProgress();
-  if(saved && saved.studentName){ showResumeModal(saved); }
+  if(saved&&saved.studentName){ showResumeModal(saved); }
   else resetGame();
 });
