@@ -160,9 +160,55 @@ function generateSentence() {
 function buildQuestion() {
   generateSentence(); // pick a new sentence
   const isOdd = roundInLevel % 2 === 1;
+  buildQuestionArea(isOdd);
   buildAnswerBoxes(isOdd);
   buildDraggables(isOdd);
   updateScoreDisplay();
+  
+  // hide buttons at the start
+  checkBtn.style.display = "none";
+  againBtn.style.display = "none";
+  
+  // clear previous feedback
+  feedbackDiv.innerHTML = "";
+}
+
+function buildQuestionArea(isOdd) {
+  questionArea.innerHTML = "";
+
+  let items = [];
+  if (currentLevel === 1) {
+    items = isOdd ? [currentSentence.animal, currentSentence.number] : [currentSentence.animal + "-" + currentSentence.number];
+  } else if (currentLevel === 2) {
+    items = isOdd ? [currentSentence.food, currentSentence.colour] : [currentSentence.food + "-" + currentSentence.colour];
+  } else if (currentLevel === 3) {
+    items = isOdd ? [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour] 
+                  : [currentSentence.animal + "-" + currentSentence.number, currentSentence.verb, currentSentence.food + "-" + currentSentence.colour];
+  } else if (currentLevel === 4) {
+    if (isOdd) {
+      items = [
+        `${currentSentence.animal}-${currentSentence.number}`,
+        currentSentence.verb,
+        `${currentSentence.food}-${currentSentence.colour}`
+      ];
+    } else {
+      items = [
+        currentSentence.animal,
+        currentSentence.number,
+        currentSentence.verb,
+        currentSentence.food,
+        currentSentence.colour
+      ];
+    }
+  }
+
+  items.forEach(item => {
+    const img = document.createElement("img");
+    if (item.includes("-")) img.src = compositeImagePath(item);
+    else img.src = signPathFor(item);
+    img.className = "questionSign";
+    questionArea.appendChild(img);
+  });
 }
 
 /* ===== BUILD ANSWER BOXES =====
@@ -491,18 +537,22 @@ function handleDropOnZone(dz, value) {
     });
   } else {
     // Regular single drop into this dz
-    dz.innerHTML = "";
-    let imgEl;
-    if (value.includes("-")) {
-      imgEl = document.createElement("img");
-      imgEl.src = compositeImagePath(value);
-    } else {
-      imgEl = document.createElement("img");
-      imgEl.src = signPathFor(value);
-    }
-    dz.appendChild(imgEl);
-    dz.dataset.filled = value;
-    dz.classList.add("filled");
+  dz.innerHTML = "";
+  const imgEl = document.createElement("img");
+  imgEl.src = value.includes("-") ? compositeImagePath(value) : signPathFor(value);
+  dz.appendChild(imgEl);
+  dz.dataset.filled = value;
+  dz.classList.add("filled");
+
+  // button logic
+  againBtn.style.display = "inline-block";
+
+  // check if all filled
+  const allFilled = Array.from(document.querySelectorAll(".dropzone")).every(d => d.dataset.filled);
+  if (allFilled) {
+    checkBtn.style.display = "inline-block";
+  } else {
+    checkBtn.style.display = "none";
   }
 }
 
@@ -569,10 +619,9 @@ checkBtn.addEventListener("click", () => {
     feedbackDiv.innerHTML = "";
     if (allCorrect) nextRound();
     else {
-      // rebuild palette (so students can try again) and hide check
       buildDraggables(roundInLevel % 2 === 1);
       checkBtn.style.display = "none";
-      againBtn.style.display = "inline-block";
+      againBtn.style.display = "inline-block"; // allow retry
     }
   }, 1200);
 });
