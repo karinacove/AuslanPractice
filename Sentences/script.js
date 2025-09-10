@@ -491,7 +491,7 @@ checkBtn.addEventListener("click", () => {
       dz.classList.remove("correct", "filled");
       dz.classList.add("incorrect");
     }
-
+ });
     // Save answers (only if something was dropped)
     if (dz.dataset.filled) {
       const items = dz.dataset.filled.split("-").map(v => v.trim());
