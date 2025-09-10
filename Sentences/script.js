@@ -157,6 +157,14 @@ function generateSentence() {
   currentSentence = { animal, number, food: foodItem, colour, verb };
 }
 
+function buildQuestion() {
+  generateSentence(); // pick a new sentence
+  const isOdd = roundInLevel % 2 === 1;
+  buildAnswerBoxes(isOdd);
+  buildDraggables(isOdd);
+  updateScoreDisplay();
+}
+
 /* ===== BUILD ANSWER BOXES =====
    placeholders: "animal", "howmany", "animal+howmany", "food", "colour", "food+colour", "verb"
 */
