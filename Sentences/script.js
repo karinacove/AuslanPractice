@@ -157,90 +157,62 @@ function generateSentence() {
   currentSentence = { animal, number, food: foodItem, colour, verb };
 }
 
-/* ===== BUILD QUESTION ===== */
-function buildQuestion() {
-  generateSentence();
-  questionArea.innerHTML = "";
+/* ===== BUILD ANSWER BOXES =====
+   placeholders: "animal", "howmany", "animal+howmany", "food", "colour", "food+colour", "verb"
+*/
+function buildAnswerBoxes(isOdd) {
   answerArea.innerHTML = "";
-  feedbackDiv.innerHTML = "";
-  checkBtn.style.display = "none";
-  againBtn.style.display = "none";
+  let dropLabels = [];
 
-  const isOdd = roundInLevel % 2 === 1;
+  if (currentLevel === 1) dropLabels = isOdd ? ["animal", "howmany"] : ["animal+howmany"];
+  else if (currentLevel === 2) dropLabels = isOdd ? ["food", "colour"] : ["food+colour"];
+  else if (currentLevel === 3) dropLabels = isOdd ? ["animal", "howmany", "verb", "food", "colour"] : ["animal+howmany", "verb", "food+colour"];
+  else if (currentLevel === 4) dropLabels = isOdd ? ["animal", "howmany", "verb", "food", "colour"] : ["animal+howmany", "verb", "food+colour"];
 
-  // HELPER SIGNS (level 1 & 2)
-  if (currentLevel <= 2) {
-    const helperDiv = document.createElement("div");
-    helpers.forEach(h => {
+  dropLabels.forEach(label => {
+    const dz = document.createElement("div");
+    dz.className = "dropzone";
+    dz.dataset.placeholder = label;
+    dz.addEventListener("dragover", e => e.preventDefault());
+    dz.addEventListener("drop", dropHandler);
+
+    // Level 3: prefill verb as permanent "want"
+    if (currentLevel === 3 && label === "verb") {
       const img = document.createElement("img");
-      img.src = signPathFor(h);
-      helperDiv.appendChild(img);
-    });
-    questionArea.appendChild(helperDiv);
-  }
-
-  // QUESTION IMAGES
-  const comboDiv = document.createElement("div");
-
-  if (isOdd) {
-    if (currentLevel === 1) {
-      comboDiv.innerHTML = `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}">`;
-    } else if (currentLevel === 2) {
-      comboDiv.innerHTML = `<img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`;
-    } else if (currentLevel === 3) {
-      comboDiv.innerHTML =
-        `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}">
-         <img src="${signPathFor('want')}">
-         <img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`;
-    } else if (currentLevel === 4) {
-      const verbImg = currentSentence.verb === "donthave"
-        ? `<div class="dontHaveWrapper"><img src="${signPathFor('have')}"><div class="xOverlay">X</div></div>`
-        : `<img src="${signPathFor('have')}">`;
-
-      comboDiv.innerHTML =
-        `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}">
-         ${verbImg}
-         <img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`;
+      img.src = signPathFor("want");
+      dz.appendChild(img);
+      dz.dataset.filled = "want";
+      dz.classList.add("filled");
+      dz.dataset.permanent = "true";
     }
-  } else {
-    if (currentLevel === 1) {
-      comboDiv.innerHTML =
-        `<img src="${signPathFor(currentSentence.animal)}">
-         <img src="${signPathFor(currentSentence.number)}">`;
-    } else if (currentLevel === 2) {
-      comboDiv.innerHTML =
-        `<img src="${signPathFor(currentSentence.food)}">
-         <img src="${signPathFor(currentSentence.colour)}">`;
-    } else if (currentLevel === 3) {
-      comboDiv.innerHTML =
-        `<img src="${signPathFor(currentSentence.animal)}">
-         <img src="${signPathFor(currentSentence.number)}">
-         <img src="${signPathFor('want')}">
-         <img src="${signPathFor(currentSentence.food)}">
-         <img src="${signPathFor(currentSentence.colour)}">`;
-    } else if (currentLevel === 4) {
-      const verbImg = currentSentence.verb === "donthave"
-        ? `<div class="dontHaveWrapper"><img src="${signPathFor('have')}"><div class="xOverlay">X</div></div>`
-        : `<img src="${signPathFor('have')}">`;
 
-      comboDiv.innerHTML =
-        `<img src="${signPathFor(currentSentence.animal)}">
-         <img src="${signPathFor(currentSentence.number)}">
-         ${verbImg}
-         <img src="${signPathFor(currentSentence.food)}">
-         <img src="${signPathFor(currentSentence.colour)}">`;
+    // Level 4: prefill verb as permanent (have/donthave)
+    if (currentLevel === 4 && label === "verb") {
+      if (!currentSentence.verb) currentSentence.verb = Math.random() < 0.5 ? "have" : "donthave";
+
+      const img = document.createElement("img");
+      if (currentSentence.verb === "donthave") {
+        img.src = signPathFor("have");
+        const wrapper = document.createElement("div");
+        wrapper.className = "dontHaveWrapper";
+        wrapper.appendChild(img);
+        const xOverlay = document.createElement("div");
+        xOverlay.className = "xOverlay";
+        xOverlay.textContent = "X";
+        wrapper.appendChild(xOverlay);
+        dz.appendChild(wrapper);
+      } else {
+        img.src = signPathFor("have");
+        dz.appendChild(img);
+      }
+
+      dz.dataset.filled = currentSentence.verb;
+      dz.classList.add("filled");
+      dz.dataset.permanent = "true";
     }
-  }
 
-  questionArea.appendChild(comboDiv);
-
-  // ANSWER BOXES
-  buildAnswerBoxes(isOdd);
-
-  // DRAGGABLES
-  buildDraggables(isOdd);
-
-  updateScoreDisplay();
+    answerArea.appendChild(dz);
+  });
 }
 
 /* ===== BUILD ANSWER BOXES =====
@@ -272,6 +244,31 @@ function buildAnswerBoxes(isOdd) {
       dz.dataset.permanent = "true";
     }
 
+    // Level 4: prefill verb as permanent (have/donthave)
+    if (currentLevel === 4 && label === "verb") {
+      if (!currentSentence.verb) currentSentence.verb = Math.random() < 0.5 ? "have" : "donthave";
+
+      const img = document.createElement("img");
+      if (currentSentence.verb === "donthave") {
+        img.src = signPathFor("have");
+        const wrapper = document.createElement("div");
+        wrapper.className = "dontHaveWrapper";
+        wrapper.appendChild(img);
+        const xOverlay = document.createElement("div");
+        xOverlay.className = "xOverlay";
+        xOverlay.textContent = "X";
+        wrapper.appendChild(xOverlay);
+        dz.appendChild(wrapper);
+      } else {
+        img.src = signPathFor("have");
+        dz.appendChild(img);
+      }
+
+      dz.dataset.filled = currentSentence.verb;
+      dz.classList.add("filled");
+      dz.dataset.permanent = "true";
+    }
+
     answerArea.appendChild(dz);
   });
 }
@@ -283,21 +280,40 @@ function buildDraggables(isOdd) {
   let items = [];
   const totalItems = 16;
 
-  // Correct answers
-  if (currentLevel === 1) items = isOdd ? [currentSentence.animal, currentSentence.number] : [currentSentence.animal + "-" + currentSentence.number];
-  else if (currentLevel === 2) items = isOdd ? [currentSentence.food, currentSentence.colour] : [currentSentence.food + "-" + currentSentence.colour];
-  else if (currentLevel === 3) items = isOdd ? [currentSentence.animal, currentSentence.number, currentSentence.food, currentSentence.colour] : [currentSentence.animal + "-" + currentSentence.number, currentSentence.food + "-" + currentSentence.colour];
-  else if (currentLevel === 4) items = [`${currentSentence.animal}-${currentSentence.number}-${currentSentence.verb}-${currentSentence.food}-${currentSentence.colour}`];
+  if (currentLevel === 1) {
+    items = isOdd ? [currentSentence.animal, currentSentence.number] : [currentSentence.animal + "-" + currentSentence.number];
+  } else if (currentLevel === 2) {
+    items = isOdd ? [currentSentence.food, currentSentence.colour] : [currentSentence.food + "-" + currentSentence.colour];
+  } else if (currentLevel === 3) {
+    items = isOdd ? [currentSentence.animal, currentSentence.number, currentSentence.food, currentSentence.colour] : [currentSentence.animal + "-" + currentSentence.number, currentSentence.food + "-" + currentSentence.colour];
+  } else if (currentLevel === 4) {
+    // Odd: composite images with X if donthave, Even: individual signs
+    if (isOdd) {
+      items = [
+        `${currentSentence.animal}-${currentSentence.number}`,
+        currentSentence.verb,
+        `${currentSentence.food}-${currentSentence.colour}`
+      ];
+    } else {
+      items = [
+        currentSentence.animal,
+        currentSentence.number,
+        currentSentence.verb,
+        currentSentence.food,
+        currentSentence.colour
+      ];
+    }
+  }
 
-  // add decoys
+  // Add decoys
   const used = new Set(items);
   while (items.length < totalItems) {
     let decoy;
     if (isOdd) {
       if (currentLevel === 1) decoy = randomItem([...animals, ...numbers]);
       else if (currentLevel === 2) decoy = randomItem([...food, ...colours]);
-      else if (currentLevel === 3) decoy = randomItem([...animals, ...numbers, ...food, ...colours]); // verbs excluded
-      else decoy = randomItem([...animals, ...numbers, ...food, ...colours, ...verbs]);
+      else if (currentLevel === 3) decoy = randomItem([...animals, ...numbers, ...food, ...colours]);
+      else if (currentLevel === 4) decoy = randomItem([...animals, ...numbers, ...food, ...colours, ...verbs]);
     } else {
       let allCombos = [];
       if (currentLevel === 1) allCombos = animals.flatMap(a => numbers.map(n => `${a}-${n}`));
@@ -305,7 +321,12 @@ function buildDraggables(isOdd) {
       else if (currentLevel === 3) allCombos = [
         ...animals.flatMap(a => numbers.map(n => `${a}-${n}`)),
         ...food.flatMap(f => colours.map(c => `${f}-${c}`))
-      ]; // verbs excluded
+      ];
+      else if (currentLevel === 4) allCombos = [
+        ...animals.flatMap(a => numbers.map(n => `${a}-${n}`)),
+        ...food.flatMap(f => colours.map(c => `${f}-${c}`)),
+        ...verbs
+      ];
       decoy = randomItem(allCombos);
     }
     if (!used.has(decoy)) { items.push(decoy); used.add(decoy); }
@@ -322,32 +343,32 @@ function buildDraggables(isOdd) {
       div.draggable = true;
       div.dataset.value = word;
 
-      // image / wrapper
       let img;
-      if (currentLevel === 4 && word.includes("donthave")) {
-        const parts = word.split("-");
-        img = document.createElement("img");
-        img.src = compositeImagePath(parts[3] + "-" + parts[4]);
-        const wrapper = document.createElement("div");
-        wrapper.className = "dontHaveWrapper";
-        wrapper.appendChild(img);
-        const xOverlay = document.createElement("div");
-        xOverlay.className = "xOverlay";
-        xOverlay.textContent = "X";
-        wrapper.appendChild(xOverlay);
-        div.appendChild(wrapper);
-      } else if (currentLevel === 4 && word.includes("have") && word.split("-").length === 5) {
-        const parts = word.split("-");
-        img = document.createElement("img");
-        img.src = compositeImagePath(parts[3] + "-" + parts[4]);
-        div.appendChild(img);
+
+      // LEVEL 4: verb X overlay
+      if (currentLevel === 4 && (word === "donthave" || word === "have")) {
+        if (word === "donthave") {
+          img = document.createElement("img");
+          img.src = compositeImagePath(currentSentence.food+'-'+currentSentence.colour);
+          const wrapper = document.createElement("div");
+          wrapper.className = "dontHaveWrapper";
+          wrapper.appendChild(img);
+          const xOverlay = document.createElement("div");
+          xOverlay.className = "xOverlay";
+          xOverlay.textContent = "X";
+          wrapper.appendChild(xOverlay);
+          div.appendChild(wrapper);
+        } else {
+          img = document.createElement("img");
+          img.src = signPathFor("have");
+          div.appendChild(img);
+        }
       } else {
         img = document.createElement("img");
         img.src = word.includes("-") ? compositeImagePath(word) : signPathFor(word);
         div.appendChild(img);
       }
 
-      // native dragstart for desktop
       div.addEventListener("dragstart", e => {
         try { e.dataTransfer.setData("text/plain", word); } catch (err) {}
       });
