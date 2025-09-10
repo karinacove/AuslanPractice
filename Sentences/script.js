@@ -204,48 +204,49 @@ function buildAnswerBoxes(isOdd){
 function buildDraggables(isOdd){
   leftDraggables.innerHTML="";
   rightDraggables.innerHTML="";
-  let items=[];
-  const totalItems=16;
-  if(currentLevel===1) items=isOdd?[currentSentence.animal,currentSentence.number]:[currentSentence.animal+"-"+currentSentence.number];
-  else if(currentLevel===2) items=isOdd?[currentSentence.food,currentSentence.colour]:[currentSentence.food+"-"+currentSentence.colour];
-  else if(currentLevel===3) items=isOdd?[currentSentence.animal,currentSentence.number,currentSentence.food,currentSentence.colour]:[currentSentence.animal+"-"+currentSentence.number,currentSentence.food+"-"+currentSentence.colour];
-  else if(currentLevel===4) items=isOdd?[`${currentSentence.animal}-${currentSentence.number}`,currentSentence.verb,`${currentSentence.food}-${currentSentence.colour}`]:[currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour];
 
-  const used=new Set(items);
-  while(items.length<totalItems){
+  let correctItems = [];
+  if(currentLevel===1) correctItems = isOdd ? [currentSentence.animal,currentSentence.number] : [currentSentence.animal+"-"+currentSentence.number];
+  else if(currentLevel===2) correctItems = isOdd ? [currentSentence.food,currentSentence.colour] : [currentSentence.food+"-"+currentSentence.colour];
+  else if(currentLevel===3) correctItems = isOdd ? [currentSentence.animal,currentSentence.number,currentSentence.food,currentSentence.colour] : [currentSentence.animal+"-"+currentSentence.number,currentSentence.food+"-"+currentSentence.colour];
+  else if(currentLevel===4) correctItems = isOdd ? [`${currentSentence.animal}-${currentSentence.number}`,currentSentence.verb,`${currentSentence.food}-${currentSentence.colour}`] : [currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour];
+
+  // Start draggables with the correct items
+  let items = correctItems.slice();
+
+  // Add decoys until we have 16 items
+  const used = new Set(correctItems);
+  while(items.length < 16){
     let decoy;
     if(isOdd){
-      if(currentLevel===1) decoy=randomItem([...animals,...numbers]);
-      else if(currentLevel===2) decoy=randomItem([...food,...colours]);
-      else if(currentLevel===3) decoy=randomItem([...animals,...numbers,...food,...colours]);
-      else if(currentLevel===4) decoy=randomItem([...animals,...numbers,...food,...colours,...verbs]);
+      if(currentLevel===1) decoy = randomItem([...animals,...numbers]);
+      else if(currentLevel===2) decoy = randomItem([...food,...colours]);
+      else if(currentLevel===3) decoy = randomItem([...animals,...numbers,...food,...colours]);
+      else if(currentLevel===4) decoy = randomItem([...animals,...numbers,...food,...colours,...verbs]);
     } else {
       let allCombos=[];
       if(currentLevel===1) allCombos=animals.flatMap(a=>numbers.map(n=>`${a}-${n}`));
       else if(currentLevel===2) allCombos=food.flatMap(f=>colours.map(c=>`${f}-${c}`));
       else if(currentLevel===3) allCombos=[...animals.flatMap(a=>numbers.map(n=>`${a}-${n}`)), ...food.flatMap(f=>colours.map(c=>`${f}-${c}`))];
       else if(currentLevel===4) allCombos=[...animals.flatMap(a=>numbers.map(n=>`${a}-${n}`)), ...food.flatMap(f=>colours.map(c=>`${f}-${c}`)), ...verbs];
-      decoy=randomItem(allCombos);
+      decoy = randomItem(allCombos);
     }
     if(!used.has(decoy)){ items.push(decoy); used.add(decoy); }
   }
 
-  items=shuffleArray(items);
-  const halves=[items.slice(0,8),items.slice(8,16)];
+  items = shuffleArray(items);
+
+  // Split into left/right panels
+  const halves = [items.slice(0,8), items.slice(8,16)];
   halves.forEach((group,idx)=>{
-    const container=idx===0?leftDraggables:rightDraggables;
+    const container = idx===0?leftDraggables:rightDraggables;
     group.forEach(word=>{
       const div=document.createElement("div");
       div.className="draggable"; div.draggable=true; div.dataset.value=word;
       let img=document.createElement("img");
-      if(currentLevel===4 && (word==="donthave"||word==="have")){
-        if(word==="donthave"){ img.src=compositeImagePath(currentSentence.food+"-"+currentSentence.colour);
-          const wrapper=document.createElement("div"); wrapper.className="dontHaveWrapper"; wrapper.appendChild(img);
-          const xOverlay=document.createElement("div"); xOverlay.className="xOverlay"; xOverlay.textContent="X"; wrapper.appendChild(xOverlay);
-          div.appendChild(wrapper);
-        } else { img.src=signPathFor("have"); div.appendChild(img); }
-      } else { img.src=word.includes("-")?compositeImagePath(word):signPathFor(word); div.appendChild(img); }
-      div.addEventListener("dragstart",e=>{ try{e.dataTransfer.setData("text/plain",word);}catch{} });
+      img.src = word.includes("-") ? compositeImagePath(word) : signPathFor(word);
+      div.appendChild(img);
+      div.addEventListener("dragstart", e => { e.dataTransfer.setData("text/plain", word); });
       container.appendChild(div);
     });
   });
