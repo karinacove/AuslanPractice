@@ -404,28 +404,28 @@ checkBtn.addEventListener("click", () => {
   const dropzones = Array.from(answerArea.querySelectorAll(".dropzone"));
   let allCorrect = true;
 
-  dropzones.forEach((dz,i)=>{
-    if(dz.dataset.permanent==="true"){ 
-      dz.classList.add("correct"); 
-      return; 
+  dropzones.forEach((dz, i) => {
+    if (dz.dataset.permanent === "true") {
+      dz.classList.add("correct");
+      return;
     }
 
     let expected = "";
     let isCorrect = false;
 
-    if(currentLevel===1){
-      expected = (roundInLevel%2===1) 
-        ? (i===0 ? currentSentence.animal : currentSentence.number) 
+    if (currentLevel === 1) {
+      expected = (roundInLevel % 2 === 1) 
+        ? (i === 0 ? currentSentence.animal : currentSentence.number) 
         : currentSentence.animal + "-" + currentSentence.number;
       isCorrect = dz.dataset.filled === expected;
 
-    } else if(currentLevel===2){
-      expected = (roundInLevel%2===1) 
-        ? (i===0 ? currentSentence.food : currentSentence.colour) 
+    } else if (currentLevel === 2) {
+      expected = (roundInLevel % 2 === 1) 
+        ? (i === 0 ? currentSentence.food : currentSentence.colour) 
         : currentSentence.food + "-" + currentSentence.colour;
       isCorrect = dz.dataset.filled === expected;
 
-    } else if(currentLevel===3){
+    } else if (currentLevel === 3) {
       const oddValues = [
         currentSentence.animal,
         currentSentence.number,
@@ -434,66 +434,82 @@ checkBtn.addEventListener("click", () => {
         currentSentence.colour
       ];
       const evenValues = [
-        currentSentence.animal+"-"+currentSentence.number,
+        currentSentence.animal + "-" + currentSentence.number,
         currentSentence.verb,
-        currentSentence.food+"-"+currentSentence.colour
+        currentSentence.food + "-" + currentSentence.colour
       ];
-      expected = (roundInLevel%2===1) ? oddValues[i] : evenValues[i];
+      expected = (roundInLevel % 2 === 1) ? oddValues[i] : evenValues[i];
       isCorrect = dz.dataset.filled === expected;
 
-    } else if(currentLevel===4){
+    } else if (currentLevel === 4) {
       const isOdd = roundInLevel % 2 === 1;
 
-      if(isOdd){
+      if (isOdd) {
         // Odd rounds → separate signs
-        if(dz.dataset.placeholder==="animal") expected = currentSentence.animal;
-        else if(dz.dataset.placeholder==="howmany?") expected = currentSentence.number;
-        else if(dz.dataset.placeholder==="verb") expected = currentSentence.verb;
-        else if(dz.dataset.placeholder==="food") expected = currentSentence.food;
-        else if(dz.dataset.placeholder==="colour") expected = currentSentence.colour;
+        if (dz.dataset.placeholder === "animal") expected = currentSentence.animal;
+        else if (dz.dataset.placeholder === "howmany?") expected = currentSentence.number;
+        else if (dz.dataset.placeholder === "verb") expected = currentSentence.verb;
+        else if (dz.dataset.placeholder === "food") expected = currentSentence.food;
+        else if (dz.dataset.placeholder === "colour") expected = currentSentence.colour;
 
         // Special case for donthave → allow X overlay on food
-        if(dz.dataset.placeholder==="food" && currentSentence.verb==="donthave"){
-          isCorrect = dz.dataset.filled.includes("X") || dz.dataset.filled === expected;
+        if (dz.dataset.placeholder === "food" && currentSentence.verb === "donthave") {
+          isCorrect = dz.dataset.filled?.includes("X") || dz.dataset.filled === expected;
         } else {
           isCorrect = dz.dataset.filled === expected;
         }
 
       } else {
         // Even rounds → composites
-        if(dz.dataset.placeholder==="animal+howmany?") expected = currentSentence.animal + "-" + currentSentence.number;
-        else if(dz.dataset.placeholder==="food+colour") expected = currentSentence.food + "-" + currentSentence.colour;
-        else if(dz.dataset.placeholder==="verb") {
-          // Verb is silent, always mark correct
-          isCorrect = true;
-        }
-
-        if(!isCorrect){ // only check food+colour & animal+howmany?
-          if(dz.dataset.placeholder==="food+colour" && currentSentence.verb==="donthave"){
-            isCorrect = dz.dataset.filled.includes("X") || dz.dataset.filled === expected;
+        if (dz.dataset.placeholder === "animal+howmany?") {
+          expected = currentSentence.animal + "-" + currentSentence.number;
+          isCorrect = dz.dataset.filled === expected;
+        } else if (dz.dataset.placeholder === "food+colour") {
+          expected = currentSentence.food + "-" + currentSentence.colour;
+          if (currentSentence.verb === "donthave") {
+            isCorrect = dz.dataset.filled?.includes("X") || dz.dataset.filled === expected;
           } else {
             isCorrect = dz.dataset.filled === expected;
           }
+        } else if (dz.dataset.placeholder === "verb") {
+          // Verb is silent in even rounds
+          isCorrect = true;
         }
       }
     }
 
-    if(isCorrect){ 
-      correctCount++; 
-      levelCorrect[currentLevel]++; 
-      dz.classList.add("correct"); 
-    } else { 
-      incorrectCount++; 
-      levelIncorrect[currentLevel]++; 
-      allCorrect=false; 
-      dz.innerHTML=""; 
-      dz.dataset.filled=""; 
-      dz.classList.remove("correct","filled"); 
-      dz.classList.add("incorrect"); 
+    if (isCorrect) {
+      correctCount++;
+      levelCorrect[currentLevel]++;
+      dz.classList.add("correct");
+    } else {
+      incorrectCount++;
+      levelIncorrect[currentLevel]++;
+      allCorrect = false;
+      dz.innerHTML = "";
+      dz.dataset.filled = "";
+      dz.classList.remove("correct", "filled");
+      dz.classList.add("incorrect");
+    }
+
+    // Save answers (only if something was dropped)
+    if (dz.dataset.filled) {
+      const items = dz.dataset.filled.split("-").map(v => v.trim());
+      const labels = dz.dataset.placeholder.includes("+") 
+        ? dz.dataset.placeholder.split("+") 
+        : [dz.dataset.placeholder];
+      labels.forEach((lbl, idx) => {
+        answersHistory.push({
+          level: currentLevel,
+          label: lbl,
+          value: items[idx] || "",
+          correct: isCorrect
+        });
+      });
     }
   });
 
-  if(allCorrect) nextRound();
+  if (allCorrect) nextRound();
 });
 
     // Save answers
