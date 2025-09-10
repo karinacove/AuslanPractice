@@ -405,30 +405,107 @@ checkBtn.addEventListener("click", () => {
   let allCorrect = true;
 
   dropzones.forEach((dz,i)=>{
-    if(dz.dataset.permanent==="true"){ dz.classList.add("correct"); return; }
-    let expected="";
-    if(currentLevel===1) expected=(roundInLevel%2===1)?(i===0?currentSentence.animal:currentSentence.number):currentSentence.animal+"-"+currentSentence.number;
-    else if(currentLevel===2) expected=(roundInLevel%2===1)?(i===0?currentSentence.food:currentSentence.colour):currentSentence.food+"-"+currentSentence.colour;
-    else if(currentLevel===3) expected=(roundInLevel%2===1?[currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour][i]:[currentSentence.animal+"-"+currentSentence.number,currentSentence.verb,currentSentence.food+"-"+currentSentence.colour][i]);
-    else if(currentLevel===4){
-      if(dz.dataset.placeholder==="animal+howmany?") expected=currentSentence.animal+"-"+currentSentence.number;
-      else if(dz.dataset.placeholder==="verb") expected=currentSentence.verb;
-      else if(dz.dataset.placeholder==="food+colour") expected=currentSentence.food+"-"+currentSentence.colour;
+    if(dz.dataset.permanent==="true"){ 
+      dz.classList.add("correct"); 
+      return; 
     }
-    const isCorrect = dz.dataset.filled===expected || (dz.dataset.placeholder==="food+colour" && currentSentence.verb==="donthave" && dz.dataset.filled.includes("X"));
-    if(isCorrect){ correctCount++; levelCorrect[currentLevel]++; dz.classList.add("correct"); }
-    else{ incorrectCount++; levelIncorrect[currentLevel]++; allCorrect=false; dz.innerHTML=""; dz.dataset.filled=""; dz.classList.remove("correct","filled"); dz.classList.add("incorrect"); }
+
+    let expected = "";
+    let isCorrect = false;
+
+    if(currentLevel===1){
+      expected = (roundInLevel%2===1) ? (i===0 ? currentSentence.animal : currentSentence.number) 
+                                      : currentSentence.animal + "-" + currentSentence.number;
+      isCorrect = dz.dataset.filled === expected;
+
+    } else if(currentLevel===2){
+      expected = (roundInLevel%2===1) ? (i===0 ? currentSentence.food : currentSentence.colour) 
+                                      : currentSentence.food + "-" + currentSentence.colour;
+      isCorrect = dz.dataset.filled === expected;
+
+    } else if(currentLevel===3){
+      const oddValues = [currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour];
+      const evenValues = [currentSentence.animal+"-"+currentSentence.number,currentSentence.verb,currentSentence.food+"-"+currentSentence.colour];
+      expected = (roundInLevel%2===1) ? oddValues[i] : evenValues[i];
+      isCorrect = dz.dataset.filled === expected;
+
+    } else if(currentLevel===4){
+      const isOdd = roundInLevel % 2 === 1;
+
+      if(isOdd){
+        // Odd rounds → separate signs
+        if(dz.dataset.placeholder==="animal") expected = currentSentence.animal;
+        else if(dz.dataset.placeholder==="howmany?") expected = currentSentence.number;
+        else if(dz.dataset.placeholder==="verb") expected = currentSentence.verb;
+        else if(dz.dataset.placeholder==="food") expected = currentSentence.food;
+        else if(dz.dataset.placeholder==="colour") expected = currentSentence.colour;
+
+        // special case for "donthave" → food X overlay
+        if(dz.dataset.placeholder==="food" && currentSentence.verb==="donthave"){
+          isCorrect = dz.dataset.filled.includes("X") || dz.dataset.filled === expected;
+        } else {
+          isCorrect = dz.dataset.filled === expected;
+        }
+
+      } else {
+        // Even rounds → composites
+        if(dz.dataset.placeholder==="animal+howmany?") expected = currentSentence.animal + "-" + currentSentence.number;
+        else if(dz.dataset.placeholder==="food+colour") expected = currentSentence.food + "-" + currentSentence.colour;
+
+        // accept X overlay for donthave
+        if(dz.dataset.placeholder==="food+colour" && currentSentence.verb==="donthave"){
+          isCorrect = dz.dataset.filled.includes("X") || dz.dataset.filled === expected;
+        } else {
+          isCorrect = dz.dataset.filled === expected;
+        }
+
+        // verb is silent in even rounds → automatically correct
+        if(dz.dataset.placeholder==="verb") isCorrect = true;
+      }
+    }
+
+    if(isCorrect){ 
+      correctCount++; 
+      levelCorrect[currentLevel]++; 
+      dz.classList.add("correct"); 
+    } else { 
+      incorrectCount++; 
+      levelIncorrect[currentLevel]++; 
+      allCorrect=false; 
+      dz.innerHTML=""; 
+      dz.dataset.filled=""; 
+      dz.classList.remove("correct","filled"); 
+      dz.classList.add("incorrect"); 
+    }
 
     // Save answers
-    const items = dz.dataset.filled.split("-").map(v=>v.trim());
-    const labels = dz.dataset.placeholder.includes("+")?dz.dataset.placeholder.split("+"):[dz.dataset.placeholder];
-    labels.forEach((lbl,idx)=>{ answersHistory.push({level:currentLevel,label:lbl,value:items[idx]||"",correct:isCorrect}); });
+    if(dz.dataset.filled){
+      const items = dz.dataset.filled.split("-").map(v=>v.trim());
+      const labels = dz.dataset.placeholder.includes("+") ? dz.dataset.placeholder.split("+") : [dz.dataset.placeholder];
+      labels.forEach((lbl,idx)=>{ 
+        answersHistory.push({level:currentLevel,label:lbl,value:items[idx]||"",correct:isCorrect}); 
+      });
+    }
   });
 
-  const fb=document.createElement("img"); fb.src=allCorrect?"assets/correct.png":"assets/wrong.png"; feedbackDiv.appendChild(fb);
+  // Feedback image
+  const fb = document.createElement("img"); 
+  fb.src = allCorrect ? "assets/correct.png" : "assets/wrong.png"; 
+  feedbackDiv.appendChild(fb);
+
   saveProgress();
-  setTimeout(()=>{ feedbackDiv.innerHTML=""; if(allCorrect) nextRound(); else { buildDraggables(roundInLevel%2===1); checkBtn.style.display="none"; againBtn.style.display="inline-block"; } },2000);
+
+  setTimeout(()=>{
+    feedbackDiv.innerHTML = "";
+    if(allCorrect) nextRound();
+    else { 
+      buildDraggables(roundInLevel%2===1); 
+      checkBtn.style.display="none"; 
+      againBtn.style.display="inline-block"; 
+    }
+  }, 2000);
 });
+
 
 /* ===== AGAIN BUTTON ===== */
 againBtn.addEventListener("click", ()=>{
