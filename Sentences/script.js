@@ -10,8 +10,9 @@ const FORM_FIELD_MAP = {
   level3: { correct: "entry.475324608", incorrect: "entry.1767451434" },
   level4: { correct: "entry.1405337882", incorrect: "entry.1513946929" }
 };
+const TOTAL_LEVELS = 4;
 
-/* ===== DOM Elements ===== */
+/* ===== DOM ELEMENTS ===== */
 const studentNameSpan = document.getElementById("studentName");
 const studentClassSpan = document.getElementById("studentClass");
 const scoreDisplay = document.getElementById("scoreDisplay");
@@ -55,7 +56,6 @@ let savedTimeElapsed = 0;
 let answersHistory = [];
 let levelCorrect = { 1: 0, 2: 0, 3: 0, 4: 0 };
 let levelIncorrect = { 1: 0, 2: 0, 3: 0, 4: 0 };
-const TOTAL_LEVELS = 4;
 
 /* ===== VOCAB ===== */
 const animals = ["dog","cat","mouse","rabbit","fish","bird"];
@@ -116,8 +116,82 @@ function restoreProgress(saved){
   buildQuestion();
 }
 
-/* ===== SENTENCE GENERATION (unchanged) ===== */
-// ... keep all your sentence, buildQuestion, drag/drop, check answer, again button code ...
+/* ===== SENTENCE GENERATION ===== */
+function generateSentence(level){
+  const helper = randomItem(helpers);
+  const verb = randomItem(verbs);
+  let object="";
+  if(level===1) object=randomItem(animals);
+  else if(level===2) object=randomItem(numbers);
+  else if(level===3) object=randomItem(colours);
+  else if(level===4) object=randomItem(food);
+  return [helper,verb,object];
+}
+
+function buildQuestion(){
+  answerArea.innerHTML="";
+  questionArea.innerHTML="";
+  feedbackDiv.textContent="";
+  const words=generateSentence(currentLevel);
+  currentSentence={words};
+  const signs=words.map(w=>({word:w,src:signPathFor(w)}));
+  const images=[compositeImagePath(words.join("-"))];
+
+  // Left = signs
+  leftDraggables.innerHTML="";
+  shuffleArray(signs).forEach(item=>{
+    const img=document.createElement("img");
+    img.src=item.src; img.alt=item.word; img.draggable=true;
+    img.classList.add("draggable");
+    img.dataset.word=item.word;
+    leftDraggables.appendChild(img);
+  });
+
+  // Right = composite images
+  rightDraggables.innerHTML="";
+  shuffleArray(images).forEach(src=>{
+    const img=document.createElement("img");
+    img.src=src; img.alt="answer"; img.classList.add("droppable");
+    rightDraggables.appendChild(img);
+  });
+
+  enableDragDrop();
+  updateScoreDisplay();
+}
+
+/* ===== DRAG/DROP ===== */
+function enableDragDrop(){
+  document.querySelectorAll(".draggable").forEach(el=>{
+    el.addEventListener("dragstart",e=>{ e.dataTransfer.setData("text/plain",el.dataset.word); });
+  });
+  document.querySelectorAll(".droppable").forEach(el=>{
+    el.addEventListener("dragover",e=>e.preventDefault());
+    el.addEventListener("drop",e=>{
+      e.preventDefault();
+      const word=e.dataTransfer.getData("text/plain");
+      answerArea.textContent=word;
+      checkAnswer(word);
+    });
+  });
+}
+
+/* ===== CHECK ANSWER ===== */
+function checkAnswer(selected){
+  const correct=currentSentence.words.join("-");
+  const expected=selected;
+  if(expected===currentSentence.words[2]){ 
+    feedbackDiv.textContent="✅ Correct!";
+    correctCount++; levelCorrect[currentLevel]++;
+  } else {
+    feedbackDiv.textContent="❌ Incorrect!";
+    incorrectCount++; levelIncorrect[currentLevel]++;
+  }
+  answersHistory.push({level:currentLevel,selected,correct});
+  setTimeout(()=>{ nextRound(); },1000);
+}
+
+/* ===== AGAIN BUTTON ===== */
+againBtn.onclick=()=>{ buildQuestion(); };
 
 /* ===== GAME FLOW ===== */
 function nextRound(){ 
@@ -154,19 +228,18 @@ async function submitResults(){
 /* ===== END LEVEL/FINISH LOGIC ===== */
 async function endLevel(){
   if(currentLevel < TOTAL_LEVELS){  
-    // Move to next level
     currentLevel++;
     roundInLevel = 0;
     buildQuestion();
     saveProgress();
   } else {
-    // Final level reached → now finish
     await submitResults();
     clearProgress();
     endModal.style.display="block";
     document.getElementById("endGif").src="assets/auslan-clap.gif";
     const totalCorrect = correctCount;
     const totalAttempts = correctCount+incorrectCount;
+    document.getElementById("finalTime").textContent=`${Math.floor(getTimeElapsed()/60)}m ${getTimeElapsed()%60}s`;
     document.getElementById("finalScore").textContent=`${totalCorrect}/${totalAttempts}`;
     document.getElementById("finalPercent").textContent=Math.round((totalCorrect/totalAttempts)*100)+"%";
   }
@@ -179,7 +252,7 @@ againBtnEnd.onclick=()=>{ endModal.style.display="none"; resetGame(); };
 /* ===== STOP BUTTON ===== */
 stopBtn.addEventListener("click",()=>{
   savedTimeElapsed=getTimeElapsed();
-  const percent=Math.round((correctCount/(correctCount+incorrectCount))*100);
+  const percent=Math.round((correctCount/(correctCount+incorrectCount))*100)||0;
   const modal=document.getElementById("stopModal"); modal.style.display="block";
   document.getElementById("stopTime").textContent=`${Math.floor(savedTimeElapsed/60)}m ${savedTimeElapsed%60}s`;
   document.getElementById("stopPercent").textContent=percent+"%";
@@ -196,7 +269,11 @@ stopBtn.addEventListener("click",()=>{
 
 /* ===== START/RESET GAME ===== */
 function startGame(){ startTime=Date.now(); buildQuestion(); }
-function resetGame(){ currentLevel=1; roundInLevel=0; correctCount=0; incorrectCount=0; savedTimeElapsed=0; startGame(); }
+function resetGame(){ 
+  currentLevel=1; roundInLevel=0; correctCount=0; incorrectCount=0; 
+  savedTimeElapsed=0; levelCorrect={1:0,2:0,3:0,4:0}; levelIncorrect={1:0,2:0,3:0,4:0};
+  startGame(); 
+}
 function updateScoreDisplay(){ scoreDisplay.textContent=`Level ${currentLevel} - Question ${roundInLevel+1}/10`; }
 
 /* ===== INIT ===== */
