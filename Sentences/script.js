@@ -200,10 +200,9 @@ function buildAnswerBoxes(isOdd){
   });
 }
 
-/* ===== BUILD DRAGGABLES ===== */
 function buildDraggables(isOdd){
-  leftDraggables.innerHTML="";
-  rightDraggables.innerHTML="";
+  leftDraggables.innerHTML = "";
+  rightDraggables.innerHTML = "";
 
   let correctItems = [];
 
@@ -218,72 +217,60 @@ function buildDraggables(isOdd){
                            : [`${currentSentence.food}-${currentSentence.colour}`];
       break;
     case 3:
-      if(isOdd){
-        correctItems = [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour];
-      } else {
-        correctItems = [
-          `${currentSentence.animal}-${currentSentence.number}`, 
-          currentSentence.verb,
-          `${currentSentence.food}-${currentSentence.colour}`
-        ];
-      }
+      correctItems = isOdd ? [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour]
+                           : [`${currentSentence.animal}-${currentSentence.number}`, currentSentence.verb, `${currentSentence.food}-${currentSentence.colour}`];
       break;
     case 4:
-      if(isOdd){
-        correctItems = [
-          `${currentSentence.animal}-${currentSentence.number}`, 
-          currentSentence.verb, 
-          `${currentSentence.food}-${currentSentence.colour}`
-        ];
-      } else {
-        correctItems = [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour];
-      }
+      correctItems = isOdd ? [`${currentSentence.animal}-${currentSentence.number}`, currentSentence.verb, `${currentSentence.food}-${currentSentence.colour}`]
+                           : [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour];
       break;
   }
 
-  // Start draggables with the correct items
-  let items = correctItems.slice();
+  const items = [...correctItems];
   const used = new Set(items);
 
-  // Helper: generate a decoy of opposite type
+  // Generate decoys of opposite type
   function generateDecoy(){
     let decoy = "";
     if(isOdd){
-      // Question is image, draggables = signs
+      // Question is image → draggables are signs → pick single words only
       const pool = [...animals, ...numbers, ...food, ...colours, ...verbs, ...helpers];
       decoy = randomItem(pool);
     } else {
-      // Question is sign, draggables = images (composites)
-      let allCombos = [];
-      allCombos.push(...animals.flatMap(a=>numbers.map(n=>`${a}-${n}`)));
-      allCombos.push(...food.flatMap(f=>colours.map(c=>`${f}-${c}`)));
-      allCombos.push(...verbs);
-      decoy = randomItem(allCombos);
+      // Question is sign → draggables are images/composites
+      const combos = [
+        ...animals.flatMap(a=>numbers.map(n=>`${a}-${n}`)),
+        ...food.flatMap(f=>colours.map(c=>`${f}-${c}`)),
+        ...verbs
+      ];
+      decoy = randomItem(combos);
     }
     return used.has(decoy) ? generateDecoy() : decoy;
   }
 
-  // Fill with decoys until we have 16 items
+  // Fill with decoys until 16 items total
   while(items.length < 16){
     const decoy = generateDecoy();
     items.push(decoy);
     used.add(decoy);
   }
 
-  items = shuffleArray(items);
+  const shuffled = shuffleArray(items);
 
   // Split into left/right panels
-  const halves = [items.slice(0,8), items.slice(8,16)];
-  halves.forEach((group,idx)=>{
+  const halves = [shuffled.slice(0,8), shuffled.slice(8,16)];
+  halves.forEach((group, idx)=>{
     const container = idx===0 ? leftDraggables : rightDraggables;
     group.forEach(word=>{
       const div = document.createElement("div");
-      div.className = "draggable";
-      div.draggable = true;
-      div.dataset.value = word;
+      div.className="draggable";
+      div.draggable=true;
+      div.dataset.value=word;
 
       const img = document.createElement("img");
-      img.src = isOdd ? signPathFor(word) : compositeImagePath(word);
+      // Display correctly depending on whether it's a single word (sign) or composite
+      if(word.includes("-")) img.src = compositeImagePath(word);
+      else img.src = signPathFor(word);
 
       div.appendChild(img);
       div.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", word));
