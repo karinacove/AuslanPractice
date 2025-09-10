@@ -150,18 +150,42 @@ function buildQuestion(){
 }
 
 function buildQuestionArea(isOdd){
-  questionArea.innerHTML="";
-  let items=[];
-  if(currentLevel===1){ items=isOdd?[currentSentence.animal,currentSentence.number]:[currentSentence.animal+"-"+currentSentence.number]; }
-  else if(currentLevel===2){ items=isOdd?[currentSentence.food,currentSentence.colour]:[currentSentence.food+"-"+currentSentence.colour]; }
-  else if(currentLevel===3){ items=isOdd?[currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour]:[currentSentence.animal+"-"+currentSentence.number,currentSentence.verb,currentSentence.food+"-"+currentSentence.colour]; }
-  else if(currentLevel===4){ 
-    items=isOdd?[`${currentSentence.animal}-${currentSentence.number}`,currentSentence.verb,`${currentSentence.food}-${currentSentence.colour}`]:[currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour];
+  questionArea.innerHTML = "";
+  let items = [];
+
+  switch(currentLevel){
+    case 1:
+      // Level 1: animal + number
+      items = isOdd ? [currentSentence.animal, currentSentence.number]
+                    : [`${currentSentence.animal}-${currentSentence.number}`];
+      break;
+
+    case 2:
+      // Level 2: food + colour
+      items = isOdd ? [currentSentence.food, currentSentence.colour]
+                    : [`${currentSentence.food}-${currentSentence.colour}`];
+      break;
+
+    case 3:
+      // Level 3: mixed sentence
+      items = isOdd
+        ? [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour]
+        : [`${currentSentence.animal}-${currentSentence.number}`, currentSentence.verb, `${currentSentence.food}-${currentSentence.colour}`];
+      break;
+
+    case 4:
+      // Level 4: sentence with mixed composites
+      items = isOdd
+        ? [`${currentSentence.animal}-${currentSentence.number}`, currentSentence.verb, `${currentSentence.food}-${currentSentence.colour}`]
+        : [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour];
+      break;
   }
+
   items.forEach(item=>{
-    const img=document.createElement("img");
-    img.src=item.includes("-")?compositeImagePath(item):signPathFor(item);
-    img.className="questionSign";
+    const img = document.createElement("img");
+    // Use composite path for "-" items, otherwise sign path
+    img.src = item.includes("-") ? compositeImagePath(item) : signPathFor(item);
+    img.className = "questionSign";
     questionArea.appendChild(img);
   });
 }
