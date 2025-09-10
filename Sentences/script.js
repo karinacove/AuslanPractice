@@ -281,6 +281,8 @@ function buildDraggables(isOdd){
     if(isOdd){
       // QUESTION shows composites -> DRAGGABLES should be separate sign draggables (animal, number, verb, food, colour)
       items = [ currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour ];
+      draggables.push("have");
+      draggables.push("donthave");
     } else {
       // QUESTION shows separate signs -> DRAGGABLES should be two composite images
       // animal-number composite and food-colour composite (food-colour may need X overlay if donthave)
