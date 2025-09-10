@@ -223,64 +223,6 @@ function buildAnswerBoxes(isOdd) {
   });
 }
 
-/* ===== BUILD ANSWER BOXES =====
-   placeholders: "animal", "howmany", "animal+howmany", "food", "colour", "food+colour", "verb"
-*/
-function buildAnswerBoxes(isOdd) {
-  answerArea.innerHTML = "";
-  let dropLabels = [];
-
-  if (currentLevel === 1) dropLabels = isOdd ? ["animal", "howmany"] : ["animal+howmany"];
-  else if (currentLevel === 2) dropLabels = isOdd ? ["food", "colour"] : ["food+colour"];
-  else if (currentLevel === 3) dropLabels = isOdd ? ["animal", "howmany", "verb", "food", "colour"] : ["animal+howmany", "verb", "food+colour"];
-  else if (currentLevel === 4) dropLabels = isOdd ? ["animal", "howmany", "verb", "food", "colour"] : ["animal+howmany", "verb", "food+colour"];
-
-  dropLabels.forEach(label => {
-    const dz = document.createElement("div");
-    dz.className = "dropzone";
-    dz.dataset.placeholder = label;
-    dz.addEventListener("dragover", e => e.preventDefault());
-    dz.addEventListener("drop", dropHandler);
-
-    // Level 3: prefill verb as permanent "want"
-    if (currentLevel === 3 && label === "verb") {
-      const img = document.createElement("img");
-      img.src = signPathFor("want");
-      dz.appendChild(img);
-      dz.dataset.filled = "want";
-      dz.classList.add("filled");
-      dz.dataset.permanent = "true";
-    }
-
-    // Level 4: prefill verb as permanent (have/donthave)
-    if (currentLevel === 4 && label === "verb") {
-      if (!currentSentence.verb) currentSentence.verb = Math.random() < 0.5 ? "have" : "donthave";
-
-      const img = document.createElement("img");
-      if (currentSentence.verb === "donthave") {
-        img.src = signPathFor("have");
-        const wrapper = document.createElement("div");
-        wrapper.className = "dontHaveWrapper";
-        wrapper.appendChild(img);
-        const xOverlay = document.createElement("div");
-        xOverlay.className = "xOverlay";
-        xOverlay.textContent = "X";
-        wrapper.appendChild(xOverlay);
-        dz.appendChild(wrapper);
-      } else {
-        img.src = signPathFor("have");
-        dz.appendChild(img);
-      }
-
-      dz.dataset.filled = currentSentence.verb;
-      dz.classList.add("filled");
-      dz.dataset.permanent = "true";
-    }
-
-    answerArea.appendChild(dz);
-  });
-}
-
 /* ===== BUILD DRAGGABLES ===== */
 function buildDraggables(isOdd) {
   leftDraggables.innerHTML = "";
