@@ -206,32 +206,68 @@ function buildDraggables(isOdd){
   rightDraggables.innerHTML="";
 
   let correctItems = [];
-  if(currentLevel===1) correctItems = isOdd ? [currentSentence.animal,currentSentence.number] : [currentSentence.animal+"-"+currentSentence.number];
-  else if(currentLevel===2) correctItems = isOdd ? [currentSentence.food,currentSentence.colour] : [currentSentence.food+"-"+currentSentence.colour];
-  else if(currentLevel===3) correctItems = isOdd ? [currentSentence.animal,currentSentence.number,currentSentence.food,currentSentence.colour] : [currentSentence.animal+"-"+currentSentence.number,currentSentence.food+"-"+currentSentence.colour];
-  else if(currentLevel===4) correctItems = isOdd ? [`${currentSentence.animal}-${currentSentence.number}`,currentSentence.verb,`${currentSentence.food}-${currentSentence.colour}`] : [currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour];
+
+  // Determine correct items based on level and odd/even
+  switch(currentLevel){
+    case 1:
+      correctItems = isOdd ? [currentSentence.animal, currentSentence.number] 
+                           : [`${currentSentence.animal}-${currentSentence.number}`];
+      break;
+    case 2:
+      correctItems = isOdd ? [currentSentence.food, currentSentence.colour] 
+                           : [`${currentSentence.food}-${currentSentence.colour}`];
+      break;
+    case 3:
+      if(isOdd){
+        correctItems = [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour];
+      } else {
+        correctItems = [
+          `${currentSentence.animal}-${currentSentence.number}`, 
+          currentSentence.verb,
+          `${currentSentence.food}-${currentSentence.colour}`
+        ];
+      }
+      break;
+    case 4:
+      if(isOdd){
+        correctItems = [
+          `${currentSentence.animal}-${currentSentence.number}`, 
+          currentSentence.verb, 
+          `${currentSentence.food}-${currentSentence.colour}`
+        ];
+      } else {
+        correctItems = [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour];
+      }
+      break;
+  }
 
   // Start draggables with the correct items
   let items = correctItems.slice();
+  const used = new Set(items);
 
-  // Add decoys until we have 16 items
-  const used = new Set(correctItems);
-  while(items.length < 16){
-    let decoy;
+  // Helper: generate a decoy of opposite type
+  function generateDecoy(){
+    let decoy = "";
     if(isOdd){
-      if(currentLevel===1) decoy = randomItem([...animals,...numbers]);
-      else if(currentLevel===2) decoy = randomItem([...food,...colours]);
-      else if(currentLevel===3) decoy = randomItem([...animals,...numbers,...food,...colours]);
-      else if(currentLevel===4) decoy = randomItem([...animals,...numbers,...food,...colours,...verbs]);
+      // Question is image, draggables = signs
+      const pool = [...animals, ...numbers, ...food, ...colours, ...verbs, ...helpers];
+      decoy = randomItem(pool);
     } else {
-      let allCombos=[];
-      if(currentLevel===1) allCombos=animals.flatMap(a=>numbers.map(n=>`${a}-${n}`));
-      else if(currentLevel===2) allCombos=food.flatMap(f=>colours.map(c=>`${f}-${c}`));
-      else if(currentLevel===3) allCombos=[...animals.flatMap(a=>numbers.map(n=>`${a}-${n}`)), ...food.flatMap(f=>colours.map(c=>`${f}-${c}`))];
-      else if(currentLevel===4) allCombos=[...animals.flatMap(a=>numbers.map(n=>`${a}-${n}`)), ...food.flatMap(f=>colours.map(c=>`${f}-${c}`)), ...verbs];
+      // Question is sign, draggables = images (composites)
+      let allCombos = [];
+      allCombos.push(...animals.flatMap(a=>numbers.map(n=>`${a}-${n}`)));
+      allCombos.push(...food.flatMap(f=>colours.map(c=>`${f}-${c}`)));
+      allCombos.push(...verbs);
       decoy = randomItem(allCombos);
     }
-    if(!used.has(decoy)){ items.push(decoy); used.add(decoy); }
+    return used.has(decoy) ? generateDecoy() : decoy;
+  }
+
+  // Fill with decoys until we have 16 items
+  while(items.length < 16){
+    const decoy = generateDecoy();
+    items.push(decoy);
+    used.add(decoy);
   }
 
   items = shuffleArray(items);
@@ -239,14 +275,18 @@ function buildDraggables(isOdd){
   // Split into left/right panels
   const halves = [items.slice(0,8), items.slice(8,16)];
   halves.forEach((group,idx)=>{
-    const container = idx===0?leftDraggables:rightDraggables;
+    const container = idx===0 ? leftDraggables : rightDraggables;
     group.forEach(word=>{
-      const div=document.createElement("div");
-      div.className="draggable"; div.draggable=true; div.dataset.value=word;
-      let img=document.createElement("img");
-      img.src = word.includes("-") ? compositeImagePath(word) : signPathFor(word);
+      const div = document.createElement("div");
+      div.className = "draggable";
+      div.draggable = true;
+      div.dataset.value = word;
+
+      const img = document.createElement("img");
+      img.src = isOdd ? signPathFor(word) : compositeImagePath(word);
+
       div.appendChild(img);
-      div.addEventListener("dragstart", e => { e.dataTransfer.setData("text/plain", word); });
+      div.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", word));
       container.appendChild(div);
     });
   });
