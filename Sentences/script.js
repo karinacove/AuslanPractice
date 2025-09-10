@@ -246,7 +246,6 @@ function buildQuestion() {
 }
 
 /* ===== BUILD ANSWER BOXES ===== */
-/* ===== BUILD ANSWER BOXES ===== */
 function buildAnswerBoxes(isOdd){
   answerArea.innerHTML = "";
   let dropLabels = [];
@@ -263,13 +262,11 @@ function buildAnswerBoxes(isOdd){
   } 
 else if(currentLevel === 4){
   if(isOdd){
-    dropLabels = ["animal","howmany?","verb","food","colour"];
-  } else {
-    // Verb is silent here, so only 2 dropzones
     dropLabels = ["animal+howmany?","food+colour"];
+  } else {
+    dropLabels = ["animal","howmany?","verb","food","colour"];
   }
 }
-
 
   dropLabels.forEach(label=>{
     const dz = document.createElement("div"); 
