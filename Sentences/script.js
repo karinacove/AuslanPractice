@@ -227,13 +227,31 @@ function buildDraggables(isOdd){
   if(currentLevel===1) items = isOdd ? [currentSentence.animal,currentSentence.number] : [currentSentence.animal+"-"+currentSentence.number];
   else if(currentLevel===2) items = isOdd ? [currentSentence.food,currentSentence.colour] : [currentSentence.food+"-"+currentSentence.colour];
   else if(currentLevel===3) items = isOdd ? [currentSentence.animal,currentSentence.number,currentSentence.food,currentSentence.colour] : [currentSentence.animal+"-"+currentSentence.number,currentSentence.food+"-"+currentSentence.colour];
-  else if(currentLevel===4){
-    if(isOdd) items = [currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour];
-    else{
-      const foodColour = {img: compositeImagePath(`${currentSentence.food}-${currentSentence.colour}`), x: currentSentence.verb==="donthave"};
-      items = [`${currentSentence.animal}-${currentSentence.number}`, foodColour];
+else if(currentLevel === 4){
+  // Always include animal, number, verb, food, colour separately
+  if(isOdd){
+    items = [
+      currentSentence.animal,
+      currentSentence.number,
+      currentSentence.verb,
+      { img: compositeImagePath(currentSentence.food + "-" + currentSentence.colour), x: currentSentence.verb==="donthave" }
+    ];
+  } else {
+    items = [
+      currentSentence.animal,
+      currentSentence.number,
+      currentSentence.verb,
+      currentSentence.food,
+      currentSentence.colour
+    ];
+
+    // Wrap food+colour with X if verb is "donthave"
+    if(currentSentence.verb==="donthave"){
+      items[3] = { img: signPathFor(currentSentence.food), x: true }; // food
+      items[4] = { img: signPathFor(currentSentence.colour), x: false }; // colour
     }
   }
+}
 
   // Add decoys
   const used=new Set(items.map(i=>typeof i==="string"?i:i.img));
