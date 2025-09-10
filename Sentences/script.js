@@ -171,76 +171,73 @@ function buildQuestion() {
       ? `<img src="${compositeImagePath(currentSentence.animal + '-' + currentSentence.number)}"><img src="${signPathFor('want')}"><img src="${compositeImagePath(currentSentence.food + '-' + currentSentence.colour)}">`
       : `<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}"><img src="${signPathFor('want')}"><img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
 
-  // Level 4
-  } else if (currentLevel === 4) {
-    // Animal + number
-    if (isOdd) {
-      const animalNumberImg = Object.assign(document.createElement("img"), {
-        src: compositeImagePath(`${currentSentence.animal}-${currentSentence.number}`)
-      });
-      comboDiv.appendChild(animalNumberImg);
-    } else {
-      const animalImg = Object.assign(document.createElement("img"), {
-        src: signPathFor(currentSentence.animal)
-      });
-      const numberImg = Object.assign(document.createElement("img"), {
-        src: signPathFor(currentSentence.number)
-      });
-      comboDiv.appendChild(animalImg);
-      comboDiv.appendChild(numberImg);
-    }
-
-    // Verb
+ } else if (currentLevel === 4) {
+  if (isOdd) {
+    // Odd rounds → separate signs + verb
+    const animalImg = Object.assign(document.createElement("img"), {
+      src: signPathFor(currentSentence.animal)
+    });
+    const numberImg = Object.assign(document.createElement("img"), {
+      src: signPathFor(currentSentence.number)
+    });
     const verbImg = Object.assign(document.createElement("img"), {
       src: signPathFor(currentSentence.verb)
     });
+    const foodImg = Object.assign(document.createElement("img"), {
+      src: signPathFor(currentSentence.food)
+    });
+    const colourImg = Object.assign(document.createElement("img"), {
+      src: signPathFor(currentSentence.colour)
+    });
+
+    comboDiv.appendChild(animalImg);
+    comboDiv.appendChild(numberImg);
     comboDiv.appendChild(verbImg);
+    comboDiv.appendChild(foodImg);
+    comboDiv.appendChild(colourImg);
 
-    // Food + colour
-    if (isOdd) {
-      const foodColourImg = Object.assign(document.createElement("img"), {
-        src: compositeImagePath(`${currentSentence.food}-${currentSentence.colour}`)
-      });
-      if (currentSentence.verb === "donthave") {
-        const wrapper = document.createElement("div");
-        wrapper.className = "dontHaveWrapper";
+    if (currentSentence.verb === "donthave") {
+      // Wrap food with X overlay
+      const wrapper = document.createElement("div");
+      wrapper.className = "dontHaveWrapper";
 
-        const xDiv = document.createElement("div");
-        xDiv.className = "xOverlay";
-        xDiv.textContent = "X";
+      const xDiv = document.createElement("div");
+      xDiv.className = "xOverlay";
+      xDiv.textContent = "X";
 
-        wrapper.appendChild(foodColourImg);
-        wrapper.appendChild(xDiv);
-        comboDiv.appendChild(wrapper);
-      } else {
-        comboDiv.appendChild(foodColourImg);
-      }
+      comboDiv.removeChild(foodImg);
+      wrapper.appendChild(foodImg);
+      wrapper.appendChild(xDiv);
+      comboDiv.appendChild(wrapper);
+    }
+
+  } else {
+    // Even rounds → composite animal-number + food-colour, no separate verb sign
+    const animalNumberImg = Object.assign(document.createElement("img"), {
+      src: compositeImagePath(`${currentSentence.animal}-${currentSentence.number}`)
+    });
+    comboDiv.appendChild(animalNumberImg);
+
+    const foodColourImg = Object.assign(document.createElement("img"), {
+      src: compositeImagePath(`${currentSentence.food}-${currentSentence.colour}`)
+    });
+
+    if (currentSentence.verb === "donthave") {
+      const wrapper = document.createElement("div");
+      wrapper.className = "dontHaveWrapper";
+
+      const xDiv = document.createElement("div");
+      xDiv.className = "xOverlay";
+      xDiv.textContent = "X";
+
+      wrapper.appendChild(foodColourImg);
+      wrapper.appendChild(xDiv);
+      comboDiv.appendChild(wrapper);
     } else {
-      const foodImg = Object.assign(document.createElement("img"), {
-        src: signPathFor(currentSentence.food)
-      });
-      const colourImg = Object.assign(document.createElement("img"), {
-        src: signPathFor(currentSentence.colour)
-      });
-
-      comboDiv.appendChild(foodImg);
-      comboDiv.appendChild(colourImg);
-
-      if (currentSentence.verb === "donthave") {
-        const wrapper = document.createElement("div");
-        wrapper.className = "dontHaveWrapper";
-
-        const xDiv = document.createElement("div");
-        xDiv.className = "xOverlay";
-        xDiv.textContent = "X";
-
-        comboDiv.removeChild(foodImg);
-        wrapper.appendChild(foodImg);
-        wrapper.appendChild(xDiv);
-        comboDiv.appendChild(wrapper);
-      }
+      comboDiv.appendChild(foodColourImg);
     }
   }
+}
 
   questionArea.appendChild(comboDiv);
   buildAnswerBoxes(isOdd);
