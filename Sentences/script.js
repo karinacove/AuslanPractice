@@ -335,13 +335,14 @@ againBtn.addEventListener("click",()=>{
 /* ===== GAME FLOW ===== */
 function nextRound(){ roundInLevel++; if(roundInLevel>=10) endLevel(); else{ buildQuestion(); saveProgress(); } }
 
-async function endLevel(){
+/* ===== FULLY MERGED STOP/FINISH/AGAIN WITH GOOGLE FORM SUBMISSION ===== */
+async function submitResults(){
   const timeTaken=getTimeElapsed();
-  const percent=Math.round((correctCount/(correctCount+incorrectCount))*100);
+  const totalCorrect = Object.values(levelCorrect).reduce((a,b)=>a+b,0);
+  const totalAttempts = totalCorrect + Object.values(levelIncorrect).reduce((a,b)=>a+b,0);
+  const percent = totalAttempts>0?Math.round((totalCorrect/totalAttempts)*100):0;
 
-  if(currentLevel<TOTAL_LEVELS){ currentLevel++; roundInLevel=0; startGame(); saveProgress(); return; }
-
-  const fd=new FormData();
+  const fd = new FormData();
   fd.append(FORM_FIELD_MAP.name,studentName);
   fd.append(FORM_FIELD_MAP.class,studentClass);
   fd.append(FORM_FIELD_MAP.subject,"Sentences");
@@ -356,12 +357,18 @@ async function endLevel(){
   }
 
   try{ await fetch(googleForm.action,{method:"POST",body:fd,mode:"no-cors"}); }catch(err){ console.warn("Form submission failed",err); }
+}
 
+/* ===== END LEVEL/FINISH LOGIC ===== */
+async function endLevel(){
+  await submitResults();
   clearProgress();
   endModal.style.display="block";
   document.getElementById("endGif").src="assets/auslan-clap.gif";
-  document.getElementById("finalScore").textContent=`${correctCount}/${correctCount+incorrectCount}`;
-  document.getElementById("finalPercent").textContent=percent+"%";
+  const totalCorrect = correctCount;
+  const totalAttempts = correctCount+incorrectCount;
+  document.getElementById("finalScore").textContent=`${totalCorrect}/${totalAttempts}`;
+  document.getElementById("finalPercent").textContent=Math.round((totalCorrect/totalAttempts)*100)+"%";
 }
 
 /* ===== END MODAL BUTTONS ===== */
@@ -378,7 +385,12 @@ stopBtn.addEventListener("click",()=>{
 
   document.getElementById("continueBtn").onclick=()=>{ modal.style.display="none"; startTime=Date.now(); };
   document.getElementById("againBtnStop").onclick=()=>{ modal.style.display="none"; resetGame(); };
-  document.getElementById("finishBtnStop").onclick=async()=>{ modal.style.display="none"; await endLevel(); window.location.href="../index.html"; };
+  document.getElementById("finishBtnStop").onclick=async()=>{
+    modal.style.display="none";
+    await submitResults();
+    clearProgress();
+    window.location.href="../index.html";
+  };
 });
 
 /* ===== START/RESET GAME ===== */
