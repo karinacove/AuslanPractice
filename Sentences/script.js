@@ -113,17 +113,10 @@ function restoreProgress(saved){
 }
 
 /* ===== SENTENCE GENERATION ===== */
-function generateSentence(){
-  const animal=randomItem(animals);
-  const number=randomItem(numbers);
-  const foodItem=randomItem(food);
-  const colour=randomItem(colours);
-  const verb=(currentLevel===4)?randomItem(["have","donthave"]):"want";
-  currentSentence={animal,number,food:foodItem,colour,verb};
-}
-
 else if(currentLevel === 4){
   comboDiv.innerHTML = "";
+
+  // Animal and number
   if(isOdd){
     comboDiv.appendChild(Object.assign(document.createElement("img"), { src: compositeImagePath(currentSentence.animal + "-" + currentSentence.number) }));
   } else {
@@ -131,11 +124,13 @@ else if(currentLevel === 4){
     comboDiv.appendChild(Object.assign(document.createElement("img"), { src: signPathFor(currentSentence.number) }));
   }
 
+  // Verb
   comboDiv.appendChild(Object.assign(document.createElement("img"), { src: signPathFor(currentSentence.verb) }));
 
   if(isOdd){
+    // Food+colour composite
     const foodImg = Object.assign(document.createElement("img"), { src: compositeImagePath(currentSentence.food + "-" + currentSentence.colour) });
-    if(currentSentence.verb==="donthave"){
+    if(currentSentence.verb === "donthave"){
       const wrapper = document.createElement("div");
       wrapper.className = "dontHaveWrapper";
       const xDiv = document.createElement("div");
@@ -148,19 +143,21 @@ else if(currentLevel === 4){
       comboDiv.appendChild(foodImg);
     }
   } else {
+    // Food and colour separate signs
     const foodImg = Object.assign(document.createElement("img"), { src: signPathFor(currentSentence.food) });
-    comboDiv.appendChild(foodImg);
     const colourImg = Object.assign(document.createElement("img"), { src: signPathFor(currentSentence.colour) });
+
+    comboDiv.appendChild(foodImg);
     comboDiv.appendChild(colourImg);
 
-    if(currentSentence.verb==="donthave"){
+    if(currentSentence.verb === "donthave"){
       const wrapper = document.createElement("div");
       wrapper.className = "dontHaveWrapper";
       const xDiv = document.createElement("div");
       xDiv.className = "xOverlay";
       xDiv.textContent = "X";
 
-      // Remove old foodImg from comboDiv, use new wrapper instead
+      // Remove old foodImg and wrap it
       comboDiv.removeChild(foodImg);
       wrapper.appendChild(foodImg);
       wrapper.appendChild(xDiv);
