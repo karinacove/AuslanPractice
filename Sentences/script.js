@@ -47,7 +47,7 @@ if (!studentName || !studentClass) {
 
 /* ===== GAME VARIABLES ===== */
 let currentLevel = 1;
-let roundInLevel = 0; 
+let roundInLevel = 0;
 let correctCount = 0;
 let incorrectCount = 0;
 let currentSentence = {};
@@ -67,14 +67,7 @@ const verbs = ["want","have","donthave"];
 const helpers = ["i","see","what"];
 
 /* ===== HELPERS ===== */
-function shuffleArray(arr){
-  const a = arr.slice();
-  for(let i=a.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [a[i],a[j]]=[a[j],a[i]];
-  }
-  return a;
-}
+function shuffleArray(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
 function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function signPathFor(word){
   if(animals.includes(word)) return `assets/signs/animals/${word}-sign.png`;
@@ -89,7 +82,7 @@ function compositeImagePath(combo){ return `assets/images/${combo}.png`; }
 
 /* ===== TIMER HELPERS ===== */
 function getTimeElapsed(){ return savedTimeElapsed + Math.round((Date.now()-startTime)/1000); }
-function setTimeElapsed(seconds){ savedTimeElapsed = seconds; startTime = Date.now(); }
+function setTimeElapsed(seconds){ savedTimeElapsed=seconds; startTime=Date.now(); }
 
 /* ===== PROGRESS SAVE/RESUME ===== */
 const SAVE_KEY = "sentencesGameSave";
@@ -97,7 +90,7 @@ function saveProgress(){
   const saveData = {studentName, studentClass, currentLevel, roundInLevel, correctCount, incorrectCount, answersHistory, levelCorrect, levelIncorrect, timeElapsed:getTimeElapsed()};
   localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
 }
-function loadProgress(){ try { return JSON.parse(localStorage.getItem(SAVE_KEY)); } catch { return null; } }
+function loadProgress(){ try{ return JSON.parse(localStorage.getItem(SAVE_KEY)); }catch{ return null; } }
 function clearProgress(){ localStorage.removeItem(SAVE_KEY); }
 
 function showResumeModal(saved){
@@ -105,7 +98,6 @@ function showResumeModal(saved){
   const msg=document.getElementById("resumeMessage");
   const cont=document.getElementById("resumeContinue");
   const again=document.getElementById("resumeAgain");
-
   msg.textContent=`Welcome back ${saved.studentName}! Continue from Level ${saved.currentLevel}, Question ${saved.roundInLevel+1}?`;
   cont.onclick=()=>{ modal.style.display="none"; restoreProgress(saved); };
   again.onclick=()=>{ modal.style.display="none"; clearProgress(); resetGame(); };
@@ -152,40 +144,26 @@ function buildQuestion(){
 function buildQuestionArea(isOdd){
   questionArea.innerHTML = "";
   let items = [];
-
   switch(currentLevel){
     case 1:
-      // Level 1: animal + number
-      items = isOdd ? [currentSentence.animal, currentSentence.number]
-                    : [`${currentSentence.animal}-${currentSentence.number}`];
+      items = isOdd ? [currentSentence.animal, currentSentence.number] : [`${currentSentence.animal}-${currentSentence.number}`];
       break;
-
     case 2:
-      // Level 2: food + colour
-      items = isOdd ? [currentSentence.food, currentSentence.colour]
-                    : [`${currentSentence.food}-${currentSentence.colour}`];
+      items = isOdd ? [currentSentence.food, currentSentence.colour] : [`${currentSentence.food}-${currentSentence.colour}`];
       break;
-
     case 3:
-      // Level 3: mixed sentence
-      items = isOdd
-        ? [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour]
-        : [`${currentSentence.animal}-${currentSentence.number}`, currentSentence.verb, `${currentSentence.food}-${currentSentence.colour}`];
+      items = isOdd ? [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour]
+                    : [`${currentSentence.animal}-${currentSentence.number}`, currentSentence.verb, `${currentSentence.food}-${currentSentence.colour}`];
       break;
-
     case 4:
-      // Level 4: sentence with mixed composites
-      items = isOdd
-        ? [`${currentSentence.animal}-${currentSentence.number}`, currentSentence.verb, `${currentSentence.food}-${currentSentence.colour}`]
-        : [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour];
+      items = isOdd ? [`${currentSentence.animal}-${currentSentence.number}`, currentSentence.verb, `${currentSentence.food}-${currentSentence.colour}`]
+                    : [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour];
       break;
   }
-
   items.forEach(item=>{
-    const img = document.createElement("img");
-    // Use composite path for "-" items, otherwise sign path
-    img.src = item.includes("-") ? compositeImagePath(item) : signPathFor(item);
-    img.className = "questionSign";
+    const img=document.createElement("img");
+    img.src=item.includes("-") ? compositeImagePath(item) : signPathFor(item);
+    img.className="questionSign";
     questionArea.appendChild(img);
   });
 }
@@ -224,175 +202,106 @@ function buildAnswerBoxes(isOdd){
   });
 }
 
+/* ===== BUILD DRAGGABLES ===== */
 function buildDraggables(isOdd){
-  leftDraggables.innerHTML = "";
-  rightDraggables.innerHTML = "";
-
-  let correctItems = [];
-
-  // Determine correct items based on level and odd/even
+  leftDraggables.innerHTML=""; rightDraggables.innerHTML="";
+  let correctItems=[];
   switch(currentLevel){
-    case 1:
-      correctItems = isOdd ? [currentSentence.animal, currentSentence.number] 
-                           : [`${currentSentence.animal}-${currentSentence.number}`];
-      break;
-    case 2:
-      correctItems = isOdd ? [currentSentence.food, currentSentence.colour] 
-                           : [`${currentSentence.food}-${currentSentence.colour}`];
-      break;
-    case 3:
-      correctItems = isOdd ? [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour]
-                           : [`${currentSentence.animal}-${currentSentence.number}`, currentSentence.verb, `${currentSentence.food}-${currentSentence.colour}`];
-      break;
-    case 4:
-      correctItems = isOdd ? [`${currentSentence.animal}-${currentSentence.number}`, currentSentence.verb, `${currentSentence.food}-${currentSentence.colour}`]
-                           : [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour];
-      break;
+    case 1: correctItems=isOdd?[currentSentence.animal,currentSentence.number]:[`${currentSentence.animal}-${currentSentence.number}`]; break;
+    case 2: correctItems=isOdd?[currentSentence.food,currentSentence.colour]:[`${currentSentence.food}-${currentSentence.colour}`]; break;
+    case 3: correctItems=isOdd?[currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour]
+                              :[`${currentSentence.animal}-${currentSentence.number}`,currentSentence.verb,`${currentSentence.food}-${currentSentence.colour}`]; break;
+    case 4: correctItems=isOdd?[`${currentSentence.animal}-${currentSentence.number}`,currentSentence.verb,`${currentSentence.food}-${currentSentence.colour}`]
+                              :[currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour]; break;
   }
 
-  const items = [...correctItems];
-  const used = new Set(items);
+  const items=[...correctItems]; const used=new Set(items);
 
-  // Generate decoys of opposite type
   function generateDecoy(){
-    let decoy = "";
-    if(isOdd){
-      // Question is image → draggables are signs → pick single words only
-      const pool = [...animals, ...numbers, ...food, ...colours, ...verbs, ...helpers];
-      decoy = randomItem(pool);
-    } else {
-      // Question is sign → draggables are images/composites
-      const combos = [
-        ...animals.flatMap(a=>numbers.map(n=>`${a}-${n}`)),
-        ...food.flatMap(f=>colours.map(c=>`${f}-${c}`)),
-        ...verbs
-      ];
-      decoy = randomItem(combos);
-    }
-    return used.has(decoy) ? generateDecoy() : decoy;
+    let decoy="";
+    if(isOdd){ const pool=[...animals,...numbers,...food,...colours,...verbs,...helpers]; decoy=randomItem(pool); }
+    else{ const combos=[...animals.flatMap(a=>numbers.map(n=>`${a}-${n}`)),...food.flatMap(f=>colours.map(c=>`${f}-${c}`)),...verbs]; decoy=randomItem(combos); }
+    return used.has(decoy)?generateDecoy():decoy;
   }
 
-  // Fill with decoys until 16 items total
-  while(items.length < 16){
-    const decoy = generateDecoy();
-    items.push(decoy);
-    used.add(decoy);
-  }
+  while(items.length<16){ const decoy=generateDecoy(); items.push(decoy); used.add(decoy); }
 
-  const shuffled = shuffleArray(items);
-
-  // Split into left/right panels
-  const halves = [shuffled.slice(0,8), shuffled.slice(8,16)];
-  halves.forEach((group, idx)=>{
-    const container = idx===0 ? leftDraggables : rightDraggables;
+  const shuffled=shuffleArray(items);
+  [shuffled.slice(0,8),shuffled.slice(8,16)].forEach((group,idx)=>{
+    const container=idx===0?leftDraggables:rightDraggables;
     group.forEach(word=>{
-      const div = document.createElement("div");
-      div.className="draggable";
-      div.draggable=true;
-      div.dataset.value=word;
-
-      const img = document.createElement("img");
-      // Display correctly depending on whether it's a single word (sign) or composite
-      if(word.includes("-")) img.src = compositeImagePath(word);
-      else img.src = signPathFor(word);
-
-      div.appendChild(img);
-      div.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", word));
+      const div=document.createElement("div");
+      div.className="draggable"; div.draggable=true; div.dataset.value=word;
+      const img=document.createElement("img"); img.src=word.includes("-")?compositeImagePath(word):signPathFor(word); div.appendChild(img);
+      div.addEventListener("dragstart",e=>e.dataTransfer.setData("text/plain",word));
       container.appendChild(div);
     });
   });
 }
 
 /* ===== DROP HANDLING ===== */
-function dropHandler(e){
-  e.preventDefault();
-  const dz=e.currentTarget;
-  const value=e.dataTransfer.getData("text/plain");
-  if(!value) return;
-  handleDropOnZone(dz,value);
+function dropHandler(e){ e.preventDefault(); const dz=e.currentTarget; const value=e.dataTransfer.getData("text/plain"); if(value) handleDropOnZone(dz,value); }
+function handleDropOnZone(dz,value){
+  if(dz.dataset.permanent==="true") return;
+  dz.innerHTML=""; const img=document.createElement("img");
+  img.src=value.includes("-")?compositeImagePath(value):signPathFor(value); dz.appendChild(img);
+  dz.dataset.filled=value; dz.classList.add("filled");
+  againBtn.style.display="inline-block";
+  const allFilled=Array.from(document.querySelectorAll(".dropzone")).every(d=>d.dataset.filled); checkBtn.style.display=allFilled?"inline-block":"none";
 }
 
 /* ===== TOUCH/MOUSE DRAG ===== */
-let dragItem=null, dragClone=null, isTouch=false;
-
+let dragItem=null,dragClone=null,isTouch=false;
 function startDrag(e){
-  const target=e.target.closest(".draggable");
-  if(!target) return;
-  if(e.type==="mousedown" && e.button!==0) return;
+  const target=e.target.closest(".draggable"); if(!target) return; if(e.type==="mousedown" && e.button!==0) return;
   dragItem=target; isTouch=e.type.startsWith("touch");
-  const rect=target.getBoundingClientRect();
-  dragClone=target.cloneNode(true);
-  dragClone.style.position="fixed";
-  dragClone.style.left=rect.left+"px"; dragClone.style.top=rect.top+"px";
+  const rect=target.getBoundingClientRect(); dragClone=target.cloneNode(true);
+  dragClone.style.position="fixed"; dragClone.style.left=rect.left+"px"; dragClone.style.top=rect.top+"px";
   dragClone.style.width=rect.width+"px"; dragClone.style.height=rect.height+"px";
   dragClone.style.opacity="0.75"; dragClone.style.pointerEvents="none"; dragClone.style.zIndex=10000;
   document.body.appendChild(dragClone); e.preventDefault();
   if(isTouch){ document.addEventListener("touchmove",moveDrag,{passive:false}); document.addEventListener("touchend",endDrag);}
   else{ document.addEventListener("mousemove",moveDrag); document.addEventListener("mouseup",endDrag); }
 }
-
-function moveDrag(e){
-  if(!dragClone) return;
-  let clientX, clientY;
-  if(isTouch && e.touches && e.touches.length>0){ clientX=e.touches[0].clientX; clientY=e.touches[0].clientY; }
-  else{ clientX=e.clientX; clientY=e.clientY; }
-  dragClone.style.left=(clientX-dragClone.offsetWidth/2)+"px";
-  dragClone.style.top=(clientY-dragClone.offsetHeight/2)+"px";
-}
-
+function moveDrag(e){ if(!dragClone) return; let clientX,clientY; if(isTouch&&e.touches&&e.touches.length>0){ clientX=e.touches[0].clientX; clientY=e.touches[0].clientY;}else{ clientX=e.clientX; clientY=e.clientY; } dragClone.style.left=(clientX-dragClone.offsetWidth/2)+"px"; dragClone.style.top=(clientY-dragClone.offsetHeight/2)+"px"; }
 function endDrag(e){
-  if(!dragClone||!dragItem) return;
-  let clientX, clientY;
-  if(isTouch && e.changedTouches && e.changedTouches.length>0){ clientX=e.changedTouches[0].clientX; clientY=e.changedTouches[0].clientY; }
-  else{ clientX=e.clientX; clientY=e.clientY; }
-
-  const dropzones=Array.from(document.querySelectorAll(".dropzone"));
-  let dropped=false;
-  for(const dz of dropzones){
-    const rect=dz.getBoundingClientRect();
+  if(!dragClone||!dragItem) return; let clientX,clientY;
+  if(isTouch&&e.changedTouches&&e.changedTouches.length>0){ clientX=e.changedTouches[0].clientX; clientY=e.changedTouches[0].clientY;}else{ clientX=e.clientX; clientY=e.clientY; }
+  const dropzones=Array.from(document.querySelectorAll(".dropzone")); let dropped=false;
+  for(const dz of dropzones){ const rect=dz.getBoundingClientRect();
     if(clientX>=rect.left && clientX<=rect.right && clientY>=rect.top && clientY<=rect.bottom){
-      if(dz.dataset.permanent==="true"){} else { handleDropOnZone(dz,dragItem.dataset.value); dropped=true; break; }
+      if(dz.dataset.permanent!=="true"){ handleDropOnZone(dz,dragItem.dataset.value); dropped=true; break; }
     }
   }
-  if(dragClone && dragClone.parentNode) dragClone.parentNode.removeChild(dragClone);
+  if(dragClone&&dragClone.parentNode) dragClone.parentNode.removeChild(dragClone);
   dragClone=null; dragItem=null;
   if(isTouch){ document.removeEventListener("touchmove",moveDrag); document.removeEventListener("touchend",endDrag);}
   else{ document.removeEventListener("mousemove",moveDrag); document.removeEventListener("mouseup",endDrag);}
   if(dropped){ againBtn.style.display="inline-block"; const allFilled=Array.from(document.querySelectorAll(".dropzone")).every(d=>d.dataset.filled); checkBtn.style.display=allFilled?"inline-block":"none"; }
 }
-
 document.addEventListener("mousedown",startDrag);
 document.addEventListener("touchstart",startDrag,{passive:false});
 
-/* ===== DROP LOGIC ===== */
-function handleDropOnZone(dz,value){
-  if(dz.dataset.permanent==="true") return;
-  dz.innerHTML=""; const img=document.createElement("img"); img.src=value.includes("-")?compositeImagePath(value):signPathFor(value); dz.appendChild(img);
-  dz.dataset.filled=value; dz.classList.add("filled");
-  againBtn.style.display="inline-block";
-  const allFilled=Array.from(document.querySelectorAll(".dropzone")).every(d=>d.dataset.filled); checkBtn.style.display=allFilled?"inline-block":"none";
-}
-
-/* ===== CHECK ANSWER ===== */
+/* ===== CHECK ANSWERS ===== */
 checkBtn.addEventListener("click",()=>{
-  const dropzones=Array.from(answerArea.querySelectorAll(".dropzone"));
-  let allCorrect=true;
+  const dropzones=Array.from(answerArea.querySelectorAll(".dropzone")); let allCorrect=true;
   dropzones.forEach((dz,i)=>{
     if(dz.dataset.permanent==="true"){ dz.classList.add("correct"); return; }
     let expected="";
-    if(currentLevel===1){ expected=(roundInLevel%2===1)?(i===0?currentSentence.animal:currentSentence.number):currentSentence.animal+"-"+currentSentence.number; }
-    else if(currentLevel===2){ expected=(roundInLevel%2===1)?(i===0?currentSentence.food:currentSentence.colour):currentSentence.food+"-"+currentSentence.colour; }
-    else if(currentLevel===3){
-      const seq=(roundInLevel%2===1)?[currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour]:[currentSentence.animal+"-"+currentSentence.number,currentSentence.verb,currentSentence.food+"-"+currentSentence.colour];
-      expected=seq[i]||"";
-    } else if(currentLevel===4){
-      if(dz.dataset.placeholder==="animal+howmany") expected=currentSentence.animal+"-"+currentSentence.number;
-      else if(dz.dataset.placeholder==="verb") expected=currentSentence.verb;
-      else if(dz.dataset.placeholder==="food+colour") expected=(currentSentence.verb==="donthave")?"donthave":(currentSentence.food+"-"+currentSentence.colour);
-      else if(dz.dataset.placeholder==="animal") expected=currentSentence.animal;
-      else if(dz.dataset.placeholder==="howmany") expected=currentSentence.number;
-      else if(dz.dataset.placeholder==="food") expected=currentSentence.food;
-      else if(dz.dataset.placeholder==="colour") expected=currentSentence.colour;
+    const isOdd=roundInLevel%2===1;
+    if(currentLevel===1) expected=isOdd?(i===0?currentSentence.animal:currentSentence.number):currentSentence.animal+"-"+currentSentence.number;
+    else if(currentLevel===2) expected=isOdd?(i===0?currentSentence.food:currentSentence.colour):currentSentence.food+"-"+currentSentence.colour;
+    else if(currentLevel===3) expected=isOdd?[currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour][i]
+                                         :[`${currentSentence.animal}-${currentSentence.number}`,currentSentence.verb,`${currentSentence.food}-${currentSentence.colour}`][i];
+    else if(currentLevel===4){
+      const ph=dz.dataset.placeholder;
+      if(ph==="animal+howmany") expected=currentSentence.animal+"-"+currentSentence.number;
+      else if(ph==="verb") expected=currentSentence.verb;
+      else if(ph==="food+colour") expected=(currentSentence.verb==="donthave")?"donthave":currentSentence.food+"-"+currentSentence.colour;
+      else if(ph==="animal") expected=currentSentence.animal;
+      else if(ph==="howmany") expected=currentSentence.number;
+      else if(ph==="food") expected=currentSentence.food;
+      else if(ph==="colour") expected=currentSentence.colour;
     }
     if(dz.dataset.filled===expected){ correctCount++; levelCorrect[currentLevel]++; dz.classList.add("correct"); }
     else{ incorrectCount++; levelIncorrect[currentLevel]++; allCorrect=false; dz.innerHTML=""; dz.dataset.filled=""; dz.classList.remove("correct","filled"); dz.classList.add("incorrect"); }
@@ -417,11 +326,7 @@ againBtn.addEventListener("click",()=>{
 });
 
 /* ===== GAME FLOW ===== */
-function nextRound(){
-  roundInLevel++;
-  if(roundInLevel>=10) endLevel();
-  else{ buildQuestion(); saveProgress(); }
-}
+function nextRound(){ roundInLevel++; if(roundInLevel>=10) endLevel(); else{ buildQuestion(); saveProgress(); } }
 
 /* ===== FORM SUBMISSION ===== */
 async function submitResults(){
@@ -432,13 +337,8 @@ async function submitResults(){
   const fd=new FormData();
   fd.append(FORM_FIELD_MAP.name,studentName); fd.append(FORM_FIELD_MAP.class,studentClass); fd.append(FORM_FIELD_MAP.subject,"Sentences");
   fd.append(FORM_FIELD_MAP.timeTaken,timeTaken); fd.append(FORM_FIELD_MAP.percent,percent);
-  for(let l=1;l<=TOTAL_LEVELS;l++){
-    const cf=FORM_FIELD_MAP[`level${l}`]?.correct;
-    const inf=FORM_FIELD_MAP[`level${l}`]?.incorrect;
-    if(cf) fd.append(cf,levelCorrect[l]);
-    if(inf) fd.append(inf,levelIncorrect[l]);
-  }
-  try{ await fetch(googleForm.action,{method:"POST",body:fd,mode:"no-cors"}); } catch(err){ console.warn("Form submission failed",err);}
+  for(let l=1;l<=TOTAL_LEVELS;l++){ const cf=FORM_FIELD_MAP[`level${l}`]?.correct; const inf=FORM_FIELD_MAP[`level${l}`]?.incorrect; if(cf) fd.append(cf,levelCorrect[l]); if(inf) fd.append(inf,levelIncorrect[l]); }
+  try{ await fetch(googleForm.action,{method:"POST",body:fd,mode:"no-cors"}); }catch(err){console.warn("Form submission failed",err);}
 }
 
 /* ===== END LEVEL / FINISH ===== */
