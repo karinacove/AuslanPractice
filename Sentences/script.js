@@ -112,7 +112,23 @@ function restoreProgress(saved){
   buildQuestion();
 }
 
-/* ===== SENTENCE GENERATION ===== */
+/* ===== GENERATE SENTENCE ===== */
+function generateSentence(){
+  const animal = randomItem(animals);
+  const number = randomItem(numbers);
+  const foodItem = randomItem(food);
+  const colour = randomItem(colours);
+  const verb = (currentLevel === 4) ? randomItem(["have","donthave"]) : "want";
+
+  currentSentence = { 
+    animal, 
+    number, 
+    food: foodItem, 
+    colour, 
+    verb 
+  };
+}
+
 /* ===== BUILD QUESTION ===== */
 function buildQuestion() {
   generateSentence();
