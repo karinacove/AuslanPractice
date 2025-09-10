@@ -113,63 +113,123 @@ function restoreProgress(saved){
 }
 
 /* ===== SENTENCE GENERATION ===== */
-else if(currentLevel === 4){
-  comboDiv.innerHTML = "";
+/* ===== BUILD QUESTION ===== */
+function buildQuestion() {
+  generateSentence();
+  questionArea.innerHTML = "";
+  answerArea.innerHTML = "";
+  feedbackDiv.innerHTML = "";
+  checkBtn.style.display = "none";
+  againBtn.style.display = "none";
 
-  // Animal and number
-  if(isOdd){
-    comboDiv.appendChild(Object.assign(document.createElement("img"), { src: compositeImagePath(currentSentence.animal + "-" + currentSentence.number) }));
-  } else {
-    comboDiv.appendChild(Object.assign(document.createElement("img"), { src: signPathFor(currentSentence.animal) }));
-    comboDiv.appendChild(Object.assign(document.createElement("img"), { src: signPathFor(currentSentence.number) }));
+  const isOdd = roundInLevel % 2 === 1;
+
+  // Level 1 & 2 helper signs
+  if (currentLevel <= 2) {
+    const helperDiv = document.createElement("div");
+    helpers.forEach(h => { 
+      const img = document.createElement("img"); 
+      img.src = signPathFor(h); 
+      helperDiv.appendChild(img); 
+    });
+    questionArea.appendChild(helperDiv);
   }
 
-  // Verb
-  comboDiv.appendChild(Object.assign(document.createElement("img"), { src: signPathFor(currentSentence.verb) }));
+  const comboDiv = document.createElement("div");
 
-  if(isOdd){
-    // Food+colour composite
-    const foodImg = Object.assign(document.createElement("img"), { src: compositeImagePath(currentSentence.food + "-" + currentSentence.colour) });
-    if(currentSentence.verb === "donthave"){
-      const wrapper = document.createElement("div");
-      wrapper.className = "dontHaveWrapper";
-      const xDiv = document.createElement("div");
-      xDiv.className = "xOverlay";
-      xDiv.textContent = "X";
-      wrapper.appendChild(foodImg);
-      wrapper.appendChild(xDiv);
-      comboDiv.appendChild(wrapper);
+  // Level 1
+  if (currentLevel === 1) {
+    comboDiv.innerHTML = isOdd
+      ? `<img src="${compositeImagePath(currentSentence.animal + '-' + currentSentence.number)}">`
+      : `<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}">`;
+
+  // Level 2
+  } else if (currentLevel === 2) {
+    comboDiv.innerHTML = isOdd
+      ? `<img src="${compositeImagePath(currentSentence.food + '-' + currentSentence.colour)}">`
+      : `<img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
+
+  // Level 3
+  } else if (currentLevel === 3) {
+    comboDiv.innerHTML = isOdd
+      ? `<img src="${compositeImagePath(currentSentence.animal + '-' + currentSentence.number)}"><img src="${signPathFor('want')}"><img src="${compositeImagePath(currentSentence.food + '-' + currentSentence.colour)}">`
+      : `<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}"><img src="${signPathFor('want')}"><img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
+
+  // Level 4
+  } else if (currentLevel === 4) {
+    // Animal + number
+    if (isOdd) {
+      const animalNumberImg = Object.assign(document.createElement("img"), {
+        src: compositeImagePath(`${currentSentence.animal}-${currentSentence.number}`)
+      });
+      comboDiv.appendChild(animalNumberImg);
     } else {
-      comboDiv.appendChild(foodImg);
+      const animalImg = Object.assign(document.createElement("img"), {
+        src: signPathFor(currentSentence.animal)
+      });
+      const numberImg = Object.assign(document.createElement("img"), {
+        src: signPathFor(currentSentence.number)
+      });
+      comboDiv.appendChild(animalImg);
+      comboDiv.appendChild(numberImg);
     }
-  } else {
-    // Food and colour separate signs
-    const foodImg = Object.assign(document.createElement("img"), { src: signPathFor(currentSentence.food) });
-    const colourImg = Object.assign(document.createElement("img"), { src: signPathFor(currentSentence.colour) });
 
-    comboDiv.appendChild(foodImg);
-    comboDiv.appendChild(colourImg);
+    // Verb
+    const verbImg = Object.assign(document.createElement("img"), {
+      src: signPathFor(currentSentence.verb)
+    });
+    comboDiv.appendChild(verbImg);
 
-    if(currentSentence.verb === "donthave"){
-      const wrapper = document.createElement("div");
-      wrapper.className = "dontHaveWrapper";
-      const xDiv = document.createElement("div");
-      xDiv.className = "xOverlay";
-      xDiv.textContent = "X";
+    // Food + colour
+    if (isOdd) {
+      const foodColourImg = Object.assign(document.createElement("img"), {
+        src: compositeImagePath(`${currentSentence.food}-${currentSentence.colour}`)
+      });
+      if (currentSentence.verb === "donthave") {
+        const wrapper = document.createElement("div");
+        wrapper.className = "dontHaveWrapper";
 
-      // Remove old foodImg and wrap it
-      comboDiv.removeChild(foodImg);
-      wrapper.appendChild(foodImg);
-      wrapper.appendChild(xDiv);
-      comboDiv.appendChild(wrapper);
+        const xDiv = document.createElement("div");
+        xDiv.className = "xOverlay";
+        xDiv.textContent = "X";
+
+        wrapper.appendChild(foodColourImg);
+        wrapper.appendChild(xDiv);
+        comboDiv.appendChild(wrapper);
+      } else {
+        comboDiv.appendChild(foodColourImg);
+      }
+    } else {
+      const foodImg = Object.assign(document.createElement("img"), {
+        src: signPathFor(currentSentence.food)
+      });
+      const colourImg = Object.assign(document.createElement("img"), {
+        src: signPathFor(currentSentence.colour)
+      });
+
+      comboDiv.appendChild(foodImg);
+      comboDiv.appendChild(colourImg);
+
+      if (currentSentence.verb === "donthave") {
+        const wrapper = document.createElement("div");
+        wrapper.className = "dontHaveWrapper";
+
+        const xDiv = document.createElement("div");
+        xDiv.className = "xOverlay";
+        xDiv.textContent = "X";
+
+        comboDiv.removeChild(foodImg);
+        wrapper.appendChild(foodImg);
+        wrapper.appendChild(xDiv);
+        comboDiv.appendChild(wrapper);
+      }
     }
   }
-}
 
-questionArea.appendChild(comboDiv);
-buildAnswerBoxes(isOdd);
-buildDraggables(isOdd);
-updateScoreDisplay();
+  questionArea.appendChild(comboDiv);
+  buildAnswerBoxes(isOdd);
+  buildDraggables(isOdd);
+  updateScoreDisplay();
 }
 
 /* ===== BUILD ANSWER BOXES ===== */
