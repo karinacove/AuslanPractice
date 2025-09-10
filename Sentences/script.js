@@ -246,24 +246,55 @@ function buildQuestion() {
 }
 
 /* ===== BUILD ANSWER BOXES ===== */
+/* ===== BUILD ANSWER BOXES ===== */
 function buildAnswerBoxes(isOdd){
-  answerArea.innerHTML="";
-  let dropLabels=[];
-  if(currentLevel===1) dropLabels=isOdd?["animal","howmany?"]:["animal+howmany?"];
-  else if(currentLevel===2) dropLabels=isOdd?["food","colour"]:["food+colour"];
-  else if(currentLevel===3 || currentLevel===4) dropLabels=isOdd?["animal","howmany?","verb","food","colour"]:["animal+howmany?","verb","food+colour"];
+  answerArea.innerHTML = "";
+  let dropLabels = [];
+
+  if(currentLevel === 1){
+    dropLabels = isOdd ? ["animal","howmany?"] : ["animal+howmany?"];
+  } 
+  else if(currentLevel === 2){
+    dropLabels = isOdd ? ["food","colour"] : ["food+colour"];
+  } 
+  else if(currentLevel === 3){
+    dropLabels = isOdd ? ["animal","howmany?","verb","food","colour"] 
+                       : ["animal+howmany?","verb","food+colour"];
+  } 
+else if(currentLevel === 4){
+  if(isOdd){
+    dropLabels = ["animal","howmany?","verb","food","colour"];
+  } else {
+    // Verb is silent here, so only 2 dropzones
+    dropLabels = ["animal+howmany?","food+colour"];
+  }
+}
+
 
   dropLabels.forEach(label=>{
-    const dz=document.createElement("div"); dz.className="dropzone"; dz.dataset.placeholder=label;
-    dz.addEventListener("dragover", e=>e.preventDefault()); dz.addEventListener("drop", dropHandler);
+    const dz = document.createElement("div"); 
+    dz.className = "dropzone"; 
+    dz.dataset.placeholder = label;
+    dz.addEventListener("dragover", e => e.preventDefault()); 
+    dz.addEventListener("drop", dropHandler);
 
-    if(currentLevel===3 && label==="verb"){ 
-      const img=document.createElement("img"); img.src=signPathFor("want"); dz.appendChild(img); dz.dataset.filled="want"; dz.classList.add("filled"); dz.dataset.permanent="true"; 
+    // Level 3 special rule: verb is always fixed "want"
+    if(currentLevel === 3 && label === "verb"){ 
+      const img = document.createElement("img"); 
+      img.src = signPathFor("want"); 
+      dz.appendChild(img); 
+      dz.dataset.filled = "want"; 
+      dz.classList.add("filled"); 
+      dz.dataset.permanent = "true"; 
     }
+
+    // Level 4 does NOT fix the verb → students drag it
+    // so no special handling here
 
     answerArea.appendChild(dz);
   });
 }
+
 
 /* ===== BUILD DRAGGABLES ===== */
 let dragItem=null, dragClone=null, isTouch=false;
