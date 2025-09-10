@@ -757,3 +757,4 @@ window.addEventListener("load", () => {
   if (saved && saved.studentName) { showResumeModal(saved); }
   else { resetGame(); }
 });
+}
