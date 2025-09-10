@@ -266,42 +266,52 @@ function buildDraggables(isOdd){
   else if(currentLevel === 2) items = isOdd ? [currentSentence.food, currentSentence.colour] : [currentSentence.food + "-" + currentSentence.colour];
   else if(currentLevel === 3) items = isOdd ? [currentSentence.animal, currentSentence.number, currentSentence.food, currentSentence.colour]
                                            : [currentSentence.animal + "-" + currentSentence.number, currentSentence.food + "-" + currentSentence.colour];
-  // Level 4 corrected
-  else if(currentLevel === 4){
-    // store as array: [animal-number-verb-food-colour] for both isOdd and !isOdd
-    items.push(`${currentSentence.animal}-${currentSentence.number}-${currentSentence.verb}-${currentSentence.food}-${currentSentence.colour}`);
+ function buildDraggables(isOdd){
+  leftDraggables.innerHTML = "";
+  rightDraggables.innerHTML = "";
+  let items = [], totalItems = 16;
+
+  // LEVEL 4 LOGIC
+  if(currentLevel === 4){
+    if(isOdd){
+      // QUESTION is composite images → DRAGGABLES are 5 individual signs
+      items = [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour];
+    } else {
+      // QUESTION is 5 individual signs → DRAGGABLES are composite images
+      let foodColour = compositeImagePath(`${currentSentence.food}-${currentSentence.colour}`);
+      if(currentSentence.verb === "donthave") foodColour = {img: foodColour, x:true};
+      items = [`${currentSentence.animal}-${currentSentence.number}`, foodColour];
+    }
   }
 
-  // Add decoys
-  const used = new Set(items);
+  // Add decoys to reach 16 items
+  const used = new Set(items.map(i => typeof i === "string" ? i : i.img));
   while(items.length < totalItems){
     let decoy;
-    if(isOdd){
-      if(currentLevel === 1) decoy = randomItem([...animals, ...numbers]);
-      else if(currentLevel === 2) decoy = randomItem([...food, ...colours]);
-      else if(currentLevel === 3) decoy = randomItem([...animals, ...numbers, ...food, ...colours]);
-      else decoy = randomItem([...animals, ...numbers, ...food, ...colours, ...verbs]);
-    } else {
-      let allCombos = [];
-      if(currentLevel === 1) allCombos = animals.flatMap(a => numbers.map(n => `${a}-${n}`));
-      else if(currentLevel === 2) allCombos = food.flatMap(f => colours.map(c => `${f}-${c}`));
-      else if(currentLevel === 3) allCombos = [...animals.flatMap(a => numbers.map(n => `${a}-${n}`)), ...food.flatMap(f => colours.map(c => `${f}-${c}`))];
-      else if(currentLevel === 4){
-        // Level 4 decoys: random combinations of animal-number-verb-food-colour
-        const randomAnimal = randomItem(animals);
-        const randomNumber = randomItem(numbers);
-        const randomVerb = randomItem(["have", "donthave"]);
-        const randomFood = randomItem(food);
-        const randomColour = randomItem(colours);
-        decoy = `${randomAnimal}-${randomNumber}-${randomVerb}-${randomFood}-${randomColour}`;
+    if(currentLevel === 4){
+      if(isOdd){
+        // individual signs decoys
+        decoy = randomItem([...animals, ...numbers, ...verbs, ...food, ...colours]);
+      } else {
+        // composite decoys
+        const randAnimal = randomItem(animals);
+        const randNumber = randomItem(numbers);
+        const randVerb = randomItem(["have","donthave"]);
+        const randFood = randomItem(food);
+        const randColour = randomItem(colours);
+        let imgPath = compositeImagePath(`${randAnimal}-${randNumber}`);
+        let foodColourObj = {img: compositeImagePath(`${randFood}-${randColour}`), x: randVerb==="donthave"};
+        decoy = [ `${randAnimal}-${randNumber}`, foodColourObj ];
       }
-      else decoy = randomItem(allCombos);
     }
-    if(!used.has(decoy)){ items.push(decoy); used.add(decoy); }
+    // ensure uniqueness
+    const key = typeof decoy === "string" ? decoy : decoy.img;
+    if(!used.has(key)){ items.push(decoy); used.add(key); }
   }
 
   items = shuffleArray(items);
-  const halves = [items.slice(0, 8), items.slice(8, 16)];
+
+  const halves = [items.slice(0,8), items.slice(8,16)];
 
   halves.forEach((group, idx) => {
     const container = idx === 0 ? leftDraggables : rightDraggables;
@@ -309,76 +319,44 @@ function buildDraggables(isOdd){
       const div = document.createElement("div");
       div.className = "draggable";
       div.draggable = true;
-      div.dataset.value = word;
-      div.dataset.originalParent = idx === 0 ? "draggablesLeft" : "draggablesRight";
+      div.dataset.originalParent = idx===0 ? "draggablesLeft":"draggablesRight";
 
-      const img = document.createElement("img");
-
-      if(currentLevel === 4){
-        const parts = word.split("-");
-        const verb = parts[2];
-        const foodPart = parts[3];
-        const colourPart = parts[4];
-
-        if(isOdd){
-          img.src = compositeImagePath(foodPart + "-" + colourPart);
-          if(verb === "donthave"){
-            const wrapper = document.createElement("div");
-            wrapper.className = "dontHaveWrapper";
-            wrapper.appendChild(img);
-            const xOverlay = document.createElement("div");
-            xOverlay.className = "xOverlay";
-            xOverlay.textContent = "X";
-            wrapper.appendChild(xOverlay);
-            div.appendChild(wrapper);
-          } else {
-            div.appendChild(img);
-          }
+      if(isOdd){
+        // individual signs
+        const img = document.createElement("img");
+        img.src = signPathFor(word);
+        div.dataset.value = word;
+        div.appendChild(img);
+      } else {
+        // composite images
+        if(typeof word === "string"){ 
+          const img = document.createElement("img");
+          img.src = compositeImagePath(word);
+          div.dataset.value = word;
+          div.appendChild(img);
         } else {
-          // separate signs
-          const animalImg = document.createElement("img");
-          animalImg.src = signPathFor(parts[0]);
-          div.appendChild(animalImg);
-
-          const numberImg = document.createElement("img");
-          numberImg.src = signPathFor(parts[1]);
-          div.appendChild(numberImg);
-
-          const verbImg = document.createElement("img");
-          verbImg.src = signPathFor("have");
-          div.appendChild(verbImg);
-
-          const foodImg = document.createElement("img");
-          foodImg.src = signPathFor(foodPart);
-          const colourImg = document.createElement("img");
-          colourImg.src = signPathFor(colourPart);
-
-          if(verb === "donthave"){
-            const wrapper = document.createElement("div");
-            wrapper.className = "dontHaveWrapper";
-            wrapper.appendChild(foodImg);
+          // food+colour with X overlay
+          const wrapper = document.createElement("div");
+          wrapper.className = "dontHaveWrapper";
+          const img = document.createElement("img");
+          img.src = word.img;
+          wrapper.appendChild(img);
+          if(word.x){
             const xDiv = document.createElement("div");
             xDiv.className = "xOverlay";
             xDiv.textContent = "X";
             wrapper.appendChild(xDiv);
-            div.appendChild(wrapper);
-          } else {
-            div.appendChild(foodImg);
           }
-
-          div.appendChild(colourImg);
+          div.appendChild(wrapper);
+          div.dataset.value = "food+colour-X"; // mark for drag/drop check
         }
-      } else {
-        img.src = word.includes("-") ? compositeImagePath(word) : signPathFor(word);
-        div.appendChild(img);
       }
 
-      div.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", word));
+      div.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", div.dataset.value));
       container.appendChild(div);
     });
   });
 }
-
 /* ===== UNIFIED DRAG & DROP ===== */
 function startDrag(e){
   const target=e.target.closest(".draggable"); if(!target) return;
