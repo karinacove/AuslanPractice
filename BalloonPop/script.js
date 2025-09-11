@@ -1,7 +1,7 @@
-// script.js - Balloon Pop (full updated)
+// script.js - corrected startup + pause/resume + submission
 
 (() => {
-  // --- Login / UI references (outside DOMContent for immediate access)
+  // --- Login / UI references (outside DOMContentLoaded for immediate check) ---
   const studentName = localStorage.getItem("studentName") || "";
   const studentClass = localStorage.getItem("studentClass") || "";
 
@@ -26,7 +26,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    // --- DOM references ---
+    // DOM refs
     const balloonArea = document.getElementById("balloon-area");
     const scoreDisplay = document.getElementById("score");
     const levelDisplay = document.getElementById("level");
@@ -34,7 +34,7 @@
     const background = document.getElementById("background");
     const mrsC = document.getElementById("mrs-c");
 
-    // --- Game state variables ---
+    // Game state
     let score = 0;
     let totalClicks = 0;
     let correctAnswers = 0;
@@ -53,18 +53,14 @@
 
     const colours = ["green","red","orange","yellow","purple","pink","blue","brown","black","white"];
 
-    // --- Persist / Restore state ---
+    // Persistence
     const SAVE_KEY = "bp_game_state_v1";
-
     function saveState() {
       const state = {
         score, totalClicks, correctAnswers, correctAnswersList, incorrectAnswersList,
         level, targetColour, targetNumber, collectedCount, floatSpeed, gameCompleted
       };
-      try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch(e){ /* ignore */ }
-    }
-    function clearSavedState() {
-      localStorage.removeItem(SAVE_KEY);
+      try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch(e){}
     }
     function loadState() {
       try {
@@ -85,19 +81,19 @@
         return true;
       } catch(e) { return false; }
     }
+    function clearSavedState() { localStorage.removeItem(SAVE_KEY); }
 
-    // --- Helper functions ---
+    // Valid number generation
     function getNumberRangeForLevel(lvl) {
-      if (lvl >= 1 && lvl <= 3) return Array.from({length:12}, (_,i) => i+1);   // 1-12
-      if (lvl >= 4 && lvl <= 6) return Array.from({length:8}, (_,i) => i+13);   // 13-20
-      if (lvl >= 7 && lvl <= 9) return Array.from({length:21}, (_,i) => i+20);  // 21-40
-      if (lvl >= 10 && lvl <= 12) return Array.from({length:60}, (_,i) => i+41); // 41-100
-      return Array.from({length:100}, (_,i) => i+1);
+      if (lvl >= 1 && lvl <= 3) return Array.from({length:12}, (_,i)=>i+1);   // 1-12
+      if (lvl >= 4 && lvl <= 6) return Array.from({length:8}, (_,i)=>i+13);   // 13-20
+      if (lvl >= 7 && lvl <= 9) return Array.from({length:21}, (_,i)=>i+20);  // 21-40
+      if (lvl >= 10 && lvl <= 12) return Array.from({length:60}, (_,i)=>i+41);// 41-100
+      return Array.from({length:100}, (_,i)=>i+1);
     }
 
     function getValidNumbersForColour(colour) {
-      // base 0-40 exist for all; beyond that some colours skip (we cover by offsets + step 4)
-      const base = Array.from({length:41}, (_,i) => i); // 0..40
+      const base = Array.from({length:41}, (_,i)=>i); // 0..40
       const offsets = {
         green: 41, red: 41, orange: 43, yellow: 42, purple: 43,
         pink: 44, blue: 44, brown: 42, black: 44, white: 43
@@ -116,18 +112,20 @@
       else if ([3,6,9,12].includes(level)) floatSpeed = 10;
     }
 
+    function updateBackground() {
+      const bgIndex = Math.min(level, 12);
+      if (background) background.style.backgroundImage = `url('assets/background/background_${bgIndex}.png')`;
+    }
+
     function updateThoughtBubble(forceNew=false) {
-      // choose a valid targetColour/targetNumber for current level
       if (!targetColour || forceNew) targetColour = colours[Math.floor(Math.random()*colours.length)];
       const valid = getValidNumbersForColour(targetColour).filter(n => getNumberRangeForLevel(level).includes(n));
       if (!valid.length) {
-        // fallback to level-wide numbers
         const fallback = getNumberRangeForLevel(level);
         targetNumber = fallback[Math.floor(Math.random()*fallback.length)];
       } else {
         targetNumber = valid[Math.floor(Math.random()*valid.length)];
       }
-
       thoughtBubble.innerHTML = "";
       const cImg = document.createElement("img");
       cImg.src = `assets/colour/${targetColour}.png`;
@@ -137,45 +135,39 @@
       nImg.className = "sign-img";
       thoughtBubble.appendChild(cImg);
       thoughtBubble.appendChild(nImg);
-
       saveState();
     }
 
     function clearBalloons() {
-      // remove existing balloons and pop-effects
-      document.querySelectorAll(".balloon").forEach(b => b.remove());
+      document.querySelectorAll(".balloon").forEach(b => {
+        try { clearInterval(Number(b.dataset.floatInterval)); } catch(e){}
+        b.remove();
+      });
       document.querySelectorAll(".pop-effect").forEach(p => p.remove());
     }
 
-    function spawnBalloon() {
-      if (gamePaused || gameCompleted) return;
-      const colour = colours[Math.floor(Math.random()*colours.length)];
-      const validNumbers = getValidNumbersForColour(colour).filter(n => getNumberRangeForLevel(level).includes(n));
-      if (!validNumbers.length) return; // defensive
-      const number = validNumbers[Math.floor(Math.random()*validNumbers.length)];
-      createBalloon(colour, number, false);
-    }
-
-    function spawnCorrectBalloon() {
-      if (gamePaused || gameCompleted) return;
-      // ensure target exists (defensive)
-      const valid = getValidNumbersForColour(targetColour).filter(n => getNumberRangeForLevel(level).includes(n));
-      if (!valid.length) {
-        updateThoughtBubble(true);
-      }
-      createBalloon(targetColour, targetNumber, true);
+    // Pop visual helper
+    function createPopEffectAtRect(rect) {
+      const pop = document.createElement("img");
+      pop.src = "assets/pop.gif";
+      pop.className = "pop-effect";
+      const size = 200; // px
+      pop.style.width = `${size}px`;
+      pop.style.position = "absolute";
+      pop.style.left = `${rect.left + rect.width/2 - size/2}px`;
+      pop.style.top = `${rect.top + rect.height*0.25 - size/2}px`;
+      pop.style.zIndex = 9999;
+      document.body.appendChild(pop);
+      setTimeout(()=>pop.remove(), 600);
     }
 
     function floatBalloon(balloon) {
-      let pos = -150;
-      // clear existing interval property if present
-      if (balloon.dataset.floatInterval) {
-        try { clearInterval(Number(balloon.dataset.floatInterval)); } catch(e){}
-      }
-      const interval = setInterval(() => {
+      // start float interval for a balloon
+      let pos = parseInt(balloon.style.bottom, 10) || -150;
+      try { clearInterval(Number(balloon.dataset.floatInterval)); } catch(e){}
+      const interval = setInterval(()=> {
         pos += 2;
         balloon.style.bottom = `${pos}px`;
-        // If the balloon floats past top of viewport remove it
         if (pos > window.innerHeight + 100) {
           clearInterval(interval);
           if (balloon.parentElement) balloon.remove();
@@ -184,28 +176,10 @@
       balloon.dataset.floatInterval = interval;
     }
 
-    function createPopEffectAtRect(rect) {
-      const pop = document.createElement("img");
-      pop.src = "assets/pop.gif";
-      pop.className = "pop-effect";
-      // center horizontally, slightly towards top vertically
-      const size = 200; // visible size
-      pop.style.width = `${size}px`;
-      pop.style.left = `${rect.left + rect.width/2 - size/2}px`;
-      pop.style.top = `${rect.top + rect.height*0.25 - size/2}px`;
-      pop.style.position = "absolute";
-      pop.style.zIndex = 9999;
-      document.body.appendChild(pop);
-      setTimeout(() => { pop.remove(); }, 600);
-    }
-
     function createBalloon(colour, number, isCorrect) {
-      // Defensive: ensure file exists by checking the valid numbers for that colour/level
+      // defence: only create if that asset is expected to exist for that colour
       const validForColour = getValidNumbersForColour(colour);
-      if (!validForColour.includes(Number(number))) {
-        // don't create non-existing image
-        return;
-      }
+      if (!validForColour.includes(Number(number))) return;
 
       const balloon = document.createElement("img");
       balloon.src = `assets/balloon/${colour}_${number}.png`;
@@ -215,7 +189,6 @@
       balloon.dataset.correct = isCorrect ? "true" : "false";
       balloon.dataset.clicked = "false";
 
-      // position inside safe central horizontal band (not on edges)
       const gameWidth = window.innerWidth;
       const minX = gameWidth * 0.15;
       const maxX = gameWidth * 0.75 - 120;
@@ -226,7 +199,7 @@
       balloon.addEventListener("click", (e) => {
         e.stopPropagation();
         if (gamePaused || gameCompleted) return;
-        if (balloon.dataset.clicked === "true") return; // prevent duplicates
+        if (balloon.dataset.clicked === "true") return;
         balloon.dataset.clicked = "true";
         totalClicks++;
 
@@ -239,14 +212,11 @@
           score++;
           correctAnswers++;
           consecutiveIncorrect = 0;
-          // avoid duplicates in correct list if by chance
           if (!correctAnswersList.includes(answerKey)) correctAnswersList.push(answerKey);
           scoreDisplay.textContent = `Score: ${score}`;
-          // stop floating
           try { clearInterval(Number(balloon.dataset.floatInterval)); } catch(e){}
           moveToCollected(balloon);
           animateMrsC();
-          // level increment / next level handling
           if (score % 10 === 0 && level < 12) {
             level++;
             levelDisplay.textContent = `Level: ${level}`;
@@ -254,11 +224,9 @@
             clearBalloons();
             updateBackground();
             updateFloatSpeed();
-            // restart intervals to apply speeds
             restartIntervals();
             updateThoughtBubble(true);
           } else if (score === 120) {
-            // completed game
             gameCompleted = true;
             endGame({ completed: true, showModal: true, redirectAfter: false });
           } else {
@@ -272,15 +240,12 @@
             showCarefulWarning();
             consecutiveIncorrect = 0;
           }
-          // pop at balloon rect
           const rect = balloon.getBoundingClientRect();
           createPopEffectAtRect(rect);
           try { clearInterval(Number(balloon.dataset.floatInterval)); } catch(e){}
           balloon.remove();
           saveState();
         }
-
-        // save state after each click
         saveState();
       });
 
@@ -289,7 +254,6 @@
     }
 
     function moveToCollected(balloon) {
-      // Make the balloon move to hold area near Mrs C and stop floating
       try { clearInterval(Number(balloon.dataset.floatInterval)); } catch(e){}
       balloon.style.transition = "all 700ms ease";
       const offsetX = 100 + (collectedCount % 10) * 30;
@@ -297,7 +261,6 @@
       balloon.style.left = `calc(100% - ${offsetX}px)`;
       balloon.style.bottom = `${offsetY}px`;
       balloon.style.zIndex = 50;
-      balloon.removeEventListener("click", () => {});
       collectedCount++;
       saveState();
     }
@@ -306,38 +269,73 @@
       if (!mrsC) return;
       mrsC.style.transition = "transform 0.25s ease";
       mrsC.style.transform = "translateY(-10px)";
-      setTimeout(() => mrsC.style.transform = "translateY(0)", 250);
+      setTimeout(()=> mrsC.style.transform = "translateY(0)", 250);
     }
 
-    // --- Interval control ---
     function restartIntervals() {
-      // clear previous then start fresh
       clearInterval(balloonInterval); clearInterval(correctBalloonInterval);
       balloonInterval = setInterval(spawnBalloon, 1000);
       correctBalloonInterval = setInterval(spawnCorrectBalloon, 5000);
     }
 
+    function spawnBalloon() {
+      if (gamePaused || gameCompleted) return;
+      const colour = colours[Math.floor(Math.random()*colours.length)];
+      const validNumbers = getValidNumbersForColour(colour).filter(n => getNumberRangeForLevel(level).includes(n));
+      if (!validNumbers.length) return;
+      const number = validNumbers[Math.floor(Math.random()*validNumbers.length)];
+      createBalloon(colour, number, false);
+    }
+
+    function spawnCorrectBalloon() {
+      if (gamePaused || gameCompleted) return;
+      const valid = getValidNumbersForColour(targetColour).filter(n => getNumberRangeForLevel(level).includes(n));
+      if (!valid.length) { updateThoughtBubble(true); return; }
+      createBalloon(targetColour, targetNumber, true);
+    }
+
     function pauseGame() {
       gamePaused = true;
-      clearInterval(balloonInterval);
-      clearInterval(correctBalloonInterval);
+      clearInterval(balloonInterval); clearInterval(correctBalloonInterval);
       balloonInterval = null; correctBalloonInterval = null;
-      // pause existing balloons by clearing their intervals (they will stop moving)
+      // stop floats
       document.querySelectorAll(".balloon").forEach(b => {
         try { clearInterval(Number(b.dataset.floatInterval)); } catch(e){}
       });
     }
 
     function resumeGame() {
-      if (!gamePaused) return;
+      if (!gamePaused) {
+        // if intervals not running, start them
+        if (!balloonInterval && !correctBalloonInterval && !gameCompleted) restartIntervals();
+        // restart floating for existing balloons
+        document.querySelectorAll(".balloon").forEach(b => {
+          // if no float currently, restart
+          floatBalloon(b);
+        });
+        return;
+      }
       gamePaused = false;
-      // re-start floating - existing balloons need their float restarted
+      // restart floating for existing balloons
       document.querySelectorAll(".balloon").forEach(b => floatBalloon(b));
       restartIntervals();
     }
 
-    // --- Endgame & submission ---
-    // options: { completed:bool, showModal:bool, redirectAfter:bool }
+    // --- Careful warning ---
+    function showCarefulWarning() {
+      const warning = document.createElement('img');
+      warning.src = "assets/careful.png";
+      warning.className = "careful-warning";
+      warning.style.position = "fixed";
+      warning.style.left = "50%";
+      warning.style.top = "50%";
+      warning.style.transform = "translate(-50%, -50%)";
+      warning.style.zIndex = 1000;
+      document.body.appendChild(warning);
+      setTimeout(()=>warning.remove(), 1400);
+    }
+
+    // --- End game & submit (options)
     function endGame({ completed=false, showModal=true, redirectAfter=false } = {}) {
       pauseGame();
       clearBalloons();
@@ -346,25 +344,25 @@
       const correctList = [...correctAnswersList].sort().join(", ");
       const incorrectList = [...incorrectAnswersList].sort().join(", ");
 
-      // Update modal display
       if (scoreDisplayModal) scoreDisplayModal.textContent = `Score: ${score} (${percentage}%)`;
 
-      // If completed show clap gif (insert into modal)
       if (completed) {
-        const gif = document.createElement("img");
-        gif.src = clapGifSrc;
-        gif.alt = "Well done!";
-        gif.style.width = "220px";
-        gif.style.display = "block";
-        gif.style.margin = "10px auto";
-        // remove previous claps if any
+        // add clap gif in modal (remove previous)
         const old = document.getElementById("clap-gif");
         if (old) old.remove();
-        gif.id = "clap-gif";
-        if (endModal) endModal.prepend(gif);
+        if (endModal) {
+          const gif = document.createElement("img");
+          gif.id = "clap-gif";
+          gif.src = clapGifSrc;
+          gif.alt = "Congratulations!";
+          gif.style.width = "220px";
+          gif.style.display = "block";
+          gif.style.margin = "8px auto";
+          endModal.prepend(gif);
+        }
       }
 
-      // Submit results to Google Form (silently)
+      // Submit to Google Form silently
       const form = document.createElement("form");
       form.action = "https://docs.google.com/forms/d/e/1FAIpQLSeHCxQ4czHbx1Gdv649vlr5-Dz9-4DQu5M5OcIfC46WlL-6Qw/formResponse";
       form.method = "POST";
@@ -395,62 +393,48 @@
       document.body.appendChild(form);
       form.submit();
 
-      // show modal if requested
-      if (showModal && endModal) {
-        // hide continue if completed (no continue after completion)
+      // show/hide continue depending on completion
+      if (endModal) {
         if (completed && continueBtn) continueBtn.style.display = "none";
         else if (continueBtn) continueBtn.style.display = "inline-block";
-
-        // show modal
-        endModal.style.display = "flex";
+        if (showModal) endModal.style.display = "flex";
       }
 
-      // clear saved game progress if redirectAfter true (we're leaving)
+      // clear saved game if we're about to redirect away
       if (redirectAfter) {
-        // wait a little while to allow form submit
-        setTimeout(() => {
-          clearSavedState(); // preserve login info, remove only game state
+        setTimeout(()=> {
+          clearSavedState();
           window.location.href = "../index.html";
         }, 600);
       } else {
-        // save state (server submission done)
         saveState();
       }
     }
 
-    // --- UI Control (stop/finish/again/continue/logout) ---
-    if (stopBtn) {
-      stopBtn.addEventListener("click", () => {
-        pauseGame();
-        // prepare modal data
-        const pct = totalClicks > 0 ? Math.round((correctAnswers/totalClicks)*100) : 0;
-        if (scoreDisplayModal) scoreDisplayModal.textContent = `Score: ${score} (${pct}%)`;
-        // ensure continue visible (unless game complete)
-        if (continueBtn) continueBtn.style.display = gameCompleted ? "none" : "inline-block";
-        if (endModal) endModal.style.display = "flex";
-      });
-    }
+    // --- UI button handlers ---
+    if (stopBtn) stopBtn.addEventListener("click", () => {
+      pauseGame();
+      const pct = totalClicks > 0 ? Math.round((correctAnswers/totalClicks)*100) : 0;
+      if (scoreDisplayModal) scoreDisplayModal.textContent = `Score: ${score} (${pct}%)`;
+      if (continueBtn) continueBtn.style.display = gameCompleted ? "none" : "inline-block";
+      if (endModal) endModal.style.display = "flex";
+    });
+
     if (continueBtn) continueBtn.addEventListener("click", () => {
-      // hide modal, resume
       if (endModal) endModal.style.display = "none";
       resumeGame();
     });
 
-    // Finish button: submit and redirect back to menu; do NOT clear login info
     if (finishBtn) finishBtn.addEventListener("click", () => {
-      // submit and redirect
+      // submit and return to menu (keeps login, clears only game state)
       endGame({ completed: false, showModal: false, redirectAfter: true });
     });
 
-    // Again: reset the game and hide modal (do NOT submit)
     if (againBtn) againBtn.addEventListener("click", () => {
-      // hide modal
       if (endModal) endModal.style.display = "none";
-      // clear any intervals and balloons
       pauseGame();
       clearBalloons();
-
-      // reset game variables but keep login
+      // reset game state (keep login)
       score = 0; totalClicks = 0; correctAnswers = 0;
       correctAnswersList = []; incorrectAnswersList = [];
       level = 1; targetColour = ""; targetNumber = "";
@@ -460,34 +444,38 @@
       updateBackground();
       updateThoughtBubble(true);
       saveState();
-      resumeGame();
+      // start again
+      startGame();
     });
 
-    // Logout: clear login and go to index
     if (logoutBtn) logoutBtn.addEventListener("click", () => {
-      // clear only login keys and saved game
+      // clear login only and saved game
       localStorage.removeItem("studentName");
       localStorage.removeItem("studentClass");
       clearSavedState();
       window.location.href = "../index.html";
     });
 
-    // --- Background / UI helpers ---
-    function updateBackground() {
-      const bgIndex = Math.min(level, 12);
-      if (background) background.style.backgroundImage = `url('assets/background/background_${bgIndex}.png')`;
+    // --- Start/resume helpers ---
+    function startGame() {
+      gamePaused = false;
+      updateFloatSpeed();
+      updateThoughtBubble(!targetColour || !targetNumber);
+      // spawn one immediately then intervals
+      spawnBalloon();
+      restartIntervals();
+      // update displays
+      scoreDisplay.textContent = `Score: ${score}`;
+      levelDisplay.textContent = `Level: ${level}`;
     }
 
-    // --- Initialization: restore saved state (if any) then start ---
+    // --- Initialization ---
     const restored = loadState();
-    // update UI from state (if restored) or defaults
     scoreDisplay.textContent = `Score: ${score}`;
     levelDisplay.textContent = `Level: ${level}`;
     updateBackground();
-
     if (!targetColour || !targetNumber) updateThoughtBubble(true);
-
-    // Start or resume intervals (avoid duplicate intervals)
-    resumeGame();
-  }); // end DOMContentLoaded
-})(); // end IIFE
+    // Start the game properly
+    startGame();
+  }); // DOMContentLoaded
+})(); // IIFE
