@@ -156,6 +156,24 @@ body {
   z-index: 1000;
 }
 
+#stop-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 100px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+#continue-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 100px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
 #keyboard-btn {
   position: fixed;
   bottom: 10px;
