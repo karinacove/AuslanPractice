@@ -6,11 +6,9 @@ let studentClass = localStorage.getItem("studentClass") || "";
 const studentInfoDiv = document.getElementById("student-info");
 const gameContainer = document.getElementById("game-container");
 const finishButton = document.getElementById("finish-btn");
+const stopButton = document.getElementById("stop-btn");
 const endModal = document.getElementById("end-modal");
 const endModalContent = document.getElementById("end-modal-content");
-const againBtn = document.getElementById("again-btn");
-const menuBtn = document.getElementById("menu-btn");
-const logoutImg = document.getElementById("logout-btn");
 const keyboardBtn = document.getElementById("keyboard-btn");
 
 if (!studentName || !studentClass) {
@@ -26,30 +24,15 @@ if (!studentName || !studentClass) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  if (stopButton) {
+    stopButton.addEventListener("click", () => {
+      showEndModal(false, true); // open modal (stop)
+    });
+  }
+
   if (finishButton) {
     finishButton.addEventListener("click", () => {
-      finishButton.style.display = "none";
-      finishButtonHandler(true);
-    });
-  }
-
-  if (againBtn) {
-    againBtn.addEventListener("click", () => {
-      endModal.style.display = "none";
-      location.reload();
-    });
-  }
-
-  if (menuBtn) {
-    menuBtn.addEventListener("click", () => {
-      window.location.href = "../index.html";
-    });
-  }
-
-  if (logoutImg) {
-    logoutImg.addEventListener("click", () => {
-      localStorage.removeItem("studentName");
-      localStorage.removeItem("studentClass");
+      submitWordleResult(correctWord, guessesList);
       window.location.href = "../index.html";
     });
   }
@@ -64,6 +47,8 @@ document.addEventListener("DOMContentLoaded", () => {
   setupKeyboard();
 });
 
+// =================== WORDLE GAME ===================
+
 let words = [];
 let validWords = [];
 let correctWord = "";
@@ -74,6 +59,7 @@ const rows = document.querySelectorAll(".row");
 let currentRow = 0;
 let guessesList = [];
 
+// Load word lists
 fetch("wordle_words.json")
   .then((response) => response.json())
   .then((data) => {
@@ -94,7 +80,7 @@ fetch("valid_words.json")
 document.addEventListener("keydown", keydownHandler);
 
 function keydownHandler(event) {
-  if (endModal.style.display === "flex") return;
+  if (endModal.style.display === "flex") return; // block typing if modal open
 
   if (
     event.key.length === 1 &&
@@ -130,6 +116,7 @@ function checkGuess() {
   const cells = rows[currentRow].querySelectorAll(".cell");
   let remainingLetters = [...correctArray];
 
+  // Mark greens
   guessArray.forEach((letter, index) => {
     if (letter === correctArray[index]) {
       cells[index].style.backgroundColor = "green";
@@ -138,6 +125,7 @@ function checkGuess() {
     }
   });
 
+  // Mark oranges
   guessArray.forEach((letter, index) => {
     if (
       remainingLetters.includes(letter) &&
@@ -149,11 +137,9 @@ function checkGuess() {
     }
   });
 
+  // Mark reds
   guessArray.forEach((letter, index) => {
-    if (
-      !cells[index].style.backgroundColor ||
-      cells[index].style.backgroundColor === ""
-    ) {
+    if (!cells[index].style.backgroundColor) {
       cells[index].style.backgroundColor = "red";
     }
   });
@@ -175,41 +161,58 @@ function checkGuess() {
   }
 }
 
-function showEndModal(success) {
+function showEndModal(success, stopped = false) {
   let message = "";
   let image = "";
 
-  if (success) {
+  if (stopped) {
+    message = `<h2 style="font-family: sans-serif">Game Paused</h2>`;
+  } else if (success) {
     showAuslanClap();
-    message = `<h2 style="font-family: sans-serif">Congratulations!</h2><p style="font-family: sans-serif">You guessed the word in ${guessesList.length} attempts.</p>`;
+    message = `<h2 style="font-family: sans-serif">Congratulations!</h2>
+               <p style="font-family: sans-serif">You guessed the word in ${guessesList.length} attempts.</p>`;
     image = `<img src="assets/auslan-clap.gif" style="max-width: 60%; height: auto; margin: 10px auto;" alt="Clap">`;
   } else {
-    message = `<h2 style="font-family: sans-serif">Unlucky!</h2><p style="font-family: sans-serif">The correct word was:</p>`;
+    message = `<h2 style="font-family: sans-serif">Unlucky!</h2>
+               <p style="font-family: sans-serif">The correct word was:</p>`;
     image = `<img src="assets/unlucky.png" style="max-width: 40%; height: auto; margin: 10px auto;" alt="Unlucky">`;
   }
 
   endModalContent.innerHTML = `
     ${message}
-    <div style="font-family: 'AuslanFingerSpelling', sans-serif; font-size: 60px; margin-bottom: 10px;">${correctWord}</div>
+    ${!stopped ? `<div style="font-family: 'AuslanFingerSpelling', sans-serif; font-size: 60px; margin-bottom: 10px;">${correctWord}</div>` : ""}
     ${image}
-    <img id="again-btn" src="assets/Again.png" alt="Play Again" />
-    <img id="menu-btn" src="assets/menu.png" alt="Main Menu" />
-    <img id="logout-btn" src="assets/logout.png" alt="Logout" />
+    <img id="continue-btn" src="assets/continue.png" alt="Continue" />
+    <img id="finish-btn" src="assets/finish.png" alt="Finish" />
+    <img id="again-btn" src="assets/again.png" alt="Play Again" />
   `;
 
   endModal.style.display = "flex";
 
   setTimeout(() => {
-    const closeBtn = document.getElementById("again-btn");
-    const menu = document.getElementById("menu-btn");
-    const logout = document.getElementById("logout-btn");
-    if (closeBtn) closeBtn.addEventListener("click", () => location.reload());
-    if (menu) menu.addEventListener("click", () => window.location.href = "../index.html");
-    if (logout) logout.addEventListener("click", () => {
-      localStorage.removeItem("studentName");
-      localStorage.removeItem("studentClass");
-      window.location.href = "../index.html";
-    });
+    const continueBtn = document.getElementById("continue-btn");
+    const againBtn = document.getElementById("again-btn");
+    const finishBtn = document.getElementById("finish-btn");
+
+    if (continueBtn) {
+      continueBtn.addEventListener("click", () => {
+        endModal.style.display = "none"; // resume
+        document.addEventListener("keydown", keydownHandler);
+      });
+    }
+
+    if (againBtn) {
+      againBtn.addEventListener("click", () => {
+        location.reload(); // restart
+      });
+    }
+
+    if (finishBtn) {
+      finishBtn.addEventListener("click", () => {
+        submitWordleResult(correctWord, guessesList);
+        window.location.href = "../index.html";
+      });
+    }
   }, 0);
 }
 
@@ -226,7 +229,8 @@ function showAuslanClap() {
 
 function showInvalidWordMessage(word) {
   const message = document.createElement("div");
-  message.innerHTML = `<span style="font-family: 'AuslanFingerSpelling', sans-serif;">${word}</span> <span style="font-family: sans-serif;">is not a valid word!</span>`;
+  message.innerHTML = `<span style="font-family: 'AuslanFingerSpelling', sans-serif;">${word}</span> 
+                       <span style="font-family: sans-serif;">is not a valid word!</span>`;
   message.style.position = "fixed";
   message.style.top = "50%";
   message.style.left = "50%";
@@ -243,12 +247,6 @@ function showInvalidWordMessage(word) {
   setTimeout(() => {
     message.remove();
   }, 2000);
-}
-
-function finishButtonHandler(early = false) {
-  if (endModal) {
-    endModal.style.display = "flex";
-  }
 }
 
 function submitWordleResult(targetWord, guessesArray) {
@@ -281,6 +279,8 @@ function submitWordleResult(targetWord, guessesArray) {
       console.error("❌ Form error:", err);
     });
 }
+
+// =================== ON-SCREEN KEYBOARD ===================
 
 function setupKeyboard() {
   const keyboard = document.getElementById("onScreenKeyboard");
