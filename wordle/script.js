@@ -6,62 +6,33 @@ let studentClass = localStorage.getItem("studentClass") || "";
 const studentInfoDiv = document.getElementById("student-info");
 const gameContainer = document.getElementById("game-container");
 const finishButton = document.getElementById("finish-btn");
-const stopButton = document.getElementById("stop-btn");
+const stopBtn = document.getElementById("stop-btn");
 const endModal = document.getElementById("end-modal");
 const endModalContent = document.getElementById("end-modal-content");
-const againBtn = document.getElementById("again-btn");
-const menuBtn = document.getElementById("menu-btn");
-const logoutImg = document.getElementById("logout-btn");
 const keyboardBtn = document.getElementById("keyboard-btn");
 
-let paused = false; // pause flag
+let paused = false;
 
 if (!studentName || !studentClass) {
   alert("Please log in first.");
   window.location.href = "../index.html";
 } else {
-  if (studentInfoDiv) {
-    studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
-  }
-  if (gameContainer) {
-    gameContainer.style.display = "block";
-  }
+  if (studentInfoDiv) studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
+  if (gameContainer) gameContainer.style.display = "block";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  if (finishButton) {
-    finishButton.addEventListener("click", () => finishButtonHandler(true));
-  }
+  if (finishButton) finishButton.addEventListener("click", () => finishButtonHandler(true));
 
-  if (stopButton) {
-    stopButton.addEventListener("click", () => {
-      paused = true;
-      showPauseModal();
-    });
-  }
+  if (stopBtn) stopBtn.addEventListener("click", () => {
+    paused = true;
+    showPauseModal();
+  });
 
-  if (againBtn) {
-    againBtn.addEventListener("click", () => location.reload());
-  }
-
-  if (menuBtn) {
-    menuBtn.addEventListener("click", () => window.location.href = "../index.html");
-  }
-
-  if (logoutImg) {
-    logoutImg.addEventListener("click", () => {
-      localStorage.removeItem("studentName");
-      localStorage.removeItem("studentClass");
-      window.location.href = "../index.html";
-    });
-  }
-
-  if (keyboardBtn) {
-    keyboardBtn.addEventListener("click", () => {
-      const keyboard = document.getElementById("onScreenKeyboard");
-      if (keyboard) keyboard.style.display = keyboard.style.display === "none" ? "block" : "none";
-    });
-  }
+  if (keyboardBtn) keyboardBtn.addEventListener("click", () => {
+    const keyboard = document.getElementById("onScreenKeyboard");
+    if (keyboard) keyboard.style.display = keyboard.style.display === "none" ? "block" : "none";
+  });
 
   setupKeyboard();
 });
@@ -88,9 +59,7 @@ fetch("wordle_words.json")
 
 fetch("valid_words.json")
   .then(res => res.json())
-  .then(data => {
-    validWords = data.validWords.map(w => w.toUpperCase());
-  });
+  .then(data => validWords = data.validWords.map(w => w.toUpperCase()));
 
 document.addEventListener("keydown", keydownHandler);
 
@@ -104,7 +73,7 @@ function keydownHandler(event) {
     currentGuess = currentGuess.slice(0, -1);
     updateGrid();
   } else if (event.key === "Enter" && currentGuess.length === 5) {
-    if (!validWords.includes(currentGuess)) {
+    if (!validWords.includes(currentGuess.toUpperCase())) {
       showInvalidWordMessage(currentGuess);
       return;
     }
@@ -170,49 +139,54 @@ function showPauseModal() {
   endModal.style.display = "flex";
   endModalContent.innerHTML = `
     <h2 style="font-family: sans-serif">Game Paused</h2>
-    <img id="again-btn" src="assets/Again.png" alt="Restart">
-    <img id="finish-btn" src="assets/finish.png" alt="Finish">
-    <img id="menu-btn" src="assets/menu.png" alt="Main Menu">
+    <div style="display:flex; justify-content:center; gap:15px; margin-top:20px;">
+      <img id="continue-btn" src="assets/continue.png" alt="Continue" style="cursor:pointer; width:120px;">
+      <img id="again-btn" src="assets/again.png" alt="Restart" style="cursor:pointer; width:120px;">
+      <img id="finish-btn" src="assets/finish.png" alt="Finish" style="cursor:pointer; width:120px;">
+    </div>
   `;
 
-  // attach events
+  document.getElementById("continue-btn").onclick = () => {
+    paused = false;
+    endModal.style.display = "none";
+  };
+
   document.getElementById("again-btn").onclick = () => location.reload();
+
   document.getElementById("finish-btn").onclick = () => {
     paused = false;
     endModal.style.display = "none";
     finishButtonHandler(true);
   };
-  document.getElementById("menu-btn").onclick = () => window.location.href = "../index.html";
 }
 
 function showEndModal(success) {
   paused = true;
-  let message = "";
-  let image = "";
+  let message = "", image = "";
 
   if (success) {
     showAuslanClap();
     message = `<h2 style="font-family: sans-serif">Congratulations!</h2>
                <p style="font-family: sans-serif">You guessed the word in ${guessesList.length} attempts.</p>`;
-    image = `<img src="assets/Correct.png" style="max-width: 40%; margin: 10px auto;">`;
+    image = `<img src="assets/correct.png" style="max-width: 40%; margin:10px auto;">`;
   } else {
     message = `<h2 style="font-family: sans-serif">Unlucky!</h2>
                <p style="font-family: sans-serif">The correct word was:</p>`;
-    image = `<img src="assets/Wrong.png" style="max-width: 40%; margin: 10px auto;">`;
+    image = `<img src="assets/wrong.png" style="max-width: 40%; margin:10px auto;">`;
   }
 
   endModalContent.innerHTML = `
     ${message}
-    <div style="font-family: 'AuslanFingerSpelling', sans-serif; font-size: 60px; margin: 10px;">${correctWord}</div>
+    <div style="font-family:'AuslanFingerSpelling'; font-size:60px; margin:10px;">${correctWord}</div>
     ${image}
-    <img id="again-btn" src="assets/Again.png" alt="Play Again">
-    <img id="menu-btn" src="assets/menu.png" alt="Main Menu">
+    <img id="again-btn" src="assets/again.png" alt="Play Again" style="cursor:pointer; width:120px;">
+    <img id="menu-btn" src="assets/menu.png" alt="Main Menu" style="cursor:pointer; width:120px;">
   `;
-
-  endModal.style.display = "flex";
 
   document.getElementById("again-btn").onclick = () => location.reload();
   document.getElementById("menu-btn").onclick = () => window.location.href = "../index.html";
+
+  showAuslanClap();
 }
 
 function showAuslanClap() {
@@ -226,11 +200,11 @@ function showAuslanClap() {
 
 function showInvalidWordMessage(word) {
   const message = document.createElement("div");
-  message.innerHTML = `<span style="font-family: 'AuslanFingerSpelling';">${word}</span> <span style="font-family: sans-serif;">is not valid!</span>`;
+  message.innerHTML = `<span style="font-family:'AuslanFingerSpelling';">${word}</span> <span style="font-family:sans-serif;">is not valid!</span>`;
   message.style.cssText = `
     position: fixed; top:50%; left:50%;
-    transform: translate(-50%, -50%);
-    font-size: 80px; font-weight:bold; color:red;
+    transform: translate(-50%,-50%);
+    font-size:80px; font-weight:bold; color:red;
     background:black; padding:20px; border-radius:10px; z-index:1000;
   `;
   document.body.appendChild(message);
@@ -251,13 +225,11 @@ function submitWordleResult(targetWord, guessesArray) {
   formData.append("entry.884909677", targetWord);
   formData.append("entry.1040569311", guessesArray.join(", "));
   formData.append("entry.1916112455", guessesArray.length);
-  formData.append("entry.1856222712", new Date().toLocaleString("en-AU", { timeZone: "Australia/Melbourne" }));
+  formData.append("entry.1856222712", new Date().toLocaleString("en-AU",{timeZone:"Australia/Melbourne"}));
 
-  fetch("https://docs.google.com/forms/d/e/1FAIpQLSdrm9k5H4JSyqI8COPHubPXeHLTKMrsQTMeV_uCmSZwn3o_kA/formResponse", {
-    method: "POST",
-    mode: "no-cors",
-    body: formData
-  }).then(() => console.log("✅ Form submitted")).catch(err => console.error(err));
+  fetch("https://docs.google.com/forms/d/e/1FAIpQLSdrm9k5H4JSyqI8COPHubPXeHLTKMrsQTMeV_uCmSZwn3o_kA/formResponse",{
+    method:"POST",mode:"no-cors",body:formData
+  }).then(()=>console.log("✅ Form submitted")).catch(err=>console.error(err));
 }
 
 // ========================= Keyboard Setup =========================
@@ -269,11 +241,9 @@ function setupKeyboard() {
   keyboard.innerHTML = `<div id="keyboard-header"><button id="closeKeyboardBtn">✖</button></div>`;
   const layout = ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
   layout.forEach(r=>{
-    const rowDiv = document.createElement("div");
-    rowDiv.className="keyboard-row";
+    const rowDiv=document.createElement("div"); rowDiv.className="keyboard-row";
     r.split("").forEach(l=>{
-      const key = document.createElement("button");
-      key.className="key"; key.textContent=l;
+      const key=document.createElement("button"); key.className="key"; key.textContent=l;
       key.onclick = ()=>{ if(currentGuess.length<5){ currentGuess+=l; updateGrid(); } };
       rowDiv.appendChild(key);
     });
@@ -313,11 +283,11 @@ function dragElement(elmnt){
     e.preventDefault(); dragging=true;
     const touch=e.touches[0]; startX=touch.clientX; startY=touch.clientY;
     initialX=elmnt.offsetLeft; initialY=elmnt.offsetTop;
-    document.addEventListener("touchmove", onTouchMove, {passive:false});
+    document.addEventListener("touchmove", onTouchMove,{passive:false});
     document.addEventListener("touchend", stopDrag);
   });
 
   function onMouseMove(e){ if(!dragging) return; elmnt.style.left=initialX+(e.clientX-startX)+"px"; elmnt.style.top=initialY+(e.clientY-startY)+"px"; elmnt.style.transform="none"; }
-  function onTouchMove(e){ if(!dragging) return; const t=e.touches[0]; elmnt.style.left=initialX+(t.clientX-startX)+"px"; elmnt.style.top=initialY+(t.clientY-startY)+"px"; elmnt.style.transform="none"; e.preventDefault();}
+  function onTouchMove(e){ if(!dragging) return; const t=e.touches[0]; elmnt.style.left=initialX+(t.clientX-startX)+"px"; elmnt.style.top=initialY+(t.clientY-startY)+"px"; elmnt.style.transform="none"; e.preventDefault(); }
   function stopDrag(){ dragging=false; document.removeEventListener("mousemove",onMouseMove); document.removeEventListener("mouseup",stopDrag); document.removeEventListener("touchmove",onTouchMove); document.removeEventListener("touchend",stopDrag);}
 }
