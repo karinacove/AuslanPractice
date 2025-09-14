@@ -182,7 +182,7 @@ function showEndModal(success) {
     content = `
       <div style="text-align:center;">
         <img src="assets/auslan-clap.gif" alt="Auslan Clap" style="width:50%; margin:10px auto; display:block;">
-        <img src="assets/correct.png" alt="Correct" style="max-width:40%; margin:10px auto; display:block;">
+        <img src="assets/correct.png" alt="Correct" style="max-width:30%; margin:10px auto; display:block;">
         <p style="font-family: sans-serif; font-size: 22px; margin-top: 10px;">
           You guessed the word in ${guessesList.length} attempts.
         </p>
@@ -191,7 +191,7 @@ function showEndModal(success) {
   } else {
     content = `
       <div style="text-align:center;">
-        <img src="assets/wrong.png" alt="Wrong" style="max-width:40%; margin:10px auto; display:block;">
+        <img src="assets/wrong.png" alt="Wrong" style="max-width:30%; margin:10px auto; display:block;">
         <p style="font-family: sans-serif; font-size: 22px; margin-top: 10px;">
           The correct word was:
         </p>
