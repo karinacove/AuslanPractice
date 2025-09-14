@@ -1,251 +1,323 @@
-(() => {
-  // ==== GAME VARIABLES ====
-  let studentName = localStorage.getItem("studentName") || "";
-  let studentClass = localStorage.getItem("studentClass") || "";
-  
-  let gameContainer, stopButton, endModal, endModalContent;
-  let AuslanClap;
-  let rows;
-  let currentGuess = "";
-  let currentRow = 0;
-  let attempts = 0;
-  const maxAttempts = 6;
-  let correctWord = "";
-  let guessesList = [];
-  let words = [];
-  let validWords = [];
-  let isPaused = false;
+// 🚀 JavaScript is running!
 
-  document.addEventListener("DOMContentLoaded", () => {
-    // ==== DOM ELEMENTS ====
-    gameContainer = document.getElementById("game-container");
-    stopButton = document.getElementById("stop-btn");
-    endModal = document.getElementById("end-modal");
-    endModalContent = document.getElementById("end-modal-content");
-    AuslanClap = document.getElementById("AuslanClap");
-    rows = document.querySelectorAll(".row");
+let studentName = localStorage.getItem("studentName") || "";
+let studentClass = localStorage.getItem("studentClass") || "";
 
-    // ==== STUDENT INFO CHECK ====
-    if (!studentName || !studentClass) {
-      alert("Please log in first.");
-      window.location.href = "../index.html";
-      return;
-    } else {
-      const studentInfoDiv = document.getElementById("student-info");
-      if (studentInfoDiv) {
-        studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
-      }
-      if (gameContainer) gameContainer.style.display = "block";
-    }
+const studentInfoDiv = document.getElementById("student-info");
+const gameContainer = document.getElementById("game-container");
+const finishButton = document.getElementById("finish-btn");
+const stopButton = document.getElementById("stop-btn");
+const endModal = document.getElementById("end-modal");
+const endModalContent = document.getElementById("end-modal-content");
+const againBtn = document.getElementById("again-btn");
+const menuBtn = document.getElementById("menu-btn");
+const logoutImg = document.getElementById("logout-btn");
+const keyboardBtn = document.getElementById("keyboard-btn");
 
-    // ==== STOP / PAUSE BUTTON ====
-    if (stopButton) {
-      stopButton.addEventListener("click", () => {
-        pauseGame();
-      });
-    }
+let paused = false; // pause flag
 
-    // ==== LOAD WORD LISTS ====
-    fetch("wordle_words.json")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data.words)) {
-          words = data.words.map(w => w.toUpperCase());
-          correctWord = words[Math.floor(Math.random() * words.length)] || "";
-        }
-      });
+if (!studentName || !studentClass) {
+  alert("Please log in first.");
+  window.location.href = "../index.html";
+} else {
+  if (studentInfoDiv) {
+    studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
+  }
+  if (gameContainer) {
+    gameContainer.style.display = "block";
+  }
+}
 
-    fetch("valid_words.json")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data.validWords)) {
-          validWords = data.validWords.map(w => w.toUpperCase());
-        }
-      });
+document.addEventListener("DOMContentLoaded", () => {
+  if (finishButton) {
+    finishButton.addEventListener("click", () => finishButtonHandler(true));
+  }
 
-    // ==== KEYBOARD INPUT ====
-    const keyboardBtn = document.getElementById("keyboard-btn");
-    const onScreenKeyboard = document.getElementById("onScreenKeyboard");
-
-    keyboardBtn.addEventListener("click", () => {
-       if (!onScreenKeyboard) return;
-      // toggle keyboard modal
-      onScreenKeyboard.style.display = onScreenKeyboard.style.display === "block" ? "none" : "block";
+  if (stopButton) {
+    stopButton.addEventListener("click", () => {
+      paused = true;
+      showPauseModal();
     });
-    
-    document.addEventListener("keydown", handleKeydown);
+  }
+
+  if (againBtn) {
+    againBtn.addEventListener("click", () => location.reload());
+  }
+
+  if (menuBtn) {
+    menuBtn.addEventListener("click", () => window.location.href = "../index.html");
+  }
+
+  if (logoutImg) {
+    logoutImg.addEventListener("click", () => {
+      localStorage.removeItem("studentName");
+      localStorage.removeItem("studentClass");
+      window.location.href = "../index.html";
+    });
+  }
+
+  if (keyboardBtn) {
+    keyboardBtn.addEventListener("click", () => {
+      const keyboard = document.getElementById("onScreenKeyboard");
+      if (keyboard) keyboard.style.display = keyboard.style.display === "none" ? "block" : "none";
+    });
+  }
+
+  setupKeyboard();
+});
+
+// ========================= Wordle Logic =========================
+
+let words = [];
+let validWords = [];
+let correctWord = "";
+let currentGuess = "";
+let attempts = 0;
+const maxAttempts = 6;
+const rows = document.querySelectorAll(".row");
+let currentRow = 0;
+let guessesList = [];
+
+fetch("wordle_words.json")
+  .then(res => res.json())
+  .then(data => {
+    words = data.words.map(w => w.toUpperCase());
+    correctWord = words[Math.floor(Math.random() * words.length)];
+    console.log("Correct Word:", correctWord);
   });
 
-  // ==== KEYBOARD HANDLER ====
-  function handleKeydown(e) {
-    if (isPaused) return; // block input when paused
-    if (!rows[currentRow]) return;
+fetch("valid_words.json")
+  .then(res => res.json())
+  .then(data => {
+    validWords = data.validWords.map(w => w.toUpperCase());
+  });
 
-    if (/^[a-zA-Z]$/.test(e.key) && currentGuess.length < 5) {
-      currentGuess += e.key.toUpperCase();
-      updateGrid();
-    } else if (e.key === "Backspace") {
-      currentGuess = currentGuess.slice(0, -1);
-      updateGrid();
-    } else if (e.key === "Enter" && currentGuess.length === 5) {
-      if (!validWords.includes(currentGuess.toUpperCase())) {
-        showInvalidWordMessage(currentGuess);
-        return;
-      }
-      checkGuess();
+document.addEventListener("keydown", keydownHandler);
+
+function keydownHandler(event) {
+  if (paused || endModal.style.display === "flex") return;
+
+  if (event.key.length === 1 && /[a-zA-Z]/i.test(event.key) && currentGuess.length < 5) {
+    currentGuess += event.key.toUpperCase();
+    updateGrid();
+  } else if (event.key === "Backspace") {
+    currentGuess = currentGuess.slice(0, -1);
+    updateGrid();
+  } else if (event.key === "Enter" && currentGuess.length === 5) {
+    if (!validWords.includes(currentGuess)) {
+      showInvalidWordMessage(currentGuess);
+      return;
     }
+    checkGuess();
   }
+}
 
-  // ==== GRID UPDATE ====
-  function updateGrid() {
-    const cells = rows[currentRow].querySelectorAll(".cell");
-    cells.forEach((cell, i) => {
-      cell.textContent = currentGuess[i] || "";
-      cell.style.fontFamily = "'AuslanFingerSpelling', sans-serif";
-    });
-  }
+function updateGrid() {
+  const cells = rows[currentRow].querySelectorAll(".cell");
+  cells.forEach((cell, index) => {
+    cell.textContent = currentGuess[index] || "";
+    cell.style.fontFamily = "'AuslanFingerSpelling', sans-serif";
+  });
+}
 
-  // ==== CHECK GUESS ====
-  function checkGuess() {
-    const guessedCorrectly = currentGuess === correctWord;
-    attempts++;
-    guessesList.push(currentGuess);
+function checkGuess() {
+  guessesList.push(currentGuess);
+  const guessArray = currentGuess.split("");
+  const correctArray = correctWord.split("");
+  const cells = rows[currentRow].querySelectorAll(".cell");
+  let remaining = [...correctArray];
 
-    const cells = rows[currentRow].querySelectorAll(".cell");
-    const correctArray = correctWord.split("");
-    const guessArray = currentGuess.split("");
-    let remaining = [...correctArray];
+  guessArray.forEach((letter, i) => {
+    if (letter === correctArray[i]) {
+      cells[i].className = "cell correct";
+      remaining[i] = null;
+    }
+  });
 
-    // Mark correct letters (green)
-    guessArray.forEach((l, i) => {
-      if (l === correctArray[i]) {
-        cells[i].style.backgroundColor = "green";
-        cells[i].style.color = "black";
-        remaining[i] = null;
-      }
-    });
-    // Present letters (orange)
-    guessArray.forEach((l, i) => {
-      if (remaining.includes(l) && cells[i].style.backgroundColor !== "green") {
-        cells[i].style.backgroundColor = "orange";
-        cells[i].style.color = "black";
-        remaining[remaining.indexOf(l)] = null;
-      }
-    });
-    // Absent letters (red)
-    guessArray.forEach((l, i) => {
-      if (!cells[i].style.backgroundColor) {
-        cells[i].style.backgroundColor = "red";
-        cells[i].style.color = "white";
-      }
-    });
+  guessArray.forEach((letter, i) => {
+    if (remaining.includes(letter) && !cells[i].classList.contains("correct")) {
+      cells[i].className = "cell present";
+      remaining[remaining.indexOf(letter)] = null;
+    }
+  });
 
-    if (guessedCorrectly || attempts >= maxAttempts) {
-      endGame(guessedCorrectly);
-    } else {
-      currentRow++;
+  guessArray.forEach((letter, i) => {
+    if (!cells[i].classList.contains("correct") && !cells[i].classList.contains("present")) {
+      cells[i].className = "cell absent";
+    }
+  });
+
+  const guessedCorrectly = currentGuess === correctWord;
+  attempts++;
+
+  if (guessedCorrectly || attempts >= maxAttempts) {
+    currentGuess = "";
+    document.removeEventListener("keydown", keydownHandler);
+    submitWordleResult(correctWord, guessesList);
+    showEndModal(guessedCorrectly);
+  } else {
+    setTimeout(() => {
       currentGuess = "";
-      setTimeout(updateGrid, 500);
-    }
+      currentRow++;
+      updateGrid();
+    }, 500);
+  }
+}
+
+// ========================= Pause & End Modals =========================
+
+function showPauseModal() {
+  endModal.style.display = "flex";
+  endModalContent.innerHTML = `
+    <h2 style="font-family: sans-serif">Game Paused</h2>
+    <img id="again-btn" src="assets/Again.png" alt="Restart">
+    <img id="finish-btn" src="assets/finish.png" alt="Finish">
+    <img id="menu-btn" src="assets/menu.png" alt="Main Menu">
+  `;
+
+  // attach events
+  document.getElementById("again-btn").onclick = () => location.reload();
+  document.getElementById("finish-btn").onclick = () => {
+    paused = false;
+    endModal.style.display = "none";
+    finishButtonHandler(true);
+  };
+  document.getElementById("menu-btn").onclick = () => window.location.href = "../index.html";
+}
+
+function showEndModal(success) {
+  paused = true;
+  let message = "";
+  let image = "";
+
+  if (success) {
+    showAuslanClap();
+    message = `<h2 style="font-family: sans-serif">Congratulations!</h2>
+               <p style="font-family: sans-serif">You guessed the word in ${guessesList.length} attempts.</p>`;
+    image = `<img src="assets/Correct.png" style="max-width: 40%; margin: 10px auto;">`;
+  } else {
+    message = `<h2 style="font-family: sans-serif">Unlucky!</h2>
+               <p style="font-family: sans-serif">The correct word was:</p>`;
+    image = `<img src="assets/Wrong.png" style="max-width: 40%; margin: 10px auto;">`;
   }
 
-  // ==== PAUSE GAME ====
-  function pauseGame() {
-    isPaused = true;
-    showModal({ paused: true });
+  endModalContent.innerHTML = `
+    ${message}
+    <div style="font-family: 'AuslanFingerSpelling', sans-serif; font-size: 60px; margin: 10px;">${correctWord}</div>
+    ${image}
+    <img id="again-btn" src="assets/Again.png" alt="Play Again">
+    <img id="menu-btn" src="assets/menu.png" alt="Main Menu">
+  `;
+
+  endModal.style.display = "flex";
+
+  document.getElementById("again-btn").onclick = () => location.reload();
+  document.getElementById("menu-btn").onclick = () => window.location.href = "../index.html";
+}
+
+function showAuslanClap() {
+  const clapGif = document.getElementById("AuslanClap");
+  if (clapGif) {
+    clapGif.src = "assets/auslan-clap.gif";
+    clapGif.style.display = "block";
+    setTimeout(() => clapGif.style.display = "none", 3000);
   }
+}
 
-  // ==== END GAME ====
-  function endGame(success) {
-    isPaused = true;
-    showModal({ paused: false, success });
-  }
+function showInvalidWordMessage(word) {
+  const message = document.createElement("div");
+  message.innerHTML = `<span style="font-family: 'AuslanFingerSpelling';">${word}</span> <span style="font-family: sans-serif;">is not valid!</span>`;
+  message.style.cssText = `
+    position: fixed; top:50%; left:50%;
+    transform: translate(-50%, -50%);
+    font-size: 80px; font-weight:bold; color:red;
+    background:black; padding:20px; border-radius:10px; z-index:1000;
+  `;
+  document.body.appendChild(message);
+  setTimeout(() => message.remove(), 2000);
+}
 
-  // ==== SHOW MODAL ====
-  function showModal({ paused = false, success = false }) {
-    if (!endModal || !endModalContent) return;
+function finishButtonHandler(early=false) {
+  paused = true;
+  endModal.style.display = "flex";
+}
 
-    let html = "";
-    if (paused) {
-      html += `<h2 style="font-family:sans-serif;text-align:center;">Game Paused</h2>`;
-    } else if (success) {
-      html += `<img src="assets/correct.png" style="max-width:120px; display:block; margin:0 auto;" alt="Correct" />`;
-      html += `<img src="assets/auslan-clap.gif" style="max-width:160px; display:block; margin:10px auto;" alt="Clap" />`;
-      html += `<p style="font-family:sans-serif; text-align:center;">You guessed the word in ${guessesList.length} guesses!</p>`;
-      html += `<div style="font-family:'AuslanFingerSpelling'; font-size:60px; text-align:center;">${correctWord}</div>`;
-    } else {
-      html += `<img src="assets/wrong.png" style="max-width:120px; display:block; margin:0 auto;" alt="Wrong" />`;
-      html += `<p style="font-family:sans-serif; text-align:center;">The correct word was:</p>`;
-      html += `<div style="font-family:'AuslanFingerSpelling'; font-size:60px; text-align:center;">${correctWord}</div>`;
-    }
+// ========================= Form Submission =========================
 
-    // Buttons row
-    html += `<div style="display:flex; justify-content:center; gap:16px; margin-top:20px;">`;
-    if (paused) html += `<img id="continue-btn" src="assets/continue.png" alt="Continue" style="width:120px;cursor:pointer;">`;
-    html += `<img id="again-btn" src="assets/again.png" alt="Play Again" style="width:120px;cursor:pointer;">`;
-    html += `<img id="finish-btn" src="assets/finish.png" alt="Finish" style="width:120px;cursor:pointer;">`;
-    html += `</div>`;
+function submitWordleResult(targetWord, guessesArray) {
+  const formData = new FormData();
+  formData.append("entry.1997091015", studentName);
+  formData.append("entry.1671097169", studentClass);
+  formData.append("entry.884909677", targetWord);
+  formData.append("entry.1040569311", guessesArray.join(", "));
+  formData.append("entry.1916112455", guessesArray.length);
+  formData.append("entry.1856222712", new Date().toLocaleString("en-AU", { timeZone: "Australia/Melbourne" }));
 
-    endModalContent.innerHTML = html;
-    endModal.style.display = "flex";
+  fetch("https://docs.google.com/forms/d/e/1FAIpQLSdrm9k5H4JSyqI8COPHubPXeHLTKMrsQTMeV_uCmSZwn3o_kA/formResponse", {
+    method: "POST",
+    mode: "no-cors",
+    body: formData
+  }).then(() => console.log("✅ Form submitted")).catch(err => console.error(err));
+}
 
-    // ==== BUTTON HANDLERS ====
-    const continueBtn = document.getElementById("continue-btn");
-    const againBtn = document.getElementById("again-btn");
-    const finishBtn = document.getElementById("finish-btn");
+// ========================= Keyboard Setup =========================
 
-    if (continueBtn) {
-      continueBtn.addEventListener("click", () => {
-        isPaused = false;
-        endModal.style.display = "none";
-      });
-    }
+function setupKeyboard() {
+  const keyboard = document.getElementById("onScreenKeyboard");
+  if (!keyboard) return;
 
-    if (againBtn) {
-      againBtn.addEventListener("click", () => location.reload());
-    }
-
-    if (finishBtn) {
-      finishBtn.addEventListener("click", () => {
-        submitWordleResult(correctWord, guessesList);
-        window.location.href = "../index.html";
-      });
-    }
-  }
-
-  // ==== INVALID WORD MESSAGE ====
-  function showInvalidWordMessage(word) {
-    const msg = document.createElement("div");
-    msg.innerHTML = `<span style="font-family:'AuslanFingerSpelling';">${word}</span> <span style="font-family:sans-serif;">is not valid!</span>`;
-    Object.assign(msg.style, {
-      position: "fixed",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      background: "black",
-      color: "red",
-      padding: "14px 20px",
-      borderRadius: "10px",
-      zIndex: "10000",
-      fontSize: "48px",
-      textAlign: "center"
+  keyboard.innerHTML = `<div id="keyboard-header"><button id="closeKeyboardBtn">✖</button></div>`;
+  const layout = ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
+  layout.forEach(r=>{
+    const rowDiv = document.createElement("div");
+    rowDiv.className="keyboard-row";
+    r.split("").forEach(l=>{
+      const key = document.createElement("button");
+      key.className="key"; key.textContent=l;
+      key.onclick = ()=>{ if(currentGuess.length<5){ currentGuess+=l; updateGrid(); } };
+      rowDiv.appendChild(key);
     });
-    document.body.appendChild(msg);
-    setTimeout(() => msg.remove(), 1600);
-  }
+    keyboard.appendChild(rowDiv);
+  });
 
-  // ==== SUBMIT FORM ====
-  function submitWordleResult(targetWord, guessesArray) {
-    const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdrm9k5H4JSyqI8COPHubPXeHLTKMrsQTMeV_uCmSZwn3o_kA/formResponse";
-    const formData = new FormData();
-    formData.append("entry.1997091015", studentName);
-    formData.append("entry.1671097169", studentClass);
-    formData.append("entry.884909677", targetWord);
-    formData.append("entry.1040569311", guessesArray.join(", "));
-    formData.append("entry.1916112455", guessesArray.length);
-    formData.append("entry.1856222712", new Date().toLocaleString("en-AU", { timeZone: "Australia/Melbourne" }));
+  const controlRow=document.createElement("div"); controlRow.className="keyboard-row";
+  const backspace=document.createElement("button"); backspace.textContent="←"; backspace.className="key wide";
+  backspace.onclick = ()=>{ currentGuess=currentGuess.slice(0,-1); updateGrid(); };
+  const enter=document.createElement("button"); enter.textContent="↵"; enter.className="key wide";
+  enter.onclick = ()=>{ if(currentGuess.length===5){ if(!validWords.includes(currentGuess.toUpperCase())){ showInvalidWordMessage(currentGuess); return;} checkGuess(); } };
+  controlRow.append(backspace, enter);
+  keyboard.appendChild(controlRow);
 
-    fetch(formURL, { method: "POST", mode: "no-cors", body: formData });
-  }
+  const closeBtn=document.getElementById("closeKeyboardBtn");
+  if(closeBtn) closeBtn.onclick = ()=> keyboard.style.display="none";
 
-})();
+  dragElement(keyboard);
+}
+
+// ========================= Drag Keyboard =========================
+
+function dragElement(elmnt){
+  const header=elmnt.querySelector("#keyboard-header");
+  if(!header) return;
+  let startX=0,startY=0,initialX=0,initialY=0,dragging=false;
+
+  header.addEventListener("mousedown", e=>{
+    e.preventDefault(); dragging=true;
+    startX=e.clientX; startY=e.clientY;
+    initialX=elmnt.offsetLeft; initialY=elmnt.offsetTop;
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", stopDrag);
+  });
+
+  header.addEventListener("touchstart", e=>{
+    e.preventDefault(); dragging=true;
+    const touch=e.touches[0]; startX=touch.clientX; startY=touch.clientY;
+    initialX=elmnt.offsetLeft; initialY=elmnt.offsetTop;
+    document.addEventListener("touchmove", onTouchMove, {passive:false});
+    document.addEventListener("touchend", stopDrag);
+  });
+
+  function onMouseMove(e){ if(!dragging) return; elmnt.style.left=initialX+(e.clientX-startX)+"px"; elmnt.style.top=initialY+(e.clientY-startY)+"px"; elmnt.style.transform="none"; }
+  function onTouchMove(e){ if(!dragging) return; const t=e.touches[0]; elmnt.style.left=initialX+(t.clientX-startX)+"px"; elmnt.style.top=initialY+(t.clientY-startY)+"px"; elmnt.style.transform="none"; e.preventDefault();}
+  function stopDrag(){ dragging=false; document.removeEventListener("mousemove",onMouseMove); document.removeEventListener("mouseup",stopDrag); document.removeEventListener("touchmove",onTouchMove); document.removeEventListener("touchend",stopDrag);}
+}
