@@ -167,78 +167,67 @@
     }
   }
 
-  // ==== Modal (used for both PAUSE and END-OF-GAME) ====
-  // showEndModal({ paused: true }) --> pause
-  // showEndModal({ paused: false, success: true/false }) --> end-of-game
-  function showEndModal({ paused = false, success = false } = {}) {
-    if (!endModal || !endModalContent) return;
+// Show pause or end-of-game modal
+function showEndModal({ paused = false, success = false } = {}) {
+  const endModal = document.getElementById("end-modal");
+  const content = document.getElementById("end-modal-content");
+  if (!endModal || !content) return;
 
-    const showContinue = !!paused;
-    let html = "";
-
-    if (paused) {
-      html += `<h2 style="font-family: sans-serif; text-align:center;">Game Paused</h2>`;
-    } else if (success) {
-      // success end-of-game
-      showAuslanClap();
-      html += `<h2 style="font-family: sans-serif; text-align:center;">Congratulations!</h2>`;
-      html += `<p style="font-family: sans-serif; text-align:center;">You guessed the word in ${guessesList.length} attempts.</p>`;
-      html += `<div style="font-family: 'AuslanFingerSpelling', sans-serif; font-size:60px; text-align:center; margin-bottom:10px;">${correctWord}</div>`;
-      html += `<div style="text-align:center;"><img src="assets/auslan-clap.gif" style="max-width:160px; height:auto;" alt="Clap"></div>`;
-    } else {
-      // unsuccessful end-of-game
-      html += `<h2 style="font-family: sans-serif; text-align:center;">Unlucky!</h2>`;
-      html += `<p style="font-family: sans-serif; text-align:center;">The correct word was:</p>`;
-      html += `<div style="font-family: 'AuslanFingerSpelling', sans-serif; font-size:60px; text-align:center; margin-bottom:10px;">${correctWord}</div>`;
-      html += `<div style="text-align:center;"><img src="assets/unlucky.png" style="max-width:120px; height:auto;" alt="Unlucky"></div>`;
-    }
-
-    // buttons: Continue only for paused; Again + Finish always present
-    html += `<div style="display:flex; gap:16px; justify-content:center; align-items:center; margin-top:18px;">`;
-    if (showContinue) {
-      html += `<img id="continue-btn" src="assets/continue.png" alt="Continue" />`;
-    }
-    html += `<img id="again-btn" src="assets/again.png" alt="Play Again" />`;
-    html += `<img id="finish-btn" src="assets/finish.png" alt="Finish" />`;
-    html += `</div>`;
-
-    endModalContent.innerHTML = html;
-    endModal.style.display = "flex";
-
-    // If end-of-game, disable keyboard input by removing listener. If paused, keep listener attached
-    if (!paused) {
-      document.removeEventListener("keydown", keydownHandler);
-    }
-
-    // Attach listeners to newly-created buttons
-    const continueBtn = document.getElementById("continue-btn");
-    const againBtn = document.getElementById("again-btn");
-    const finishBtn = document.getElementById("finish-btn");
-
-    if (continueBtn) {
-      continueBtn.addEventListener("click", () => {
-        // just close modal and resume (no state changes)
-        endModal.style.display = "none";
-        // ensure keyboard works
-        document.addEventListener("keydown", keydownHandler);
-      });
-    }
-
-    if (againBtn) {
-      againBtn.addEventListener("click", () => {
-        // restart fresh
-        location.reload();
-      });
-    }
-
-    if (finishBtn) {
-      finishBtn.addEventListener("click", () => {
-        // submit (already submitted at game end too) and return to index
-        submitWordleResult(correctWord, guessesList);
-        window.location.href = "../index.html";
-      });
-    }
+  // Build content
+  let html = "";
+  if (paused) {
+    html += `<h2 style="font-family:sans-serif;">Game Paused</h2>`;
+  } else if (success) {
+    html += `<h2 style="font-family:sans-serif;">Congratulations!</h2>`;
+    html += `<p>You guessed the word in ${guessesList.length} attempts.</p>`;
+  } else {
+    html += `<h2 style="font-family:sans-serif;">Unlucky!</h2>`;
+    html += `<p>The correct word was:</p>`;
+    html += `<div style="font-family:'AuslanFingerSpelling'; font-size:60px;">${correctWord}</div>`;
   }
+
+  // Buttons row
+  html += `<div style="display:flex; justify-content:center; align-items:center; margin-top:16px;">`;
+  if (paused) html += `<img id="continue-btn" src="assets/continue.png" alt="Continue" />`;
+  html += `<img id="again-btn" src="assets/again.png" alt="Play Again" />`;
+  html += `<img id="finish-btn" src="assets/finish.png" alt="Finish" />`;
+  html += `</div>`;
+
+  content.innerHTML = html;
+  endModal.style.display = "flex";
+
+  // Button listeners
+  const continueBtn = document.getElementById("continue-btn");
+  const againBtn = document.getElementById("again-btn");
+  const finishBtn = document.getElementById("finish-btn");
+
+  if (continueBtn) {
+    continueBtn.addEventListener("click", () => {
+      endModal.style.display = "none";
+      document.addEventListener("keydown", keydownHandler); // resume keyboard
+    });
+  }
+
+  if (againBtn) {
+    againBtn.addEventListener("click", () => location.reload());
+  }
+
+  if (finishBtn) {
+    finishBtn.addEventListener("click", () => {
+      submitWordleResult(correctWord, guessesList);
+      window.location.href = "../index.html";
+    });
+  }
+
+  // If end-of-game, disable keyboard
+  if (!paused) document.removeEventListener("keydown", keydownHandler);
+}
+
+// Stop button triggers pause modal
+const stopBtn = document.getElementById("stop-btn");
+if (stopBtn) {
+  stopBtn.addEventListener("click", () => showEndModal({ paused: true }));
+}
 
   // ==== Small helpers ====
   function showAuslanClap() {
