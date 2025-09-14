@@ -39,11 +39,12 @@
 <div id="game-container"></div>
 
 <!-- Optional on-screen keyboard -->
-<div id="onScreenKeyboard" class="keyboard-modal"></div>
-
-  <!-- On-screen Keyboard Toggle + Modal -->
-  <img id="keyboard-btn" src="assets/keyboard.png" alt="KeyboardBtn" />
-  <div id="onScreenKeyboard" class="keyboard-modal" style="display: none;"></div>
+<div id="keyboardModal">
+  <div id="onScreenKeyboard">
+    <div id="keyboard-header"><button id="closeKeyboardBtn">✖</button></div>
+    <div id="keyboard-grid"></div>
+  </div>
+</div>
 
   <!-- Script -->
   <script src="script.js"></script>
