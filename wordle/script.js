@@ -166,7 +166,7 @@ function showStopModal() {
 
   document.getElementById("finish-btn").onclick = () => {
     endModal.style.display = "none";
-    finishButtonHandler(true); 
+    finishButtonHandler(true); // will now submit and redirect
   };
 }
 
@@ -221,11 +221,6 @@ function showInvalidWordMessage(word) {
   `;
   document.body.appendChild(message);
   setTimeout(() => message.remove(), 2000);
-}
-
-function finishButtonHandler(early=false) {
-  paused = true;
-  endModal.style.display = "flex";
 }
 
 // ========================= Form Submission =========================
