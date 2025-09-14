@@ -216,31 +216,15 @@ html, body {
   z-index: 2000;
 }
 
-/* Keyboard modal top-middle */
-.keyboard-modal {
-  position: fixed;
-  top: 10%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90vw;
-  max-width: 800px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 8px;
-  box-shadow: 0 0 25px rgba(0,0,0,0.6);
-  z-index: 2500;
-  display: none;
-  padding: 10px;
-}
-
 .keyboard-modal {
   position: fixed;
   bottom: 10%;
   left: 50%;
   transform: translate(-50%, 0%) !important;
-  background: rgba(255,255,255,0.95);
-  padding: 5px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 5px 5px;
   border-radius: 8px;
-  box-shadow: 0 0 25px rgba(0,0,0,0.6);
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
   z-index: 2500;
   display: none;
   min-width: 800px;
@@ -249,34 +233,8 @@ html, body {
   touch-action: none;
 }
 
-.keyboard-row {
-  display: flex;
-  justify-content: center;
-  margin: 2px 0;
-  flex-wrap: nowrap;
-}
-
-.key {
-  font-family: 'AuslanFingerSpelling';
-  font-size: 40px;
-  padding: 1px;
-  margin: 1px;
-  background: #eee;
-  border: 2px solid #aaa;
-  border-radius: 2px;
-  cursor: pointer;
-  user-select: none;
-  width: 70px;
-  text-align: center;
-  text-transform: lowercase;
-}
-
-.key.wide {
-  width: 80px;
-}
-
-.key:hover {
-  background: #ccc;
+.keyboard-modal, #keyboard-header {
+  touch-action: none;
 }
 
 #keyboard-header {
@@ -292,11 +250,41 @@ html, body {
   background: none;
   border: none;
   font-size: 24px;
+  cursor: pointer;
   font-weight: bold;
   color: #333;
   padding: 10px;
+  z-index: 10;
+  pointer-events: auto;}
+
+.keyboard-row {
+  display: flex;
+  justify-content: center;
+  margin: 2px 0;
+  flex-wrap: nowrap;
+}
+
+.key {
+  font-family: 'AuslanFingerSpelling';
+  font-size: 40px;
+  padding: 1px 1px;
+  margin: 1px;
+  background: #eee;
+  border: 2px solid #aaa;
+  border-radius: 2px;
   cursor: pointer;
-  pointer-events: auto;
+  user-select: none;
+  text-transform: lowercase;
+  width: 70px;
+  text-align: center;
+}
+
+.key.wide {
+  width: 80px;
+}
+
+.key:hover {
+  background: #ccc;
 }
 
 /* ===== RESPONSIVE ===== */
