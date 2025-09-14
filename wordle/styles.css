@@ -38,16 +38,27 @@ html, body {
   background: transparent;
 }
 
-/* ===== GRID / ROWS / CELLS ===== */
+/* ===== WORD GRID ===== */
+#word-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  margin-bottom: 1vh;
+  background: transparent;
+  width: 100%;
+  height: auto;
+}
+
+/* ===== GRID CELLS ===== */
 .row {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 2px; 
-  height: calc(100% / 6);
 }
 
 .cell {
+  width: 100%;
   aspect-ratio: 1/1;
   font-size: clamp(16px, 3vw, 44px);
   font-weight: bold;
@@ -59,6 +70,21 @@ html, body {
   align-items: center;
   font-family: 'AuslanFingerSpelling', sans-serif;
   box-sizing: border-box;
+}
+
+/* ===== CENTRAL LETTER BOX (if used for animation) ===== */
+.letter-box {
+  width: 100px;
+  height: 100px;
+  font-size: 200px;
+  font-weight: bold;
+  border: 5px solid #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  text-transform: uppercase;
+  aspect-ratio: 1/1;
 }
 
 .cell:hover {
