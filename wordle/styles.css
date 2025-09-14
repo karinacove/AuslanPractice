@@ -134,7 +134,7 @@ body {
 
 #again-button {
   display: none;
-  max-width: 150px;
+  max-width: 100px;
   padding: 10px;
   margin: 20px auto;
   border: none;
@@ -149,8 +149,6 @@ body {
 
 #finish-btn {
   position: fixed;
-  top: 20px;
-  right: 20px;
   width: 100px;
   cursor: pointer;
   z-index: 1000;
@@ -167,8 +165,6 @@ body {
 
 #continue-btn {
   position: fixed;
-  top: 20px;
-  right: 20px;
   width: 100px;
   cursor: pointer;
   z-index: 1000;
