@@ -176,31 +176,133 @@ function showPauseModal() {
 
 function showEndModal(success) {
   paused = true;
-  endModal.style.display = "flex";
-
-  let message = "", image = "";
+  let message = "", image = "", clapHtml = "";
 
   if (success) {
-    showAuslanClap();
-    message = `<h2 style="font-family: sans-serif">Congratulations!</h2>
-               <p style="font-family: sans-serif">You guessed the word in ${guessesList.length} attempts.</p>`;
+    clapHtml = `<img id="AuslanClapModal" src="assets/auslan-clap.gif" style="width:50%; margin:10px auto;">`;
     image = `<img src="assets/correct.png" style="max-width: 40%; margin:10px auto;">`;
+    message = `<p style="font-family: sans-serif">You guessed the word in ${guessesList.length} attempts.</p>`;
   } else {
-    message = `<h2 style="font-family: sans-serif">Unlucky!</h2>
-               <p style="font-family: sans-serif">The correct word was:</p>`;
-    image = `<img src="assets/wrong.png" style="max-width: 40%; margin:10px auto;">`;
+    image = `<img src="assets/wrong.png" style="max-width: 40%; margin:10px auto;">`    
+    message = <p style="font-family: sans-serif">The correct word was:</p>`;
   }
 
   endModalContent.innerHTML = `
+    ${clapHtml} ${image}      
     ${message}
     <div style="font-family:'AuslanFingerSpelling'; font-size:60px; margin:10px;">${correctWord}</div>
-    ${image}
-    <img id="again-btn" src="assets/again.png" alt="Play Again" style="cursor:pointer; width:120px;">
-    <img id="menu-btn" src="assets/menu.png" alt="Main Menu" style="cursor:pointer; width:120px;">
+    <div style="display:flex; justify-content:center; gap:20px; margin-top:20px;">
+      <img id="again-btn" src="assets/again.png" alt="Play Again" style="cursor:pointer; width:120px;">
+      <img id="menu-btn" src="assets/menu.png" alt="Main Menu" style="cursor:pointer; width:120px;">
+    </div>
   `;
 
   document.getElementById("again-btn").onclick = () => location.reload();
   document.getElementById("menu-btn").onclick = () => window.location.href = "../index.html";
+}
+
+// ========================= Keyboard ============================
+function setupKeyboard() {
+  const keyboard = document.getElementById("onScreenKeyboard");
+  if (!keyboard) return;
+
+  keyboard.innerHTML = `<div id="keyboard-header"><button id="closeKeyboardBtn">✖</button></div>`;
+  const layout = ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
+  
+  layout.forEach(r => {
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "keyboard-row";
+    r.split("").forEach(l => {
+      const key = document.createElement("button");
+      key.className = "key";
+      key.textContent = l;
+      key.onclick = () => { 
+        if(currentGuess.length < 5){ 
+          currentGuess += l; 
+          updateGrid(); 
+        } 
+      };
+      rowDiv.appendChild(key);
+    });
+    keyboard.appendChild(rowDiv);
+  });
+
+  const controlRow = document.createElement("div");
+  controlRow.className = "keyboard-row";
+
+  const backspace = document.createElement("button");
+  backspace.textContent = "←";
+  backspace.className = "key wide";
+  backspace.onclick = () => { currentGuess = currentGuess.slice(0, -1); updateGrid(); };
+
+  const enter = document.createElement("button");
+  enter.textContent = "↵";
+  enter.className = "key wide";
+  enter.onclick = () => { 
+    if(currentGuess.length === 5){ 
+      if(!validWords.includes(currentGuess.toUpperCase())) { 
+        showInvalidWordMessage(currentGuess); 
+        return; 
+      } 
+      checkGuess(); 
+    } 
+  };
+
+  controlRow.append(backspace, enter);
+  keyboard.appendChild(controlRow);
+
+  const closeBtn = document.getElementById("closeKeyboardBtn");
+  if(closeBtn) closeBtn.onclick = () => keyboard.style.display = "none";
+
+  dragElement(keyboard);
+}
+
+// Drag functionality
+function dragElement(elmnt){
+  const header = elmnt.querySelector("#keyboard-header");
+  if(!header) return;
+
+  let startX=0, startY=0, initialX=0, initialY=0, dragging=false;
+
+  header.addEventListener("mousedown", e=>{
+    e.preventDefault(); dragging=true;
+    startX=e.clientX; startY=e.clientY;
+    initialX=elmnt.offsetLeft; initialY=elmnt.offsetTop;
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", stopDrag);
+  });
+
+  header.addEventListener("touchstart", e=>{
+    e.preventDefault(); dragging=true;
+    const touch = e.touches[0]; startX = touch.clientX; startY = touch.clientY;
+    initialX = elmnt.offsetLeft; initialY = elmnt.offsetTop;
+    document.addEventListener("touchmove", onTouchMove, {passive:false});
+    document.addEventListener("touchend", stopDrag);
+  });
+
+  function onMouseMove(e){ 
+    if(!dragging) return; 
+    elmnt.style.left = initialX + (e.clientX - startX) + "px"; 
+    elmnt.style.top = initialY + (e.clientY - startY) + "px"; 
+    elmnt.style.transform = "none"; 
+  }
+
+  function onTouchMove(e){ 
+    if(!dragging) return; 
+    const t = e.touches[0]; 
+    elmnt.style.left = initialX + (t.clientX - startX) + "px"; 
+    elmnt.style.top = initialY + (t.clientY - startY) + "px"; 
+    elmnt.style.transform = "none"; 
+    e.preventDefault(); 
+  }
+
+  function stopDrag(){ 
+    dragging = false; 
+    document.removeEventListener("mousemove", onMouseMove); 
+    document.removeEventListener("mouseup", stopDrag); 
+    document.removeEventListener("touchmove", onTouchMove); 
+    document.removeEventListener("touchend", stopDrag);
+  }
 }
 
 // ========================= Auslan Clap =========================
