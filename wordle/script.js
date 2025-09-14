@@ -64,6 +64,15 @@
       });
 
     // ==== KEYBOARD INPUT ====
+    const keyboardBtn = document.getElementById("keyboard-btn");
+    const onScreenKeyboard = document.getElementById("onScreenKeyboard");
+
+    keyboardBtn.addEventListener("click", () => {
+       if (!onScreenKeyboard) return;
+      // toggle keyboard modal
+      onScreenKeyboard.style.display = onScreenKeyboard.style.display === "block" ? "none" : "block";
+    });
+    
     document.addEventListener("keydown", handleKeydown);
   });
 
