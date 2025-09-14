@@ -285,7 +285,7 @@ function setupKeyboard() {
   };
   grid.appendChild(enter);
 
-  dragElement(document.getElementById("onScreenKeyboard"));
+  dragElement(document.getElementById("keyboard-container"));
 }
 
 // Drag functionality
