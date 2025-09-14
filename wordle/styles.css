@@ -152,7 +152,7 @@ html, body {
   position: fixed;
   top: 20px;
   right: 20px;
-  width: 120px;
+  width: 100px;
   cursor: pointer;
   z-index: 1000;
 }
