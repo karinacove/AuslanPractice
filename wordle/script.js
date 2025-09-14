@@ -24,9 +24,10 @@ if (!studentName || !studentClass) {
 document.addEventListener("DOMContentLoaded", () => {
   if (finishButton) finishButton.addEventListener("click", () => finishButtonHandler(true));
 
+  // 🔹 Stop button opens the pause modal
   if (stopBtn) stopBtn.addEventListener("click", () => {
     paused = true;
-    showPauseModal();
+    showStopModal();
   });
 
   if (keyboardBtn) keyboardBtn.addEventListener("click", () => {
@@ -133,12 +134,12 @@ function checkGuess() {
   }
 }
 
-// ========================= Pause & End Modals =========================
+// ========================= Stop / Pause Modal =========================
 
-function showPauseModal() {
+function showStopModal() {
   endModal.style.display = "flex";
   endModalContent.innerHTML = `
-    <h2 style="font-family: sans-serif">Game Paused</h2>
+    <h2 style="font-family: sans-serif; text-align:center;">Game Paused</h2>
     <div style="display:flex; justify-content:center; gap:15px; margin-top:20px;">
       <img id="continue-btn" src="assets/continue.png" alt="Continue" style="cursor:pointer; width:120px;">
       <img id="again-btn" src="assets/again.png" alt="Restart" style="cursor:pointer; width:120px;">
@@ -159,6 +160,8 @@ function showPauseModal() {
     finishButtonHandler(true);
   };
 }
+
+// ========================= End Modal =========================
 
 function showEndModal(success) {
   paused = true;
@@ -185,9 +188,9 @@ function showEndModal(success) {
 
   document.getElementById("again-btn").onclick = () => location.reload();
   document.getElementById("menu-btn").onclick = () => window.location.href = "../index.html";
-
-  showAuslanClap();
 }
+
+// ========================= Other Functions =========================
 
 function showAuslanClap() {
   const clapGif = document.getElementById("AuslanClap");
