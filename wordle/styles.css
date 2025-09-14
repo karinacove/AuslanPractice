@@ -262,6 +262,12 @@ html, body {
   flex-wrap: nowrap;
 }
 
+.key.enter-key {
+  height: calc(2 * 60px + 6px); /* spans 2 rows (adjust size to match your .key height + margin) */
+  width: 80px;
+  align-self: stretch;
+}
+
 .key {
   font-family: 'AuslanFingerSpelling';
   font-size: 40px;
