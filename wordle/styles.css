@@ -132,7 +132,7 @@ body {
   z-index: 1000;
 }
 
-#again-button {
+#again-btn {
   display: none;
   max-width: 120px;
   padding: 10px;
@@ -141,13 +141,13 @@ body {
   background: none;
 }
 
-#again-button img {
+#again-btn img {
   width: 100%;
   height: auto;
   pointer-events: none;
 }
 
-#stop-btn {
+#stop-Btn {
   position: fixed;
   top: 20px;
   right: 20px;
@@ -155,9 +155,9 @@ body {
   cursor: pointer;
   z-index: 1000;
 
-#finish-btn,
-#continue-btn,
-#again-btn {
+#finish-Btn,
+#continue-Btn,
+#again-Btn {
   position: relative;
   display: inline-block;
   width: 120px;         
