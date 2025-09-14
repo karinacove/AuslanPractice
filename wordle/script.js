@@ -196,10 +196,10 @@
     // buttons: Continue only for paused; Again + Finish always present
     html += `<div style="display:flex; gap:16px; justify-content:center; align-items:center; margin-top:18px;">`;
     if (showContinue) {
-      html += `<img id="continue-btn" src="assets/continue.png" alt="Continue" style="cursor:pointer; width:90px; height:auto;" />`;
+      html += `<img id="continue-btn" src="assets/continue.png" alt="Continue" />`;
     }
-    html += `<img id="again-btn" src="assets/again.png" alt="Play Again" style="cursor:pointer; width:90px; height:auto;" />`;
-    html += `<img id="finish-btn" src="assets/finish.png" alt="Finish" style="cursor:pointer; width:90px; height:auto;" />`;
+    html += `<img id="again-btn" src="assets/again.png" alt="Play Again" />`;
+    html += `<img id="finish-btn" src="assets/finish.png" alt="Finish" />`;
     html += `</div>`;
 
     endModalContent.innerHTML = html;
