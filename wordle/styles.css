@@ -214,27 +214,30 @@ html, body {
   z-index: 2000;
 }
 
+/* 🔹 Modal backdrop */
 .keyboard-modal {
   position: fixed;
-  bottom: 50%;
-  left: 50%;
-  transform: translate(-50%, 0%) !important;
-  background: rgba(255, 255, 255, 0.95);
-  padding: 5px 5px;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* backdrop stays in place */
+  display: none;
+  justify-content: center;
+  align-items: flex-end; /* default bottom */
+  z-index: 2500;
+  touch-action: none;
+}
+
+/* 🔹 Keyboard container (draggable) */
+#onScreenKeyboard {
+  background: #fff;
+  padding: 8px;
   border-radius: 8px;
   box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
-  z-index: 2500;
-  display: none;
-  min-width: 800px;
-  max-width: 90vw;
   cursor: move;
   touch-action: none;
 }
 
-.keyboard-modal, #keyboard-header {
-  touch-action: none;
-}
-
+/* 🔹 Header with close button */
 #keyboard-header {
   display: flex;
   justify-content: space-between;
@@ -251,36 +254,47 @@ html, body {
   cursor: pointer;
   font-weight: bold;
   color: #333;
-  padding: 10px;
+  padding: 6px;
   z-index: 10;
-  pointer-events: auto;}
-
-.keyboard-row {
-  display: flex;
-  justify-content: center;
-  margin: 2px 0;
-  flex-wrap: nowrap;
+  pointer-events: auto;
 }
 
+/* 🔹 Grid layout for rows */
+#keyboard-grid {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  grid-gap: 4px;
+}
+
+/* 🔹 Normal key */
 .key {
   font-family: 'AuslanFingerSpelling';
-  font-size: 40px;
-  padding: 1px 1px;
-  margin: 1px;
+  font-size: 32px;
+  padding: 6px;
   background: #eee;
   border: 2px solid #aaa;
-  border-radius: 2px;
+  border-radius: 4px;
   cursor: pointer;
   user-select: none;
   text-transform: lowercase;
-  width: 70px;
   text-align: center;
 }
 
-.key.wide {
-  width: 80px;
+/* 🔹 Backspace placed at end of row 1 */
+.key.backspace {
+  grid-row: 1;
+  grid-column: 11;
+  font-size: 28px;
 }
 
+/* 🔹 Enter spans 2 rows beside L/M */
+.key.enter-key {
+  grid-row: 2 / span 2;
+  grid-column: 11;
+  font-size: 28px;
+}
+
+/* 🔹 Hover effect */
 .key:hover {
   background: #ccc;
 }
