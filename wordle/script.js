@@ -28,10 +28,26 @@ document.addEventListener("DOMContentLoaded", () => {
     showPauseModal();
   });
 
-  if (keyboardBtn) keyboardBtn.addEventListener("click", () => {
-    const keyboard = document.getElementById("onScreenKeyboard");
-    if (keyboard) keyboard.style.display = keyboard.style.display === "none" ? "block" : "none";
+ // 🔹 Keyboard button toggles the modal
+if (keyboardBtn) {
+  keyboardBtn.addEventListener("click", () => {
+    const modal = document.querySelector(".keyboard-modal");
+    if (modal) modal.style.display = "flex"; // show backdrop + keyboard
   });
+}
+
+// 🔹 Close button and backdrop click both close modal
+document.addEventListener("click", (e) => {
+  const modal = document.querySelector(".keyboard-modal");
+  if (!modal) return;
+
+  if (
+    e.target.id === "closeKeyboardBtn" || // ❌ button
+    e.target.classList.contains("keyboard-modal") // backdrop
+  ) {
+    modal.style.display = "none";
+  }
+});
 
   setupKeyboard();
 });
