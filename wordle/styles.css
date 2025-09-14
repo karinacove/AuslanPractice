@@ -169,7 +169,6 @@ html, body {
   max-width: 320px;
   font-family: sans-serif;
   font-weight: bold;
-  z-index: 1000;
 }
 
 /* ===== MODAL BUTTONS ===== */
