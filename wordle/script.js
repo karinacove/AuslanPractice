@@ -22,19 +22,6 @@ if (!studentName || !studentClass) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  function finishButtonHandler(early = false) {
-  paused = true;
-
-  // Submit results if any guesses exist
-  if (guessesList.length > 0) {
-    submitWordleResult(correctWord, guessesList);
-  }
-
-  // Redirect to main menu
-  window.location.href = "../index.html";
-}
-
-
   // 🔹 Stop button opens the pause modal
   if (stopBtn) stopBtn.addEventListener("click", () => {
     paused = true;
@@ -143,6 +130,18 @@ function checkGuess() {
       updateGrid();
     }, 500);
   }
+}
+
+function finishButtonHandler(early = false) {
+  paused = true;
+
+  // Submit results if any guesses exist
+  if (guessesList.length > 0) {
+    submitWordleResult(correctWord, guessesList);
+  }
+
+  // Redirect to main menu
+  window.location.href = "../index.html";
 }
 
 // ========================= Stop / Pause Modal =========================
