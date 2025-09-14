@@ -206,6 +206,29 @@ html, body {
 }
 
 /* ===== ON-SCREEN KEYBOARD ===== */
+#keyboard-container {
+  position: absolute; /* allow dragging */
+  bottom: 10px; /* initial position */
+  background: rgba(255, 255, 255, 0.95); /* slight transparency */
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  touch-action: none;
+  cursor: grab;
+  z-index: 2600;
+}
+
+#keyboard-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 5px;
+  cursor: grab; /* indicate draggable */
+}
+
+#keyboard-header:active {
+  cursor: grabbing;
+}
+
 #keyboard-btn {
   position: fixed;
   bottom: 10px;
@@ -233,14 +256,6 @@ html, body {
   border-radius: 8px;
   box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
   touch-action: none;
-  cursor: move;
-}
-
-/* 🔹 Header with close button */
-#keyboard-header {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 5px;
   cursor: move;
 }
 
