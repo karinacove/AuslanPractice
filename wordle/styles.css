@@ -204,6 +204,34 @@ html, body {
 }
 
 /* ===== ON-SCREEN KEYBOARD ===== */
+#keyboard-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background: url('assets/keyboard-icon.png') no-repeat center center;
+  background-size: contain;
+  cursor: pointer;
+  z-index: 2000;
+}
+
+/* Keyboard modal top-middle */
+.keyboard-modal {
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90vw;
+  max-width: 800px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 0 25px rgba(0,0,0,0.6);
+  z-index: 2500;
+  display: none;
+  padding: 10px;
+}
+
 .keyboard-modal {
   position: fixed;
   bottom: 10%;
