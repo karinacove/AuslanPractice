@@ -270,11 +270,25 @@ html, body {
 }
 
 /* 🔹 Grid layout for rows */
+
 #keyboard-grid {
-  display: grid;
-  grid-template-columns: repeat(11, 1fr);
-  grid-gap: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
+
+/* Each row inside the grid */
+.keyboard-row {
+  display: flex;
+  justify-content: center; /* centres keys */
+  gap: 4px;
+}
+
+/* Override for bottom row (ZXCVBNM) */
+.keyboard-row.bottom {
+  justify-content: center;
+}
+
 
 /* 🔹 Key styling */
 .key {
