@@ -222,52 +222,60 @@ function setupKeyboard() {
   if (!keyboard) return;
 
   keyboard.innerHTML = `<div id="keyboard-header"><button id="closeKeyboardBtn">✖</button></div>`;
-  const layout = ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
-  
-  layout.forEach(r => {
+  const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
+
+  layout.forEach((row, rowIndex) => {
     const rowDiv = document.createElement("div");
     rowDiv.className = "keyboard-row";
-    r.split("").forEach(l => {
+
+    row.split("").forEach(l => {
       const key = document.createElement("button");
       key.className = "key";
       key.textContent = l;
-      key.onclick = () => { 
-        if(currentGuess.length < 5){ 
-          currentGuess += l; 
-          updateGrid(); 
-        } 
+      key.onclick = () => {
+        if (currentGuess.length < 5) {
+          currentGuess += l;
+          updateGrid();
+        }
       };
       rowDiv.appendChild(key);
     });
+
+    // Backspace after P (row 0)
+    if (rowIndex === 0) {
+      const backspace = document.createElement("button");
+      backspace.textContent = "←";
+      backspace.className = "key wide";
+      backspace.onclick = () => {
+        currentGuess = currentGuess.slice(0, -1);
+        updateGrid();
+      };
+      rowDiv.appendChild(backspace);
+    }
+
+    // Enter beside L and M (rows 1 & 2)
+    if (rowIndex === 1) {
+      const enter = document.createElement("button");
+      enter.textContent = "↵";
+      enter.className = "key enter-key";
+      enter.onclick = () => {
+        if (currentGuess.length === 5) {
+          if (!validWords.includes(currentGuess.toUpperCase())) {
+            showInvalidWordMessage(currentGuess);
+            return;
+          }
+          checkGuess();
+        }
+      };
+      // Add placeholder span for layout
+      rowDiv.appendChild(enter);
+    }
+
     keyboard.appendChild(rowDiv);
   });
 
-  const controlRow = document.createElement("div");
-  controlRow.className = "keyboard-row";
-
-  const backspace = document.createElement("button");
-  backspace.textContent = "←";
-  backspace.className = "key wide";
-  backspace.onclick = () => { currentGuess = currentGuess.slice(0, -1); updateGrid(); };
-
-  const enter = document.createElement("button");
-  enter.textContent = "↵";
-  enter.className = "key wide";
-  enter.onclick = () => { 
-    if(currentGuess.length === 5){ 
-      if(!validWords.includes(currentGuess.toUpperCase())) { 
-        showInvalidWordMessage(currentGuess); 
-        return; 
-      } 
-      checkGuess(); 
-    } 
-  };
-
-  controlRow.append(backspace, enter);
-  keyboard.appendChild(controlRow);
-
   const closeBtn = document.getElementById("closeKeyboardBtn");
-  if(closeBtn) closeBtn.onclick = () => keyboard.style.display = "none";
+  if (closeBtn) closeBtn.onclick = () => keyboard.style.display = "none";
 
   dragElement(keyboard);
 }
