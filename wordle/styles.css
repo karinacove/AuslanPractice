@@ -216,7 +216,7 @@ html, body {
 
 .keyboard-modal {
   position: fixed;
-  bottom: 10%;
+  bottom: 50%;
   left: 50%;
   transform: translate(-50%, 0%) !important;
   background: rgba(255, 255, 255, 0.95);
