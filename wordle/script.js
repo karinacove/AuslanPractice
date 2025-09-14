@@ -184,7 +184,7 @@ function showEndModal(success) {
     message = `<p style="font-family: sans-serif">You guessed the word in ${guessesList.length} attempts.</p>`;
   } else {
     image = `<img src="assets/wrong.png" style="max-width: 40%; margin:10px auto;">`    
-    message = <p style="font-family: sans-serif">The correct word was:</p>`;
+    message = `<p style="font-family: sans-serif">The correct word was:</p>`;
   }
 
   endModalContent.innerHTML = `
