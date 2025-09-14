@@ -147,6 +147,14 @@ body {
   pointer-events: none;
 }
 
+#stop-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 120px;
+  cursor: pointer;
+  z-index: 1000;
+
 #end-modal #finish-btn,
 #end-modal #continue-btn,
 #end-modal #again-btn {
