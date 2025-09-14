@@ -176,29 +176,44 @@ function showPauseModal() {
 
 function showEndModal(success) {
   paused = true;
-  let message = "", image = "", clapHtml = "";
+  let content = "";
 
   if (success) {
-    clapHtml = `<img id="AuslanClapModal" src="assets/auslan-clap.gif" style="width:50%; margin:10px auto;">`;
-    image = `<img src="assets/correct.png" style="max-width: 40%; margin:10px auto;">`;
-    message = `<p style="font-family: sans-serif">You guessed the word in ${guessesList.length} attempts.</p>`;
+    content = `
+      <div style="text-align:center;">
+        <img src="assets/auslan-clap.gif" alt="Auslan Clap" style="width:50%; margin:10px auto; display:block;">
+        <img src="assets/correct.png" alt="Correct" style="max-width:40%; margin:10px auto; display:block;">
+        <p style="font-family: sans-serif; font-size: 22px; margin-top: 10px;">
+          You guessed the word in ${guessesList.length} attempts.
+        </p>
+      </div>
+    `;
   } else {
-    image = `<img src="assets/wrong.png" style="max-width: 40%; margin:10px auto;">`    
-    message = `<p style="font-family: sans-serif">The correct word was:</p>`;
+    content = `
+      <div style="text-align:center;">
+        <img src="assets/wrong.png" alt="Wrong" style="max-width:40%; margin:10px auto; display:block;">
+        <p style="font-family: sans-serif; font-size: 22px; margin-top: 10px;">
+          The correct word was:
+        </p>
+        <div style="font-family:'AuslanFingerSpelling'; font-size:60px; margin:10px;">
+          ${correctWord}
+        </div>
+      </div>
+    `;
   }
 
   endModalContent.innerHTML = `
-    ${clapHtml} ${image}      
-    ${message}
-    <div style="font-family:'AuslanFingerSpelling'; font-size:60px; margin:10px;">${correctWord}</div>
+    ${content}
     <div style="display:flex; justify-content:center; gap:20px; margin-top:20px;">
       <img id="again-btn" src="assets/again.png" alt="Play Again" style="cursor:pointer; width:120px;">
-      <img id="menu-btn" src="assets/menu.png" alt="Main Menu" style="cursor:pointer; width:120px;">
+      <img id="menu-btn" src="assets/finish.png" alt="Main Menu" style="cursor:pointer; width:120px;">
     </div>
   `;
 
   document.getElementById("again-btn").onclick = () => location.reload();
   document.getElementById("menu-btn").onclick = () => window.location.href = "../index.html";
+
+  endModal.style.display = "flex";
 }
 
 // ========================= Keyboard ============================
@@ -302,17 +317,6 @@ function dragElement(elmnt){
     document.removeEventListener("mouseup", stopDrag); 
     document.removeEventListener("touchmove", onTouchMove); 
     document.removeEventListener("touchend", stopDrag);
-  }
-}
-
-// ========================= Auslan Clap =========================
-
-function showAuslanClap() {
-  const clapGif = document.getElementById("AuslanClap");
-  if (clapGif) {
-    clapGif.src = "assets/auslan-clap.gif";
-    clapGif.style.display = "block";
-    setTimeout(() => clapGif.style.display = "none", 3000);
   }
 }
 
