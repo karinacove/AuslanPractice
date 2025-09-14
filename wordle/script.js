@@ -22,7 +22,18 @@ if (!studentName || !studentClass) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  if (finishButton) finishButton.addEventListener("click", () => finishButtonHandler(true));
+  function finishButtonHandler(early = false) {
+  paused = true;
+
+  // Submit results if any guesses exist
+  if (guessesList.length > 0) {
+    submitWordleResult(correctWord, guessesList);
+  }
+
+  // Redirect to main menu
+  window.location.href = "../index.html";
+}
+
 
   // 🔹 Stop button opens the pause modal
   if (stopBtn) stopBtn.addEventListener("click", () => {
@@ -155,9 +166,8 @@ function showStopModal() {
   document.getElementById("again-btn").onclick = () => location.reload();
 
   document.getElementById("finish-btn").onclick = () => {
-    paused = false;
     endModal.style.display = "none";
-    finishButtonHandler(true);
+    finishButtonHandler(true); 
   };
 }
 
