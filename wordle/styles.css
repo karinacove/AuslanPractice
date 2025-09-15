@@ -207,12 +207,10 @@ html, body {
 
 /* ===== ON-SCREEN KEYBOARD ===== */
 #keyboard-container {
-  position: absolute;              /* free-floating */
-  bottom: 10px;                     /* initial position */
-  left: 50%;                        /* centre horizontally */
-  transform: translateX(-50%);
-  width: 480px;                     /* fixed width to fit keys nicely */
-  height: auto;                      /* height adjusts to content */
+  position: absolute;              
+  bottom: 10px;                    
+  width: 480px;                     
+  height: auto;                     
   background: rgba(255,255,255,0.95);
   padding: 12px;
   border-radius: 8px;
@@ -224,6 +222,7 @@ html, body {
   flex-direction: column;
   align-items: center;
 }
+
 
 #keyboard-header {
   display: flex;
