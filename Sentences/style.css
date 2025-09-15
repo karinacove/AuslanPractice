@@ -240,22 +240,24 @@ body {
    End Modal
 =========================== */
 #endModal {
+  display: none;
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.5);
-  display: flex;
+  top: 0; 
+  left: 0;
+  width: 100%; 
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
   justify-content: center;
   align-items: center;
   z-index: 2000;
 }
 
 #endModalContent {
-  background: #fff;
-  padding: 15px;
-  border-radius: 12px;
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
   text-align: center;
-  min-width: 280px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
 }
 
 #endButtons {
@@ -265,19 +267,29 @@ body {
   margin-top: 15px;
 }
 
-#endButtons img, #endGif { width: 100px; height: 100px; cursor: pointer; }
+#endButtons img, #endGif { 
+  width: 120px;
+  margin: 10px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+#endModalContent img:hover {
+  transform: scale(1.1);
+}
 
 /* ===========================
    Resume Modal
 =========================== */
 #resumeModal,
 #stopModal {
+  display: none;
   position: fixed;
-  top: 0;
+  top: 0; 
   left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.7);
-  display: none; /* hidden by default */
+  width: 100%; 
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
   justify-content: center;
   align-items: center;
   z-index: 2000;
@@ -285,16 +297,17 @@ body {
 
 #resumeModal .modal-content,
 #stopModal .modal-content {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
   text-align: center;
-  max-width: 400px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
 }
 
 #resumeModal .modal-buttons img,
 #stopModal .modal-buttons img {
   width: 120px;
-  cursor: pointer;
   margin: 10px;
+  cursor: pointer;
+  transition: transform 0.2s;
 }
