@@ -134,24 +134,23 @@ function buildQuestion() {
   againBtn.style.display = "none";
 
   const isOdd = roundInLevel % 2 === 1;
-
   const comboDiv = document.createElement("div");
 
   if(currentLevel <= 3){
     // Use previous logic for Levels 1-3
-    // ...omitted here for brevity, keep as in your previous script
+    // ...keep your existing logic here
   }
 
   // Level 4
   else {
     if(isOdd){
-      // Case 1: Question = individual signs, draggable = composite images
+      // Case 1: Question = individual signs
       [currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour].forEach(word=>{
         const img = document.createElement("img");
         img.src = signPathFor(word);
         comboDiv.appendChild(img);
       });
-      buildAnswerBoxes(2); // two answer boxes
+      buildAnswerBoxes(2); // two dropzones
       buildLevel4DraggablesCase1(); 
     } else {
       // Case 2: Question = composite images
@@ -160,32 +159,34 @@ function buildQuestion() {
       comboDiv.appendChild(aniNumDiv);
 
       const foodColDiv = document.createElement("div");
+      foodColDiv.className = "compositeDiv";
       const foodImg = document.createElement("img");
       foodImg.src = compositeImagePath(`${currentSentence.food}-${currentSentence.colour}`);
       foodColDiv.appendChild(foodImg);
-      if(currentSentence.verb === "donthave"){
+      if(currentSentence.verb==="donthave"){
         const xDiv = document.createElement("div");
         xDiv.className="xOverlay"; xDiv.textContent="X";
         foodColDiv.appendChild(xDiv);
       }
       comboDiv.appendChild(foodColDiv);
 
-      buildAnswerBoxes(5); // five answer boxes
+      buildAnswerBoxes(5); // five dropzones
       buildLevel4DraggablesCase2(); 
     }
   }
 
   questionArea.appendChild(comboDiv);
-  startTime=Date.now();
+  startTime = Date.now();
 }
 
-/* ===== BUILD ANSWER BOXES ===== */
+/* ===== BUILD ANSWER BOXES (DROPZONES) ===== */
 function buildAnswerBoxes(count){
   answerArea.innerHTML="";
   for(let i=0;i<count;i++){
     const div=document.createElement("div");
-    div.className="answerBox";
+    div.className="dropzone";
     div.dataset.index=i;
+    div.dataset.placeholder="hint"; // could be updated dynamically
     div.addEventListener("dragover",allowDrop);
     div.addEventListener("drop",dropItem);
     answerArea.appendChild(div);
@@ -200,6 +201,10 @@ function dropItem(ev){
   ev.preventDefault();
   if(!draggedItem) return;
   ev.target.appendChild(draggedItem);
+  againBtn.style.display="inline-block";
+  // show check if all dropzones filled
+  const allFilled = [...answerArea.querySelectorAll(".dropzone")].every(box=>box.children.length>0);
+  if(allFilled) checkBtn.style.display="inline-block";
 }
 
 /* ===== BUILD DRAGGABLES LEVEL 4 CASE 1 ===== */
@@ -212,7 +217,7 @@ function buildLevel4DraggablesCase1(){
   items.push({src: correctAnimalNumber, correct:true});
   items.push({src: correctFoodColour, correct:true, xOverlay: currentSentence.verb==="donthave"});
 
-  // Add decoys
+  // decoys
   for(let i=0;i<14;i++){
     const decoyAnimal=randomItem(animals);
     const decoyNumber=randomItem(numbers);
@@ -228,13 +233,16 @@ function buildLevel4DraggablesCase1(){
     img.src=item.src;
     img.draggable=true;
     img.addEventListener("dragstart",dragStart);
+    const dragDiv = document.createElement("div");
+    dragDiv.className="draggable";
+    dragDiv.appendChild(img);
     if(item.xOverlay){
       const xDiv = document.createElement("div");
       xDiv.className="xOverlay"; xDiv.textContent="X";
-      img.parentElement?.appendChild(xDiv);
+      dragDiv.appendChild(xDiv);
     }
-    if(i<8) leftDraggables.appendChild(img);
-    else rightDraggables.appendChild(img);
+    if(i<8) leftDraggables.appendChild(dragDiv);
+    else rightDraggables.appendChild(dragDiv);
   });
 }
 
@@ -243,12 +251,10 @@ function buildLevel4DraggablesCase2(){
   leftDraggables.innerHTML=""; rightDraggables.innerHTML="";
   const items=[];
 
-  // correct signs
   [currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour].forEach(word=>{
     items.push({src:signPathFor(word), correct:true});
   });
 
-  // decoys
   for(let i=0;i<11;i++){
     const decoyWord=randomItem([...animals,...numbers,...food,...colours,...verbs]);
     items.push({src:signPathFor(decoyWord), correct:false});
@@ -260,20 +266,22 @@ function buildLevel4DraggablesCase2(){
     img.src=item.src;
     img.draggable=true;
     img.addEventListener("dragstart",dragStart);
-    if(i<8) leftDraggables.appendChild(img);
-    else rightDraggables.appendChild(img);
+    const dragDiv = document.createElement("div");
+    dragDiv.className="draggable";
+    dragDiv.appendChild(img);
+    if(i<8) leftDraggables.appendChild(dragDiv);
+    else rightDraggables.appendChild(dragDiv);
   });
 }
 
 /* ===== CHECK ANSWERS ===== */
 checkBtn.onclick=function(){
   let allCorrect=true;
-  const boxes=answerArea.querySelectorAll(".answerBox");
-  boxes.forEach((box,i)=>{
-    const item=box.querySelector("img");
-    if(!item) { allCorrect=false; return; }
-    // validate logic depending on level/case
-    // omitted for brevity
+  const boxes=answerArea.querySelectorAll(".dropzone");
+  boxes.forEach(box=>{
+    const item = box.querySelector("img");
+    if(!item) allCorrect=false;
+    // add Level 4 validation logic here if needed
   });
 
   if(allCorrect){ feedbackDiv.textContent="Correct!"; correctCount++; levelCorrect[currentLevel]++; }
@@ -286,7 +294,7 @@ checkBtn.onclick=function(){
 /* ===== AGAIN BUTTON ===== */
 againBtn.onclick=function(){
   buildQuestion();
-  checkBtn.style.display="inline-block";
+  checkBtn.style.display="none";
   againBtn.style.display="none";
   feedbackDiv.innerHTML="";
 };
