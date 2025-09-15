@@ -996,8 +996,6 @@ window.addEventListener("load", () => {
     if (idx % 2 === 0) leftDiv.appendChild(drag);
     else rightDiv.appendChild(drag);
   });
-}
-
 
   items = shuffleArray(items);
   const halves = [items.slice(0,8), items.slice(8,16)];
