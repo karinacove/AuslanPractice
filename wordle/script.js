@@ -10,6 +10,11 @@ const stopBtn = document.getElementById("stop-btn");
 const endModal = document.getElementById("end-modal");
 const endModalContent = document.getElementById("end-modal-content");
 const keyboardBtn = document.getElementById("keyboard-btn");
+const kb = document.getElementById("keyboard-container");
+if (kb) {
+  kb.style.left = `${(window.innerWidth - kb.offsetWidth)/2}px`;
+}
+
 
 let paused = false;
 
