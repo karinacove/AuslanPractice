@@ -336,125 +336,115 @@
     }
 
     // --- End game & submit (options)
-    function endGame({ completed=false, showModal=true, redirectAfter=false } = {}) {
-      pauseGame();
-      clearBalloons();
+// --- End game & submit (options)
+function endGame({ completed=false, showModal=true, redirectAfter=false } = {}) {
+  pauseGame();
+  clearBalloons(); // only clears at *end* of game
 
-      const percentage = totalClicks > 0 ? Math.round((correctAnswers/totalClicks)*100) : 0;
-      const correctList = [...correctAnswersList].sort().join(", ");
-      const incorrectList = [...incorrectAnswersList].sort().join(", ");
+  const percentage = totalClicks > 0 ? Math.round((correctAnswers/totalClicks)*100) : 0;
+  const correctList = [...correctAnswersList].sort().join(", ");
+  const incorrectList = [...incorrectAnswersList].sort().join(", ");
 
-      if (scoreDisplayModal) scoreDisplayModal.textContent = `Score: ${score} (${percentage}%)`;
+  if (scoreDisplayModal) scoreDisplayModal.textContent = `Score: ${score} (${percentage}%)`;
 
-      if (completed) {
-        // add clap gif in modal (remove previous)
-        const old = document.getElementById("clap-gif");
-        if (old) old.remove();
-        if (endModal) {
-          const gif = document.createElement("img");
-          gif.id = "clap-gif";
-          gif.src = clapGifSrc;
-          gif.alt = "Congratulations!";
-          gif.style.width = "220px";
-          gif.style.display = "block";
-          gif.style.margin = "8px auto";
-          endModal.prepend(gif);
-        }
-      }
-
-      // Submit to Google Form silently
-      const form = document.createElement("form");
-      form.action = "https://docs.google.com/forms/d/e/1FAIpQLSeHCxQ4czHbx1Gdv649vlr5-Dz9-4DQu5M5OcIfC46WlL-6Qw/formResponse";
-      form.method = "POST";
-      form.target = "hidden_iframe";
-      form.style.display = "none";
-
-      const entries = {
-        "entry.1609572894": studentName,
-        "entry.1168342531": studentClass,
-        "entry.91913727": score,
-        "entry.63569940": totalClicks,
-        "entry.1746910343": correctList,
-        "entry.1748975026": incorrectList
-      };
-
-      for (let k in entries) {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = k;
-        input.value = entries[k];
-        form.appendChild(input);
-      }
-
-      const iframe = document.createElement("iframe");
-      iframe.name = "hidden_iframe";
-      iframe.style.display = "none";
-      document.body.appendChild(iframe);
-      document.body.appendChild(form);
-      form.submit();
-
-      // show/hide continue depending on completion
-      if (endModal) {
-        if (completed && continueBtn) continueBtn.style.display = "none";
-        else if (continueBtn) continueBtn.style.display = "inline-block";
-        if (showModal) endModal.style.display = "flex";
-      }
-
-      // clear saved game if we're about to redirect away
-      if (redirectAfter) {
-        setTimeout(()=> {
-          clearSavedState();
-          window.location.href = "../index.html";
-        }, 600);
-      } else {
-        saveState();
-      }
+  if (completed) {
+    // add clap gif in modal (remove previous)
+    const old = document.getElementById("clap-gif");
+    if (old) old.remove();
+    if (endModal) {
+      const gif = document.createElement("img");
+      gif.id = "clap-gif";
+      gif.src = clapGifSrc;
+      gif.alt = "Congratulations!";
+      gif.style.width = "220px";
+      gif.style.display = "block";
+      gif.style.margin = "8px auto";
+      endModal.prepend(gif);
     }
+  }
 
-    // --- UI button handlers ---
-    if (stopBtn) stopBtn.addEventListener("click", () => {
-      pauseGame();
-      const pct = totalClicks > 0 ? Math.round((correctAnswers/totalClicks)*100) : 0;
-      if (scoreDisplayModal) scoreDisplayModal.textContent = `Score: ${score} (${pct}%)`;
-      if (continueBtn) continueBtn.style.display = gameCompleted ? "none" : "inline-block";
-      if (endModal) endModal.style.display = "flex";
-    });
+  // silent Google Form submit
+  const form = document.createElement("form");
+  form.action = "https://docs.google.com/forms/d/e/1FAIpQLSeHCxQ4czHbx1Gdv649vlr5-Dz9-4DQu5M5OcIfC46WlL-6Qw/formResponse";
+  form.method = "POST";
+  form.target = "hidden_iframe";
+  form.style.display = "none";
 
-    if (continueBtn) continueBtn.addEventListener("click", () => {
-      if (endModal) endModal.style.display = "none";
-      resumeGame();
-    });
+  const entries = {
+    "entry.1609572894": studentName,
+    "entry.1168342531": studentClass,
+    "entry.91913727": score,
+    "entry.63569940": totalClicks,
+    "entry.1746910343": correctList,
+    "entry.1748975026": incorrectList
+  };
 
-    if (finishBtn) finishBtn.addEventListener("click", () => {
-      // submit and return to menu (keeps login, clears only game state)
-      endGame({ completed: false, showModal: false, redirectAfter: true });
-    });
+  for (let k in entries) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = k;
+    input.value = entries[k];
+    form.appendChild(input);
+  }
 
-    if (againBtn) againBtn.addEventListener("click", () => {
-      if (endModal) endModal.style.display = "none";
-      pauseGame();
-      clearBalloons();
-      // reset game state (keep login)
-      score = 0; totalClicks = 0; correctAnswers = 0;
-      correctAnswersList = []; incorrectAnswersList = [];
-      level = 1; targetColour = ""; targetNumber = "";
-      collectedCount = 0; consecutiveIncorrect = 0; gameCompleted = false;
-      scoreDisplay.textContent = `Score: ${score}`;
-      levelDisplay.textContent = `Level: ${level}`;
-      updateBackground();
-      updateThoughtBubble(true);
-      saveState();
-      // start again
-      startGame();
-    });
+  const iframe = document.createElement("iframe");
+  iframe.name = "hidden_iframe";
+  iframe.style.display = "none";
+  document.body.appendChild(iframe);
+  document.body.appendChild(form);
+  form.submit();
 
-    if (logoutBtn) logoutBtn.addEventListener("click", () => {
-      // clear login only and saved game
-      localStorage.removeItem("studentName");
-      localStorage.removeItem("studentClass");
+  // show modal
+  if (endModal) {
+    if (completed && continueBtn) continueBtn.style.display = "none";
+    else if (continueBtn) continueBtn.style.display = "inline-block";
+    if (showModal) endModal.style.display = "flex";
+  }
+
+  if (redirectAfter) {
+    setTimeout(()=> {
       clearSavedState();
       window.location.href = "../index.html";
-    });
+    }, 600);
+  } else {
+    saveState();
+  }
+}
+
+// --- UI button handlers ---
+if (stopBtn) stopBtn.addEventListener("click", () => {
+  pauseGame();
+  const pct = totalClicks > 0 ? Math.round((correctAnswers/totalClicks)*100) : 0;
+  if (scoreDisplayModal) scoreDisplayModal.textContent = `Score: ${score} (${pct}%)`;
+  if (continueBtn) continueBtn.style.display = gameCompleted ? "none" : "inline-block";
+  if (endModal) endModal.style.display = "flex";
+});
+
+if (continueBtn) continueBtn.addEventListener("click", () => {
+  if (endModal) endModal.style.display = "none";
+  resumeGame(); // balloons keep floating
+});
+
+if (finishBtn) finishBtn.addEventListener("click", () => {
+  endGame({ completed: false, showModal: false, redirectAfter: true });
+});
+
+if (againBtn) againBtn.addEventListener("click", () => {
+  if (endModal) endModal.style.display = "none";
+  pauseGame();
+  clearBalloons();
+  // reset game state (keep login)
+  score = 0; totalClicks = 0; correctAnswers = 0;
+  correctAnswersList = []; incorrectAnswersList = [];
+  level = 1; targetColour = ""; targetNumber = "";
+  collectedCount = 0; consecutiveIncorrect = 0; gameCompleted = false;
+  scoreDisplay.textContent = `Score: ${score}`;
+  levelDisplay.textContent = `Level: ${level}`;
+  updateBackground();
+  updateThoughtBubble(true);
+  saveState();
+  startGame();
+});
 
     // --- Start/resume helpers ---
     function startGame() {
