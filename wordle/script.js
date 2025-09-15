@@ -245,7 +245,13 @@ function setupKeyboard() {
     "ZXCVBNM"     // row 3
   ];
 
-  layout.forEach((row) => {
+  layout.forEach((row, rowIndex) => {
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "keyboard-row";
+    rowDiv.style.display = "flex";
+    rowDiv.style.justifyContent = rowIndex === 2 ? "center" : "flex-start"; // bottom row centered
+    rowDiv.style.marginBottom = "5px";
+
     row.split("").forEach((l) => {
       const key = document.createElement("button");
       key.className = "key";
@@ -256,37 +262,44 @@ function setupKeyboard() {
           updateGrid();
         }
       };
-      grid.appendChild(key);
+      rowDiv.appendChild(key);
     });
-  });
 
-  // Backspace in top row (col 11)
-  const backspace = document.createElement("button");
-  backspace.textContent = "←";
-  backspace.className = "key backspace";
-  backspace.onclick = () => {
-    currentGuess = currentGuess.slice(0, -1);
-    updateGrid();
-  };
-  grid.appendChild(backspace);
-
-  // Enter spans rows 2 + 3 (col 11)
-  const enter = document.createElement("button");
-  enter.textContent = "↵";
-  enter.className = "key enter-key";
-  enter.onclick = () => {
-    if (currentGuess.length === 5) {
-      if (!validWords.includes(currentGuess.toUpperCase())) {
-        showInvalidWordMessage(currentGuess);
-        return;
-      }
-      checkGuess();
+    // Add Backspace to first row
+    if (rowIndex === 0) {
+      const backspace = document.createElement("button");
+      backspace.textContent = "←";
+      backspace.className = "key backspace";
+      backspace.onclick = () => {
+        currentGuess = currentGuess.slice(0, -1);
+        updateGrid();
+      };
+      rowDiv.appendChild(backspace);
     }
-  };
-  grid.appendChild(enter);
+
+    // Add Enter to bottom row
+    if (rowIndex === 2) {
+      const enter = document.createElement("button");
+      enter.textContent = "↵";
+      enter.className = "key enter-key";
+      enter.onclick = () => {
+        if (currentGuess.length === 5) {
+          if (!validWords.includes(currentGuess.toUpperCase())) {
+            showInvalidWordMessage(currentGuess);
+            return;
+          }
+          checkGuess();
+        }
+      };
+      rowDiv.appendChild(enter);
+    }
+
+    grid.appendChild(rowDiv);
+  });
 
   dragElement(document.getElementById("keyboard-container"));
 }
+
 
 // Drag functionality
 function dragElement(elmnt){
