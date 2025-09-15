@@ -25,7 +25,6 @@ const checkBtn = document.getElementById("checkBtn");
 const againBtn = document.getElementById("againBtn");
 const endModal = document.getElementById("endModal");
 const googleForm = document.getElementById("googleForm");
-
 const againBtnEnd = document.getElementById("againBtnEnd");
 const finishBtn = document.getElementById("finishBtn");
 
@@ -75,8 +74,6 @@ function signPathFor(word){
   return "";
 }
 function compositeImagePath(combo){ return `assets/images/${combo}.png`; }
-
-/* ===== TIMER HELPERS ===== */
 function getTimeElapsed(){ return savedTimeElapsed + Math.round((Date.now()-startTime)/1000); }
 function setTimeElapsed(seconds){ savedTimeElapsed=seconds; startTime=Date.now(); }
 
@@ -120,208 +117,197 @@ function generateSentence(){
   const foodItem = randomItem(food);
   const colour = randomItem(colours);
   const verb = (currentLevel === 4) ? randomItem(["have","donthave"]) : "want";
+
   currentSentence = { animal, number, food: foodItem, colour, verb };
 }
 
 /* ===== BUILD QUESTION ===== */
-function buildQuestion() {
+function buildQuestion(){
   generateSentence();
   questionArea.innerHTML = "";
+  leftDraggables.innerHTML = "";
+  rightDraggables.innerHTML = "";
   answerArea.innerHTML = "";
   feedbackDiv.innerHTML = "";
   checkBtn.style.display = "none";
   againBtn.style.display = "none";
 
   const isOdd = roundInLevel % 2 === 1;
-
-  if (currentLevel <= 2) {
-    const helperDiv = document.createElement("div");
-    helpers.forEach(h => {
-      const img = document.createElement("img");
-      img.src = signPathFor(h);
+  if(currentLevel <= 2){
+    const helperDiv=document.createElement("div");
+    helpers.forEach(h=>{
+      const img=document.createElement("img");
+      img.src=signPathFor(h);
       helperDiv.appendChild(img);
     });
     questionArea.appendChild(helperDiv);
   }
 
-  const comboDiv = document.createElement("div");
+  const comboDiv=document.createElement("div");
+  comboDiv.className="questionCombo";
 
-  if (currentLevel === 1) {
-    comboDiv.innerHTML = isOdd
-      ? `<img src="${compositeImagePath(currentSentence.animal + '-' + currentSentence.number)}">`
-      : `<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}">`;
-  } else if (currentLevel === 2) {
-    comboDiv.innerHTML = isOdd
-      ? `<img src="${compositeImagePath(currentSentence.food + '-' + currentSentence.colour)}">`
-      : `<img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
-  } else if (currentLevel === 3) {
-    comboDiv.innerHTML = isOdd
-      ? `<img src="${compositeImagePath(currentSentence.animal + '-' + currentSentence.number)}"><img src="${signPathFor('want')}"><img src="${compositeImagePath(currentSentence.food + '-' + currentSentence.colour)}">`
-      : `<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}"><img src="${signPathFor('want')}"><img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
-  } else if (currentLevel === 4) {
-    if (isOdd) {
-      const animalNumberImg = Object.assign(document.createElement("img"), { src: compositeImagePath(`${currentSentence.animal}-${currentSentence.number}`) });
-      comboDiv.appendChild(animalNumberImg);
-
-      const foodColourImg = Object.assign(document.createElement("img"), { src: compositeImagePath(`${currentSentence.food}-${currentSentence.colour}`) });
-      if (currentSentence.verb === "donthave") {
-        const wrapper = document.createElement("div");
-        wrapper.className = "dontHaveWrapper";
-        const xDiv = document.createElement("div");
-        xDiv.className = "xOverlay";
-        xDiv.textContent = "X";
-        wrapper.appendChild(foodColourImg);
-        wrapper.appendChild(xDiv);
-        comboDiv.appendChild(wrapper);
-      } else {
-        comboDiv.appendChild(foodColourImg);
-      }
-    } else {
-      comboDiv.appendChild(Object.assign(document.createElement("img"), { src: signPathFor(currentSentence.animal) }));
-      comboDiv.appendChild(Object.assign(document.createElement("img"), { src: signPathFor(currentSentence.number) }));
-      comboDiv.appendChild(Object.assign(document.createElement("img"), { src: signPathFor(currentSentence.verb) }));
-      comboDiv.appendChild(Object.assign(document.createElement("img"), { src: signPathFor(currentSentence.food) }));
-      comboDiv.appendChild(Object.assign(document.createElement("img"), { src: signPathFor(currentSentence.colour) }));
+  if(currentLevel<4){
+    if(currentLevel===1){
+      comboDiv.innerHTML=isOdd
+        ? `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}">`
+        : `<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}">`;
+    } else if(currentLevel===2){
+      comboDiv.innerHTML=isOdd
+        ? `<img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`
+        : `<img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
+    } else if(currentLevel===3){
+      comboDiv.innerHTML=isOdd
+        ? `<img src="${compositeImagePath(currentSentence.animal+'-'+currentSentence.number)}"><img src="${signPathFor('want')}"><img src="${compositeImagePath(currentSentence.food+'-'+currentSentence.colour)}">`
+        : `<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}"><img src="${signPathFor('want')}"><img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
     }
+    questionArea.appendChild(comboDiv);
+    buildAnswerBoxes(isOdd);
+    buildDraggables(isOdd);
+    updateScoreDisplay();
+    return;
+  }
+
+  // ===== LEVEL 4 =====
+  const showSigns = Math.random()<0.5;
+  currentSentence.showSigns = showSigns;
+
+  if(showSigns){
+    // Question is signs → draggable images
+    [currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour].forEach(word=>{
+      const img=document.createElement("img");
+      img.src=signPathFor(word);
+      comboDiv.appendChild(img);
+    });
+    buildAnswerBoxes(true); 
+    buildDraggablesLevel4("images");
+  } else {
+    // Question is images → draggable signs
+    const animalNumberImg = Object.assign(document.createElement("img"), {src:compositeImagePath(`${currentSentence.animal}-${currentSentence.number}`)});
+    const foodColourImg = Object.assign(document.createElement("img"), {src:compositeImagePath(`${currentSentence.food}-${currentSentence.colour}`)});
+    comboDiv.appendChild(animalNumberImg);
+    comboDiv.appendChild(foodColourImg);
+    if(currentSentence.verb==="donthave"){
+      const xDiv=document.createElement("div");
+      xDiv.className="xOverlay";
+      xDiv.textContent="X";
+      comboDiv.appendChild(xDiv);
+    }
+    buildAnswerBoxes(false);
+    buildDraggablesLevel4("signs");
   }
 
   questionArea.appendChild(comboDiv);
-  buildDraggables();
-  startTime = Date.now();
+  updateScoreDisplay();
 }
 
-/* ===== BUILD DRAGGABLES ===== */
-function buildDraggables() {
-  leftDraggables.innerHTML = "";
-  rightDraggables.innerHTML = "";
+/* ===== BUILD LEVEL 4 DRAGGABLES ===== */
+function buildDraggablesLevel4(type){
+  leftDraggables.innerHTML=""; rightDraggables.innerHTML="";
+  const items=[currentSentence.animal, currentSentence.number, currentSentence.verb, currentSentence.food, currentSentence.colour];
 
-  let items = [];
-
-  if (currentLevel === 4) {
-    items.push(currentSentence.animal, currentSentence.number, currentSentence.food, currentSentence.colour, currentSentence.verb);
-    // Add decoys
-    const decoyVerbs = ["want","have","donthave"].filter(v => v!==currentSentence.verb);
-    items.push(randomItem(animals), randomItem(numbers), randomItem(food), randomItem(colours), randomItem(decoyVerbs));
-    items = shuffleArray(items);
-  } else {
-    items = shuffleArray([currentSentence.animal,currentSentence.number,currentSentence.food,currentSentence.colour]);
+  const totalItems=16;
+  const used=new Set(items);
+  while(items.length<totalItems){
+    let decoy=randomItem([...animals,...numbers,...food,...colours,...verbs]);
+    if(!used.has(decoy)){ items.push(decoy); used.add(decoy); }
   }
 
-  items.forEach(it=>{
-    const div=document.createElement("div");
-    div.className="draggable";
-    div.draggable=true;
-    const img = document.createElement("img");
-    img.src = signPathFor(it);
-    div.appendChild(img);
-    leftDraggables.appendChild(div);
+  const shuffled=shuffleArray(items);
+  const halves=[shuffled.slice(0,8), shuffled.slice(8,16)];
 
-    div.addEventListener("dragstart",dragStart);
-    div.addEventListener("touchstart",touchStart);
+  halves.forEach((group,idx)=>{
+    const container=idx===0?leftDraggables:rightDraggables;
+    group.forEach(val=>{
+      const div=document.createElement("div");
+      div.className="draggable";
+      div.draggable=true;
+      let img=document.createElement("img");
+      if(type==="images"){
+        if(verbs.includes(val)) img.src=compositeImagePath(val);
+        else if(animals.includes(val)) img.src=compositeImagePath(`${val}-${currentSentence.number}`);
+        else if(food.includes(val)) img.src=compositeImagePath(`${val}-${currentSentence.colour}`);
+        else if(colours.includes(val)) img.src=compositeImagePath(`${currentSentence.food}-${val}`);
+      } else { img.src=signPathFor(val); }
+      div.appendChild(img);
+      container.appendChild(div);
+      div.addEventListener("dragstart",dragStart);
+      div.addEventListener("touchstart",touchStart);
+    });
+  });
+}
+
+/* ===== BUILD ANSWER BOXES ===== */
+function buildAnswerBoxes(useSigns){
+  answerArea.innerHTML="";
+  const words=[currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour];
+  words.forEach(w=>{
+    const div=document.createElement("div");
+    div.className="answerBox";
+    div.dataset.correct=w;
+    answerArea.appendChild(div);
   });
 }
 
 /* ===== DRAG & DROP ===== */
-let dragged=null;
-function dragStart(e){ dragged=this; }
+function dragStart(e){ e.dataTransfer.setData("text/plain",e.target.firstChild.src); }
+function touchStart(e){ e.dataTransfer=setTouchData(e.target.firstChild.src); }
 function allowDrop(e){ e.preventDefault(); }
-function drop(e){
-  e.preventDefault();
-  if(dragged){ this.appendChild(dragged); dragged=null; }
-}
-
-/* ===== TOUCH SUPPORT ===== */
-function touchStart(e){
-  dragged=this;
-  e.preventDefault();
-  document.addEventListener("touchmove", touchMove, {passive:false});
-  document.addEventListener("touchend", touchEnd);
-}
-function touchMove(e){ e.preventDefault(); const touch=e.touches[0]; const el=document.elementFromPoint(touch.clientX,touch.clientY); if(el && el.classList.contains("droppable")){el.style.background="#ddd";} }
-function touchEnd(e){
-  document.removeEventListener("touchmove", touchMove);
-  document.removeEventListener("touchend", touchEnd);
-  const touch=e.changedTouches[0];
-  const el=document.elementFromPoint(touch.clientX,touch.clientY);
-  if(el && el.classList.contains("droppable") && dragged){
-    el.appendChild(dragged);
-    dragged=null;
-  }
-}
+function drop(e){ e.preventDefault(); const src=e.dataTransfer.getData("text/plain"); e.target.appendChild(Object.assign(document.createElement("img"),{src})); }
 
 /* ===== CHECK ANSWERS ===== */
-checkBtn.addEventListener("click",()=>{
-  let correctThisRound=0;
-  let incorrectThisRound=0;
-  const draggables=leftDraggables.querySelectorAll(".draggable img");
-  draggables.forEach(d=>{
-    const val=d.src.split("/").pop().replace("-sign.png","");
-    if(Object.values(currentSentence).includes(val)){
-      correctThisRound++;
-    } else {
-      incorrectThisRound++;
-    }
+function checkAnswers(){
+  let correct=0,incorrect=0;
+  const boxes=document.querySelectorAll(".answerBox");
+  boxes.forEach(b=>{
+    const img=b.querySelector("img");
+    if(!img) return incorrect++;
+    const val=b.dataset.correct;
+    if(img.src.includes(val)) correct++; else incorrect++;
   });
-  levelCorrect[currentLevel]+=correctThisRound;
-  levelIncorrect[currentLevel]+=incorrectThisRound;
-  correctCount+=correctThisRound;
-  incorrectCount+=incorrectThisRound;
-  feedbackDiv.textContent=`Correct: ${correctThisRound}, Incorrect: ${incorrectThisRound}`;
+  correctCount+=correct; incorrectCount+=incorrect;
+  levelCorrect[currentLevel]+=correct; levelIncorrect[currentLevel]+=incorrect;
+  answersHistory.push({level:currentLevel, correct, incorrect});
   roundInLevel++;
-  if(roundInLevel>=3){
-    nextLevel();
-  }else{
-    againBtn.style.display="inline-block";
-    checkBtn.style.display="none";
+  if(roundInLevel>=3){ 
+    if(currentLevel<TOTAL_LEVELS){ currentLevel++; roundInLevel=0; } 
+    else endGame();
   }
-});
-
-/* ===== AGAIN BUTTON ===== */
-againBtn.addEventListener("click",()=>{
   buildQuestion();
-});
-
-/* ===== LEVEL PROGRESSION ===== */
-function nextLevel(){
-  if(currentLevel<TOTAL_LEVELS){
-    currentLevel++;
-    roundInLevel=0;
-    buildQuestion();
-  }else{
-    endGame();
-  }
 }
+
+/* ===== SCORE DISPLAY ===== */
+function updateScoreDisplay(){ scoreDisplay.textContent=`Level ${currentLevel} - Correct: ${correctCount} | Incorrect: ${incorrectCount}`; }
 
 /* ===== END GAME ===== */
 function endGame(){
-  const timeTaken = getTimeElapsed();
-  const minutes=Math.floor(timeTaken/60); const seconds=timeTaken%60;
-  const percent=Math.round(correctCount/(correctCount+incorrectCount)*100);
-  scoreDisplay.textContent=`${percent}% - ${minutes}m ${seconds}s`;
+  const timeTaken=getTimeElapsed();
   endModal.style.display="flex";
-
-  // Google Form submission
-  const formData = new FormData();
-  formData.append(FORM_FIELD_MAP.name, studentName);
-  formData.append(FORM_FIELD_MAP.class, studentClass);
-  formData.append(FORM_FIELD_MAP.subject, "Sentences");
-  formData.append(FORM_FIELD_MAP.timeTaken, `${minutes} mins ${seconds} sec`);
-  formData.append(FORM_FIELD_MAP.percent, percent);
-  for(let lvl=1;lvl<=TOTAL_LEVELS;lvl++){
-    formData.append(FORM_FIELD_MAP[`level${lvl}`].correct, levelCorrect[lvl]);
-    formData.append(FORM_FIELD_MAP[`level${lvl}`].incorrect, levelIncorrect[lvl]);
-  }
-  fetch(googleForm.action,{method:"POST",body:formData,mode:"no-cors"});
-  clearProgress();
+  document.getElementById("totalScore").textContent=`Score: ${correctCount} / ${correctCount+incorrectCount} in ${timeTaken} sec`;
+  submitToGoogleForm();
 }
 
-/* ===== FINISH BUTTON ===== */
-finishBtn.addEventListener("click",()=>{
-  endGame();
-});
+/* ===== GOOGLE FORM SUBMISSION ===== */
+function submitToGoogleForm(){
+  const formData=new FormData();
+  formData.append(FORM_FIELD_MAP.name,studentName);
+  formData.append(FORM_FIELD_MAP.class,studentClass);
+  formData.append(FORM_FIELD_MAP.subject,"Sentences");
+  formData.append(FORM_FIELD_MAP.timeTaken,getTimeElapsed());
+  const total=(correctCount+incorrectCount);
+  formData.append(FORM_FIELD_MAP.percent,Math.round((correctCount/total)*100));
+  for(let l=1;l<=TOTAL_LEVELS;l++){
+    formData.append(FORM_FIELD_MAP[`level${l}`].correct,levelCorrect[l]);
+    formData.append(FORM_FIELD_MAP[`level${l}`].incorrect,levelIncorrect[l]);
+  }
+  fetch("https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse",{method:"POST",body:formData,mode:"no-cors"});
+}
 
-/* ===== START GAME ===== */
-const saved = loadProgress();
-if(saved){ showResumeModal(saved); }
-else{ buildQuestion(); }
+/* ===== EVENT LISTENERS ===== */
+checkBtn.addEventListener("click",checkAnswers);
+againBtn.addEventListener("click",()=>buildQuestion());
+finishBtn.addEventListener("click",endGame);
+stopBtn.addEventListener("click",endGame);
 
+/* ===== INIT ===== */
+const saved=loadProgress();
+if(saved) showResumeModal(saved); else buildQuestion();
