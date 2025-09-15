@@ -292,6 +292,17 @@ html, body {
   transition: background 0.2s;
 }
 
+/* Enter key styling */
+.key.enter-key {
+  font-size: 28px;
+  padding: 6px 12px;
+  height: calc(2 * 48px + 6px); /* span two rows: adjust 48px to key height */
+  flex: 0 0 calc(2 * 48px + 6px); /* width: double standard key width */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .key:hover {
   background: #ccc;
 }
