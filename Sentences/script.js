@@ -132,20 +132,6 @@ function generateSentence(){
 const resumeContinueBtn = document.getElementById("resumeContinue");
 const resumeAgainBtn = document.getElementById("resumeAgain");
 
-/* ===== GAME VARIABLES ===== */
-const TOTAL_LEVELS = 4;
-
-let currentLevel = 1;
-let roundInLevel = 0; // 0..9
-let correctCount = 0;
-let incorrectCount = 0;
-let currentSentence = {};
-let startTime = null;
-let savedTimeElapsed = 0; // seconds stored when paused/saved
-let answersHistory = [];
-
-let perLevelResults = Array.from({ length: TOTAL_LEVELS }, () => ({ correct: 0, incorrect: 0 }));
-
 /* ===== VOCAB ===== */
 const animals = ["dog","cat","mouse","rabbit","fish","bird"];
 const numbers = ["one","two","three","four","five","six","seven","eight","nine","ten"];
