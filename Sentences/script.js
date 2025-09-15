@@ -296,38 +296,110 @@ function buildDraggables(isOdd){
     }
   }
 
-  // Add decoys until totalItems reached.
-  const used = new Set(items.map(i => i));
-  while(items.length < totalItems){
+function buildDraggables(isOdd) {
+  const items = [];
+
+  if (currentLevel === 1) {
+    if (isOdd) {
+      items.push(currentSentence.animal, currentSentence.number);
+    } else {
+      items.push(`${currentSentence.animal}-${currentSentence.number}`);
+    }
+  } else if (currentLevel === 2) {
+    if (isOdd) {
+      items.push(currentSentence.food, currentSentence.colour);
+    } else {
+      items.push(`${currentSentence.food}-${currentSentence.colour}`);
+    }
+  } else if (currentLevel === 3) {
+    if (isOdd) {
+      // verb WANT is prefilled, so only add other parts
+      items.push(currentSentence.animal, currentSentence.number, currentSentence.food, currentSentence.colour);
+    } else {
+      items.push(`${currentSentence.animal}-${currentSentence.number}`);
+      items.push(`${currentSentence.food}-${currentSentence.colour}`);
+    }
+  } else if (currentLevel === 4) {
+    if (isOdd) {
+      // Level 4 odd = all individual signs
+      items.push(
+        currentSentence.animal,
+        currentSentence.number,
+        currentSentence.verb,   // <- verbs ARE draggable in Level 4
+        currentSentence.food,
+        currentSentence.colour
+      );
+    } else {
+      // Level 4 even = combos
+      items.push(
+        `${currentSentence.animal}-${currentSentence.number}`,
+        `${currentSentence.food}-${currentSentence.colour}`
+      );
+      // verb still draggable separately
+      items.push(currentSentence.verb);
+    }
+  }
+
+  // --- Add decoys until totalItems reached ---
+  const totalItems = 8;
+  const used = new Set(items);
+  while (items.length < totalItems) {
     let decoy;
-    if (currentLevel === 4){
-      if(isOdd){
-        // decoy individual signs (strings)
+    if (currentLevel === 4) {
+      if (isOdd) {
         decoy = randomItem([...animals, ...numbers, ...food, ...colours, ...verbs]);
       } else {
-        // decoy composites
         const a = randomItem(animals);
         const n = randomItem(numbers);
         const f = randomItem(food);
         const c = randomItem(colours);
         const maybe = Math.random() < 0.5 ? `${a}-${n}` : `${f}-${c}`;
-        // random chance to add -X
         decoy = Math.random() < 0.15 ? `${maybe}-X` : maybe;
       }
     } else {
       decoy = randomItem([...animals, ...numbers, ...food, ...colours]);
-      // if even-mode combos for levels 1/2/3, build combos
-      if(!isOdd && (currentLevel === 1 || currentLevel === 2 || currentLevel === 3)){
-        if(currentLevel === 1) decoy = `${randomItem(animals)}-${randomItem(numbers)}`;
-        if(currentLevel === 2) decoy = `${randomItem(food)}-${randomItem(colours)}`;
-        if(currentLevel === 3){
-          // mix of combos
-          if(Math.random() < 0.5) decoy = `${randomItem(animals)}-${randomItem(numbers)}`; else decoy = `${randomItem(food)}-${randomItem(colours)}`;
+      if (!isOdd && (currentLevel === 1 || currentLevel === 2 || currentLevel === 3)) {
+        if (currentLevel === 1) decoy = `${randomItem(animals)}-${randomItem(numbers)}`;
+        if (currentLevel === 2) decoy = `${randomItem(food)}-${randomItem(colours)}`;
+        if (currentLevel === 3) {
+          if (Math.random() < 0.5) decoy = `${randomItem(animals)}-${randomItem(numbers)}`;
+          else decoy = `${randomItem(food)}-${randomItem(colours)}`;
         }
       }
     }
-    if(!used.has(decoy)){ items.push(decoy); used.add(decoy); }
+    if (!used.has(decoy)) {
+      items.push(decoy);
+      used.add(decoy);
+    }
   }
+
+  // --- Render draggables ---
+  const leftDiv = document.getElementById("draggablesLeft");
+  const rightDiv = document.getElementById("draggablesRight");
+  leftDiv.innerHTML = "";
+  rightDiv.innerHTML = "";
+
+  shuffle(items).forEach((val, idx) => {
+    const drag = document.createElement("div");
+    drag.className = "draggable";
+    drag.draggable = true;
+    drag.dataset.value = val;
+
+    const img = document.createElement("img");
+    img.src = val.includes("-") ? compositeImagePath(val) : signPathFor(val);
+    drag.appendChild(img);
+
+    // Events for drag+touch
+    drag.addEventListener("dragstart", dragStartHandler);
+    drag.addEventListener("touchstart", touchStartHandler, { passive: true });
+    drag.addEventListener("touchmove", touchMoveHandler, { passive: false });
+    drag.addEventListener("touchend", touchEndHandler);
+
+    if (idx % 2 === 0) leftDiv.appendChild(drag);
+    else rightDiv.appendChild(drag);
+  });
+}
+
 
   items = shuffleArray(items);
   const halves = [items.slice(0,8), items.slice(8,16)];
