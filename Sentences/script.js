@@ -124,24 +124,6 @@ function generateSentence(){
   currentSentence = { animal, number, food: foodItem, colour, verb };
 }
 
-/* ============================
-   Sentences Game - Full JS
-   Ready to copy/paste
-   ============================ */
-
-/* ===== CONFIG ===== */
-const FORM_FIELD_MAP = {
-  name: "entry.1040637824",
-  class: "entry.1755746645",
-  subject: "entry.1979136660",
-  timeTaken: "entry.120322685",
-  percent: "entry.1519181393",
-  level1: { correct: "entry.1150173566", incorrect: "entry.28043347" },
-  level2: { correct: "entry.1424808967", incorrect: "entry.352093752" },
-  level3: { correct: "entry.475324608", incorrect: "entry.1767451434" },
-  level4: { correct: "entry.1405337882", incorrect: "entry.1513946929" }
-};
-
 /* ===== DOM Elements ===== */
 const studentNameSpan = document.getElementById("studentName");
 const studentClassSpan = document.getElementById("studentClass");
