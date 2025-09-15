@@ -124,21 +124,6 @@ function generateSentence(){
   currentSentence = { animal, number, food: foodItem, colour, verb };
 }
 
-/* ===== DOM Elements ===== */
-const studentNameSpan = document.getElementById("studentName");
-const studentClassSpan = document.getElementById("studentClass");
-const scoreDisplay = document.getElementById("scoreDisplay");
-const stopBtn = document.getElementById("stopBtn");
-const leftDraggables = document.getElementById("draggablesLeft");
-const rightDraggables = document.getElementById("draggablesRight");
-const questionArea = document.getElementById("questionArea");
-const answerArea = document.getElementById("answerArea");
-const feedbackDiv = document.getElementById("feedback");
-const checkBtn = document.getElementById("checkBtn");
-const againBtn = document.getElementById("againBtn");
-const endModal = document.getElementById("endModal");
-const googleForm = document.getElementById("googleForm");
-
 /* end / stop / resume modal controls in HTML:
    - End modal elements: #endGif, #finalTime, #finalScore, #finalPercent, #finishBtn, #againBtnEnd, #logoffBtn
    - Stop modal elements: #stopModal, #stopTime, #stopPercent, #continueBtn, #againBtnStop, #finishBtnStop
@@ -146,18 +131,6 @@ const googleForm = document.getElementById("googleForm");
 */
 const resumeContinueBtn = document.getElementById("resumeContinue");
 const resumeAgainBtn = document.getElementById("resumeAgain");
-
-/* ===== STUDENT INFO ===== */
-let studentName = localStorage.getItem("studentName") || "";
-let studentClass = localStorage.getItem("studentClass") || "";
-
-if (!studentName || !studentClass) {
-  alert("Please log in first.");
-  window.location.href = "../index.html";
-} else {
-  studentNameSpan.textContent = studentName;
-  studentClassSpan.textContent = studentClass;
-}
 
 /* ===== GAME VARIABLES ===== */
 const TOTAL_LEVELS = 4;
