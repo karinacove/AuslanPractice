@@ -209,7 +209,7 @@ html, body {
 #keyboard-container {
   position: absolute;              
   bottom: 10px;                    
-  width: 480px;                     
+  width: 600px;                     
   height: auto;                     
   background: rgba(255,255,255,0.95);
   padding: 12px;
