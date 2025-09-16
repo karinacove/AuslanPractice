@@ -335,29 +335,34 @@ function loadPage() {
     document.addEventListener("touchend", handleTouchEnd, { passive: false });
   }
 
-  if (finishBtn) finishBtn.addEventListener("click", () => {
+ // FINISH
+if (finishBtn) {
+  finishBtn.addEventListener("click", () => {
     gameEnded = false;
     endGame();
   });
+}
 
+// CONTINUE
+if (continueBtn) {
   continueBtn.addEventListener("click", () => {
     modal.style.display = "none";
     gameEnded = false;
     loadPage();
   });
+}
 
+// AGAIN
+if (againBtn) {
   againBtn.addEventListener("click", () => location.reload());
-  menuBtn.addEventListener("click", () => window.location.href = "../index.html");
+}
 
-  logoutBtn.addEventListener("click", () => {
-    if (localStorage.getItem("coloursSavedProgress")) {
-      loadProgress();
-      endGame();
-    }
-    clearProgress();
-    localStorage.clear();
-    window.location.href = "../index.html";
-  });
+// Load saved progress
+if (localStorage.getItem("coloursSavedProgress")) {
+  loadProgress();
+}
+loadPage();
+
 
   if (localStorage.getItem("coloursSavedProgress")) loadProgress();
   loadPage();
