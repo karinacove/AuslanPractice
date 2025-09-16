@@ -437,10 +437,6 @@ document.getElementById("againBtnEnd").onclick = () => {
   resetGame();
 };
 
-document.getElementById("logoffBtn").onclick = () => {
-  window.location.href = "../index.html";
-};
-
 /* ===== STOP BUTTON ===== */
 stopBtn.addEventListener("click", () => {
   savedTimeElapsed = getTimeElapsed();
