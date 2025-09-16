@@ -85,40 +85,52 @@ document.addEventListener("DOMContentLoaded", function () {
   function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
 
   // ==== DROP / TOUCH HANDLERS ====
-  function drop(e){
-    if(gamePaused) return;
-    e.preventDefault();
-    const colour = e.dataTransfer ? e.dataTransfer.getData("text/plain") : e.colour;
-    const src = e.dataTransfer ? e.dataTransfer.getData("src") : e.src || "";
-    const target = e.currentTarget;
-    const expected = target.dataset.letter;
+ function drop(e) {
+  if(gamePaused) return;
+  e.preventDefault();
 
-    if(colour===expected){
-      if(!levelAttempts[currentLevel].correct.has(colour)){
-        levelAttempts[currentLevel].correct.add(colour);
-        correctThisPage++;
-        target.innerHTML="";
-        const overlay = document.createElement("img");
-        overlay.src = `assets/colours/clipart/${colour}.png`;
-        overlay.className="overlay";
-        target.appendChild(overlay);
-        document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el=>el.remove());
-        showFeedback(true); updateScore();
+  const colour = e.dataTransfer ? e.dataTransfer.getData("text/plain") : e.colour;
+  const src = e.dataTransfer ? e.dataTransfer.getData("src") : "";
+  const target = e.currentTarget;
+  const expected = target.dataset.letter;
 
-        if(correctThisPage>=document.querySelectorAll(".slot").length){
-          correctThisPage=0; currentPage++;
-          if(currentPage<pagesPerLevel){ saveProgress(); setTimeout(loadPage,800);}
-          else { currentLevel++; currentPage=0; if(currentLevel>=levels.length){ clearProgress(); showEndModal();}
-          else { saveProgress(); setTimeout(loadPage,800);} }
-        }
+  if (colour === expected) {
+    if (!levelAttempts[currentLevel].correct.has(colour)) {
+      levelAttempts[currentLevel].correct.add(colour);
+      correctThisPage++;
+
+      // Clear the slot and add overlay
+      target.innerHTML = "";
+
+      const overlay = document.createElement("img");
+      overlay.src = src;                 // image or sign that was dragged
+      overlay.className = "overlay";
+      overlay.style.opacity = "0.5";    // make it transparent
+      target.appendChild(overlay);
+
+      // Optionally also keep the slot’s original background visible
+      target.style.backgroundBlendMode = "multiply"; // or just leave as is
+
+      // Remove draggable from left/right
+      document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el => el.remove());
+
+      showFeedback(true);
+      updateScore();
+
+      if (correctThisPage >= document.querySelectorAll(".slot").length) {
+        correctThisPage = 0;
+        currentPage++;
+        if(currentPage < pagesPerLevel){ saveProgress(); setTimeout(loadPage, 800); }
+        else { currentLevel++; currentPage=0; if(currentLevel>=levels.length){ clearProgress(); showEndModal();} else { saveProgress(); setTimeout(loadPage, 800);} }
       }
-    } else {
-      levelAttempts[currentLevel].incorrect.push(colour);
-      showFeedback(false);
-      const wrong=document.querySelector(`img.draggable[data-letter='${colour}']`);
-      if(wrong){ wrong.classList.add("shake"); setTimeout(()=>wrong.classList.remove("shake"),500);}
     }
+  } else {
+    levelAttempts[currentLevel].incorrect.push(colour);
+    showFeedback(false);
+    const wrong = document.querySelector(`img.draggable[data-letter='${colour}']`);
+    if(wrong){ wrong.classList.add("shake"); setTimeout(()=>wrong.classList.remove("shake"),500);}
   }
+}
 
   function touchStart(e){
     if(gamePaused) return;
