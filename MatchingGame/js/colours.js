@@ -251,6 +251,8 @@ continueBtn.addEventListener("click", ()=>{
 finishBtn.addEventListener("click", ()=>{
   modal.style.display = "none";
   submitGoogleForm();
+  clearProgress();
+  window.location.href = "../index.html";
 });
 
 againBtn.addEventListener("click", ()=>location.reload());
