@@ -428,32 +428,86 @@ async function endLevel(){
 }
 
 /* ===== END MODAL BUTTONS ===== */
-finishBtn.onclick=()=>window.location.href="../index.html";
-againBtnEnd.onclick=()=>{ endModal.style.display="none"; resetGame(); };
+document.getElementById("finishBtn").onclick = () => {
+  window.location.href = "../index.html";
+};
+
+document.getElementById("againBtnEnd").onclick = () => {
+  endModal.style.display = "none";
+  resetGame();
+};
+
+document.getElementById("logoffBtn").onclick = () => {
+  window.location.href = "../index.html";
+};
 
 /* ===== STOP BUTTON ===== */
-stopBtn.addEventListener("click", ()=>{
-  savedTimeElapsed=getTimeElapsed();
-  const percent=Math.round((correctCount/(correctCount+incorrectCount))*100);
-  const modal=document.getElementById("stopModal"); modal.style.display="block";
-  document.getElementById("stopTime").textContent=`${Math.floor(savedTimeElapsed/60)}m ${savedTimeElapsed%60}s`;
-  document.getElementById("stopPercent").textContent=percent+"%";
+stopBtn.addEventListener("click", () => {
+  savedTimeElapsed = getTimeElapsed();
+  const percent = Math.round((correctCount / (correctCount + incorrectCount)) * 100);
 
-  document.getElementById("continueBtn").onclick = () => { modal.style.display = "none"; startTime = Date.now(); };
-  document.getElementById("againBtnStop").onclick=()=>{ modal.style.display="none"; resetGame(); };
-  document.getElementById("finishBtnStop").onclick=async()=>{
-    modal.style.display="none"; await submitResults(); clearProgress(); window.location.href="../index.html";
+  const modal = document.getElementById("stopModal");
+  modal.style.display = "block";
+
+  document.getElementById("stopTime").textContent =
+    `${Math.floor(savedTimeElapsed / 60)}m ${savedTimeElapsed % 60}s`;
+  document.getElementById("stopPercent").textContent = percent + "%";
+
+  document.getElementById("continueBtn").onclick = () => {
+    modal.style.display = "none";
+    startTime = Date.now();
+  };
+
+  document.getElementById("againBtnStop").onclick = () => {
+    modal.style.display = "none";
+    resetGame();
+  };
+
+  document.getElementById("finishBtnStop").onclick = async () => {
+    modal.style.display = "none";
+    await submitResults();
+    clearProgress();
+    window.location.href = "../index.html";
   };
 });
 
+/* ===== RESUME MODAL BUTTONS ===== */
+document.getElementById("resumeContinue").onclick = () => {
+  document.getElementById("resumeModal").style.display = "none";
+  resumeProgress();
+};
+
+document.getElementById("resumeAgain").onclick = () => {
+  document.getElementById("resumeModal").style.display = "none";
+  resetGame();
+};
+
 /* ===== START/RESET GAME ===== */
-function startGame(){ startTime=Date.now(); buildQuestion(); }
-function resetGame(){ currentLevel=1; roundInLevel=0; correctCount=0; incorrectCount=0; savedTimeElapsed=0; startGame(); }
-function updateScoreDisplay(){ scoreDisplay.textContent=`Level ${currentLevel} - Question ${roundInLevel+1}/10`; }
+function startGame() {
+  startTime = Date.now();
+  buildQuestion();
+}
+
+function resetGame() {
+  currentLevel = 1;
+  roundInLevel = 0;
+  correctCount = 0;
+  incorrectCount = 0;
+  savedTimeElapsed = 0;
+  startGame();
+}
+
+function updateScoreDisplay() {
+  scoreDisplay.textContent = `Level ${currentLevel} - Question ${roundInLevel + 1}/10`;
+}
 
 /* ===== INIT ===== */
-window.addEventListener("load", ()=>{
-  const saved=loadProgress();
-  if(saved && saved.studentName) showResumeModal(saved);
-  else resetGame();
+window.addEventListener("load", () => {
+  const saved = loadProgress();
+  if (saved && saved.studentName) {
+    showResumeModal(saved);
+  } else {
+    resetGame();
+  }
 });
+
