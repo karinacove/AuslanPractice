@@ -15,8 +15,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const againBtn = document.getElementById("again-btn");
   const continueBtn = document.getElementById("continue-btn");
   const finishBtn = document.getElementById("finish-btn");
-  const menuBtn = document.getElementById("menu-btn");
-  const logoutBtn = document.getElementById("logout-btn");
+  const stopBtn = document.getElementById("stop-btn");
+  const scoreDisplay = document.getElementById("score-display");
+  const endModalContent = document.getElementById("end-modal-content");
 
   const allColours = ["red","blue","green","yellow","orange","purple","pink","brown","black","white"];
   const pagesPerLevel = 2;
@@ -41,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let levelAttempts = Array(levels.length).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
   let correctThisPage = 0;
   let startTime = Date.now();
-  let gameEnded = false;
+  let gamePaused = false;
 
   // ==== FEEDBACK ====
   const feedbackImage = document.createElement("img");
@@ -59,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const totalCorrect = levelAttempts.reduce((sum,lvl)=>sum+lvl.correct.size,0);
     const totalIncorrect = levelAttempts.reduce((sum,lvl)=>sum+lvl.incorrect.length,0);
     const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect/(totalCorrect+totalIncorrect))*100) : 0;
-    document.getElementById("score-display").innerText = `Score: ${percent}%`;
+    scoreDisplay.innerText = `Score: ${percent}%`;
   }
 
   // ==== SAVE/LOAD ====
@@ -85,6 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ==== DRAG / TOUCH ====
   function drop(e) {
+    if(gamePaused) return;
     e.preventDefault();
     const colour = e.dataTransfer ? e.dataTransfer.getData("text/plain") : e.colour;
     const src = e.dataTransfer ? e.dataTransfer.getData("src") : "";
@@ -108,7 +110,7 @@ document.addEventListener("DOMContentLoaded", function () {
           correctThisPage=0;
           currentPage++;
           if(currentPage<pagesPerLevel){ saveProgress(); setTimeout(loadPage,800); }
-          else { currentLevel++; currentPage=0; if(currentLevel>=levels.length){ clearProgress(); setTimeout(endGame,800);} else { saveProgress(); setTimeout(loadPage,800);} }
+          else { currentLevel++; currentPage=0; if(currentLevel>=levels.length){ clearProgress(); showEndModal();} else { saveProgress(); setTimeout(loadPage,800);} }
         }
       }
     } else {
@@ -120,6 +122,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function touchStart(e) {
+    if(gamePaused) return;
     e.preventDefault();
     const target=e.target;
     const colour=target.dataset.letter;
@@ -194,24 +197,40 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".slot").forEach(slot=>{ slot.addEventListener("dragover",e=>e.preventDefault()); slot.addEventListener("drop",drop); });
   }
 
-  // ==== END GAME ====
-  function endGame(){
-    if(gameEnded) return;
-    gameEnded=true;
-    const endTime=Date.now(); const timeTaken=Math.round((endTime-startTime)/1000);
+  // ==== END MODAL ====
+  function showEndModal(){
+    gamePaused=true;
+    updateScore();
+    endModalContent.innerHTML=""; // clear old content
+    const timeTaken=Math.round((Date.now()-startTime)/1000);
     const minutes=Math.floor(timeTaken/60); const seconds=timeTaken%60;
     const formattedTime=`${minutes} mins ${seconds} sec`;
-    const currentPosition=`L${currentLevel+1}P${currentPage+1}`;
+    const p=document.createElement("p"); p.innerText=`Time: ${formattedTime}`; endModalContent.appendChild(p);
+    modal.style.display="flex";
+  }
 
-    // FORM SUBMISSION
+  // ==== STOP BUTTON ====
+  stopBtn.addEventListener("click", showEndModal);
+
+  // ==== MODAL BUTTONS ====
+  continueBtn.addEventListener("click", ()=>{
+    modal.style.display="none";
+    gamePaused=false;
+  });
+  finishBtn.addEventListener("click", ()=>{
+    modal.style.display="none";
+    submitGoogleForm();
+  });
+  againBtn.addEventListener("click", ()=>location.reload());
+
+  function submitGoogleForm(){
     const form=document.createElement("form"); form.method="POST"; form.action="https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse"; form.target="hidden_iframe"; form.style.display="none";
     if(!document.querySelector("iframe[name='hidden_iframe']")){ const f=document.createElement("iframe"); f.name="hidden_iframe"; f.style.display="none"; document.body.appendChild(f);}
     const entries={
       "entry.1387461004": studentName,
       "entry.1309291707": studentClass,
       "entry.477642881": "Colours",
-      "entry.1374858042": formattedTime,
-      "entry.750436458": currentPosition
+      "entry.1374858042": `${Math.floor((Date.now()-startTime)/60000)} mins ${Math.floor((Date.now()-startTime)/1000)%60} sec`,
     };
     for(let i=0;i<levels.length;i++){
       entries[formEntryIDs.correct[i]]=Array.from(levelAttempts[i].correct).sort().join(", ");
@@ -220,26 +239,11 @@ document.addEventListener("DOMContentLoaded", function () {
     let totalCorrect=0,totalAttempts=0;
     for(let i=0;i<levels.length;i++){ totalCorrect+=levelAttempts[i].correct.size; totalAttempts+=levelAttempts[i].correct.size+levelAttempts[i].incorrect.length; }
     entries["entry.1996137354"]=`${totalAttempts>0?Math.round((totalCorrect/totalAttempts)*100):0}%`;
-
     for(const key in entries){ const input=document.createElement("input"); input.type="hidden"; input.name=key; input.value=entries[key]; form.appendChild(input);}
     document.body.appendChild(form); form.submit();
-
-    document.getElementById("score-display").innerText=`Score: ${entries["entry.1996137354"]}`;
-    const timeDisplay=document.createElement("p"); timeDisplay.innerText=`Time: ${formattedTime}`;
-    document.getElementById("end-modal-content").appendChild(timeDisplay);
-    modal.style.display="flex";
   }
 
-  // ==== BUTTONS ====
-  finishBtn.addEventListener("click",()=>{ gameEnded=false; endGame(); });
-  continueBtn.addEventListener("click",()=>{ modal.style.display="none"; gameEnded=false; loadPage(); });
-  againBtn.addEventListener("click",()=>location.reload());
-  menuBtn?.addEventListener("click",()=>window.location.href="../index.html");
-  logoutBtn?.addEventListener("click",()=>{
-    if(localStorage.getItem("coloursSavedProgress")){ loadProgress(); endGame(); }
-    clearProgress(); localStorage.clear(); window.location.href="../index.html";
-  });
-
+  // ==== INIT ====
   if(localStorage.getItem("coloursSavedProgress")) loadProgress();
   loadPage();
 });
