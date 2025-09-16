@@ -85,48 +85,46 @@ document.addEventListener("DOMContentLoaded", function () {
   function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
 
   // ==== DROP / TOUCH HANDLERS ====
- function drop(e) {
+function drop(e) {
   if(gamePaused) return;
   e.preventDefault();
 
   const colour = e.dataTransfer ? e.dataTransfer.getData("text/plain") : e.colour;
-  const src = e.dataTransfer ? e.dataTransfer.getData("src") : "";
   const target = e.currentTarget;
   const expected = target.dataset.letter;
 
- if (colour === expected) {
-  if (!levelAttempts[currentLevel].correct.has(colour)) {
-    levelAttempts[currentLevel].correct.add(colour);
-    correctThisPage++;
+  if (colour === expected) {
+    if (!levelAttempts[currentLevel].correct.has(colour)) {
+      levelAttempts[currentLevel].correct.add(colour);
+      correctThisPage++;
 
-    // Keep original slot background (sign or image)
-    const slot = target;
+      // Determine overlay based on slot type
+      const slotIsSign = target.style.backgroundImage.includes("sign-");
+      const overlay = document.createElement("img");
+      overlay.src = slotIsSign ? `assets/colours/clipart/${colour}.png` : `assets/colours/signs/sign-${colour}.png`;
+      overlay.className = "overlay";
+      Object.assign(overlay.style, {
+        opacity: 0.5,
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none"
+      });
+      target.appendChild(overlay);
 
-    // Add overlay image: always the "opposite" of slot
-    const overlay = document.createElement("img");
-    const slotIsSign = slot.style.backgroundImage.includes("sign-");
-    overlay.src = slotIsSign ? `assets/colours/clipart/${colour}.png` : `assets/colours/signs/sign-${colour}.png`;
-    overlay.className = "overlay";
-    overlay.style.opacity = "0.5";
-    overlay.style.position = "absolute";
-    overlay.style.top = "0";
-    overlay.style.left = "0";
-    overlay.style.width = "100%";
-    overlay.style.height = "100%";
-    overlay.style.pointerEvents = "none"; // so it doesn’t block future drops
-    slot.appendChild(overlay);
+      // Remove draggable
+      document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el => el.remove());
 
-    // Remove draggable from left/right
-    document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el => el.remove());
-
-    showFeedback(true);
-    updateScore();
+      showFeedback(true);
+      updateScore();
 
       if (correctThisPage >= document.querySelectorAll(".slot").length) {
         correctThisPage = 0;
         currentPage++;
-        if(currentPage < pagesPerLevel){ saveProgress(); setTimeout(loadPage, 800); }
-        else { currentLevel++; currentPage=0; if(currentLevel>=levels.length){ clearProgress(); showEndModal();} else { saveProgress(); setTimeout(loadPage, 800);} }
+        if (currentPage < pagesPerLevel) { saveProgress(); setTimeout(loadPage, 800); }
+        else { currentLevel++; currentPage = 0; if(currentLevel >= levels.length){ clearProgress(); showEndModal(); } else { saveProgress(); setTimeout(loadPage,800); } }
       }
     }
   } else {
