@@ -23,6 +23,7 @@ const answerArea = document.getElementById("answerArea");
 const feedbackDiv = document.getElementById("feedback");
 const checkBtn = document.getElementById("checkBtn");
 const againBtn = document.getElementById("againBtn");
+const continueBtn = document.getElementById("continueBtn");
 const endModal = document.getElementById("endModal");
 const googleForm = document.getElementById("googleForm");
 const againBtnEnd = document.getElementById("againBtnEnd");
@@ -438,7 +439,7 @@ stopBtn.addEventListener("click", ()=>{
   document.getElementById("stopTime").textContent=`${Math.floor(savedTimeElapsed/60)}m ${savedTimeElapsed%60}s`;
   document.getElementById("stopPercent").textContent=percent+"%";
 
-  document.getElementById("continueBtn").onclick=()=>{ modal.style.display="none"; startTime=Date.now(); };
+  document.getElementById("continueBtn").onclick = () => { modal.style.display = "none"; startTime = Date.now(); };
   document.getElementById("againBtnStop").onclick=()=>{ modal.style.display="none"; resetGame(); };
   document.getElementById("finishBtnStop").onclick=async()=>{
     modal.style.display="none"; await submitResults(); clearProgress(); window.location.href="../index.html";
