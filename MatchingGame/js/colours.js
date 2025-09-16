@@ -13,8 +13,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const againBtn = document.getElementById("again-btn");
   const continueBtn = document.getElementById("continue-btn");
-  const menuBtn = document.getElementById("menu-btn");
-  const logoutBtn = document.getElementById("logout-btn");
   const modal = document.getElementById("end-modal");
   const finishBtn = document.getElementById("finish-btn");
   const stopBtn = document.getElementById("stop-btn");
