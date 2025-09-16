@@ -114,7 +114,220 @@ document.addEventListener("DOMContentLoaded", function () {
     localStorage.removeItem("coloursSavedProgress");
   }
 
-  // --- END GAME + SUBMIT ---
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function showFeedback(correct) {
+    feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
+    feedbackImage.style.display = "block";
+    setTimeout(() => { feedbackImage.style.display = "none"; }, 1000);
+  }
+
+  // --- DROP HANDLER ---
+  function drop(e) {
+    e.preventDefault();
+    const colour = e.dataTransfer.getData("text/plain");
+    const src = e.dataTransfer.getData("src");
+    const target = e.currentTarget;
+    const targetColour = target.dataset.letter;
+
+    if (colour === targetColour) {
+      if (!levelAttempts[currentLevel].correct.has(colour)) {
+        levelAttempts[currentLevel].correct.add(colour);
+        correctThisPage++;
+
+        // Overlay + remove draggable
+        target.innerHTML = "";
+        const overlay = document.createElement("img");
+        overlay.src = src;
+        overlay.className = "overlay";
+        target.appendChild(overlay);
+        document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el => el.remove());
+
+        showFeedback(true);
+        updateScore();
+
+        const expectedMatches = document.querySelectorAll(".slot").length;
+        if (correctThisPage >= expectedMatches) {
+          correctThisPage = 0;
+          currentPage++;
+          if (currentPage >= pagesPerLevel) {
+            currentLevel++;
+            currentPage = 0;
+          }
+          if (currentLevel >= levels.length) {
+            clearProgress();
+            setTimeout(endGame, 200);
+          } else {
+            saveProgress();
+            setTimeout(loadPage, 200);
+          }
+        }
+      }
+    } else {
+      levelAttempts[currentLevel].incorrect.push(colour);
+      showFeedback(false);
+      const wrong = document.querySelector(`img.draggable[data-letter='${colour}']`);
+      if (wrong) {
+        wrong.classList.add("shake");
+        setTimeout(() => wrong.classList.remove("shake"), 500);
+      }
+    }
+  }
+
+  // --- TOUCH SUPPORT ---
+  function touchStart(e) {
+    e.preventDefault();
+    const target = e.target;
+    const colour = target.dataset.letter;
+    const src = target.src;
+
+    const clone = target.cloneNode(true);
+    clone.style.position = "absolute";
+    clone.style.pointerEvents = "none";
+    clone.style.opacity = "0.7";
+    clone.style.zIndex = "10000";
+    document.body.appendChild(clone);
+
+    const moveClone = (touch) => {
+      clone.style.left = `${touch.clientX - clone.width / 2}px`;
+      clone.style.top = `${touch.clientY - clone.height / 2}px`;
+    };
+
+    moveClone(e.touches[0]);
+
+    const handleTouchMove = (ev) => moveClone(ev.touches[0]);
+    const handleTouchEnd = (ev) => {
+      const touch = ev.changedTouches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (el && el.classList.contains("slot")) {
+        drop({
+          preventDefault: () => {},
+          dataTransfer: { getData: (k) => (k === "text/plain" ? colour : src) },
+          currentTarget: el
+        });
+      }
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
+      clone.remove();
+    };
+
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
+    document.addEventListener("touchend", handleTouchEnd, { passive: false });
+  }
+
+  // --- LOAD PAGE (FULL VERSION) ---
+  function loadPage() {
+    if (currentLevel >= levels.length) {
+      clearProgress();
+      endGame();
+      return;
+    }
+
+    const { type: mode, decoys } = levels[currentLevel];
+    gameBoard.innerHTML = "";
+    leftSigns.innerHTML = "";
+    rightSigns.innerHTML = "";
+
+    levelTitle.innerText = `Level ${currentLevel + 1}: ` +
+      (mode === "signToImage" ? "Match the Sign to the Picture" :
+        mode === "imageToSign" ? "Match the Picture to the Sign" :
+        "Match Signs and Pictures (Mixed)");
+
+    // Initialise colours if new level
+    if (currentPage === 0 && currentColours.length === 0) {
+      const shuffled = shuffle([...allColours]);
+      currentColours = [];
+      for (let i = 0; i < pagesPerLevel; i++) {
+        currentColours.push(shuffle(shuffled.slice(i * 5, (i + 1) * 5)));
+      }
+    }
+
+    const pageColours = currentColours[currentPage] || [];
+    const usedSet = new Set(pageColours);
+
+    pageColours.forEach(colour => {
+      const slot = document.createElement("div");
+      slot.className = "slot";
+      slot.dataset.letter = colour;
+
+      let showSign = mode === "imageToSign" || (mode === "mixed" && Math.random() < 0.5);
+      slot.style.backgroundImage = `url('assets/colours/${showSign ? `signs/sign-${colour}.png` : `clipart/${colour}.png`}')`;
+
+      if (levelAttempts[currentLevel].correct.has(colour)) {
+        const overlay = document.createElement("img");
+        overlay.src = `assets/colours/${showSign ? `clipart/${colour}.png` : `signs/sign-${colour}.png`}`;
+        overlay.className = "overlay";
+        slot.appendChild(overlay);
+      }
+
+      gameBoard.appendChild(slot);
+    });
+
+    const allDecoys = allColours.filter(c => !usedSet.has(c));
+    const decoyColours = shuffle(allDecoys).slice(0, decoys);
+    const draggableColours = shuffle([...pageColours, ...decoyColours])
+      .filter(colour => !levelAttempts[currentLevel].correct.has(colour));
+
+    draggableColours.forEach((colour, i) => {
+      const img = document.createElement("img");
+      img.className = "draggable";
+      img.draggable = true;
+      img.dataset.letter = colour;
+
+      img.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text/plain", colour);
+        e.dataTransfer.setData("src", img.src);
+      });
+      img.addEventListener("touchstart", touchStart);
+
+      let opposite = mode === "signToImage" || (mode === "mixed" && !gameBoard.querySelector(`.slot[data-letter='${colour}']`)?.style.backgroundImage.includes("sign-"));
+      img.src = `assets/colours/${opposite ? `signs/sign-${colour}.png` : `clipart/${colour}.png`}`;
+
+      const wrap = document.createElement("div");
+      wrap.className = "drag-wrapper";
+      wrap.appendChild(img);
+
+      if (i < draggableColours.length / 2) {
+        leftSigns.appendChild(wrap);
+      } else {
+        rightSigns.appendChild(wrap);
+      }
+    });
+
+    correctThisPage = pageColours.filter(colour => levelAttempts[currentLevel].correct.has(colour)).length;
+    correctMatches = levelAttempts[currentLevel].correct.size;
+    updateScore();
+
+    document.querySelectorAll(".slot").forEach(slot => {
+      slot.addEventListener("dragover", e => e.preventDefault());
+      slot.addEventListener("drop", drop);
+    });
+
+    const expectedMatches = document.querySelectorAll(".slot").length;
+    if (correctThisPage >= expectedMatches) {
+      correctThisPage = 0;
+      currentPage++;
+      if (currentPage >= pagesPerLevel) {
+        currentLevel++;
+        currentPage = 0;
+      }
+      if (currentLevel >= levels.length) {
+        clearProgress();
+        setTimeout(endGame, 200);
+      } else {
+        saveProgress();
+        setTimeout(loadPage, 200);
+      }
+    }
+  }
+
+  // --- SUBMIT & END GAME ---
   function submitResults() {
     const totalCorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.correct.size, 0);
     const totalIncorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.incorrect.length, 0);
@@ -125,13 +338,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const timeTaken = Math.round((Date.now() - startTime) / 1000);
 
     const formData = new FormData();
-    formData.append("entry.2005823232", studentName);  // name
-    formData.append("entry.1496682818", studentClass); // class
-    formData.append("entry.1045781291", "Colours");    // subject
-    formData.append("entry.839337160", timeTaken);     // time
-    formData.append("entry.1166974658", percent);      // percent score
+    formData.append("entry.2005823232", studentName);
+    formData.append("entry.1496682818", studentClass);
+    formData.append("entry.1045781291", "Colours");
+    formData.append("entry.839337160", timeTaken);
+    formData.append("entry.1166974658", percent);
 
-    // Per-level results
     levels.forEach((_, idx) => {
       formData.append(formEntryIDs.correct[idx], levelAttempts[idx].correct.size);
       formData.append(formEntryIDs.incorrect[idx], levelAttempts[idx].incorrect.length);
