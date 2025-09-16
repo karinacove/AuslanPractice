@@ -94,28 +94,33 @@ document.addEventListener("DOMContentLoaded", function () {
   const target = e.currentTarget;
   const expected = target.dataset.letter;
 
-  if (colour === expected) {
-    if (!levelAttempts[currentLevel].correct.has(colour)) {
-      levelAttempts[currentLevel].correct.add(colour);
-      correctThisPage++;
+ if (colour === expected) {
+  if (!levelAttempts[currentLevel].correct.has(colour)) {
+    levelAttempts[currentLevel].correct.add(colour);
+    correctThisPage++;
 
-      // Clear the slot and add overlay
-      target.innerHTML = "";
+    // Keep original slot background (sign or image)
+    const slot = target;
 
-      const overlay = document.createElement("img");
-      overlay.src = src;                 // image or sign that was dragged
-      overlay.className = "overlay";
-      overlay.style.opacity = "0.5";    // make it transparent
-      target.appendChild(overlay);
+    // Add overlay image: always the "opposite" of slot
+    const overlay = document.createElement("img");
+    const slotIsSign = slot.style.backgroundImage.includes("sign-");
+    overlay.src = slotIsSign ? `assets/colours/clipart/${colour}.png` : `assets/colours/signs/sign-${colour}.png`;
+    overlay.className = "overlay";
+    overlay.style.opacity = "0.5";
+    overlay.style.position = "absolute";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100%";
+    overlay.style.height = "100%";
+    overlay.style.pointerEvents = "none"; // so it doesn’t block future drops
+    slot.appendChild(overlay);
 
-      // Optionally also keep the slot’s original background visible
-      target.style.backgroundBlendMode = "multiply"; // or just leave as is
+    // Remove draggable from left/right
+    document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el => el.remove());
 
-      // Remove draggable from left/right
-      document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el => el.remove());
-
-      showFeedback(true);
-      updateScore();
+    showFeedback(true);
+    updateScore();
 
       if (correctThisPage >= document.querySelectorAll(".slot").length) {
         correctThisPage = 0;
