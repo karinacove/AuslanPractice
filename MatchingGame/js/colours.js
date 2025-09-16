@@ -255,34 +255,92 @@ finishBtn.addEventListener("click", ()=>{
 
 againBtn.addEventListener("click", ()=>location.reload());
 
-  function submitGoogleForm(){
-    const form=document.createElement("form");
-    form.method="POST"; form.action="https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
-    form.target="hidden_iframe"; form.style.display="none";
+function submitGoogleForm(){
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+  form.target = "hidden_iframe";
+  form.style.display = "none";
 
-    if(!document.querySelector("iframe[name='hidden_iframe']")){
-      const f=document.createElement("iframe"); f.name="hidden_iframe"; f.style.display="none"; document.body.appendChild(f);
-    }
-
-    const entries={
-      "entry.1387461004": studentName,
-      "entry.1309291707": studentClass,
-      "entry.477642881": "Colours",
-      "entry.1374858042": `${Math.floor((Date.now()-startTime)/60)} mins ${Math.floor((Date.now()-startTime)%60)} sec`
-    };
-
-    for(let i=0;i<levels.length;i++){
-      entries[formEntryIDs.correct[i]] = Array.from(levelAttempts[i].correct).sort().join(", ");
-      entries[formEntryIDs.incorrect[i]] = levelAttempts[i].incorrect.sort().map(c=>`*${c}*`).join(", ");
-    }
-
-    let totalCorrect=0, totalAttempts=0;
-    for(let i=0;i<levels.length;i++){ totalCorrect+=levelAttempts[i].correct.size; totalAttempts+=levelAttempts[i].correct.size+levelAttempts[i].incorrect.length;}
-    entries["entry.1996137354"]=`${totalAttempts>0?Math.round((totalCorrect/totalAttempts)*100):0}%`;
-
-    for(const key in entries){ const input=document.createElement("input"); input.type="hidden"; input.name=key; input.value=entries[key]; form.appendChild(input);}
-    document.body.appendChild(form); form.submit();
+  if (!document.querySelector("iframe[name='hidden_iframe']")) {
+    const f = document.createElement("iframe");
+    f.name = "hidden_iframe";
+    f.style.display = "none";
+    document.body.appendChild(f);
   }
+
+  // calculate score + percent
+  let totalCorrect = 0, totalAttempts = 0;
+  for (let i=0; i<levels.length; i++) {
+    totalCorrect += levelAttempts[i].correct.size;
+    totalAttempts += levelAttempts[i].correct.size + levelAttempts[i].incorrect.length;
+  }
+  const percent = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
+
+  const timeTaken = Math.round((Date.now() - startTime) / 1000);
+  const minutes = Math.floor(timeTaken / 60);
+  const seconds = timeTaken % 60;
+  const formattedTime = `${minutes} mins ${seconds} sec`;
+
+  // figure out highest level completed
+  let highestLevel = 0;
+  for (let i=0; i<levels.length; i++) {
+    if (levelAttempts[i].correct.size > 0 || levelAttempts[i].incorrect.length > 0) {
+      highestLevel = i + 1;
+    }
+  }
+
+  // entries matching your Google Form
+  const entries = {
+    "entry.1387461004": studentName,       // name
+    "entry.1309291707": studentClass,      // class
+    "entry.477642881": "Colours",          // topic
+    "entry.1996137354": `${percent}%`,     // percentage
+    "entry.1374858042": formattedTime,     // time
+    "entry.750436458": highestLevel        // highest level completed
+  };
+
+  // map of your form's per-level entry IDs
+  const formEntryIDs = {
+    correct: [
+      "entry.1897227570", // Level 1 correct
+      "entry.1116300030", // Level 2 correct
+      "entry.187975538",  // Level 3 correct
+      "entry.1880514176", // Level 4 correct
+      "entry.497882042",  // Level 5 correct
+      "entry.1591755601"  // Level 6 correct
+    ],
+    incorrect: [
+      "entry.1249394203", // Level 1 incorrect
+      "entry.1551220511", // Level 2 incorrect
+      "entry.903633326",  // Level 3 incorrect
+      "entry.856597282",  // Level 4 incorrect
+      "entry.552536101",  // Level 5 incorrect
+      "entry.922308538"   // Level 6 incorrect
+    ]
+  };
+
+  // add per-level details
+  for (let i=0; i<levels.length && i<6; i++) {
+    entries[formEntryIDs.correct[i]] = Array.from(levelAttempts[i].correct).sort().join(", ");
+    entries[formEntryIDs.incorrect[i]] = levelAttempts[i].incorrect
+      .sort()
+      .map(c => `*${c}*`)
+      .join(", ");
+  }
+
+  // build hidden inputs
+  for (const key in entries) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = key;
+    input.value = entries[key];
+    form.appendChild(input);
+  }
+
+  document.body.appendChild(form);
+  form.submit();
+}
 
   // ==== INIT ====
   if(localStorage.getItem("coloursSavedProgress")) loadProgress();
