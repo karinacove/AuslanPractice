@@ -214,36 +214,46 @@ function drop(e) {
     });
   }
 
-  // ==== END MODAL ====
-  function showEndModal(){
-    gamePaused = true;
-    endModalContent.innerHTML="";
+// ==== END MODAL ====
+function showEndModal(){
+  gamePaused = true;
 
-    // Total score
-    let totalCorrect=0, totalAttempts=0;
-    for(let i=0;i<levels.length;i++){
-      totalCorrect+=levelAttempts[i].correct.size;
-      totalAttempts+=levelAttempts[i].correct.size+levelAttempts[i].incorrect.length;
-    }
-    const percent = totalAttempts>0?Math.round((totalCorrect/totalAttempts)*100):0;
-
-    const scoreP = document.createElement("p"); scoreP.innerText=`Score: ${percent}%`;
-    endModalContent.appendChild(scoreP);
-
-    // Time
-    const timeTaken = Math.round((Date.now()-startTime)/1000);
-    const minutes = Math.floor(timeTaken/60); const seconds = timeTaken%60;
-    const timeP = document.createElement("p"); timeP.innerText=`Time: ${minutes} mins ${seconds} sec`;
-    endModalContent.appendChild(timeP);
-
-    modal.style.display="flex";
+  // Calculate score
+  let totalCorrect = 0, totalAttempts = 0;
+  for (let i=0; i<levels.length; i++) {
+    totalCorrect += levelAttempts[i].correct.size;
+    totalAttempts += levelAttempts[i].correct.size + levelAttempts[i].incorrect.length;
   }
+  const percent = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
 
-  // ==== STOP / MODAL BUTTONS ====
-  stopBtn.addEventListener("click", showEndModal);
-  continueBtn.addEventListener("click",()=>{ modal.style.display="none"; gamePaused=false; });
-  finishBtn.addEventListener("click",()=>{ modal.style.display="none"; submitGoogleForm(); });
-  againBtn.addEventListener("click",()=>location.reload());
+  // Calculate time
+  const timeTaken = Math.round((Date.now() - startTime) / 1000);
+  const minutes = Math.floor(timeTaken / 60);
+  const seconds = timeTaken % 60;
+
+  // Update the existing <p>
+  const scoreDisplay = document.getElementById("score-display-modal");
+  scoreDisplay.innerText = `Score: ${percent}% | Time: ${minutes} mins ${seconds} sec`;
+
+  // Show modal (buttons remain intact)
+  modal.style.display = "flex";
+}
+
+// ==== STOP BUTTON ====
+stopBtn.addEventListener("click", showEndModal);
+
+// ==== MODAL BUTTONS ====
+continueBtn.addEventListener("click", ()=>{
+  modal.style.display = "none";
+  gamePaused = false;
+});
+
+finishBtn.addEventListener("click", ()=>{
+  modal.style.display = "none";
+  submitGoogleForm();
+});
+
+againBtn.addEventListener("click", ()=>location.reload());
 
   function submitGoogleForm(){
     const form=document.createElement("form");
