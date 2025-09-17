@@ -316,7 +316,19 @@ document.addEventListener("DOMContentLoaded", function () {
     loadPage();
   };
   againBtn.onclick = () => { localStorage.removeItem("numbersGameSave"); location.reload(); };
-  finishBtn.onclick = () => { modal.style.display = "flex"; endGame(); };
+  finishBtn.onclick = () => {
+  if (!gameEnded) {
+    modal.style.display = "flex";
+    endGame();
+    // Clear saved progress
+    localStorage.removeItem("numbersGameSave");
+    // Redirect after a short delay
+    setTimeout(() => {
+      window.location.href = "../index.html";
+    }, 1000); // 1 second delay to allow form submission
+  }
+};
+
 
 const stopBtn = document.getElementById("stop-btn");
 if (stopBtn) {
