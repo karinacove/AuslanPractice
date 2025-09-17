@@ -318,11 +318,16 @@ document.addEventListener("DOMContentLoaded", function () {
   againBtn.onclick = () => { localStorage.removeItem("numbersGameSave"); location.reload(); };
   finishBtn.onclick = () => { modal.style.display = "flex"; endGame(); };
 
-  const stopBtn = document.getElementById("stopBtn");
+const stopBtn = document.getElementById("stop-btn");
+if (stopBtn) {
   stopBtn.addEventListener("click", () => {
-  modal.style.display = "flex";
-  endGame();
-});
+    if (!gameEnded) {
+      modal.style.display = "flex";
+      endGame();
+    }
+  });
+}
+
 
   const resumed = restoreProgress();
   loadPage();
