@@ -215,7 +215,7 @@ function drop(e) {
   }
 
 // ==== END MODAL ====
-function showEndModal(){
+function showEndModal(isFinished = false){
   gamePaused = true;
 
   // Calculate score
@@ -235,7 +235,13 @@ function showEndModal(){
   const scoreDisplay = document.getElementById("score-display-modal");
   scoreDisplay.innerText = `Score: ${percent}% | Time: ${minutes} mins ${seconds} sec`;
 
-  // Show modal (buttons remain intact)
+  // Show/hide buttons depending on context
+  if (isFinished) {
+    continueBtn.style.display = "none";
+  } else {
+    continueBtn.style.display = "inline-block";
+  }
+
   modal.style.display = "flex";
 }
 
