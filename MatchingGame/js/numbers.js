@@ -1,4 +1,4 @@
-// ✅ Complete Numbers Matching Game Script with Buttons Fixed
+// ✅ Complete Numbers Matching Game Script with Fixed Modals (same as Colours)
 
 document.addEventListener("DOMContentLoaded", function () {
   let studentName = localStorage.getItem("studentName") || "";
@@ -11,15 +11,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
+  // ===== DOM ELEMENTS =====
   const againBtn = document.getElementById("again-btn");
   const continueBtn = document.getElementById("continue-btn");
   const finishBtn = document.getElementById("finish-btn");
   const modal = document.getElementById("end-modal");
+  const modalContent = document.getElementById("end-modal-content");
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
   const rightSigns = document.getElementById("rightSigns");
   const levelTitle = document.getElementById("levelTitle");
+  const scoreDisplay = document.getElementById("score-display");
 
+  // ===== GAME STATE =====
   let currentLevel = 0;
   let currentPage = 0;
   let currentLetters = [];
@@ -28,23 +32,25 @@ document.addEventListener("DOMContentLoaded", function () {
   let startTime = Date.now();
   const levelAttempts = Array(20).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
 
+  // ===== GOOGLE FORM ENTRIES =====
   const formEntryIDs = {
     correct: [
-      "entry.1897227570", "entry.1116300030", "entry.187975538", "entry.1880514176",
-      "entry.497882042", "entry.1591755601", "entry.1374012635", "entry.1932466289",
-      "entry.554179696", "entry.738514372", "entry.1591067770", "entry.798325880",
-      "entry.985210217", "entry.173771989", "entry.518336131", "entry.1826031881",
-      "entry.1363193324", "entry.1713469842", "entry.2122202486", "entry.1745996786"
+      "entry.1897227570","entry.1116300030","entry.187975538","entry.1880514176",
+      "entry.497882042","entry.1591755601","entry.1374012635","entry.1932466289",
+      "entry.554179696","entry.738514372","entry.1591067770","entry.798325880",
+      "entry.985210217","entry.173771989","entry.518336131","entry.1826031881",
+      "entry.1363193324","entry.1713469842","entry.2122202486","entry.1745996786"
     ],
     incorrect: [
-      "entry.1249394203", "entry.1551220511", "entry.903633326", "entry.856597282",
-      "entry.552536101", "entry.922308538", "entry.969924717", "entry.1575128943",
-      "entry.2030465979", "entry.1357122496", "entry.1355599626", "entry.1979110089",
-      "entry.1120330311", "entry.1445957806", "entry.817472684", "entry.975184703",
-      "entry.1628651239", "entry.1505983868", "entry.1744154495", "entry.592196245"
+      "entry.1249394203","entry.1551220511","entry.903633326","entry.856597282",
+      "entry.552536101","entry.922308538","entry.969924717","entry.1575128943",
+      "entry.2030465979","entry.1357122496","entry.1355599626","entry.1979110089",
+      "entry.1120330311","entry.1445957806","entry.817472684","entry.975184703",
+      "entry.1628651239","entry.1505983868","entry.1744154495","entry.592196245"
     ]
   };
 
+  // ===== LEVELS =====
   const levelDefinitions = [
     { start: 0, end: 12, pages: 2, type: "clipart-grid" },
     { start: 0, end: 12, pages: 2, type: "sign-grid" },
@@ -68,7 +74,7 @@ document.addEventListener("DOMContentLoaded", function () {
     { review: true, pages: 1, type: "mixed" }
   ];
 
-  // Feedback overlay
+  // ===== FEEDBACK OVERLAY =====
   const feedbackImage = document.createElement("img");
   feedbackImage.id = "feedbackImage";
   Object.assign(feedbackImage.style, {
@@ -86,18 +92,16 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function updateScore() {
-    const totalCorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.correct.size, 0);
-    const totalIncorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.incorrect.length, 0);
-    const percent = totalCorrect + totalIncorrect ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
-    document.getElementById("score-display").innerText = `Score: ${percent}%`;
+    const totalCorrect = levelAttempts.reduce((s,l)=>s+l.correct.size,0);
+    const totalIncorrect = levelAttempts.reduce((s,l)=>s+l.incorrect.length,0);
+    const percent = totalCorrect+totalIncorrect ? Math.round((totalCorrect/(totalCorrect+totalIncorrect))*100) : 0;
+    scoreDisplay.innerText = `Score: ${percent}%`;
   }
 
   function saveProgress() {
     const saveData = {
       studentName, studentClass, currentLevel, currentPage,
-      levelAttempts: levelAttempts.map(lvl => ({
-        correct: Array.from(lvl.correct), incorrect: lvl.incorrect
-      })),
+      levelAttempts: levelAttempts.map(l=>({ correct: Array.from(l.correct), incorrect: l.incorrect })),
       timestamp: Date.now()
     };
     localStorage.setItem("numbersGameSave", JSON.stringify(saveData));
@@ -105,21 +109,126 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function restoreProgress() {
     const saveData = JSON.parse(localStorage.getItem("numbersGameSave"));
-    if (!saveData || saveData.studentName !== studentName || saveData.studentClass !== studentClass) return false;
+    if (!saveData || saveData.studentName!==studentName || saveData.studentClass!==studentClass) return false;
     currentLevel = saveData.currentLevel;
     currentPage = saveData.currentPage;
-    saveData.levelAttempts.forEach((lvl, i) => {
+    saveData.levelAttempts.forEach((lvl,i)=>{
       levelAttempts[i].correct = new Set(lvl.correct);
       levelAttempts[i].incorrect = lvl.incorrect;
     });
     return true;
   }
 
+  function clearProgress() {
+    localStorage.removeItem("numbersGameSave");
+  }
+
+  // ===== END GAME + MODALS =====
+  function endGame() {
+    const endTime = Date.now();
+    const timeTaken = Math.round((endTime - startTime)/1000);
+    const formattedTime = `${Math.floor(timeTaken/60)} mins ${timeTaken%60} sec`;
+    const currentPosition = `L${currentLevel+1}P${currentPage+1}`;
+
+    const totalCorrect = levelAttempts.reduce((s,l)=>s+l.correct.size,0);
+    const totalIncorrect = levelAttempts.reduce((s,l)=>s+l.incorrect.length,0);
+    const percent = totalCorrect+totalIncorrect ? Math.round((totalCorrect/(totalCorrect+totalIncorrect))*100) : 0;
+
+    // Google Form submission
+    const form = document.createElement("form");
+    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+    form.method = "POST";
+    form.target = "hidden_iframe";
+    form.style.display = "none";
+
+    let iframe = document.querySelector("iframe[name='hidden_iframe']");
+    if (!iframe) {
+      iframe = document.createElement("iframe");
+      iframe.name = "hidden_iframe";
+      iframe.style.display = "none";
+      document.body.appendChild(iframe);
+    }
+
+    const entries = {
+      "entry.1387461004": studentName,
+      "entry.1309291707": studentClass,
+      "entry.477642881": "Numbers",
+      "entry.1374858042": formattedTime,
+      "entry.750436458": currentPosition,
+      "entry.1996137354": `${percent}%`
+    };
+
+    for (let i=0;i<20;i++) {
+      const correct = Array.from(levelAttempts[i].correct).sort((a,b)=>a-b);
+      const incorrect = levelAttempts[i].incorrect.sort((a,b)=>a-b);
+      entries[formEntryIDs.correct[i]] = correct.join(",");
+      entries[formEntryIDs.incorrect[i]] = incorrect.join(",");
+    }
+
+    for (const key in entries) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = entries[key];
+      form.appendChild(input);
+    }
+    document.body.appendChild(form);
+    form.submit();
+
+    clearProgress();
+
+    // Update modal content
+    scoreDisplay.innerText = `Score: ${percent}%`;
+    const timeDisplay = document.createElement("p");
+    timeDisplay.innerText = `Time: ${formattedTime}`;
+    modalContent.appendChild(timeDisplay);
+  }
+
+  function showEndModal(isFinished) {
+    modal.style.display = "flex";
+    againBtn.style.display = "inline-block";
+    finishBtn.style.display = "inline-block";
+    continueBtn.style.display = isFinished ? "none" : "inline-block";
+    if (isFinished) {
+      if (!gameEnded) {
+        gameEnded = true;
+        endGame();
+      }
+    }
+  }
+
+  // ===== BUTTONS =====
+  continueBtn.onclick = () => {
+    modal.style.display = "none";
+    gameEnded = false;
+    loadPage();
+  };
+
+  againBtn.onclick = () => { clearProgress(); location.reload(); };
+
+  finishBtn.onclick = () => {
+    modal.style.display = "flex";
+    if (!gameEnded) {
+      gameEnded = true;
+      endGame();
+    }
+    setTimeout(()=>{ window.location.href = "../index.html"; }, 1200);
+  };
+
+  const stopBtn = document.getElementById("stop-btn");
+  if (stopBtn) {
+    stopBtn.addEventListener("click", () => {
+      if (!gameEnded) showEndModal(false);
+    });
+  }
+
+  // ===== DROP + TOUCH =====
   function drop(e) {
     e.preventDefault();
     const letter = e.dataTransfer.getData("text/plain");
     const src = e.dataTransfer.getData("src");
     const target = e.currentTarget;
+
     if (letter === target.dataset.letter) {
       if (!levelAttempts[currentLevel].correct.has(letter)) levelAttempts[currentLevel].correct.add(letter);
       target.innerHTML = "";
@@ -127,19 +236,20 @@ document.addEventListener("DOMContentLoaded", function () {
       overlay.src = src;
       overlay.className = "overlay";
       target.appendChild(overlay);
-      document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el => el.remove());
+      document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el=>el.remove());
       correctMatches++;
       showFeedback(true);
       updateScore();
+
       if (correctMatches >= currentLetters[currentPage].length) {
         correctMatches = 0;
         currentPage++;
-        const totalPages = currentLetters.length;
-        if (currentPage < totalPages) setTimeout(loadPage, 800);
-        else {
+        if (currentPage < currentLetters.length) {
+          setTimeout(loadPage, 800);
+        } else {
           currentLevel++;
           currentPage = 0;
-          if (currentLevel >= 20) { modal.style.display = "flex"; endGame(); }
+          if (currentLevel >= 20) showEndModal(true);
           else setTimeout(loadPage, 800);
         }
       }
@@ -160,93 +270,30 @@ document.addEventListener("DOMContentLoaded", function () {
     clone.style.zIndex = "10000";
     document.body.appendChild(clone);
 
-    const moveClone = touch => { clone.style.left = `${touch.clientX - clone.width/2}px`; clone.style.top = `${touch.clientY - clone.height/2}px`; };
+    const moveClone = t => { clone.style.left = `${t.clientX-clone.width/2}px`; clone.style.top = `${t.clientY-clone.height/2}px`; };
     moveClone(e.touches[0]);
 
     const handleTouchMove = ev => moveClone(ev.touches[0]);
     const handleTouchEnd = ev => {
       const touch = ev.changedTouches[0];
       const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (el && el.classList.contains("slot")) drop({ preventDefault: () => {}, dataTransfer: { getData: k => k==="text/plain"?letter:src }, currentTarget: el });
+      if (el && el.classList.contains("slot")) drop({ preventDefault:()=>{}, dataTransfer:{ getData:k=>(k==="text/plain"?letter:src) }, currentTarget: el });
       document.removeEventListener("touchmove", handleTouchMove);
       document.removeEventListener("touchend", handleTouchEnd);
       clone.remove();
     };
 
-    document.addEventListener("touchmove", handleTouchMove, { passive: false });
-    document.addEventListener("touchend", handleTouchEnd, { passive: false });
+    document.addEventListener("touchmove", handleTouchMove, { passive:false });
+    document.addEventListener("touchend", handleTouchEnd, { passive:false });
   }
 
- function endGame() {
-  if (gameEnded) return;
-  gameEnded = true;
-
-  const endTime = Date.now();
-  const timeTaken = Math.round((endTime - startTime)/1000);
-  const formattedTime = `${Math.floor(timeTaken/60)} mins ${timeTaken % 60} sec`;
-  const currentPosition = `L${currentLevel+1}P${currentPage+1}`;
-
-  const totalCorrect = levelAttempts.reduce((sum,lvl)=>sum+lvl.correct.size,0);
-  const totalIncorrect = levelAttempts.reduce((sum,lvl)=>sum+lvl.incorrect.length,0);
-  const percent = totalCorrect + totalIncorrect ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
-
-  // Create and submit hidden form
-  const form = document.createElement("form");
-  form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
-  form.method = "POST";
-  form.target = "hidden_iframe";
-  form.style.display = "none";
-
-  let iframe = document.querySelector("iframe[name='hidden_iframe']");
-  if (!iframe) {
-    iframe = document.createElement("iframe");
-    iframe.name = "hidden_iframe";
-    iframe.style.display = "none";
-    document.body.appendChild(iframe);
-  }
-
-  const entries = {
-    "entry.1387461004": studentName,
-    "entry.1309291707": studentClass,
-    "entry.477642881": "Numbers",
-    "entry.1374858042": formattedTime,
-    "entry.750436458": currentPosition,
-    "entry.1996137354": `${percent}%`
-  };
-
-  for (let i = 0; i < 20; i++) {
-    const correct = Array.from(levelAttempts[i].correct).sort((a,b)=>a-b);
-    const incorrect = levelAttempts[i].incorrect.sort((a,b)=>a-b);
-    entries[formEntryIDs.correct[i]] = correct.join(",");
-    entries[formEntryIDs.incorrect[i]] = incorrect.join(",");
-  }
-
-  for (const key in entries) {
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = key;
-    input.value = entries[key];
-    form.appendChild(input);
-  }
-  document.body.appendChild(form);
-  form.submit();
-
-  // Clear saved progress
-  localStorage.removeItem("numbersGameSave");
-
-  // Update modal content
-  document.getElementById("score-display").innerText = `Score: ${percent}%`;
-  const timeDisplay = document.createElement("p");
-  timeDisplay.innerText = `Time: ${formattedTime}`;
-  document.getElementById("end-modal-content").appendChild(timeDisplay);
-}
-
+  // ===== LOAD PAGE =====
   function loadPage() {
     const info = levelDefinitions[currentLevel];
     let pool;
     if (info.review) {
       const wrongNumbers = new Set();
-      for (let i=0;i<levelAttempts.length;i++){
+      for (let i=0;i<levelAttempts.length;i++) {
         levelAttempts[i].incorrect.forEach(n=>wrongNumbers.add(n));
       }
       pool = Array.from(wrongNumbers);
@@ -254,33 +301,33 @@ document.addEventListener("DOMContentLoaded", function () {
     else pool = Array.from({length:info.end-info.start+1},(_,i)=>i+info.start);
 
     const chosen = shuffle(pool).slice(0, info.pages*9);
-    const pageItems=[];
-    for(let i=0;i<info.pages;i++) pageItems.push(chosen.slice(i*9,(i+1)*9));
-    currentLetters=pageItems;
+    const pageItems = [];
+    for (let i=0;i<info.pages;i++) pageItems.push(chosen.slice(i*9,(i+1)*9));
+    currentLetters = pageItems;
 
-    const pageLetters=currentLetters[currentPage];
-    gameBoard.innerHTML="";
-    leftSigns.innerHTML="";
-    rightSigns.innerHTML="";
-    levelTitle.innerText=`Level ${currentLevel+1}`;
+    const pageLetters = currentLetters[currentPage];
+    gameBoard.innerHTML = "";
+    leftSigns.innerHTML = "";
+    rightSigns.innerHTML = "";
+    levelTitle.innerText = `Level ${currentLevel+1}`;
 
     const slotType = info.type;
     const slotMode = slotType.includes("clipart")?"clipart":slotType.includes("sign")?"sign":null;
-    const getOppositeMode = m=>m==="clipart"?"sign":"clipart";
+    const getOppositeMode = m => m==="clipart"?"sign":"clipart";
 
     pageLetters.forEach(letter=>{
       const slot=document.createElement("div");
       slot.className="slot";
       slot.dataset.letter=`${letter}`;
-      const imageMode = slotType==="mixed"? (Math.random()<0.5?"clipart":"sign") : slotMode;
+      const imageMode = slotType==="mixed" ? (Math.random()<0.5?"clipart":"sign") : slotMode;
       slot.dataset.imageMode=imageMode;
       slot.style.backgroundImage=`url('assets/numbers/${imageMode==="clipart"?`clipart/${letter}.png`:`signs/sign-${letter}.png`}')`;
       gameBoard.appendChild(slot);
     });
 
     let decoyPool = pool.filter(n=>!pageLetters.includes(n));
-    let decoys = decoyPool.length>=3?shuffle(decoyPool).slice(0,3):decoyPool;
-    const draggableLetters=shuffle([...pageLetters,...decoys]);
+    let decoys = decoyPool.length>=3 ? shuffle(decoyPool).slice(0,3) : decoyPool;
+    const draggableLetters = shuffle([...pageLetters,...decoys]);
 
     draggableLetters.forEach((letter,i)=>{
       const img=document.createElement("img");
@@ -288,9 +335,9 @@ document.addEventListener("DOMContentLoaded", function () {
       img.draggable=true;
       img.dataset.letter=`${letter}`;
       let sourceMode;
-      if(slotType==="mixed"){
+      if (slotType==="mixed") {
         const matchSlot=document.querySelector(`.slot[data-letter='${letter}']`);
-        sourceMode = matchSlot? getOppositeMode(matchSlot.dataset.imageMode): (Math.random()<0.5?"clipart":"sign");
+        sourceMode = matchSlot ? getOppositeMode(matchSlot.dataset.imageMode) : (Math.random()<0.5?"clipart":"sign");
       } else sourceMode=getOppositeMode(slotMode);
       img.src=`assets/numbers/${sourceMode==="clipart"?`clipart/${letter}.png`:`signs/sign-${letter}.png`}`;
       img.addEventListener("dragstart",e=>{
@@ -315,35 +362,7 @@ document.addEventListener("DOMContentLoaded", function () {
     saveProgress();
   }
 
-  // Buttons fixed
-  continueBtn.onclick = () => {
-    modal.style.display = "none";
-    gameEnded = false;
-    loadPage();
-  };
-  againBtn.onclick = () => { localStorage.removeItem("numbersGameSave"); location.reload(); };
-finishBtn.onclick = () => {
-  modal.style.display = "flex";  // show modal immediately
-  endGame();
-  // redirect after short delay to allow form submission
-  setTimeout(() => {
-    window.location.href = "../index.html";
-  }, 1200);
-};
-
-
-
-const stopBtn = document.getElementById("stop-btn");
-if (stopBtn) {
-  stopBtn.addEventListener("click", () => {
-    if (!gameEnded) {
-      modal.style.display = "flex";
-      endGame();
-    }
-  });
-}
-
-
+  // ===== INIT =====
   const resumed = restoreProgress();
   loadPage();
 });
