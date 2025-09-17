@@ -28,10 +28,6 @@ document.addEventListener("DOMContentLoaded", function () {
     { type: "imageToSign", decoys: 5 },
     { type: "mixed", decoys: 5 }
   ];
-  const formEntryIDs = {
-    correct: ["entry.1897227570","entry.1116300030","entry.187975538","entry.1880514176","entry.497882042","entry.1591755601"],
-    incorrect: ["entry.1249394203","entry.1551220511","entry.903633326","entry.856597282","entry.552536101","entry.922308538"]
-  };
 
   // ==== STATE ====
   let currentLevel = 0, currentPage = 0, currentColours = [];
@@ -85,62 +81,68 @@ document.addEventListener("DOMContentLoaded", function () {
   function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
 
   // ==== DROP / TOUCH HANDLERS ====
-function drop(e) {
-  if(gamePaused) return;
-  e.preventDefault();
+  function drop(e) {
+    if(gamePaused) return;
+    e.preventDefault();
 
-  const colour = e.dataTransfer ? e.dataTransfer.getData("text/plain") : e.colour;
-  const target = e.currentTarget;
-  const expected = target.dataset.letter;
+    const colour = e.dataTransfer ? e.dataTransfer.getData("text/plain") : e.colour;
+    const target = e.currentTarget;
+    const expected = target.dataset.letter;
 
-  if (colour === expected) {
-    if (!levelAttempts[currentLevel].correct.has(colour)) {
-      levelAttempts[currentLevel].correct.add(colour);
-      correctThisPage++;
+    if (colour === expected) {
+      if (!levelAttempts[currentLevel].correct.has(colour)) {
+        levelAttempts[currentLevel].correct.add(colour);
+        correctThisPage++;
 
-      // Determine overlay based on slot type
-      const slotIsSign = target.style.backgroundImage.includes("sign-");
-      const overlay = document.createElement("img");
-      overlay.src = slotIsSign ? `assets/colours/clipart/${colour}.png` : `assets/colours/signs/sign-${colour}.png`;
-      overlay.className = "overlay";
-      Object.assign(overlay.style, {
-        opacity: 0.5,
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        pointerEvents: "none"
-      });
-      target.appendChild(overlay);
+        // Determine overlay
+        const slotIsSign = target.style.backgroundImage.includes("sign-");
+        const overlay = document.createElement("img");
+        overlay.src = slotIsSign ? `assets/colours/clipart/${colour}.png` : `assets/colours/signs/sign-${colour}.png`;
+        overlay.className = "overlay";
+        Object.assign(overlay.style, {
+          opacity: 0.5, position: "absolute", top: 0, left: 0,
+          width: "100%", height: "100%", pointerEvents: "none"
+        });
+        target.appendChild(overlay);
 
-      // Remove draggable
-      document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el => el.remove());
+        // Remove draggable
+        document.querySelectorAll(`img.draggable[data-letter='${colour}']`).forEach(el => el.remove());
 
-      showFeedback(true);
-      updateScore();
+        showFeedback(true);
+        updateScore();
 
-      if (correctThisPage >= document.querySelectorAll(".slot").length) {
-        correctThisPage = 0;
-        currentPage++;
-        if (currentPage < pagesPerLevel) { saveProgress(); setTimeout(loadPage, 800); }
-        else { currentLevel++; currentPage = 0; if(currentLevel >= levels.length){ clearProgress(); showEndModal(); } else { saveProgress(); setTimeout(loadPage,800); } }
+        if (correctThisPage >= document.querySelectorAll(".slot").length) {
+          correctThisPage = 0;
+          currentPage++;
+          if (currentPage < pagesPerLevel) {
+            saveProgress();
+            setTimeout(loadPage, 800);
+          } else {
+            currentLevel++;
+            currentPage = 0;
+            if (currentLevel >= levels.length) {
+              clearProgress();
+              showEndModal(true); // finished game
+            } else {
+              saveProgress();
+              setTimeout(loadPage,800);
+            }
+          }
+        }
       }
+    } else {
+      levelAttempts[currentLevel].incorrect.push(colour);
+      showFeedback(false);
+      const wrong = document.querySelector(`img.draggable[data-letter='${colour}']`);
+      if(wrong){ wrong.classList.add("shake"); setTimeout(()=>wrong.classList.remove("shake"),500);}
     }
-  } else {
-    levelAttempts[currentLevel].incorrect.push(colour);
-    showFeedback(false);
-    const wrong = document.querySelector(`img.draggable[data-letter='${colour}']`);
-    if(wrong){ wrong.classList.add("shake"); setTimeout(()=>wrong.classList.remove("shake"),500);}
   }
-}
 
   function touchStart(e){
     if(gamePaused) return;
     e.preventDefault();
     const target = e.target;
     const colour = target.dataset.letter;
-    const src = target.src;
 
     const clone = target.cloneNode(true);
     Object.assign(clone.style,{position:"absolute",pointerEvents:"none",opacity:"0.7",zIndex:"10000"});
@@ -153,7 +155,7 @@ function drop(e) {
     const handleEnd=ev=>{
       const touch = ev.changedTouches[0];
       const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      if(el && el.classList.contains("slot")) drop({preventDefault:()=>{}, currentTarget:el, colour, src});
+      if(el && el.classList.contains("slot")) drop({preventDefault:()=>{}, currentTarget:el, colour});
       document.removeEventListener("touchmove",handleMove);
       document.removeEventListener("touchend",handleEnd);
       clone.remove();
@@ -198,7 +200,7 @@ function drop(e) {
       const img=document.createElement("img"); img.className="draggable"; img.draggable=true; img.dataset.letter=colour;
       const opposite = mode==="signToImage"||(mode==="mixed"&&!gameBoard.querySelector(`.slot[data-letter='${colour}']`)?.style.backgroundImage.includes("sign-"));
       img.src=`assets/colours/${opposite?`signs/sign-${colour}.png`:`clipart/${colour}.png`}`;
-      img.addEventListener("dragstart",e=>{ e.dataTransfer.setData("text/plain",colour); e.dataTransfer.setData("src",img.src); });
+      img.addEventListener("dragstart",e=>{ e.dataTransfer.setData("text/plain",colour); });
       img.addEventListener("touchstart",touchStart);
 
       const wrap=document.createElement("div"); wrap.className="drag-wrapper"; wrap.appendChild(img);
@@ -214,141 +216,123 @@ function drop(e) {
     });
   }
 
-// ==== END MODAL ====
-function showEndModal(isFinished = false){
-  gamePaused = true;
+  // ==== END MODAL ====
+  function showEndModal(isFinished = false){
+    gamePaused = true;
 
-  // Calculate score
-  let totalCorrect = 0, totalAttempts = 0;
-  for (let i=0; i<levels.length; i++) {
-    totalCorrect += levelAttempts[i].correct.size;
-    totalAttempts += levelAttempts[i].correct.size + levelAttempts[i].incorrect.length;
-  }
-  const percent = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
-
-  // Calculate time
-  const timeTaken = Math.round((Date.now() - startTime) / 1000);
-  const minutes = Math.floor(timeTaken / 60);
-  const seconds = timeTaken % 60;
-
-  // Update the existing <p>
-  const scoreDisplay = document.getElementById("score-display-modal");
-  scoreDisplay.innerText = `Score: ${percent}% | Time: ${minutes} mins ${seconds} sec`;
-
-  // Show/hide buttons depending on context
-  if (isFinished) {
-    continueBtn.style.display = "none";
-  } else {
-    continueBtn.style.display = "inline-block";
-  }
-
-  modal.style.display = "flex";
-}
-
-// ==== STOP BUTTON ====
-stopBtn.addEventListener("click", showEndModal);
-
-// ==== MODAL BUTTONS ====
-continueBtn.addEventListener("click", ()=>{
-  modal.style.display = "none";
-  gamePaused = false;
-});
-
-finishBtn.addEventListener("click", ()=>{
-  modal.style.display = "none";
-  submitGoogleForm();
-  clearProgress();
-  window.location.href = "../index.html";
-});
-
-againBtn.addEventListener("click", ()=>location.reload());
-
-function submitGoogleForm(){
-  const form = document.createElement("form");
-  form.method = "POST";
-  form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
-  form.target = "hidden_iframe";
-  form.style.display = "none";
-
-  if (!document.querySelector("iframe[name='hidden_iframe']")) {
-    const f = document.createElement("iframe");
-    f.name = "hidden_iframe";
-    f.style.display = "none";
-    document.body.appendChild(f);
-  }
-
-  // calculate score + percent
-  let totalCorrect = 0, totalAttempts = 0;
-  for (let i=0; i<levels.length; i++) {
-    totalCorrect += levelAttempts[i].correct.size;
-    totalAttempts += levelAttempts[i].correct.size + levelAttempts[i].incorrect.length;
-  }
-  const percent = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
-
-  const timeTaken = Math.round((Date.now() - startTime) / 1000);
-  const minutes = Math.floor(timeTaken / 60);
-  const seconds = timeTaken % 60;
-  const formattedTime = `${minutes} mins ${seconds} sec`;
-
-  // figure out highest level completed
-  let highestLevel = 0;
-  for (let i=0; i<levels.length; i++) {
-    if (levelAttempts[i].correct.size > 0 || levelAttempts[i].incorrect.length > 0) {
-      highestLevel = i + 1;
+    // Calculate score
+    let totalCorrect = 0, totalAttempts = 0;
+    for (let i=0; i<levels.length; i++) {
+      totalCorrect += levelAttempts[i].correct.size;
+      totalAttempts += levelAttempts[i].correct.size + levelAttempts[i].incorrect.length;
     }
+    const percent = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
+
+    // Time
+    const timeTaken = Math.round((Date.now() - startTime) / 1000);
+    const minutes = Math.floor(timeTaken / 60);
+    const seconds = timeTaken % 60;
+
+    document.getElementById("score-display-modal").innerText =
+      `Score: ${percent}% | Time: ${minutes} mins ${seconds} sec`;
+
+    // Toggle continue button
+    continueBtn.style.display = isFinished ? "none" : "inline-block";
+
+    modal.style.display = "flex";
   }
 
-  // entries matching your Google Form
-  const entries = {
-    "entry.1387461004": studentName,       // name
-    "entry.1309291707": studentClass,      // class
-    "entry.477642881": "Colours",          // topic
-    "entry.1996137354": `${percent}%`,     // percentage
-    "entry.1374858042": formattedTime,     // time
-    "entry.750436458": highestLevel        // highest level completed
-  };
+  // ==== STOP BUTTON ====
+  stopBtn.addEventListener("click", ()=>showEndModal(false));
 
-  // map of your form's per-level entry IDs
-  const formEntryIDs = {
-    correct: [
-      "entry.1897227570", // Level 1 correct
-      "entry.1116300030", // Level 2 correct
-      "entry.187975538",  // Level 3 correct
-      "entry.1880514176", // Level 4 correct
-      "entry.497882042",  // Level 5 correct
-      "entry.1591755601"  // Level 6 correct
-    ],
-    incorrect: [
-      "entry.1249394203", // Level 1 incorrect
-      "entry.1551220511", // Level 2 incorrect
-      "entry.903633326",  // Level 3 incorrect
-      "entry.856597282",  // Level 4 incorrect
-      "entry.552536101",  // Level 5 incorrect
-      "entry.922308538"   // Level 6 incorrect
-    ]
-  };
+  // ==== MODAL BUTTONS ====
+  continueBtn.addEventListener("click", ()=>{
+    modal.style.display = "none";
+    gamePaused = false;
+  });
 
-  // add per-level details
-  for (let i=0; i<levels.length && i<6; i++) {
-    entries[formEntryIDs.correct[i]] = Array.from(levelAttempts[i].correct).sort().join(", ");
-    entries[formEntryIDs.incorrect[i]] = levelAttempts[i].incorrect
-      .sort()
-      .map(c => `*${c}*`)
-      .join(", ");
+  finishBtn.addEventListener("click", ()=>{
+    modal.style.display = "none";
+    submitGoogleForm();
+    clearProgress();
+    window.location.href = "../index.html";
+  });
+
+  againBtn.addEventListener("click", ()=>location.reload());
+
+  function submitGoogleForm(){
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+    form.target = "hidden_iframe";
+    form.style.display = "none";
+
+    if (!document.querySelector("iframe[name='hidden_iframe']")) {
+      const f = document.createElement("iframe");
+      f.name = "hidden_iframe";
+      f.style.display = "none";
+      document.body.appendChild(f);
+    }
+
+    // calculate score + percent
+    let totalCorrect = 0, totalAttempts = 0;
+    for (let i=0; i<levels.length; i++) {
+      totalCorrect += levelAttempts[i].correct.size;
+      totalAttempts += levelAttempts[i].correct.size + levelAttempts[i].incorrect.length;
+    }
+    const percent = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
+
+    const timeTaken = Math.round((Date.now() - startTime) / 1000);
+    const minutes = Math.floor(timeTaken / 60);
+    const seconds = timeTaken % 60;
+    const formattedTime = `${minutes} mins ${seconds} sec`;
+
+    let highestLevel = 0;
+    for (let i=0; i<levels.length; i++) {
+      if (levelAttempts[i].correct.size > 0 || levelAttempts[i].incorrect.length > 0) {
+        highestLevel = i + 1;
+      }
+    }
+
+    const entries = {
+      "entry.1387461004": studentName,
+      "entry.1309291707": studentClass,
+      "entry.477642881": "Colours",
+      "entry.1996137354": `${percent}%`,
+      "entry.1374858042": formattedTime,
+      "entry.750436458": highestLevel
+    };
+
+    const formEntryIDs = {
+      correct: [
+        "entry.1897227570","entry.1116300030","entry.187975538",
+        "entry.1880514176","entry.497882042","entry.1591755601"
+      ],
+      incorrect: [
+        "entry.1249394203","entry.1551220511","entry.903633326",
+        "entry.856597282","entry.552536101","entry.922308538"
+      ]
+    };
+
+    for (let i=0; i<levels.length && i<6; i++) {
+      entries[formEntryIDs.correct[i]] = Array.from(levelAttempts[i].correct).sort().join(", ");
+      entries[formEntryIDs.incorrect[i]] = levelAttempts[i].incorrect
+        .sort()
+        .map(c => `*${c}*`)
+        .join(", ");
+    }
+
+    for (const key in entries) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = entries[key];
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
   }
-
-  // build hidden inputs
-  for (const key in entries) {
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = key;
-    input.value = entries[key];
-    form.appendChild(input);
-  }
-
-  document.body.appendChild(form);
-  form.submit();
-}
 
   // ==== INIT ====
   if(localStorage.getItem("coloursSavedProgress")) loadProgress();
