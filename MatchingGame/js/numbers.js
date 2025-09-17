@@ -177,63 +177,69 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("touchend", handleTouchEnd, { passive: false });
   }
 
-  function endGame() {
-    if (gameEnded) return;
-    gameEnded = true;
-    const endTime = Date.now();
-    const timeTaken = Math.round((endTime - startTime)/1000);
-    const formattedTime = `${Math.floor(timeTaken/60)} mins ${timeTaken%60} sec`;
-    const currentPosition = `L${currentLevel+1}P${currentPage+1}`;
+ function endGame() {
+  if (gameEnded) return;
+  gameEnded = true;
 
-    const totalCorrect = levelAttempts.reduce((sum,lvl)=>sum+lvl.correct.size,0);
-    const totalIncorrect = levelAttempts.reduce((sum,lvl)=>sum+lvl.incorrect.length,0);
-    const percent = totalCorrect+totalIncorrect ? Math.round((totalCorrect/(totalCorrect+totalIncorrect))*100) : 0;
+  const endTime = Date.now();
+  const timeTaken = Math.round((endTime - startTime)/1000);
+  const formattedTime = `${Math.floor(timeTaken/60)} mins ${timeTaken % 60} sec`;
+  const currentPosition = `L${currentLevel+1}P${currentPage+1}`;
 
-    const form = document.createElement("form");
-    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
-    form.method = "POST";
-    form.target = "hidden_iframe";
-    form.style.display = "none";
+  const totalCorrect = levelAttempts.reduce((sum,lvl)=>sum+lvl.correct.size,0);
+  const totalIncorrect = levelAttempts.reduce((sum,lvl)=>sum+lvl.incorrect.length,0);
+  const percent = totalCorrect + totalIncorrect ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
 
-    let iframe = document.querySelector("iframe[name='hidden_iframe']");
-    if (!iframe) {
-      iframe = document.createElement("iframe");
-      iframe.name = "hidden_iframe";
-      iframe.style.display = "none";
-      document.body.appendChild(iframe);
-    }
+  // Create and submit hidden form
+  const form = document.createElement("form");
+  form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+  form.method = "POST";
+  form.target = "hidden_iframe";
+  form.style.display = "none";
 
-    const entries = {
-      "entry.1387461004": studentName,
-      "entry.1309291707": studentClass,
-      "entry.477642881": "Numbers",
-      "entry.1374858042": formattedTime,
-      "entry.750436458": currentPosition,
-      "entry.1996137354": `${percent}%`
-    };
-
-    for (let i=0;i<20;i++){
-      const correct = Array.from(levelAttempts[i].correct).sort((a,b)=>a-b);
-      const incorrect = levelAttempts[i].incorrect.sort((a,b)=>a-b);
-      entries[formEntryIDs.correct[i]] = correct.join(",");
-      entries[formEntryIDs.incorrect[i]] = incorrect.join(",");
-    }
-
-    for(const key in entries){
-      const input=document.createElement("input");
-      input.type="hidden";
-      input.name=key;
-      input.value=entries[key];
-      form.appendChild(input);
-    }
-    document.body.appendChild(form);
-    form.submit();
-
-    document.getElementById("score-display").innerText = `Score: ${percent}%`;
-    const timeDisplay = document.createElement("p");
-    timeDisplay.innerText = `Time: ${formattedTime}`;
-    document.getElementById("end-modal-content").appendChild(timeDisplay);
+  let iframe = document.querySelector("iframe[name='hidden_iframe']");
+  if (!iframe) {
+    iframe = document.createElement("iframe");
+    iframe.name = "hidden_iframe";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
   }
+
+  const entries = {
+    "entry.1387461004": studentName,
+    "entry.1309291707": studentClass,
+    "entry.477642881": "Numbers",
+    "entry.1374858042": formattedTime,
+    "entry.750436458": currentPosition,
+    "entry.1996137354": `${percent}%`
+  };
+
+  for (let i = 0; i < 20; i++) {
+    const correct = Array.from(levelAttempts[i].correct).sort((a,b)=>a-b);
+    const incorrect = levelAttempts[i].incorrect.sort((a,b)=>a-b);
+    entries[formEntryIDs.correct[i]] = correct.join(",");
+    entries[formEntryIDs.incorrect[i]] = incorrect.join(",");
+  }
+
+  for (const key in entries) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = key;
+    input.value = entries[key];
+    form.appendChild(input);
+  }
+  document.body.appendChild(form);
+  form.submit();
+
+  // Clear saved progress
+  localStorage.removeItem("numbersGameSave");
+
+  // Update modal content
+  document.getElementById("score-display").innerText = `Score: ${percent}%`;
+  const timeDisplay = document.createElement("p");
+  timeDisplay.innerText = `Time: ${formattedTime}`;
+  document.getElementById("end-modal-content").appendChild(timeDisplay);
+}
 
   function loadPage() {
     const info = levelDefinitions[currentLevel];
@@ -316,18 +322,15 @@ document.addEventListener("DOMContentLoaded", function () {
     loadPage();
   };
   againBtn.onclick = () => { localStorage.removeItem("numbersGameSave"); location.reload(); };
-  finishBtn.onclick = () => {
-  if (!gameEnded) {
-    modal.style.display = "flex";
-    endGame();
-    // Clear saved progress
-    localStorage.removeItem("numbersGameSave");
-    // Redirect after a short delay
-    setTimeout(() => {
-      window.location.href = "../index.html";
-    }, 1000); // 1 second delay to allow form submission
-  }
+finishBtn.onclick = () => {
+  modal.style.display = "flex";  // show modal immediately
+  endGame();
+  // redirect after short delay to allow form submission
+  setTimeout(() => {
+    window.location.href = "../index.html";
+  }, 1200);
 };
+
 
 
 const stopBtn = document.getElementById("stop-btn");
