@@ -10,7 +10,7 @@
 <body>
   <div id="student-info" aria-live="polite"></div>
 
-  <img id="logoutBtn" src="assets/logout.png" alt="Logout" />
+  <img id="menuBtn" src="assets/menu.png" alt="Menu" />
 
   <h1>Choose a Game</h1>
 
@@ -47,8 +47,7 @@
       studentInfoDiv.textContent = `Welcome, ${studentName} (${studentClass})`;
     }
 
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      localStorage.clear();
+    document.getElementById("menuBtn").addEventListener("click", () => {
       window.location.href = "../index.html";
     });
 
