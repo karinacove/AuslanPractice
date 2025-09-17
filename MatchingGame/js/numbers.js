@@ -98,6 +98,26 @@ document.addEventListener("DOMContentLoaded", function () {
     scoreDisplay.innerText = `Score: ${percent}%`;
   }
 
+  function calculateScore() {
+  const totalCorrect = levelAttempts.reduce((s,l)=>s+l.correct.size,0);
+  const totalIncorrect = levelAttempts.reduce((s,l)=>s+l.incorrect.length,0);
+  const percent = totalCorrect+totalIncorrect ? Math.round((totalCorrect/(totalCorrect+totalIncorrect))*100) : 0;
+  return { totalCorrect, totalIncorrect, percent };
+}
+
+function restoreOverlays() {
+  document.querySelectorAll(".slot").forEach(slot=>{
+    const letter = slot.dataset.letter;
+    if (levelAttempts[currentLevel].correct.has(letter)) {
+      const overlay = document.createElement("img");
+      overlay.src = `assets/numbers/${slot.dataset.imageMode==="clipart" ? `clipart/${letter}.png` : `signs/sign-${letter}.png`}`;
+      overlay.className = "overlay";
+      slot.innerHTML = "";
+      slot.appendChild(overlay);
+    }
+  });
+}
+
   function saveProgress() {
     const saveData = {
       studentName, studentClass, currentLevel, currentPage,
@@ -184,25 +204,35 @@ document.addEventListener("DOMContentLoaded", function () {
     modalContent.appendChild(timeDisplay);
   }
 
-  function showEndModal(isFinished) {
-    modal.style.display = "flex";
-    againBtn.style.display = "inline-block";
-    finishBtn.style.display = "inline-block";
-    continueBtn.style.display = isFinished ? "none" : "inline-block";
-    if (isFinished) {
-      if (!gameEnded) {
-        gameEnded = true;
-        endGame();
-      }
+function showEndModal(isFinished) {
+  const { percent } = calculateScore();
+  const timeTaken = Math.round((Date.now() - startTime)/1000);
+  const minutes = Math.floor(timeTaken/60);
+  const seconds = timeTaken % 60;
+
+  scoreDisplay.innerText = `Score: ${percent}% | Time: ${minutes} mins ${seconds} sec`;
+
+  modal.style.display = "flex";
+  againBtn.style.display = "inline-block";
+  finishBtn.style.display = "inline-block";
+  continueBtn.style.display = isFinished ? "none" : "inline-block";
+
+  if (isFinished) {
+    if (!gameEnded) {
+      gameEnded = true;
+      endGame();
     }
   }
+}
+
 
   // ===== BUTTONS =====
-  continueBtn.onclick = () => {
-    modal.style.display = "none";
-    gameEnded = false;
-    loadPage();
-  };
+continueBtn.onclick = () => {
+  modal.style.display = "none";
+  gameEnded = false;
+  loadPage();
+  restoreOverlays(); 
+};
 
   againBtn.onclick = () => { clearProgress(); location.reload(); };
 
