@@ -374,6 +374,17 @@ input, select, button {
   z-index: 9999;
 }
 
+#modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+#modal-buttons button {
+  flex: 0 0 auto;
+}
+
 .modal-content {
   background-color: #fff;
   padding: 30px 40px;
