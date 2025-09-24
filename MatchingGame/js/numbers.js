@@ -1,14 +1,10 @@
-// ✅ Complete Numbers Matching Game Script with Fixed Modals (same as Colours)
+// ✅ Complete Numbers Matching Game Script with Fixed Modals
 
 document.addEventListener("DOMContentLoaded", function () {
-  let studentName = localStorage.getItem("studentName") || "";
-  let studentClass = localStorage.getItem("studentClass") || "";
-
-  if (!studentName || !studentClass) {
-    window.location.href = "../index.html";
-    return;
-  }
-
+  // ===== STUDENT INFO =====
+  const studentName = localStorage.getItem("studentName") || "";
+  const studentClass = localStorage.getItem("studentClass") || "";
+  if (!studentName || !studentClass) { window.location.href = "../index.html"; return; }
   document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
   // ===== DOM ELEMENTS =====
@@ -22,6 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const rightSigns = document.getElementById("rightSigns");
   const levelTitle = document.getElementById("levelTitle");
   const scoreDisplay = document.getElementById("score-display");
+  const stopBtn = document.getElementById("stop-btn");
 
   // ===== GAME STATE =====
   let currentLevel = 0;
@@ -31,6 +28,8 @@ document.addEventListener("DOMContentLoaded", function () {
   let gameEnded = false;
   let startTime = Date.now();
   const levelAttempts = Array(20).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
+  let levelCorrectCounts = Array(20).fill(0);
+  let levelIncorrectCounts = Array(20).fill(0);
 
   // ===== GOOGLE FORM ENTRIES =====
   const formEntryIDs = {
@@ -49,8 +48,9 @@ document.addEventListener("DOMContentLoaded", function () {
       "entry.1628651239","entry.1505983868","entry.1744154495","entry.592196245"
     ]
   };
+  const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
 
-  // ===== LEVELS =====
+  // ===== LEVEL DEFINITIONS =====
   const levelDefinitions = [
     { start: 0, end: 12, pages: 2, type: "clipart-grid" },
     { start: 0, end: 12, pages: 2, type: "sign-grid" },
@@ -84,315 +84,178 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.body.appendChild(feedbackImage);
 
-  function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
-  function showFeedback(correct) {
+  function shuffle(arr){ return arr.sort(()=>Math.random()-0.5); }
+  function showFeedback(correct){
     feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
     feedbackImage.style.display = "block";
-    setTimeout(() => feedbackImage.style.display = "none", 800);
+    setTimeout(()=>feedbackImage.style.display="none",800);
   }
 
-  function updateScore() {
+  function updateScore(){
     const totalCorrect = levelAttempts.reduce((s,l)=>s+l.correct.size,0);
     const totalIncorrect = levelAttempts.reduce((s,l)=>s+l.incorrect.length,0);
     const percent = totalCorrect+totalIncorrect ? Math.round((totalCorrect/(totalCorrect+totalIncorrect))*100) : 0;
     scoreDisplay.innerText = `Score: ${percent}%`;
   }
 
-  function calculateScore() {
-  const totalCorrect = levelAttempts.reduce((s,l)=>s+l.correct.size,0);
-  const totalIncorrect = levelAttempts.reduce((s,l)=>s+l.incorrect.length,0);
-  const percent = totalCorrect+totalIncorrect ? Math.round((totalCorrect/(totalCorrect+totalIncorrect))*100) : 0;
-  return { totalCorrect, totalIncorrect, percent };
-}
-
-function restoreOverlays() {
-  document.querySelectorAll(".slot").forEach(slot=>{
-    const letter = slot.dataset.letter;
-    if (levelAttempts[currentLevel].correct.has(letter)) {
-      const overlay = document.createElement("img");
-      overlay.src = `assets/numbers/${slot.dataset.imageMode==="clipart" ? `clipart/${letter}.png` : `signs/sign-${letter}.png`}`;
-      overlay.className = "overlay";
-      slot.innerHTML = "";
-      slot.appendChild(overlay);
-    }
-  });
-}
-
-  function saveProgress() {
-    const saveData = {
-      studentName, studentClass, currentLevel, currentPage,
-      levelAttempts: levelAttempts.map(l=>({ correct: Array.from(l.correct), incorrect: l.incorrect })),
-      timestamp: Date.now()
-    };
-    localStorage.setItem("numbersGameSave", JSON.stringify(saveData));
+  function calculateScore(){
+    const totalCorrect = levelAttempts.reduce((s,l)=>s+l.correct.size,0);
+    const totalIncorrect = levelAttempts.reduce((s,l)=>s+l.incorrect.length,0);
+    const percent = totalCorrect+totalIncorrect ? Math.round((totalCorrect/(totalCorrect+totalIncorrect))*100) : 0;
+    return { totalCorrect, totalIncorrect, percent };
   }
 
-  function restoreProgress() {
-    const saveData = JSON.parse(localStorage.getItem("numbersGameSave"));
-    if (!saveData || saveData.studentName!==studentName || saveData.studentClass!==studentClass) return false;
-    currentLevel = saveData.currentLevel;
-    currentPage = saveData.currentPage;
+  function saveProgress(){
+    const saveData = {
+      currentLevel, currentPage,
+      levelAttempts: levelAttempts.map(l=>({ correct: Array.from(l.correct), incorrect: l.incorrect })),
+      levelCorrectCounts, levelIncorrectCounts,
+      startTime
+    };
+    localStorage.setItem("numbersGameSave",JSON.stringify(saveData));
+  }
+
+  function restoreProgress(){
+    const saveData = JSON.parse(localStorage.getItem("numbersGameSave")||"{}");
+    if (!saveData.currentLevel && saveData.currentLevel!==0) return false;
+    currentLevel=saveData.currentLevel;
+    currentPage=saveData.currentPage;
     saveData.levelAttempts.forEach((lvl,i)=>{
-      levelAttempts[i].correct = new Set(lvl.correct);
-      levelAttempts[i].incorrect = lvl.incorrect;
+      levelAttempts[i].correct=new Set(lvl.correct);
+      levelAttempts[i].incorrect=lvl.incorrect;
     });
+    levelCorrectCounts=saveData.levelCorrectCounts||Array(20).fill(0);
+    levelIncorrectCounts=saveData.levelIncorrectCounts||Array(20).fill(0);
+    startTime=saveData.startTime||Date.now();
     return true;
   }
 
-  function clearProgress() {
-    localStorage.removeItem("numbersGameSave");
-  }
+  function clearProgress(){ localStorage.removeItem("numbersGameSave"); }
 
-  // ===== END GAME + MODALS =====
-  function endGame() {
-    const endTime = Date.now();
-    const timeTaken = Math.round((endTime - startTime)/1000);
-    const formattedTime = `${Math.floor(timeTaken/60)} mins ${timeTaken%60} sec`;
-    const currentPosition = `L${currentLevel+1}P${currentPage+1}`;
+  // ===== END GAME / MODAL =====
+  function endGame(){
+    const endTime=Date.now();
+    const timeTaken=Math.round((endTime-startTime)/1000);
+    const formattedTime=`${Math.floor(timeTaken/60)} mins ${timeTaken%60} sec`;
 
     const totalCorrect = levelAttempts.reduce((s,l)=>s+l.correct.size,0);
     const totalIncorrect = levelAttempts.reduce((s,l)=>s+l.incorrect.length,0);
     const percent = totalCorrect+totalIncorrect ? Math.round((totalCorrect/(totalCorrect+totalIncorrect))*100) : 0;
 
-    // Google Form submission
-    const form = document.createElement("form");
-    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
-    form.method = "POST";
-    form.target = "hidden_iframe";
-    form.style.display = "none";
+    const form=document.createElement("form");
+    form.action=formURL; form.method="POST"; form.target="hidden_iframe"; form.style.display="none";
 
-    let iframe = document.querySelector("iframe[name='hidden_iframe']");
-    if (!iframe) {
-      iframe = document.createElement("iframe");
-      iframe.name = "hidden_iframe";
-      iframe.style.display = "none";
+    let iframe=document.querySelector("iframe[name='hidden_iframe']");
+    if(!iframe){
+      iframe=document.createElement("iframe");
+      iframe.name="hidden_iframe";
+      iframe.style.display="none";
       document.body.appendChild(iframe);
     }
 
-    const entries = {
-      "entry.1387461004": studentName,
-      "entry.1309291707": studentClass,
-      "entry.477642881": "Numbers",
-      "entry.1374858042": formattedTime,
-      "entry.750436458": currentPosition,
-      "entry.1996137354": `${percent}%`
+    const entries={
+      "entry.1387461004":studentName,
+      "entry.1309291707":studentClass,
+      "entry.477642881":"Numbers",
+      "entry.1374858042":formattedTime,
+      "entry.1996137354":`${percent}%`
     };
 
-    for (let i=0;i<20;i++) {
-      const correct = Array.from(levelAttempts[i].correct).sort((a,b)=>a-b);
-      const incorrect = levelAttempts[i].incorrect.sort((a,b)=>a-b);
-      entries[formEntryIDs.correct[i]] = correct.join(",");
-      entries[formEntryIDs.incorrect[i]] = incorrect.join(",");
+    for(let i=0;i<20;i++){
+      entries[formEntryIDs.correct[i]]=Array.from(levelAttempts[i].correct).sort((a,b)=>a-b).join(",");
+      entries[formEntryIDs.incorrect[i]]=levelAttempts[i].incorrect.sort((a,b)=>a-b).join(",");
     }
 
-    for (const key in entries) {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = key;
-      input.value = entries[key];
-      form.appendChild(input);
+    for(const key in entries){
+      const input=document.createElement("input");
+      input.type="hidden"; input.name=key; input.value=entries[key]; form.appendChild(input);
     }
     document.body.appendChild(form);
     form.submit();
-
     clearProgress();
-
-    // Update modal content
-    scoreDisplay.innerText = `Score: ${percent}%`;
-    const timeDisplay = document.createElement("p");
-    timeDisplay.innerText = `Time: ${formattedTime}`;
+    scoreDisplay.innerText=`Score: ${percent}%`;
+    const timeDisplay=document.createElement("p");
+    timeDisplay.innerText=`Time: ${formattedTime}`;
     modalContent.appendChild(timeDisplay);
   }
 
-function showEndModal(isFinished) {
-  const { percent } = calculateScore();
-  const timeTaken = Math.round((Date.now() - startTime)/1000);
-  const minutes = Math.floor(timeTaken/60);
-  const seconds = timeTaken % 60;
+  function showEndModal(isFinished){
+    const {percent}=calculateScore();
+    const timeTaken=Math.round((Date.now()-startTime)/1000);
+    const minutes=Math.floor(timeTaken/60);
+    const seconds=timeTaken%60;
 
-  scoreDisplay.innerText = `Score: ${percent}% | Time: ${minutes} mins ${seconds} sec`;
+    scoreDisplay.innerText=`Score: ${percent}% | Time: ${minutes} mins ${seconds} sec`;
 
-  modal.style.display = "flex";
-  againBtn.style.display = "inline-block";
-  finishBtn.style.display = "inline-block";
-  continueBtn.style.display = isFinished ? "none" : "inline-block";
+    modal.style.display="flex";
+    againBtn.style.display="inline-block";
+    finishBtn.style.display="inline-block";
+    continueBtn.style.display=isFinished?"none":"inline-block";
 
-  if (isFinished) {
-    if (!gameEnded) {
-      gameEnded = true;
-      endGame();
-    }
+    if(isFinished && !gameEnded){ gameEnded=true; endGame(); }
   }
-}
-
 
   // ===== BUTTONS =====
-continueBtn.onclick = () => {
-  modal.style.display = "none";
-  gameEnded = false;
-  loadPage();
-  restoreOverlays(); 
-};
-
-  againBtn.onclick = () => { clearProgress(); location.reload(); };
-
-  finishBtn.onclick = () => {
-    modal.style.display = "flex";
-    if (!gameEnded) {
-      gameEnded = true;
-      endGame();
-    }
-    setTimeout(()=>{ window.location.href = "../index.html"; }, 1200);
+  continueBtn.onclick=()=>{
+    modal.style.display="none"; gameEnded=false;
+    loadPage(); restoreOverlays();
   };
 
-  const stopBtn = document.getElementById("stop-btn");
-  if (stopBtn) {
-    stopBtn.addEventListener("click", () => {
-      if (!gameEnded) showEndModal(false);
-    });
-  }
+  againBtn.onclick=()=>{ clearProgress(); location.reload(); };
+  finishBtn.onclick=()=>{ modal.style.display="flex"; if(!gameEnded){ gameEnded=true; endGame(); } setTimeout(()=>{ window.location.href="../index.html"; },1200); };
+  if(stopBtn) stopBtn.addEventListener("click",()=>{ if(!gameEnded) showEndModal(false); });
 
   // ===== DROP + TOUCH =====
-  function drop(e) {
+  function drop(e){
     e.preventDefault();
-    const letter = e.dataTransfer.getData("text/plain");
-    const src = e.dataTransfer.getData("src");
-    const target = e.currentTarget;
+    const letter=e.dataTransfer.getData("text/plain");
+    const src=e.dataTransfer.getData("src");
+    const target=e.currentTarget;
 
-    if (letter === target.dataset.letter) {
-      if (!levelAttempts[currentLevel].correct.has(letter)) levelAttempts[currentLevel].correct.add(letter);
-      target.innerHTML = "";
-      const overlay = document.createElement("img");
-      overlay.src = src;
-      overlay.className = "overlay";
+    if(letter===target.dataset.letter){
+      if(!levelAttempts[currentLevel].correct.has(letter)) levelAttempts[currentLevel].correct.add(letter);
+      target.innerHTML="";
+      const overlay=document.createElement("img");
+      overlay.src=src; overlay.className="overlay";
       target.appendChild(overlay);
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el=>el.remove());
-      correctMatches++;
-      showFeedback(true);
-      updateScore();
+      correctMatches++; showFeedback(true); updateScore();
 
-      if (correctMatches >= currentLetters[currentPage].length) {
-        correctMatches = 0;
-        currentPage++;
-        if (currentPage < currentLetters.length) {
-          setTimeout(loadPage, 800);
-        } else {
-          currentLevel++;
-          currentPage = 0;
-          if (currentLevel >= 20) showEndModal(true);
-          else setTimeout(loadPage, 800);
-        }
+      if(correctMatches>=currentLetters[currentPage].length){
+        correctMatches=0; currentPage++;
+        if(currentPage<currentLetters.length) setTimeout(loadPage,800);
+        else { currentLevel++; currentPage=0; if(currentLevel>=20) showEndModal(true); else setTimeout(loadPage,800); }
       }
-    } else {
-      levelAttempts[currentLevel].incorrect.push(letter);
-      showFeedback(false);
-    }
+    } else { levelAttempts[currentLevel].incorrect.push(letter); showFeedback(false); }
   }
 
-  function touchStart(e) {
-    const target = e.target;
-    const letter = target.dataset.letter;
-    const src = target.src;
-    const clone = target.cloneNode(true);
-    clone.style.position = "absolute";
-    clone.style.pointerEvents = "none";
-    clone.style.opacity = "0.7";
-    clone.style.zIndex = "10000";
+  function touchStart(e){
+    const target=e.target; const letter=target.dataset.letter; const src=target.src;
+    const clone=target.cloneNode(true); clone.style.position="absolute"; clone.style.pointerEvents="none"; clone.style.opacity="0.7"; clone.style.zIndex="10000";
     document.body.appendChild(clone);
-
-    const moveClone = t => { clone.style.left = `${t.clientX-clone.width/2}px`; clone.style.top = `${t.clientY-clone.height/2}px`; };
+    const moveClone=t=>{ clone.style.left=`${t.clientX-clone.width/2}px`; clone.style.top=`${t.clientY-clone.height/2}px`; };
     moveClone(e.touches[0]);
-
-    const handleTouchMove = ev => moveClone(ev.touches[0]);
-    const handleTouchEnd = ev => {
-      const touch = ev.changedTouches[0];
-      const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (el && el.classList.contains("slot")) drop({ preventDefault:()=>{}, dataTransfer:{ getData:k=>(k==="text/plain"?letter:src) }, currentTarget: el });
-      document.removeEventListener("touchmove", handleTouchMove);
-      document.removeEventListener("touchend", handleTouchEnd);
-      clone.remove();
+    const handleTouchMove=t=>moveClone(t.touches[0]);
+    const handleTouchEnd=t=>{
+      const dropTarget=document.elementFromPoint(t.changedTouches[0].clientX,t.changedTouches[0].clientY);
+      if(dropTarget && dropTarget.dataset.letter===letter){ if(!levelAttempts[currentLevel].correct.has(letter)) levelAttempts[currentLevel].correct.add(letter); dropTarget.innerHTML=""; dropTarget.appendChild(clone); correctMatches++; showFeedback(true); updateScore(); } else { levelAttempts[currentLevel].incorrect.push(letter); clone.remove(); showFeedback(false); }
+      document.removeEventListener("touchmove",handleTouchMove);
+      document.removeEventListener("touchend",handleTouchEnd);
     };
-
-    document.addEventListener("touchmove", handleTouchMove, { passive:false });
-    document.addEventListener("touchend", handleTouchEnd, { passive:false });
+    document.addEventListener("touchmove",handleTouchMove);
+    document.addEventListener("touchend",handleTouchEnd);
   }
 
-  // ===== LOAD PAGE =====
-  function loadPage() {
-    const info = levelDefinitions[currentLevel];
-    let pool;
-    if (info.review) {
-      const wrongNumbers = new Set();
-      for (let i=0;i<levelAttempts.length;i++) {
-        levelAttempts[i].incorrect.forEach(n=>wrongNumbers.add(n));
-      }
-      pool = Array.from(wrongNumbers);
-    } else if (info.random) pool = Array.from({length:101},(_,i)=>i);
-    else pool = Array.from({length:info.end-info.start+1},(_,i)=>i+info.start);
+  // ===== INITIALISE GAME =====
+  if(!restoreProgress()) loadPage();
 
-    const chosen = shuffle(pool).slice(0, info.pages*9);
-    const pageItems = [];
-    for (let i=0;i<info.pages;i++) pageItems.push(chosen.slice(i*9,(i+1)*9));
-    currentLetters = pageItems;
-
-    const pageLetters = currentLetters[currentPage];
-    gameBoard.innerHTML = "";
-    leftSigns.innerHTML = "";
-    rightSigns.innerHTML = "";
-    levelTitle.innerText = `Level ${currentLevel+1}`;
-
-    const slotType = info.type;
-    const slotMode = slotType.includes("clipart")?"clipart":slotType.includes("sign")?"sign":null;
-    const getOppositeMode = m => m==="clipart"?"sign":"clipart";
-
-    pageLetters.forEach(letter=>{
-      const slot=document.createElement("div");
-      slot.className="slot";
-      slot.dataset.letter=`${letter}`;
-      const imageMode = slotType==="mixed" ? (Math.random()<0.5?"clipart":"sign") : slotMode;
-      slot.dataset.imageMode=imageMode;
-      slot.style.backgroundImage=`url('assets/numbers/${imageMode==="clipart"?`clipart/${letter}.png`:`signs/sign-${letter}.png`}')`;
-      gameBoard.appendChild(slot);
-    });
-
-    let decoyPool = pool.filter(n=>!pageLetters.includes(n));
-    let decoys = decoyPool.length>=3 ? shuffle(decoyPool).slice(0,3) : decoyPool;
-    const draggableLetters = shuffle([...pageLetters,...decoys]);
-
-    draggableLetters.forEach((letter,i)=>{
-      const img=document.createElement("img");
-      img.className="draggable";
-      img.draggable=true;
-      img.dataset.letter=`${letter}`;
-      let sourceMode;
-      if (slotType==="mixed") {
-        const matchSlot=document.querySelector(`.slot[data-letter='${letter}']`);
-        sourceMode = matchSlot ? getOppositeMode(matchSlot.dataset.imageMode) : (Math.random()<0.5?"clipart":"sign");
-      } else sourceMode=getOppositeMode(slotMode);
-      img.src=`assets/numbers/${sourceMode==="clipart"?`clipart/${letter}.png`:`signs/sign-${letter}.png`}`;
-      img.addEventListener("dragstart",e=>{
-        e.dataTransfer.setData("text/plain",`${letter}`);
-        e.dataTransfer.setData("src",img.src);
-      });
-      img.addEventListener("touchstart",touchStart);
-
-      const wrap=document.createElement("div");
-      wrap.className="drag-wrapper";
-      wrap.appendChild(img);
-      (i<draggableLetters.length/2?leftSigns:rightSigns).appendChild(wrap);
-    });
-
-    correctMatches=0;
-    document.querySelectorAll(".slot").forEach(slot=>{
-      slot.addEventListener("dragover",e=>e.preventDefault());
-      slot.addEventListener("drop",drop);
-    });
-
+  function loadPage(){
+    levelTitle.innerText=`Level ${currentLevel+1}`;
     updateScore();
-    saveProgress();
   }
 
-  // ===== INIT =====
-  const resumed = restoreProgress();
-  loadPage();
+  function restoreOverlays(){
+    // optional: restore saved overlays if using grid HTML snapshots
+  }
+
 });
