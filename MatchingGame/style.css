@@ -83,13 +83,6 @@ h2#levelTitle {
   z-index: 1000;
 }
 
-#finish-btn {
-  position: fixed;
-  width: 100px;
-  cursor: pointer;
-  z-index: 1000;
-}
-
 /* Layout Columns */
 .layout {
   display: flex;
@@ -448,7 +441,6 @@ input, select, button {
   margin: 10px;
   cursor: pointer;
 }
-
 
 #score-display {
   font-size: 24px;
