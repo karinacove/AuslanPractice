@@ -370,12 +370,16 @@ input, select, button {
 #modal-buttons {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 20px;
   flex-wrap: wrap;
-  margin-top: 15px;
+  margin-top: 20px;
 }
-#modal-buttons button {
-  flex: 0 0 auto;
+
+#modal-buttons img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  cursor: pointer;
 }
 
 .modal-content {
