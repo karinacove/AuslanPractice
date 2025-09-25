@@ -434,7 +434,7 @@ input, select, button {
   width: 100px;  
   height: 100px;
   cursor: pointer;
-  z-index: 1000;
+  z-index: 3000;
 }
 
 /* Modal Buttons - all 120px */
