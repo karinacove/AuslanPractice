@@ -1,18 +1,20 @@
-// numbers.js - Full Functional Numbers Matching Game
+// ✅ Complete Numbers Matching Game Script (No Menu/Logout Buttons)
 document.addEventListener("DOMContentLoaded", function () {
   // ====== STUDENT INFO ======
   const studentName = localStorage.getItem("studentName") || "";
   const studentClass = localStorage.getItem("studentClass") || "";
-  if (!studentName || !studentClass) { window.location.href = "../index.html"; return; }
+  if (!studentName || !studentClass) {
+    window.location.href = "../index.html";
+    return;
+  }
   document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
-  // ====== DOM ======
+  // ====== DOM ELEMENTS ======
   const againBtn = document.getElementById("again-btn");
   const continueBtn = document.getElementById("continue-btn");
   const finishBtn = document.getElementById("finish-btn");
-  const stopBtn = document.getElementById("stop-btn");
   const modal = document.getElementById("end-modal");
-  const stopScoreEl = document.getElementById("stop-score");
+
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
   const rightSigns = document.getElementById("rightSigns");
@@ -25,12 +27,8 @@ document.addEventListener("DOMContentLoaded", function () {
   let correctMatches = 0;
   let gameEnded = false;
   let startTime = Date.now();
-
   const levelAttempts = Array(20).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
-  const overlaysPerLevel = Array(20).fill(null).map(() => ({}));
 
-  // ====== GOOGLE FORM ======
-  const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHjst2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
   const formEntryIDs = {
     correct: [
       "entry.1897227570","entry.1116300030","entry.187975538","entry.1880514176",
@@ -48,7 +46,6 @@ document.addEventListener("DOMContentLoaded", function () {
     ]
   };
 
-  // ====== LEVEL DEFINITIONS ======
   const levelDefinitions = [
     { start: 0, end: 12, pages: 2, type: "clipart-grid" },
     { start: 0, end: 12, pages: 2, type: "sign-grid" },
@@ -76,198 +73,172 @@ document.addEventListener("DOMContentLoaded", function () {
   const feedbackImage = document.createElement("img");
   feedbackImage.id = "feedbackImage";
   Object.assign(feedbackImage.style, {
-    position: "fixed", top: "50%", left: "50%",
+    position: "fixed",
+    top: "50%",
+    left: "50%",
     transform: "translate(-50%, -50%)",
-    width: "200px", display: "none", zIndex: "1000"
+    width: "200px",
+    display: "none",
+    zIndex: "1000"
   });
   document.body.appendChild(feedbackImage);
 
-  function showFeedbackCorrect(isCorrect){
-    feedbackImage.src = isCorrect ? "assets/correct.png" : "assets/wrong.png";
-    feedbackImage.style.display = "block";
-    setTimeout(() => feedbackImage.style.display = "none", 800);
-  }
-
-  // ====== UTIL ======
   function shuffle(arr){ return arr.sort(()=>Math.random()-0.5); }
-  function formatSecs(s){ return `${Math.floor(s/60)} mins ${s%60} sec`; }
-  function getElapsedSeconds(){ return Math.floor((Date.now()-startTime)/1000); }
-
-  // ====== SAVE/RESTORE ======
-  function saveProgress(){
-    localStorage.setItem("numbersGameSave", JSON.stringify({
-      studentName, studentClass, currentLevel, currentPage,
-      levelAttempts: levelAttempts.map(l=>({correct:Array.from(l.correct),incorrect:l.incorrect})),
-      overlaysPerLevel, elapsedSeconds: getElapsedSeconds()
-    }));
+  function showFeedback(correct){
+    feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
+    feedbackImage.style.display = "block";
+    setTimeout(()=>feedbackImage.style.display="none",800);
   }
 
-  function restoreProgress(){
-    const raw = localStorage.getItem("numbersGameSave");
-    if(!raw) return false;
-    try{
-      const data = JSON.parse(raw);
-      if(data.studentName!==studentName || data.studentClass!==studentClass) return false;
-      currentLevel = data.currentLevel||0;
-      currentPage = data.currentPage||0;
-      if(Array.isArray(data.levelAttempts)){
-        data.levelAttempts.forEach((l,i)=>{
-          levelAttempts[i].correct = new Set(Array.isArray(l.correct)?l.correct:[]);
-          levelAttempts[i].incorrect = Array.isArray(l.incorrect)?l.incorrect:[];
-        });
-      }
-      if(Array.isArray(data.overlaysPerLevel)){
-        data.overlaysPerLevel.forEach((o,i)=>overlaysPerLevel[i]=o||{});
-      }
-      startTime = Date.now() - (data.elapsedSeconds||0)*1000;
-      return true;
-    }catch{return false;}
-  }
-
-  function clearProgress(){ localStorage.removeItem("numbersGameSave"); }
-
-  // ====== RESTORE OVERLAYS ======
-  function restoreOverlays(){
-    const mapping = overlaysPerLevel[currentLevel]||{};
-    correctMatches=0;
-    document.querySelectorAll(".slot").forEach(slot=>{
-      const letter=slot.dataset.letter;
-      const imageMode = mapping[letter];
-      if(imageMode){
-        slot.innerHTML="";
-        const overlay=document.createElement("img");
-        overlay.className="overlay";
-        overlay.src=imageMode==="clipart"?`assets/numbers/clipart/${letter}.png`:`assets/numbers/signs/sign-${letter}.png`;
-        slot.appendChild(overlay);
-        document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el=>el.remove());
-        correctMatches++;
-      }
-    });
-  }
-
-  // ====== SCORE ======
   function updateScore(){
-    const totalCorrect=levelAttempts.reduce((s,l)=>s+l.correct.size,0);
-    const totalIncorrect=levelAttempts.reduce((s,l)=>s+l.incorrect.length,0);
+    const totalCorrect = levelAttempts.reduce((s,l)=>s+l.correct.size,0);
+    const totalIncorrect = levelAttempts.reduce((s,l)=>s+l.incorrect.length,0);
     const percent = totalCorrect+totalIncorrect>0 ? Math.round(totalCorrect/(totalCorrect+totalIncorrect)*100) : 0;
     document.getElementById("score-display").innerText=`Score: ${percent}%`;
     return percent;
   }
 
-  function calculateScore(){ return updateScore(); }
-
-  // ====== GOOGLE FORM SUBMISSION ======
-  function submitToGoogleForms(){
-    const formData = new FormData();
-    formData.append("entry.1387461004", studentName);
-    formData.append("entry.1309291707", studentClass);
-    formData.append("entry.477642881", "Numbers");
-    formData.append("entry.1996137354", calculateScore());
-    formData.append("entry.1374858042", formatSecs(getElapsedSeconds()));
-    levelAttempts.forEach((l,i)=>{
-      formData.append(formEntryIDs.correct[i], Array.from(l.correct).join(","));
-      formData.append(formEntryIDs.incorrect[i], l.incorrect.join(","));
-    });
-    fetch(formURL, {method:"POST", body:formData}).catch(err=>console.warn("Form submission failed",err));
+  function saveProgress(){
+    localStorage.setItem("numbersGameSave", JSON.stringify({
+      studentName, studentClass, currentLevel, currentPage,
+      levelAttempts: levelAttempts.map(l=>({correct:Array.from(l.correct),incorrect:l.incorrect})),
+      timestamp: Date.now()
+    }));
   }
 
-  // ====== GENERATE PAGE ======
-  function generatePage(){
-    gameBoard.innerHTML="";
-    leftSigns.innerHTML="";
-    rightSigns.innerHTML="";
-    const levelDef=levelDefinitions[currentLevel];
-    const letters = [];
-    if(levelDef.start!==undefined){
-      for(let i=levelDef.start;i<=levelDef.end;i++) letters.push(i);
-    } else if(levelDef.random){
-      for(let i=0;i<100;i++) letters.push(i);
-    } else if(levelDef.review){
-      levelAttempts.forEach(l=>l.incorrect.forEach(n=>letters.push(n)));
+  function restoreProgress(){
+    const data = JSON.parse(localStorage.getItem("numbersGameSave"));
+    if(!data || data.studentName!==studentName || data.studentClass!==studentClass) return false;
+    currentLevel=data.currentLevel; currentPage=data.currentPage;
+    data.levelAttempts.forEach((lvl,i)=>{ levelAttempts[i].correct=new Set(lvl.correct); levelAttempts[i].incorrect=lvl.incorrect; });
+    return true;
+  }
+
+  function endGame(){
+    if(gameEnded) return;
+    gameEnded=true;
+    const endTime = Date.now();
+    const formattedTime = `${Math.floor((endTime - startTime)/60000)} mins ${Math.floor((endTime - startTime)/1000)%60} sec`;
+    const percent = updateScore();
+
+    const form = document.createElement("form");
+    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+    form.method = "POST";
+    form.target = "hidden_iframe"; form.style.display="none";
+    if(!document.querySelector("iframe[name='hidden_iframe']")){
+      const iframe = document.createElement("iframe");
+      iframe.name="hidden_iframe"; iframe.style.display="none";
+      document.body.appendChild(iframe);
     }
-    currentLetters = shuffle(letters).slice(0, levelDef.pages*6);
-    levelTitle.innerText=`Level ${currentLevel+1} Page ${currentPage+1}`;
 
-    currentLetters.forEach(letter=>{
-      const slot=document.createElement("div");
-      slot.className="slot";
-      slot.dataset.letter=letter;
-      slot.addEventListener("dragover", e=>e.preventDefault());
-      slot.addEventListener("drop", e=>handleDrop(e,slot));
-      leftSigns.appendChild(slot);
-
-      const draggable=document.createElement("img");
-      draggable.className="draggable";
-      draggable.dataset.letter=letter;
-      draggable.src=`assets/numbers/clipart/${letter}.png`;
-      draggable.draggable=true;
-      draggable.addEventListener("dragstart", e=>e.dataTransfer.setData("text",letter));
-      rightSigns.appendChild(draggable);
-    });
-    restoreOverlays();
+    const entries = {
+      "entry.1387461004": studentName,
+      "entry.1309291707": studentClass,
+      "entry.477642881": "Numbers",
+      "entry.1374858042": formattedTime,
+      "entry.1996137354": `${percent}%`
+    };
+    for(let i=0;i<20;i++){
+      entries[formEntryIDs.correct[i]]=Array.from(levelAttempts[i].correct).join(",");
+      entries[formEntryIDs.incorrect[i]]=levelAttempts[i].incorrect.join(",");
+    }
+    for(const key in entries){
+      const input=document.createElement("input");
+      input.type="hidden"; input.name=key; input.value=entries[key];
+      form.appendChild(input);
+    }
+    document.body.appendChild(form);
+    form.submit();
   }
 
-  function handleDrop(e,slot){
-    const letter=e.dataTransfer.getData("text");
-    if(slot.dataset.letter==letter){
-      overlaysPerLevel[currentLevel][letter]="clipart";
-      slot.innerHTML="";
-      const overlay=document.createElement("img");
-      overlay.className="overlay";
-      overlay.src=`assets/numbers/clipart/${letter}.png`;
-      slot.appendChild(overlay);
+  function drop(e){
+    e.preventDefault();
+    const letter=e.dataTransfer.getData("text/plain");
+    const src=e.dataTransfer.getData("src");
+    const slot=e.currentTarget;
+    if(letter==slot.dataset.letter){
+      if(!levelAttempts[currentLevel].correct.has(letter)) levelAttempts[currentLevel].correct.add(letter);
+      slot.innerHTML=""; const overlay=document.createElement("img");
+      overlay.src=src; overlay.className="overlay"; slot.appendChild(overlay);
       document.querySelectorAll(`img.draggable[data-letter='${letter}']`).forEach(el=>el.remove());
-      levelAttempts[currentLevel].correct.add(letter);
-      correctMatches++;
-      showFeedbackCorrect(true);
-    } else {
-      levelAttempts[currentLevel].incorrect.push(letter);
-      showFeedbackCorrect(false);
-    }
-    updateScore();
+      correctMatches++; showFeedback(true); updateScore();
+      if(correctMatches>=currentLetters[currentPage].length){
+        correctMatches=0; currentPage++;
+        if(currentPage<currentLetters.length) setTimeout(loadPage,800);
+        else { currentLevel++; currentPage=0; if(currentLevel>=20){ modal.style.display="flex"; endGame(); } else setTimeout(loadPage,800); }
+      }
+    } else { levelAttempts[currentLevel].incorrect.push(letter); showFeedback(false); }
   }
 
-  // ====== BUTTONS ======
+  function touchStart(e){
+    const target=e.target, letter=target.dataset.letter, src=target.src;
+    const clone=target.cloneNode(true); clone.style.position="absolute"; clone.style.pointerEvents="none";
+    clone.style.opacity="0.7"; clone.style.zIndex="10000"; document.body.appendChild(clone);
+    const moveClone=t=>{ clone.style.left=`${t.clientX-clone.width/2}px`; clone.style.top=`${t.clientY-clone.height/2}px`; };
+    moveClone(e.touches[0]);
+    const handleTouchMove=ev=>moveClone(ev.touches[0]);
+    const handleTouchEnd=ev=>{
+      const touch=ev.changedTouches[0]; const el=document.elementFromPoint(touch.clientX,touch.clientY);
+      if(el && el.classList.contains("slot")) drop({ preventDefault:()=>{}, dataTransfer:{ getData:k=>k==="text/plain"?letter:src }, currentTarget: el });
+      document.removeEventListener("touchmove",handleTouchMove); document.removeEventListener("touchend",handleTouchEnd); clone.remove();
+    };
+    document.addEventListener("touchmove",handleTouchMove,{passive:false});
+    document.addEventListener("touchend",handleTouchEnd,{passive:false});
+  }
+
+  function loadPage(){
+    const info=levelDefinitions[currentLevel];
+    const pool=info.random ? Array.from({length:101},(_,i)=>i) : Array.from({length:info.end-info.start+1},(_,i)=>i+info.start);
+    const chosen=shuffle(pool).slice(0,info.pages*9); const pageItems=[];
+    for(let i=0;i<info.pages;i++) pageItems.push(chosen.slice(i*9,(i+1)*9));
+    currentLetters=pageItems; const pageLetters=currentLetters[currentPage];
+    gameBoard.innerHTML=""; leftSigns.innerHTML=""; rightSigns.innerHTML=""; levelTitle.innerText=`Level ${currentLevel+1}`;
+    const slotType=info.type; const slotMode=slotType.includes("clipart")?"clipart":slotType.includes("sign")?"sign":null;
+    const getOppositeMode=m=>m==="clipart"?"sign":"clipart";
+    pageLetters.forEach(letter=>{
+      const slot=document.createElement("div"); slot.className="slot"; slot.dataset.letter=`${letter}`;
+      const imageMode=slotType==="mixed"? (Math.random()<0.5?"clipart":"sign") : slotMode;
+      slot.dataset.imageMode=imageMode;
+      slot.style.backgroundImage=`url('assets/numbers/${imageMode==="clipart"?`clipart/${letter}.png`:`signs/sign-${letter}.png`}')`;
+      gameBoard.appendChild(slot);
+    });
+    let decoyPool=pool.filter(n=>!pageLetters.includes(n));
+    let decoys=decoyPool.length>=3?shuffle(decoyPool).slice(0,3):decoyPool;
+    const draggableLetters=shuffle([...pageLetters,...decoys]);
+    draggableLetters.forEach((letter,i)=>{
+      const img=document.createElement("img"); img.className="draggable"; img.draggable=true; img.dataset.letter=`${letter}`;
+      let sourceMode; if(slotType==="mixed"){
+        const matchSlot=document.querySelector(`.slot[data-letter='${letter}']`);
+        sourceMode=matchSlot?getOppositeMode(matchSlot.dataset.imageMode):(Math.random()<0.5?"clipart":"sign");
+      } else sourceMode=getOppositeMode(slotMode);
+      img.src=`assets/numbers/${sourceMode==="clipart"?`clipart/${letter}.png`:`signs/sign-${letter}.png`}`;
+      img.addEventListener("dragstart",e=>{ e.dataTransfer.setData("text/plain",`${letter}`); e.dataTransfer.setData("src",img.src); });
+      img.addEventListener("touchstart",touchStart);
+      const wrap=document.createElement("div"); wrap.className="drag-wrapper"; wrap.appendChild(img);
+      (i<draggableLetters.length/2?leftSigns:rightSigns).appendChild(wrap);
+    });
+    correctMatches=0;
+    document.querySelectorAll(".slot").forEach(slot=>{ slot.addEventListener("dragover",e=>e.preventDefault()); slot.addEventListener("drop",drop); });
+    updateScore(); saveProgress();
+  }
+
   continueBtn.onclick=()=>{
-    modal.style.display="none";
-    currentPage++;
-    if(currentPage>=levelDefinitions[currentLevel].pages){
-      currentLevel++;
-      currentPage=0;
-      if(currentLevel>=levelDefinitions.length){
-        endGame();
-        return;
-      }
+    modal.style.display="none"; gameEnded=false;
+    const saved=JSON.parse(localStorage.getItem("numbersGameSave"));
+    if(saved && saved.studentName===studentName && saved.studentClass===studentClass){
+      currentLevel=saved.currentLevel; currentPage=saved.currentPage;
+      saved.levelAttempts.forEach((lvl,i)=>{ levelAttempts[i].correct=new Set(lvl.correct); levelAttempts[i].incorrect=lvl.incorrect; });
     }
-    generatePage();
-    saveProgress();
+    loadPage();
   };
 
   againBtn.onclick=()=>{
-    modal.style.display="none";
-    generatePage();
+    localStorage.removeItem("numbersGameSave"); location.reload();
   };
 
   finishBtn.onclick=()=>{
-    modal.style.display="none";
-    endGame();
+    if(!gameEnded){ modal.style.display="flex"; endGame(); }
   };
 
-  stopBtn.onclick=()=>{
-    stopScoreEl.innerHTML=`Score: ${calculateScore()}%<br>Time: ${formatSecs(getElapsedSeconds())}<br><img src="assets/auslan-clap.gif" width="150">`;
-    modal.style.display="block";
-  };
-
-  // ====== END GAME ======
-  function endGame(){
-    modal.style.display="block";
-    stopScoreEl.innerHTML=`Final Score: ${calculateScore()}%<br>Time: ${formatSecs(getElapsedSeconds())}<br><img src="assets/auslan-clap.gif" width="150">`;
-    submitToGoogleForms();
-    clearProgress();
-  }
-
-  // ====== INIT ======
-  restoreProgress();
-  generatePage();
-  updateScore();
+  const resumed=restoreProgress(); if(resumed) loadPage(); else loadPage();
 });
