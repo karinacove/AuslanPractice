@@ -13,6 +13,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const againBtn = document.getElementById("again-btn");
   const continueBtn = document.getElementById("continue-btn");
   const finishBtn = document.getElementById("finish-btn");
+  const stopBtn = document.getElementById("stop-btn");
+  const stopScoreEl = document.getElementById("stop-score");
+
   const modal = document.getElementById("end-modal");
 
   const gameBoard = document.getElementById("gameBoard");
