@@ -206,26 +206,39 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Continue button -> resume
-  continueBtn.addEventListener("click", () => {
-    modal.style.display = "none";
-    // restore startTime using saved elapsed from storage (so we don't double count)
-    const raw = localStorage.getItem("numbersGameSave");
-    if (raw) {
-      try {
-        const data = JSON.parse(raw);
-        if (typeof data.elapsedSeconds === "number") {
-          startTime = Date.now() - data.elapsedSeconds * 1000;
-        } else {
-          startTime = Date.now();
-        }
-      } catch {}
-    } else {
-      startTime = Date.now();
-    }
-    gameEnded = false;
-    loadPage();
-    // overlays restored inside loadPage
-  });
+continueBtn.addEventListener("click", () => {
+  modal.style.display = "none";
+  const raw = localStorage.getItem("numbersGameSave");
+  if (raw) {
+    try {
+      const data = JSON.parse(raw);
+      if (typeof data.elapsedSeconds === "number") {
+        startTime = Date.now() - data.elapsedSeconds * 1000;
+      } else {
+        startTime = Date.now();
+      }
+      // restore currentLevel/currentPage
+      if (typeof data.currentLevel === "number") currentLevel = data.currentLevel;
+      if (typeof data.currentPage === "number") currentPage = data.currentPage;
+      // restore levelAttempts
+      if (Array.isArray(data.levelAttempts)) {
+        data.levelAttempts.forEach((lvl,i)=>{
+          levelAttempts[i].correct = new Set(Array.isArray(lvl.correct)?lvl.correct:[]);
+          levelAttempts[i].incorrect = Array.isArray(lvl.incorrect)?lvl.incorrect:[];
+        });
+      }
+      // restore overlays
+      if (data.overlaysPerLevel && Array.isArray(data.overlaysPerLevel)) {
+        data.overlaysPerLevel.forEach((obj,i)=>{ overlaysPerLevel[i] = obj||{}; });
+      }
+    } catch{}
+  } else {
+    startTime = Date.now();
+  }
+  gameEnded = false;
+  loadPage(); // load current page with overlays applied
+});
+
 
   // Again -> clear and reload
   againBtn.addEventListener("click", () => {
@@ -381,7 +394,9 @@ document.addEventListener("DOMContentLoaded", function () {
     for (let p=0;p<info.pages;p++) pages.push(chosen.slice(p*9, (p+1)*9));
     currentLetters = pages;
     const pageLetters = currentLetters[currentPage] || [];
-
+    correctMatches = pageLetters.filter(c => levelAttempts[currentLevel].correct.has(c)).length;
+    restoreOverlays();
+    
     // clear DOM areas
     gameBoard.innerHTML = "";
     leftSigns.innerHTML = "";
