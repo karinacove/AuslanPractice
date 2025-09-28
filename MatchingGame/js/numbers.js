@@ -31,6 +31,10 @@ document.addEventListener("DOMContentLoaded", function () {
   let gameEnded = false;
   let startTime = Date.now();
   const levelAttempts = Array(20).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
+  let paused = false;
+  let savedTimeElapsed = 0;
+  let timerInterval = null;
+
 
   const formEntryIDs = {
     correct: [
@@ -99,6 +103,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const percent = totalCorrect+totalIncorrect>0 ? Math.round(totalCorrect/(totalCorrect+totalIncorrect)*100) : 0;
     document.getElementById("score-display").innerText=`Score: ${percent}%`;
     return percent;
+  }
+
+  function updateTimer() {
+    const elapsed = Date.now() - startTime;
+    document.getElementById("time-display").innerText = formatTime(elapsed);
+  }
+
+  function formatTime(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes} mins ${seconds} sec`;
   }
 
   function saveProgress(){
@@ -226,18 +242,25 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
     // ====== STOP BUTTON ======
-// ===== STOP BUTTON =====
 stopBtn.addEventListener("click", () => {
   if (!paused) {
     paused = true;
     clearInterval(timerInterval); // stop timer
     savedTimeElapsed = Date.now() - startTime; // save elapsed
+
+    const totalCorrect = levelAttempts.reduce((s,l)=>s+l.correct.size,0);
+    const totalIncorrect = levelAttempts.reduce((s,l)=>s+l.incorrect.length,0);
+
     modal.style.display = "flex";
-    stopScoreEl.innerHTML = `Game paused<br>Score: ${correctCount} correct, ${incorrectCount} incorrect<br>Time: ${formatTime(savedTimeElapsed)}`;
+    stopScoreEl.innerHTML = `
+      Game paused<br>
+      Score: ${totalCorrect} correct, ${totalIncorrect} incorrect<br>
+      Time: ${formatTime(savedTimeElapsed)}
+    `;
   }
 });
 
-  continueBtn.onclick = () => {
+continueBtn.onclick = () => {
   modal.style.display = "none";
   paused = false;
   startTime = Date.now() - savedTimeElapsed; // resume from saved
