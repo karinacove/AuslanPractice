@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("student-info").innerText = `${studentName} (${studentClass})`;
 
   // ====== DOM ELEMENTS ======
+  const stopBtn = document.getElementById("stop-btn");
   const againBtn = document.getElementById("again-btn");
   const continueBtn = document.getElementById("continue-btn");
   const finishBtn = document.getElementById("finish-btn");
@@ -222,6 +223,22 @@ document.addEventListener("DOMContentLoaded", function () {
     updateScore(); saveProgress();
   }
 
+    // ====== STOP BUTTON ======
+stopBtn.addEventListener("click", () => {
+  const endTime = Date.now();
+  const timeTaken = Math.round((endTime - startTime) / 1000);
+  const minutes = Math.floor(timeTaken / 60);
+  const seconds = timeTaken % 60;
+  const formattedTime = `${minutes} mins ${seconds} sec`;
+
+  const totalCorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.correct.size, 0);
+  const totalIncorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.incorrect.length, 0);
+  const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
+
+  stopScoreEl.innerHTML = `Score: ${percent}%<br>Time: ${formattedTime}<br><img src="assets/auslan-clap.gif" width="150">`;
+  modal.style.display = "flex";
+});
+  
   continueBtn.onclick=()=>{
     modal.style.display="none"; gameEnded=false;
     const saved=JSON.parse(localStorage.getItem("numbersGameSave"));
