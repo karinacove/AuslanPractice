@@ -275,12 +275,10 @@ finishBtn.onclick = () => {
   if (!gameEnded) {
     endGame(); // submit results
   }
-  // always go back to hub after submitting
   setTimeout(() => {
-    window.location.href = "../hub.html";
+    window.location.href = "../MatchingGame/hub.html";
   }, 1500); // give form ~1.5s to submit
 };
-
 
   const resumed=restoreProgress(); if(resumed) loadPage(); else loadPage();
 });
