@@ -861,7 +861,7 @@ buttons.appendChild(finishImg);
       big.style.transform = "translate(-50%,-50%)";
       big.style.zIndex = 20000;
       document.body.appendChild(big);
-      setTimeout(() => { big.remove(); window.location.href = "../index.html"; }, 2000);
+      setTimeout(() => { big.remove(); window.location.href = "../MatchingGame/hub.html"; }, 2000);
     });
   }
 
