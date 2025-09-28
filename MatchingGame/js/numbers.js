@@ -226,30 +226,23 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
     // ====== STOP BUTTON ======
+// ===== STOP BUTTON =====
 stopBtn.addEventListener("click", () => {
-  const endTime = Date.now();
-  const timeTaken = Math.round((endTime - startTime) / 1000);
-  const minutes = Math.floor(timeTaken / 60);
-  const seconds = timeTaken % 60;
-  const formattedTime = `${minutes} mins ${seconds} sec`;
-
-  const totalCorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.correct.size, 0);
-  const totalIncorrect = levelAttempts.reduce((sum, lvl) => sum + lvl.incorrect.length, 0);
-  const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
-
-  stopScoreEl.innerHTML = `Score: ${percent}%<br>Time: ${formattedTime}<br><img src="assets/auslan-clap.gif" width="150">`;
-  modal.style.display = "flex";
+  if (!paused) {
+    paused = true;
+    clearInterval(timerInterval); // stop timer
+    savedTimeElapsed = Date.now() - startTime; // save elapsed
+    modal.style.display = "flex";
+    stopScoreEl.innerHTML = `Game paused<br>Score: ${correctCount} correct, ${incorrectCount} incorrect<br>Time: ${formatTime(savedTimeElapsed)}`;
+  }
 });
-  
-  continueBtn.onclick=()=>{
-    modal.style.display="none"; gameEnded=false;
-    const saved=JSON.parse(localStorage.getItem("numbersGameSave"));
-    if(saved && saved.studentName===studentName && saved.studentClass===studentClass){
-      currentLevel=saved.currentLevel; currentPage=saved.currentPage;
-      saved.levelAttempts.forEach((lvl,i)=>{ levelAttempts[i].correct=new Set(lvl.correct); levelAttempts[i].incorrect=lvl.incorrect; });
-    }
-    loadPage();
-  };
+
+  continueBtn.onclick = () => {
+  modal.style.display = "none";
+  paused = false;
+  startTime = Date.now() - savedTimeElapsed; // resume from saved
+  timerInterval = setInterval(updateTimer, 1000); // restart timer loop
+};
 
   againBtn.onclick=()=>{
     localStorage.removeItem("numbersGameSave"); location.reload();
