@@ -15,6 +15,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const continueBtn = document.getElementById("continue-btn");
   const finishBtn = document.getElementById("finish-btn");
   const modal = document.getElementById("end-modal");
+  const stopScoreEl = document.getElementById("stop-score");
+
 
   const gameBoard = document.getElementById("gameBoard");
   const leftSigns = document.getElementById("leftSigns");
