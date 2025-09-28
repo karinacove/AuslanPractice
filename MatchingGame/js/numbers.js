@@ -271,9 +271,16 @@ continueBtn.onclick = () => {
     localStorage.removeItem("numbersGameSave"); location.reload();
   };
 
-  finishBtn.onclick=()=>{
-    if(!gameEnded){ modal.style.display="flex"; endGame(); }
-  };
+finishBtn.onclick = () => {
+  if (!gameEnded) {
+    endGame(); // submit results
+  }
+  // always go back to hub after submitting
+  setTimeout(() => {
+    window.location.href = "../hub.html";
+  }, 1500); // give form ~1.5s to submit
+};
+
 
   const resumed=restoreProgress(); if(resumed) loadPage(); else loadPage();
 });
