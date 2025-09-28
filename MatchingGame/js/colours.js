@@ -192,8 +192,10 @@ document.addEventListener("DOMContentLoaded", function () {
       gameBoard.appendChild(slot);
     });
 
-    const allDecoys = allColours.filter(c=>!usedSet.has(c));
-    const decoyColours = shuffle(allDecoys).slice(0, decoys);
+
+    let decoyPool = allColours.filter(c => !pageColours.includes(c));
+    let decoyColours = shuffle(decoyPool).slice(0, decoys);
+
     const draggableColours = shuffle([...pageColours,...decoyColours]).filter(c=>!levelAttempts[currentLevel].correct.has(c));
 
     draggableColours.forEach((colour,i)=>{
