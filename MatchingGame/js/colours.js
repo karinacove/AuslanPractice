@@ -255,7 +255,7 @@ document.addEventListener("DOMContentLoaded", function () {
     modal.style.display = "none";
     submitGoogleForm();
     clearProgress();
-    window.location.href = "../index.html";
+    window.location.href = "../MatchingGame/hub.html";
   });
 
   againBtn.addEventListener("click", ()=>location.reload());
