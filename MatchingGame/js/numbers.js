@@ -297,7 +297,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   continueBtn.onclick = () => { modal.style.display="none"; paused=false; startTime=Date.now()-savedTimeElapsed; timerInterval=setInterval(()=>updateScore(),1000); };
   againBtn.onclick = () => { localStorage.removeItem("numbersGameSave"); location.reload(); };
-  finishBtn.onclick = () => { finished=true; endGame(); setTimeout(()=>{window.location.href="../MatchingGame/hub.html";},1500); };
+  finishBtn.onclick = () => {
+    finished = true;
+    endGame();
+    localStorage.removeItem("numbersGameSave");
+    setTimeout(() => {
+      window.location.href = "../MatchingGame/hub.html";
+    }, 1500);
+  };
 
   // ====== INIT ======
   const resumed = restoreProgress();
