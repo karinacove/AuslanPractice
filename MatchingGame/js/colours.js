@@ -165,58 +165,62 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ==== PAGE LOADER ====
-  function loadPage(){
-    const { type:mode, decoys } = levels[currentLevel];
-    gameBoard.innerHTML=""; leftSigns.innerHTML=""; rightSigns.innerHTML="";
-    levelTitle.innerText = `Level ${currentLevel+1}: ` + 
-      (mode==="signToImage"?"Match the Sign to the Picture":mode==="imageToSign"?"Match the Picture to the Sign":"Match Signs and Pictures (Mixed)");
+// ==== PAGE LOADER ====
+function loadPage(){
+  const { type:mode, decoys } = levels[currentLevel];
+  gameBoard.innerHTML=""; leftSigns.innerHTML=""; rightSigns.innerHTML="";
+  levelTitle.innerText = `Level ${currentLevel+1}: ` + 
+    (mode==="signToImage"?"Match the Sign to the Picture":mode==="imageToSign"?"Match the Picture to the Sign":"Match Signs and Pictures (Mixed)");
 
-    if(currentPage===0 && currentColours.length===0){
-      const shuffled = shuffle([...allColours]);
-      currentColours = [];
-      for(let i=0;i<pagesPerLevel;i++) currentColours.push(shuffle(shuffled.slice(i*5,(i+1)*5)));
-    }
-
-    const pageColours = currentColours[currentPage];
-    const usedSet = new Set(pageColours);
-
-    pageColours.forEach(colour=>{
-      const slot=document.createElement("div"); slot.className="slot"; slot.dataset.letter=colour;
-      const showSign = mode==="imageToSign"||(mode==="mixed"&&Math.random()<0.5);
-      slot.style.backgroundImage=`url('assets/colours/${showSign?`signs/sign-${colour}.png`:`clipart/${colour}.png`}')`;
-      if(levelAttempts[currentLevel].correct.has(colour)){
-        const overlay=document.createElement("img");
-        overlay.src=`assets/colours/clipart/${colour}.png`;
-        overlay.className="overlay"; slot.appendChild(overlay);
-      }
-      gameBoard.appendChild(slot);
-    });
-
-
-    let decoyPool = allColours.filter(c => !pageColours.includes(c));
-    let decoyColours = shuffle(decoyPool).slice(0, decoys);
-
-    const draggableColours = shuffle([...pageColours,...decoyColours]).filter(c=>!levelAttempts[currentLevel].correct.has(c));
-
-    draggableColours.forEach((colour,i)=>{
-      const img=document.createElement("img"); img.className="draggable"; img.draggable=true; img.dataset.letter=colour;
-      const opposite = mode==="signToImage"||(mode==="mixed"&&!gameBoard.querySelector(`.slot[data-letter='${colour}']`)?.style.backgroundImage.includes("sign-"));
-      img.src=`assets/colours/${opposite?`signs/sign-${colour}.png`:`clipart/${colour}.png`}`;
-      img.addEventListener("dragstart",e=>{ e.dataTransfer.setData("text/plain",colour); });
-      img.addEventListener("touchstart",touchStart);
-
-      const wrap=document.createElement("div"); wrap.className="drag-wrapper"; wrap.appendChild(img);
-      if(i<draggableColours.length/2) leftSigns.appendChild(wrap); else rightSigns.appendChild(wrap);
-    });
-
-    correctThisPage = pageColours.filter(c=>levelAttempts[currentLevel].correct.has(c)).length;
-    updateScore();
-
-    document.querySelectorAll(".slot").forEach(slot=>{
-      slot.addEventListener("dragover",e=>e.preventDefault());
-      slot.addEventListener("drop",drop);
-    });
+  // generate colours if first page of the level
+  if(currentPage===0 && currentColours.length===0){
+    const shuffled = shuffle([...allColours]);
+    currentColours = [];
+    for(let i=0;i<pagesPerLevel;i++) currentColours.push(shuffle(shuffled.slice(i*5,(i+1)*5)));
   }
+
+  const pageColours = currentColours[currentPage];
+  const usedSet = new Set(pageColours);
+
+  pageColours.forEach(colour=>{
+    const slot=document.createElement("div"); slot.className="slot"; slot.dataset.letter=colour;
+    const showSign = mode==="imageToSign"||(mode==="mixed"&&Math.random()<0.5);
+    slot.style.backgroundImage=`url('assets/colours/${showSign?`signs/sign-${colour}.png`:`clipart/${colour}.png`}')`;
+    if(levelAttempts[currentLevel].correct.has(colour)){
+      const overlay=document.createElement("img");
+      overlay.src=`assets/colours/clipart/${colour}.png`;
+      overlay.className="overlay"; slot.appendChild(overlay);
+    }
+    gameBoard.appendChild(slot);
+  });
+
+  // ---- FIXED DECOY LOGIC ----
+  // decoy pool excludes only the current page colours
+  let decoyPool = allColours.filter(c => !pageColours.includes(c));
+  let decoyColours = shuffle(decoyPool).slice(0, decoys);
+
+  const draggableColours = shuffle([...pageColours, ...decoyColours])
+    .filter(c => !levelAttempts[currentLevel].correct.has(c));
+
+  draggableColours.forEach((colour,i)=>{
+    const img=document.createElement("img"); img.className="draggable"; img.draggable=true; img.dataset.letter=colour;
+    const opposite = mode==="signToImage"||(mode==="mixed"&&!gameBoard.querySelector(`.slot[data-letter='${colour}']`)?.style.backgroundImage.includes("sign-"));
+    img.src=`assets/colours/${opposite?`signs/sign-${colour}.png`:`clipart/${colour}.png`}`;
+    img.addEventListener("dragstart",e=>{ e.dataTransfer.setData("text/plain",colour); });
+    img.addEventListener("touchstart",touchStart);
+
+    const wrap=document.createElement("div"); wrap.className="drag-wrapper"; wrap.appendChild(img);
+    if(i<draggableColours.length/2) leftSigns.appendChild(wrap); else rightSigns.appendChild(wrap);
+  });
+
+  correctThisPage = pageColours.filter(c=>levelAttempts[currentLevel].correct.has(c)).length;
+  updateScore();
+
+  document.querySelectorAll(".slot").forEach(slot=>{
+    slot.addEventListener("dragover",e=>e.preventDefault());
+    slot.addEventListener("drop",drop);
+  });
+}
 
   // ==== END MODAL ====
   function showEndModal(isFinished = false){
