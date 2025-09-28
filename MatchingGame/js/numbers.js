@@ -1,4 +1,4 @@
-// ✅ Complete Numbers Matching Game Script (No Menu/Logout Buttons)
+
 document.addEventListener("DOMContentLoaded", function () {
   // ====== STUDENT INFO ======
   const studentName = localStorage.getItem("studentName") || "";
@@ -258,8 +258,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     let usedLetters = currentLetters.flat().filter(n => !pageLetters.includes(n));
-    let decoyPool = pool.filter(n => !pageLetters.includes(n) && !usedLetters.includes(n));
-    let decoys = decoyPool.length >= 3 ? shuffle(decoyPool).slice(0, 3) : decoyPool;
+    let decoyPool = pool.filter(n => !pageLetters.includes(n));
+    let decoys = shuffle(decoyPool).slice(0, 3);
+
     const draggableLetters = shuffle([...pageLetters,...decoys]);
 
     draggableLetters.forEach((letter,i)=>{
