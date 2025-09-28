@@ -257,8 +257,9 @@ document.addEventListener("DOMContentLoaded", function () {
       gameBoard.appendChild(slot);
     });
 
-    let decoyPool = pool.filter(n=>!pageLetters.includes(n));
-    let decoys = decoyPool.length>=3?shuffle(decoyPool).slice(0,3):decoyPool;
+    let usedLetters = currentLetters.flat().filter(n => !pageLetters.includes(n));
+    let decoyPool = pool.filter(n => !pageLetters.includes(n) && !usedLetters.includes(n));
+    let decoys = decoyPool.length >= 3 ? shuffle(decoyPool).slice(0, 3) : decoyPool;
     const draggableLetters = shuffle([...pageLetters,...decoys]);
 
     draggableLetters.forEach((letter,i)=>{
