@@ -8,6 +8,18 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Topic Selection Modal -->
+  <div id="topicModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h2>Select a Topic</h2>
+      <div class="modal-buttons">
+        <button class="topicBtn" data-topic="animals">Animals</button>
+        <button class="topicBtn" data-topic="food">Food</button>
+        <button class="topicBtn" data-topic="emotions">Emotions</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Top bar -->
   <div id="topBar">
     <div id="studentInfo">
@@ -43,39 +55,46 @@
     <div id="draggablesRight" class="draggables"></div>
   </div>
 
-<div id="endModal" style="display:none;">
-  <div id="endModalContent">
-    <img id="endGif" src="" alt="Clap">
-    <p>Time: <span id="finalTime"></span></p>
-    <p>Score: <span id="finalScore"></span></p>
-    <p>Percentage: <span id="finalPercent"></span></p>
-    <img id="finishBtn" src="assets/finish.png" alt="Finish">
-    <img id="againBtnEnd" src="assets/again.png" alt="Play Again">
-  </div>
-</div>
-
-<!-- Stop Modal -->
-<div id="stopModal" style="display:none;">
-  <p>Time: <span id="stopTime"></span></p>
-  <p>Percentage: <span id="stopPercent"></span></p>
-  <img id="continueBtn" src="assets/continue.png" alt="Continue">
-  <img id="againBtnStop" src="assets/again.png" alt="Play Again">
-  <img id="finishBtnStop" src="assets/finish.png" alt="Finish">
-</div>
-
-<div id="resumeModal">
-  <div class="modal-content">
-    <p id="resumeMessage"></p>
-    <div class="modal-buttons">
-      <img id="resumeContinue" src="assets/continue.png" alt="Continue" />
-      <img id="resumeAgain" src="assets/again.png" alt="Start Over" />
+  <!-- End Modal -->
+  <div id="endModal" style="display:none;">
+    <div id="endModalContent">
+      <img id="endGif" src="" alt="Clap">
+      <p>Time: <span id="finalTime"></span></p>
+      <p>Score: <span id="finalScore"></span></p>
+      <p>Percentage: <span id="finalPercent"></span></p>
+      <img id="finishBtn" src="assets/finish.png" alt="Finish">
+      <img id="againBtnEnd" src="assets/again.png" alt="Play Again">
     </div>
   </div>
-</div>
 
-<!-- Hidden Google Form -->
-<form id="googleForm" action="https://docs.google.com/forms/d/e/1FAIpQLSeDjoRouuIIrum-BbkNWt7Rz-ALVAnupFI4RIWbuQulNH9NGw/formResponse" method="POST" target="hidden_iframe" style="display:none;"></form>
-<iframe name="hidden_iframe" style="display:none;"></iframe>
+  <!-- Stop Modal -->
+  <div id="stopModal" style="display:none;">
+    <p>Time: <span id="stopTime"></span></p>
+    <p>Percentage: <span id="stopPercent"></span></p>
+    <img id="continueBtn" src="assets/continue.png" alt="Continue">
+    <img id="againBtnStop" src="assets/again.png" alt="Play Again">
+    <img id="finishBtnStop" src="assets/finish.png" alt="Finish">
+  </div>
+
+  <!-- Resume Modal -->
+  <div id="resumeModal" style="display:none;">
+    <div class="modal-content">
+      <p id="resumeMessage"></p>
+      <div class="modal-buttons">
+        <img id="resumeContinue" src="assets/continue.png" alt="Continue" />
+        <img id="resumeAgain" src="assets/again.png" alt="Start Over" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Google Form -->
+  <form id="googleForm" 
+        action="https://docs.google.com/forms/d/e/1FAIpQLSeDjoRouuIIrum-BbkNWt7Rz-ALVAnupFI4RIWbuQulNH9NGw/formResponse" 
+        method="POST" 
+        target="hidden_iframe" 
+        style="display:none;">
+  </form>
+  <iframe name="hidden_iframe" style="display:none;"></iframe>
 
   <script src="script.js"></script>
 </body>
