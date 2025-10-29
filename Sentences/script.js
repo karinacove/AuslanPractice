@@ -23,7 +23,6 @@ const answerArea = document.getElementById("answerArea");
 const feedbackDiv = document.getElementById("feedback");
 const checkBtn = document.getElementById("checkBtn");
 const againBtn = document.getElementById("againBtn");
-const continueBtn = document.getElementById("continueBtn");
 const endModal = document.getElementById("endModal");
 const googleForm = document.getElementById("googleForm");
 const againBtnEnd = document.getElementById("againBtnEnd");
@@ -42,8 +41,8 @@ if (!studentName || !studentClass) {
 }
 
 /* ===== GAME VARIABLES ===== */
-let currentLevel = 1;
-let roundInLevel = 0;
+let currentLevel = 1;            // 1..TOTAL_LEVELS
+let roundInLevel = 0;           // 0..9
 let correctCount = 0;
 let incorrectCount = 0;
 let currentSentence = {};
@@ -72,23 +71,14 @@ function shuffleArray(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ 
 function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
 function signPathFor(word){
-  // Return a path (may be .png or .mp4). Caller must create appropriate element.
   if(!word) return "";
-  // helpers (png)
   if(helpers.includes(word)) return `assets/signs/helpers/${word}.png`;
-  // animals
   if(animals.includes(word)) return `assets/signs/animals/${word}-sign.png`;
-  // numbers
   if(numbers.includes(word)) return `assets/signs/numbers/${word}-sign.png`;
-  // food
   if(food.includes(word)) return `assets/signs/food/${word}-sign.png`;
-  // colours
   if(colours.includes(word)) return `assets/signs/colours/${word}-sign.png`;
-  // verbs
   if(verbs.includes(word)) return `assets/signs/verbs/${word}-sign.png`;
-  // emotions (video signs)
   if(emotions.includes(word)) return `assets/signs/emotions/sign-${word}.mp4`;
-  // emotion zone image (png)
   if(emotionZones.includes(word)) return `assets/signs/emotions/sign-${word}.png`;
   return "";
 }
@@ -109,14 +99,53 @@ function saveProgress(){
 function loadProgress(){ try{return JSON.parse(localStorage.getItem(SAVE_KEY));}catch{return null;} }
 function clearProgress(){ localStorage.removeItem(SAVE_KEY); }
 
+/* Submit a saved progress object (used when user chooses New while a save exists) */
+async function submitSavedProgress(saved){
+  if(!saved) return;
+  try{
+    const timeTaken = saved.timeElapsed || 0;
+    const totalCorrect = Object.values(saved.levelCorrect || {1:0,2:0,3:0,4:0}).reduce((a,b)=>a+b,0);
+    const totalAttempts = totalCorrect + Object.values(saved.levelIncorrect || {1:0,2:0,3:0,4:0}).reduce((a,b)=>a+b,0);
+    const percent = totalAttempts>0?Math.round((totalCorrect/totalAttempts)*100):0;
+    const fd = new FormData();
+    fd.append(FORM_FIELD_MAP.name, saved.studentName || studentName);
+    fd.append(FORM_FIELD_MAP.class, saved.studentClass || studentClass);
+    fd.append(FORM_FIELD_MAP.subject, `Sentences - ${saved.currentTopic || currentTopic || 'Sentences'}`);
+    fd.append(FORM_FIELD_MAP.timeTaken, timeTaken);
+    fd.append(FORM_FIELD_MAP.percent, percent);
+    for(let l=1;l<=TOTAL_LEVELS;l++){
+      const cf=FORM_FIELD_MAP[`level${l}`]?.correct; const inf=FORM_FIELD_MAP[`level${l}`]?.incorrect;
+      if(cf) fd.append(cf, formatSavedAnswersForLevel(saved, l, true));
+      if(inf) fd.append(inf, formatSavedAnswersForLevel(saved, l, false));
+    }
+    await fetch(googleForm.action,{method:"POST",body:fd,mode:"no-cors"});
+  }catch(err){ console.warn("Saved form submission failed", err); }
+}
+function formatSavedAnswersForLevel(saved, level, correct=true){
+  const history = saved.answersHistory||[];
+  return history.filter(a=>a.level===level && a.correct===correct).sort((a,b)=>a.label.localeCompare(b.label)).map(a=>`${a.label}-${a.value}`).join(",");
+}
+
+/* ===== RESUME / TOPIC MODAL LOGIC ===== */
 function showResumeModal(saved){
   const modal=document.getElementById("resumeModal");
   const msg=document.getElementById("resumeMessage");
   const cont=document.getElementById("resumeContinue");
   const again=document.getElementById("resumeAgain");
-  msg.textContent=`Welcome back ${saved.studentName}! Continue from Level ${saved.currentLevel}, Question ${saved.roundInLevel+1}?`;
+  msg.textContent=`Welcome back ${saved.studentName}! Continue Level ${saved.currentLevel}, Q ${saved.roundInLevel+1}?`;
   cont.onclick=()=>{ modal.style.display="none"; restoreProgress(saved); };
-  again.onclick=()=>{ modal.style.display="none"; clearProgress(); resetGame(); };
+  again.onclick=async()=>{
+    // "New" chosen: submit saved progress silently (unless it was already submitted/cleared),
+    // clear the save and return to topic selection
+    modal.style.display="none";
+    await submitSavedProgress(saved);
+    clearProgress();
+    currentTopic = "";
+    localStorage.removeItem("sentencesTopic");
+    const topicModal = document.getElementById("topicModal");
+    if(topicModal) topicModal.style.display = "flex";
+    else { /* fallback: reset to animals */ currentTopic = ""; resetGame(); }
+  };
   modal.style.display="flex";
 }
 
@@ -134,20 +163,14 @@ function restoreProgress(saved){
   buildQuestion();
 }
 
-function resumeProgress(){
-  const saved = loadProgress();
-  if(saved) showResumeModal(saved);
-  else resetGame();
-}
-
 /* ===== TOPIC SELECTION UI HOOKS ===== */
 function chooseTopic(topic){
   currentTopic = topic;
   localStorage.setItem("sentencesTopic", topic);
-  document.getElementById("topicModal")?.style.setProperty("display","none");
+  const topicModal = document.getElementById("topicModal");
+  if(topicModal) topicModal.style.display = "none";
   resetGame();
 }
-
 /* bind topic buttons if present */
 document.querySelectorAll(".topicBtn").forEach(btn => btn.addEventListener("click", ()=>chooseTopic(btn.dataset.topic)));
 
@@ -160,12 +183,10 @@ function generateSentence(){
     return;
   }
 
-  // For animals or food topics we keep a similar structure, but adapt for the topic:
   if(currentTopic === "animals"){
     const animal = randomItem(animals);
     const number = randomItem(numbers);
     const verb = (currentLevel === 4) ? randomItem(["have","donthave"]) : "want";
-    // we still include a random food and colour for mixed levels like level 3/4 (to reuse structure)
     const foodItem = randomItem(food);
     const colour = randomItem(colours);
     currentSentence = { animal, number, food: foodItem, colour, verb };
@@ -176,14 +197,13 @@ function generateSentence(){
     const foodItem = randomItem(food);
     const colour = randomItem(colours);
     const verb = (currentLevel === 4) ? randomItem(["have","donthave"]) : "want";
-    // include an animal/number fallback for any mixed levels that expect them (keeps logic consistent)
     const animal = randomItem(animals);
     const number = randomItem(numbers);
     currentSentence = { food: foodItem, colour, verb, animal, number };
     return;
   }
 
-  // default fallback
+  // fallback
   const animal = randomItem(animals);
   const number = randomItem(numbers);
   const foodItem = randomItem(food);
@@ -198,13 +218,15 @@ function buildQuestion() {
   questionArea.innerHTML = "";
   answerArea.innerHTML = "";
   feedbackDiv.innerHTML = "";
+  // hide buttons until user interacts
   checkBtn.style.display = "none";
   againBtn.style.display = "none";
 
   const isOdd = roundInLevel % 2 === 1;
 
-  // Show helpers for levels 1/2 as before (but skip for emotions if you don't want helpers)
-  if (currentTopic !== "emotions" && currentLevel <= 2) {
+  // Helpers
+  const showHelpers = currentLevel <= 2; // show in early levels
+  if(showHelpers){
     const helperDiv = document.createElement("div");
     helpers.forEach(h => {
       const elPath = signPathFor(h);
@@ -212,19 +234,9 @@ function buildQuestion() {
       helperDiv.appendChild(node);
     });
     questionArea.appendChild(helperDiv);
-  } else if (currentTopic === "emotions" && currentLevel <= 2) {
-    // emotions also uses "i see what" helpers if desired
-    const helperDiv = document.createElement("div");
-    ["i","see","what"].forEach(h => {
-      const elPath = signPathFor(h);
-      const node = createMediaElementForPath(elPath, {className: "helperSign"});
-      helperDiv.appendChild(node);
-    });
-    questionArea.appendChild(helperDiv);
   }
 
-  // Branch by topic
-  if (currentTopic === "emotions") {
+  if(currentTopic === "emotions"){
     buildQuestionForEmotions(isOdd);
   } else {
     buildQuestionForAnimalsOrFood(isOdd);
@@ -235,25 +247,18 @@ function buildQuestion() {
 
 /* ===== CREATE MEDIA ELEMENT (img or video) ===== */
 function createMediaElementForPath(path, opts = {}) {
-  const lower = path.toLowerCase();
-  if (!path) {
-    const empty = document.createElement("div");
-    empty.textContent = "";
-    return empty;
+  if(!path) {
+    const empty = document.createElement("div"); empty.textContent=""; return empty;
   }
-  if (lower.endsWith(".mp4")) {
+  const lower = path.toLowerCase();
+  if(lower.endsWith(".mp4")){
     const vid = document.createElement("video");
-    vid.src = path;
-    vid.autoplay = true;
-    vid.loop = true;
-    vid.muted = true;
-    vid.playsInline = true;
+    vid.src = path; vid.autoplay = true; vid.loop = true; vid.muted = true; vid.playsInline = true;
     if(opts.className) vid.className = opts.className;
     if(opts.width) vid.width = opts.width;
     return vid;
   } else {
-    const img = document.createElement("img");
-    img.src = path;
+    const img = document.createElement("img"); img.src = path;
     if(opts.className) img.className = opts.className;
     if(opts.width) img.width = opts.width;
     return img;
@@ -265,17 +270,12 @@ function buildQuestionForEmotions(isOdd){
   const comboDiv = document.createElement("div");
   comboDiv.className = "comboDiv emotionsCombo";
 
-  if (isOdd) {
-    // composite image (emotion-zone)
+  if(isOdd){
     const composite = compositeImagePath(`${currentSentence.emotion}-${currentSentence.zone}`);
-    const node = createMediaElementForPath(composite);
-    comboDiv.appendChild(node);
+    comboDiv.appendChild(createMediaElementForPath(composite));
   } else {
-    // show the emotion sign video + zone image side by side
-    const videoPath = signPathFor(currentSentence.emotion); // .mp4
-    const zoneImgPath = signPathFor(currentSentence.zone); // .png
-    comboDiv.appendChild(createMediaElementForPath(videoPath));
-    comboDiv.appendChild(createMediaElementForPath(zoneImgPath));
+    comboDiv.appendChild(createMediaElementForPath(signPathFor(currentSentence.emotion)));
+    comboDiv.appendChild(createMediaElementForPath(signPathFor(currentSentence.zone)));
   }
 
   questionArea.appendChild(comboDiv);
@@ -283,67 +283,71 @@ function buildQuestionForEmotions(isOdd){
   buildDraggablesEmotions(isOdd);
 }
 
-/* ===== BUILD QUESTION: ANIMALS or FOOD (re-uses prior structure) ===== */
+/* ===== BUILD QUESTION: ANIMALS or FOOD ===== */
 function buildQuestionForAnimalsOrFood(isOdd){
   const comboDiv = document.createElement("div");
   comboDiv.className = "comboDiv";
 
-  // We keep level behaviour consistent with previous file.
-  if (currentLevel === 1) {
+  if(currentLevel === 1){
     comboDiv.innerHTML = isOdd
       ? `<img src="${compositeImagePath(currentSentence.animal + '-' + currentSentence.number)}">`
       : `<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}">`;
-
-  } else if (currentLevel === 2) {
-    comboDiv.innerHTML = isOdd
-      ? `<img src="${compositeImagePath(currentSentence.food + '-' + currentSentence.colour)}">`
-      : `<img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
-
-  } else if (currentLevel === 3) {
+  }
+  else if(currentLevel === 2){
+    // Level 2 should be topic-specific:
+    if(currentTopic === "animals"){
+      comboDiv.innerHTML = isOdd
+        ? `<img src="${compositeImagePath(currentSentence.animal + '-' + currentSentence.number)}">`
+        : `<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}">`;
+    } else { // food topic
+      comboDiv.innerHTML = isOdd
+        ? `<img src="${compositeImagePath(currentSentence.food + '-' + currentSentence.colour)}">`
+        : `<img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
+    }
+  }
+  else if(currentLevel === 3){
     comboDiv.innerHTML = isOdd
       ? `<img src="${compositeImagePath(currentSentence.animal + '-' + currentSentence.number)}"><img src="${signPathFor('want')}"><img src="${compositeImagePath(currentSentence.food + '-' + currentSentence.colour)}">`
       : `<img src="${signPathFor(currentSentence.animal)}"><img src="${signPathFor(currentSentence.number)}"><img src="${signPathFor('want')}"><img src="${signPathFor(currentSentence.food)}"><img src="${signPathFor(currentSentence.colour)}">`;
-
-  } else if (currentLevel === 4) {
-    if (isOdd) {
-      const animalNumberImg = createMediaElementForPath(compositeImagePath(`${currentSentence.animal}-${currentSentence.number}`));
-      comboDiv.appendChild(animalNumberImg);
+  }
+  else if(currentLevel === 4){
+    if(isOdd){
+      comboDiv.appendChild(createMediaElementForPath(compositeImagePath(`${currentSentence.animal}-${currentSentence.number}`)));
       const foodColourImg = createMediaElementForPath(compositeImagePath(`${currentSentence.food}-${currentSentence.colour}`));
-      if (currentSentence.verb === "donthave") {
-        const wrapper = document.createElement("div");
-        wrapper.className = "dontHaveWrapper";
-        const xDiv = document.createElement("div");
-        xDiv.className = "xOverlay"; xDiv.textContent = "X";
-        wrapper.appendChild(foodColourImg);
-        wrapper.appendChild(xDiv);
-        comboDiv.appendChild(wrapper);
+      if(currentSentence.verb === "donthave"){
+        const wrapper = document.createElement("div"); wrapper.className="dontHaveWrapper";
+        const xDiv = document.createElement("div"); xDiv.className="xOverlay"; xDiv.textContent="X";
+        wrapper.appendChild(foodColourImg); wrapper.appendChild(xDiv); comboDiv.appendChild(wrapper);
       } else comboDiv.appendChild(foodColourImg);
     } else {
       comboDiv.appendChild(createMediaElementForPath(signPathFor(currentSentence.animal)));
       comboDiv.appendChild(createMediaElementForPath(signPathFor(currentSentence.number)));
       comboDiv.appendChild(createMediaElementForPath(signPathFor(currentSentence.verb)));
-      if (currentSentence.verb === "donthave") {
+      if(currentSentence.verb === "donthave"){
         const foodImg = createMediaElementForPath(signPathFor(currentSentence.food));
         const wrapper = document.createElement("div"); wrapper.className = "dontHaveWrapper";
-        const xDiv = document.createElement("div"); xDiv.className = "xOverlay"; xDiv.textContent = "X";
-        wrapper.appendChild(foodImg); wrapper.appendChild(xDiv);
-        comboDiv.appendChild(wrapper);
+        const xDiv = document.createElement("div"); xDiv.className = "xOverlay"; xDiv.textContent="X";
+        wrapper.appendChild(foodImg); wrapper.appendChild(xDiv); comboDiv.appendChild(wrapper);
       } else comboDiv.appendChild(createMediaElementForPath(signPathFor(currentSentence.food)));
       comboDiv.appendChild(createMediaElementForPath(signPathFor(currentSentence.colour)));
     }
   }
 
   questionArea.appendChild(comboDiv);
-  buildAnswerBoxes(isOdd); // uses generic builder that supports animals/food structure
-  buildDraggables(isOdd);  // uses generic builder
+  buildAnswerBoxes(isOdd);
+  buildDraggables(isOdd);
 }
 
-/* ===== BUILD ANSWER BOXES (generic for animals/food/levels 1-4) ===== */
+/* ===== BUILD ANSWER BOXES (generic for animals/food) ===== */
 function buildAnswerBoxes(isOdd){
   answerArea.innerHTML = "";
   let dropLabels = [];
   if(currentLevel === 1) dropLabels = isOdd ? ["animal","howmany?"] : ["animal+howmany?"];
-  else if(currentLevel === 2) dropLabels = isOdd ? ["food","colour"] : ["food+colour"];
+  else if(currentLevel === 2) {
+    // topic-specific labels
+    if(currentTopic === "animals") dropLabels = isOdd ? ["animal","howmany?"] : ["animal+howmany?"];
+    else dropLabels = isOdd ? ["food","colour"] : ["food+colour"];
+  }
   else if(currentLevel === 3) dropLabels = isOdd ? ["animal","howmany?","verb","food","colour"] : ["animal+howmany?","verb","food+colour"];
   else if(currentLevel === 4) dropLabels = isOdd ? ["animal","howmany?","verb","food","colour"] : ["animal+howmany?","food+colour"];
 
@@ -369,7 +373,10 @@ function buildDraggables(isOdd){
   let items=[], totalItems=16;
 
   if(currentLevel===1) items=isOdd?[currentSentence.animal,currentSentence.number]:[`${currentSentence.animal}-${currentSentence.number}`];
-  else if(currentLevel===2) items=isOdd?[currentSentence.food,currentSentence.colour]:[`${currentSentence.food}-${currentSentence.colour}`];
+  else if(currentLevel===2){
+    if(currentTopic === "animals") items=isOdd?[currentSentence.animal,currentSentence.number]:[`${currentSentence.animal}-${currentSentence.number}`];
+    else items=isOdd?[currentSentence.food,currentSentence.colour]:[`${currentSentence.food}-${currentSentence.colour}`];
+  }
   else if(currentLevel===3) items=isOdd?[currentSentence.animal,currentSentence.number,currentSentence.food,currentSentence.colour]:[`${currentSentence.animal}-${currentSentence.number}`,`${currentSentence.food}-${currentSentence.colour}`];
   else if(currentLevel===4){
     if(isOdd) items=[currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour];
@@ -379,26 +386,52 @@ function buildDraggables(isOdd){
   }
 
   const used=new Set(items);
+
+  // Prepare allowed pool based on topic
+  let allowedPool = [];
+  if(currentTopic === "animals") allowedPool = [...animals, ...numbers, ...verbs];
+  else if(currentTopic === "food") allowedPool = [...food, ...colours, ...verbs];
+  else allowedPool = [...animals, ...numbers, ...food, ...colours, ...verbs];
+
   while(items.length<totalItems){
     let decoy;
     if(currentLevel===4){
-      if(isOdd) decoy=randomItem([...animals,...numbers,...food,...colours,...verbs]);
-      else { 
-        const a=randomItem(animals),n=randomItem(numbers),f=randomItem(food),c=randomItem(colours);
-        decoy=Math.random()<0.5?`${a}-${n}`:`${f}-${c}`; if(Math.random()<0.15) decoy+="-X";
+      if(isOdd) decoy=randomItem(allowedPool);
+      else {
+        // mixed composite: keep animal-number or food-colour combos (prefer topic)
+        if(currentTopic === "animals"){
+          const a=randomItem(animals), n=randomItem(numbers);
+          decoy = Math.random()<0.8? `${a}-${n}` : `${randomItem(food)}-${randomItem(colours)}`;
+        } else if(currentTopic === "food"){
+          const f=randomItem(food), c=randomItem(colours);
+          decoy = Math.random()<0.8? `${f}-${c}` : `${randomItem(animals)}-${randomItem(numbers)}`;
+        } else {
+          const a=randomItem(animals), n=randomItem(numbers), f=randomItem(food), c=randomItem(colours);
+          decoy = Math.random()<0.5? `${a}-${n}` : `${f}-${c}`;
+        }
+        if(Math.random()<0.15) decoy+="-X";
       }
     } else {
-      decoy=randomItem([...animals,...numbers,...food,...colours]);
-      if(!isOdd && (currentLevel<4)) { 
-        if(currentLevel===1) decoy=`${randomItem(animals)}-${randomItem(numbers)}`;
-        if(currentLevel===2) decoy=`${randomItem(food)}-${randomItem(colours)}`;
-        if(currentLevel===3) decoy=Math.random()<0.5?`${randomItem(animals)}-${randomItem(numbers)}`:`${randomItem(food)}-${randomItem(colours)}`;
+      // choose appropriate decoy type depending on level and topic
+      if(currentLevel===1){
+        // single item - pick from allowed pool
+        decoy = randomItem(allowedPool);
+      } else if(currentLevel===2){
+        // composite depending on topic
+        if(currentTopic === "animals") decoy = `${randomItem(animals)}-${randomItem(numbers)}`;
+        else decoy = `${randomItem(food)}-${randomItem(colours)}`;
+      } else if(currentLevel===3){
+        // either animal-number or food-colour
+        decoy = Math.random()<0.5? `${randomItem(animals)}-${randomItem(numbers)}` : `${randomItem(food)}-${randomItem(colours)}`;
+      } else {
+        decoy = randomItem(allowedPool);
       }
     }
-    if(!used.has(decoy)) { items.push(decoy); used.add(decoy); }
+
+    if(!used.has(decoy)){ items.push(decoy); used.add(decoy); }
   }
 
-  items=shuffleArray(items);
+  items = shuffleArray(items);
   const halves=[items.slice(0,8),items.slice(8,16)];
 
   halves.forEach((group,idx)=>{
@@ -410,13 +443,14 @@ function buildDraggables(isOdd){
       if(typeof val==="string"){
         if(val.includes("-")){
           if(val.endsWith("-X")){
-            const base=val.replace(/-X$/,"");
+            const base = val.replace(/-X$/,"");
             const imgNode = createMediaElementForPath(compositeImagePath(base));
             const wrapper=document.createElement("div"); wrapper.className="dontHaveWrapper";
             wrapper.appendChild(imgNode);
             const xDiv=document.createElement("div"); xDiv.className="xOverlay"; xDiv.textContent="X";
             wrapper.appendChild(xDiv); div.appendChild(wrapper); div.dataset.value=val;
           } else {
+            // composite image
             const imgNode = createMediaElementForPath(compositeImagePath(val));
             div.appendChild(imgNode); div.dataset.value=val;
           }
@@ -443,11 +477,8 @@ function buildDraggablesEmotions(isOdd){
   const used = new Set(items);
   while(items.length < totalItems){
     let decoy;
-    if(isOdd){
-      decoy = Math.random() < 0.5 ? randomItem(emotions) : randomItem(emotionZones);
-    } else {
-      decoy = `${randomItem(emotions)}-${randomItem(emotionZones)}`;
-    }
+    if(isOdd) decoy = Math.random()<0.5 ? randomItem(emotions) : randomItem(emotionZones);
+    else decoy = `${randomItem(emotions)}-${randomItem(emotionZones)}`;
     if(!used.has(decoy)){ items.push(decoy); used.add(decoy); }
   }
 
@@ -464,7 +495,6 @@ function buildDraggablesEmotions(isOdd){
           const node = createMediaElementForPath(compositeImagePath(val));
           div.appendChild(node); div.dataset.value = val;
         } else {
-          // it's either an emotion (mp4) or zone (png)
           const path = signPathFor(val);
           const node = createMediaElementForPath(path);
           div.appendChild(node); div.dataset.value = val;
@@ -525,36 +555,40 @@ function endDrag(e){
   dragClone=null; dragItem=null;
   if(isTouch){document.removeEventListener("touchmove",moveDrag,{passive:false});document.removeEventListener("touchend",endDrag);}
   else{document.removeEventListener("mousemove",moveDrag);document.removeEventListener("mouseup",endDrag);}
-  if(dropped){againBtn.style.display="inline-block"; checkBtn.style.display=Array.from(document.querySelectorAll(".dropzone")).every(d=>d.dataset.filled)?"inline-block":"none";}
+  if(dropped){ againBtn.style.display="inline-block"; checkBtn.style.display=Array.from(document.querySelectorAll(".dropzone")).every(d=>d.dataset.filled)?"inline-block":"none"; }
 }
 document.addEventListener("mousedown",startDrag); document.addEventListener("touchstart",startDrag,{passive:false});
 function dropHandler(e){ e.preventDefault(); }
 
 /* ===== CHECK ANSWER ===== */
 checkBtn.addEventListener("click", ()=>{
+  // Immediately hide controls while evaluating
+  checkBtn.style.display = "none";
+  againBtn.style.display = "none";
+
   const dropzones=Array.from(answerArea.querySelectorAll(".dropzone")); let allCorrect=true;
   dropzones.forEach((dz,i)=>{
     if(dz.dataset.permanent==="true"){ dz.classList.add("correct"); return; }
     let expected=""; let isCorrect=false; const filled=dz.dataset.filled||"";
 
     if(currentTopic === "emotions"){
-      // Emotions expected values
-      if(currentLevel >= 1){ // same structure for levels applied (we can keep levels for emotion, but simplify)
-        if(roundInLevel%2===1){
-          expected = (i===0) ? currentSentence.emotion : currentSentence.zone;
-          isCorrect = filled === expected;
-        } else {
-          expected = `${currentSentence.emotion}-${currentSentence.zone}`;
-          isCorrect = filled === expected;
-        }
+      if(roundInLevel%2===1){
+        expected = (i===0) ? currentSentence.emotion : currentSentence.zone;
+        isCorrect = filled === expected;
+      } else {
+        expected = `${currentSentence.emotion}-${currentSentence.zone}`;
+        isCorrect = filled === expected;
       }
     } else {
-      // original logic for animals/food
       if(currentLevel===1){
         expected=(roundInLevel%2===1)?(i===0?currentSentence.animal:currentSentence.number):`${currentSentence.animal}-${currentSentence.number}`;
         isCorrect=filled===expected;
       } else if(currentLevel===2){
-        expected=(roundInLevel%2===1)?(i===0?currentSentence.food:currentSentence.colour):`${currentSentence.food}-${currentSentence.colour}`;
+        if(currentTopic === "animals"){
+          expected=(roundInLevel%2===1)?(i===0?currentSentence.animal:currentSentence.number):`${currentSentence.animal}-${currentSentence.number}`;
+        } else {
+          expected=(roundInLevel%2===1)?(i===0?currentSentence.food:currentSentence.colour):`${currentSentence.food}-${currentSentence.colour}`;
+        }
         isCorrect=filled===expected;
       } else if(currentLevel===3){
         const odd=[currentSentence.animal,currentSentence.number,currentSentence.verb,currentSentence.food,currentSentence.colour];
@@ -586,23 +620,39 @@ checkBtn.addEventListener("click", ()=>{
     else{ incorrectCount++; levelIncorrect[currentLevel]++; allCorrect=false; dz.innerHTML=""; dz.dataset.filled=""; dz.classList.remove("correct","filled"); dz.classList.add("incorrect"); }
 
     if(filled){
-      // map labels
       const items = filled.split("-").map(v=>v.trim());
-      const labels = dz.dataset.placeholder.includes("+") ? dz.dataset.placeholder.split("+") : [dz.dataset.placeholder];
+      const labels = dz.dataset.placeholder && dz.dataset.placeholder.includes("+") ? dz.dataset.placeholder.split("+") : [dz.dataset.placeholder];
       labels.forEach((lbl,idx)=>{ answersHistory.push({level:currentLevel,label:lbl,value:items[idx]||items.join("-")||"",correct:isCorrect,topic:currentTopic}); });
     }
   });
 
-  const fb=document.createElement("img");
-  fb.src=allCorrect?"assets/correct.png":"assets/wrong.png";
+  // Show feedback image
+  const fb = document.createElement("img");
+  fb.src = allCorrect ? "assets/correct.png" : "assets/wrong.png";
   feedbackDiv.appendChild(fb);
+
   saveProgress();
 
+  // After showing feedback: if all correct -> advance; if incorrect -> restore same question allowing retry
   setTimeout(()=>{
-    feedbackDiv.innerHTML="";
-    if(allCorrect) nextRound();
-    else{ restoreDraggablePositions(); checkBtn.style.display="none"; againBtn.style.display="inline-block"; }
-  },2000);
+    feedbackDiv.innerHTML = "";
+    if(allCorrect){
+      // hide controls and advance to next question
+      checkBtn.style.display = "none";
+      againBtn.style.display = "none";
+      nextRound();
+    } else {
+      // incorrect: reset dropzones and draggables for same question, and show Again so student can try again
+      restoreDraggablePositions();
+      Array.from(answerArea.querySelectorAll(".dropzone")).forEach(dz=>{
+        if(dz.dataset.permanent!=="true"){ dz.innerHTML=""; dz.dataset.filled=""; dz.classList.remove("incorrect","filled","correct"); }
+        else dz.classList.add("correct");
+      });
+      // show again button for retrial
+      againBtn.style.display = "inline-block";
+      checkBtn.style.display = "none";
+    }
+  }, 1200);
 });
 
 /* ===== AGAIN BUTTON ===== */
@@ -616,24 +666,43 @@ againBtn.addEventListener("click", ()=>{
 });
 
 /* ===== GAME FLOW ===== */
-function nextRound(){ roundInLevel++; if(roundInLevel>=10){ if(currentLevel<TOTAL_LEVELS){ currentLevel++; roundInLevel=0; buildQuestion(); saveProgress(); } else endLevel(); } else { buildQuestion(); saveProgress(); } }
+function nextRound(){
+  roundInLevel++;
+  if(roundInLevel>=10){
+    if(currentLevel < TOTAL_LEVELS){
+      currentLevel++;
+      roundInLevel = 0;
+      buildQuestion();
+      saveProgress();
+    } else {
+      endLevel();
+    }
+  } else {
+    buildQuestion();
+    saveProgress();
+  }
+}
 
 /* ===== GOOGLE FORM SUBMISSION ===== */
 async function submitResults(){
-  const timeTaken=getTimeElapsed();
-  const totalCorrect=Object.values(levelCorrect).reduce((a,b)=>a+b,0);
-  const totalAttempts=totalCorrect+Object.values(levelIncorrect).reduce((a,b)=>a+b,0);
-  const percent=totalAttempts>0?Math.round((totalCorrect/totalAttempts)*100):0;
-  const fd=new FormData();
-  fd.append(FORM_FIELD_MAP.name,studentName); fd.append(FORM_FIELD_MAP.class,studentClass);
-  fd.append(FORM_FIELD_MAP.subject,`Sentences - ${currentTopic||'Sentences'}`); fd.append(FORM_FIELD_MAP.timeTaken,timeTaken); fd.append(FORM_FIELD_MAP.percent,percent);
+  // submit current in-memory results
+  const timeTaken = getTimeElapsed();
+  const totalCorrect = Object.values(levelCorrect).reduce((a,b)=>a+b,0);
+  const totalAttempts = totalCorrect + Object.values(levelIncorrect).reduce((a,b)=>a+b,0);
+  const percent = totalAttempts>0?Math.round((totalCorrect/totalAttempts)*100):0;
+  const fd = new FormData();
+  fd.append(FORM_FIELD_MAP.name, studentName);
+  fd.append(FORM_FIELD_MAP.class, studentClass);
+  fd.append(FORM_FIELD_MAP.subject, `Sentences - ${currentTopic||'Sentences'}`);
+  fd.append(FORM_FIELD_MAP.timeTaken, timeTaken);
+  fd.append(FORM_FIELD_MAP.percent, percent);
   for(let l=1;l<=TOTAL_LEVELS;l++){
     const cf=FORM_FIELD_MAP[`level${l}`]?.correct; const inf=FORM_FIELD_MAP[`level${l}`]?.incorrect;
-    if(cf) fd.append(cf,formatAnswersForLevel(l,true));
-    if(inf) fd.append(inf,formatAnswersForLevel(l,false));
+    if(cf) fd.append(cf, formatAnswersForLevel(l,true));
+    if(inf) fd.append(inf, formatAnswersForLevel(l,false));
   }
   try{ await fetch(googleForm.action,{method:"POST",body:fd,mode:"no-cors"}); }
-  catch(err){ console.warn("Form submission failed",err); }
+  catch(err){ console.warn("Form submission failed", err); }
 }
 function formatAnswersForLevel(level,correct=true){ return answersHistory.filter(a=>a.level===level && a.correct===correct).sort((a,b)=>a.label.localeCompare(b.label)).map(a=>`${a.label}-${a.value}`).join(","); }
 
@@ -643,9 +712,10 @@ async function endLevel(){
   clearProgress();
   endModal.style.display="block";
   document.getElementById("endGif").src="assets/auslan-clap.gif";
-  const totalCorrect=correctCount; const totalAttempts=correctCount+incorrectCount;
-  document.getElementById("finalScore").textContent=`${totalCorrect}/${totalAttempts}`;
-  document.getElementById("finalPercent").textContent=Math.round((totalCorrect/totalAttempts)*100)+"%";
+  const totalCorrect = correctCount;
+  const totalAttempts = correctCount + incorrectCount;
+  document.getElementById("finalScore").textContent = `${totalCorrect}/${totalAttempts}`;
+  document.getElementById("finalPercent").textContent = Math.round((totalCorrect/totalAttempts)*100) + "%";
 }
 
 /* ===== END MODAL BUTTONS ===== */
@@ -670,16 +740,27 @@ stopBtn.addEventListener("click", () => {
     `${Math.floor(savedTimeElapsed / 60)}m ${savedTimeElapsed % 60}s`;
   document.getElementById("stopPercent").textContent = percent + "%";
 
+  // continue - resume the timer and return to play
   document.getElementById("continueBtn").onclick = () => {
     modal.style.display = "none";
     startTime = Date.now();
   };
 
-  document.getElementById("againBtnStop").onclick = () => {
+  // restart (new) - clear progress and return to topic select
+  document.getElementById("againBtnStop").onclick = async () => {
     modal.style.display = "none";
-    resetGame();
+    // Submit saved progress silently before clearing (if you want this behavior)
+    const saved = loadProgress();
+    if(saved) await submitSavedProgress(saved);
+    clearProgress();
+    currentTopic = "";
+    localStorage.removeItem("sentencesTopic");
+    const topicModal = document.getElementById("topicModal");
+    if(topicModal) topicModal.style.display = "flex";
+    else resetGame();
   };
 
+  // finish - submit current in-memory results and exit to menu
   document.getElementById("finishBtnStop").onclick = async () => {
     modal.style.display = "none";
     await submitResults();
@@ -688,14 +769,23 @@ stopBtn.addEventListener("click", () => {
   };
 });
 
-/* ===== RESUME MODAL BUTTONS (for direct IDs also used elsewhere) ===== */
+/* ===== RESUME MODAL BUTTONS (IDs exist in HTML) ===== */
 document.getElementById("resumeContinue")?.addEventListener("click", ()=>{
   document.getElementById("resumeModal").style.display = "none";
-  resumeProgress();
+  const saved = loadProgress();
+  if(saved) restoreProgress(saved);
+  else resetGame();
 });
-document.getElementById("resumeAgain")?.addEventListener("click", ()=>{
+document.getElementById("resumeAgain")?.addEventListener("click", async ()=>{
   document.getElementById("resumeModal").style.display = "none";
-  resetGame();
+  const saved = loadProgress();
+  if(saved) await submitSavedProgress(saved);
+  clearProgress();
+  currentTopic = "";
+  localStorage.removeItem("sentencesTopic");
+  const topicModal = document.getElementById("topicModal");
+  if(topicModal) topicModal.style.display = "flex";
+  else resetGame();
 });
 
 /* ===== START/RESET GAME ===== */
@@ -723,29 +813,27 @@ function saveTopicToLocal(){
 
 /* ===== UPDATE UI ===== */
 function updateScoreDisplay() {
-  scoreDisplay.textContent = `${(currentTopic? currentTopic.charAt(0).toUpperCase()+currentTopic.slice(1) : "Sentences")} - Level ${currentLevel} - Question ${roundInLevel + 1}/10`;
+  const topicLabel = currentTopic ? (currentTopic.charAt(0).toUpperCase()+currentTopic.slice(1)) : "Sentences";
+  scoreDisplay.textContent = `${topicLabel} - Level ${currentLevel} - Question ${roundInLevel + 1}/10`;
 }
 
 /* ===== INIT ===== */
 window.addEventListener("load", () => {
-  // Bind drag/drop start for touch devices (already bound via document listeners)
-  // Check saved progress
   const saved = loadProgress();
 
-  // If topic not chosen yet show topic modal (if present in HTML)
+  // If no topic chosen, show topic modal
   if(!currentTopic){
     const topicModal = document.getElementById("topicModal");
     if(topicModal){
       topicModal.style.display = "flex";
-      // topic buttons must call chooseTopic
+      // do not auto-start
       return;
     } else {
-      // fallback default
-      currentTopic = "animals";
+      currentTopic = "animals"; // fallback
     }
   }
 
-  if (saved && saved.studentName) {
+  if(saved && saved.studentName){
     showResumeModal(saved);
   } else {
     resetGame();
