@@ -529,10 +529,42 @@ function buildAnswerBoxesEmotions(isOdd){
 /* ===== DRAGGABLE BUILDERS (images vs signs depending on odd/even & topic) ===== */
 
 /* -- Images draggables for Level 1 (composite animal-number) -- */
-function buildDraggablesImagesForLevel1(){
-  leftDraggables.innerHTML = ""; rightDraggables.innerHTML = "";
+function buildDraggablesImagesForLevel1() {
+  leftDraggables.innerHTML = "";
+  rightDraggables.innerHTML = "";
+
+  // Build the correct draggable composite image
   const correctComposite = `${currentSentence.animal}-${currentSentence.number}`;
-  buildImageDraggablesPool([correctComposite], createImageDecoyForLevel1);
+  const correctImg = document.createElement("img");
+  correctImg.src = `assets/images/${correctComposite}.png`;
+  correctImg.className = "draggable";
+  correctImg.draggable = true;
+  correctImg.dataset.correct = "true";
+  correctImg.addEventListener("dragstart", dragStart);
+  rightDraggables.appendChild(correctImg);
+
+  // Generate 2–3 random decoy composite images
+  const decoyCount = 3;
+  const used = new Set([correctComposite]);
+
+  for (let i = 0; i < decoyCount; i++) {
+    // Pick a random animal and number that isn't the correct combo
+    let decoy;
+    do {
+      const randomAnimal = randomItem(allAnimals);
+      const randomNumber = randomItem(allNumbers);
+      decoy = `${randomAnimal}-${randomNumber}`;
+    } while (used.has(decoy));
+
+    used.add(decoy);
+
+    const decoyImg = document.createElement("img");
+    decoyImg.src = `assets/images/${decoy}.png`;
+    decoyImg.className = "draggable";
+    decoyImg.draggable = true;
+    decoyImg.addEventListener("dragstart", dragStart);
+    rightDraggables.appendChild(decoyImg);
+  }
 }
 
 /* -- Signs draggables for Level 1 -- */
