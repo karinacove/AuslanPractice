@@ -29,6 +29,32 @@ body {
   color: #fff;
 }
 
+.topic-button-container {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.topicBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.topicBtn:hover {
+  transform: scale(1.1);
+}
+
+.topic-img {
+  width: 150px;
+  height: auto;
+  border-radius: 1rem;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
 #scoreDisplay,
 #scoreboard,
 #studentInfo {
