@@ -332,6 +332,46 @@ body {
 /* ===========================
    Stop Modal optional styling
 =========================== */
+#stopModal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#stopModal .modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+  max-width: 400px;
+  width: 80%;
+}
+
+#stopModal .modal-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+#stopModal .modal-buttons img {
+  width: 120px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+#stopModal .modal-buttons img:hover {
+  transform: scale(1.1);
+}
+
 #stopModal #stopPercent {
   font-size: 24px;
   font-weight: bold;
