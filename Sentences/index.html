@@ -9,7 +9,7 @@
 </head>
 <body>
   <!-- Topic Selection Modal -->
-  <div id="topicModal" class="modal" style="display:none;">
+  <div id="topicModal" class="modal">
     <div class="modal-content">
       <h2>Select a Topic</h2>
       <div class="topic-button-container">
@@ -39,10 +39,8 @@
 
   <!-- Game area -->
   <div id="gameArea">
-    <!-- Left draggables -->
     <div id="draggablesLeft" class="draggables"></div>
 
-    <!-- Center: question + answer -->
     <div id="centerArea">
       <div id="questionArea"></div>
       <div id="answerArea"></div>
@@ -57,13 +55,12 @@
       </div>
     </div>
 
-    <!-- Right draggables -->
     <div id="draggablesRight" class="draggables"></div>
   </div>
 
   <!-- End Modal -->
-  <div id="endModal" style="display:none;">
-    <div id="endModalContent">
+  <div id="endModal" class="modal">
+    <div class="modal-content">
       <img id="endGif" src="" alt="Clap">
       <p>Time: <span id="finalTime"></span></p>
       <p>Score: <span id="finalScore"></span></p>
@@ -74,7 +71,7 @@
   </div>
 
   <!-- Stop Modal -->
-  <div id="stopModal" style="display:none;">
+  <div id="stopModal" class="modal">
     <p>Time: <span id="stopTime"></span></p>
     <p>Percentage: <span id="stopPercent"></span></p>
     <img id="continueBtn" src="assets/continue.png" alt="Continue">
@@ -83,7 +80,7 @@
   </div>
 
   <!-- Resume Modal -->
-  <div id="resumeModal" style="display:none;">
+  <div id="resumeModal" class="modal">
     <div class="modal-content">
       <p id="resumeMessage"></p>
       <div class="modal-buttons">
