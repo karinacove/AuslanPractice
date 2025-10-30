@@ -1,8 +1,8 @@
 /* ===========================
-   Complete script.js (replacement)
+   script.js - Complete replacement
    =========================== */
 
-/* ===== CONFIG ===== */
+/* ===== CONFIG / FORM MAP ===== */
 const FORM_FIELD_MAP = {
   name: "entry.1040637824",
   class: "entry.1755746645",
@@ -13,8 +13,10 @@ const FORM_FIELD_MAP = {
   level2: { correct: "entry.1424808967", incorrect: "entry.352093752" },
   level3: { correct: "entry.475324608", incorrect: "entry.1767451434" },
   level4: { correct: "entry.1405337882", incorrect: "entry.1513946929" },
-  level5: { correct: "entry.1234567890", incorrect: "entry.0987654321" }
+  level5: { correct: "entry.116543611", incorrect: "entry.1475510168" }
 };
+
+const SAVE_KEY = "sentencesGameSave";
 
 /* ===== DOM Elements ===== */
 const studentNameSpan = document.getElementById("studentName");
@@ -57,7 +59,7 @@ if (!studentName || !studentClass) {
 
 /* ===== GAME VARIABLES ===== */
 let currentLevel = 1;
-let roundInLevel = 0; // 0-based index for question in level
+let roundInLevel = 0; // 0-based
 let correctCount = 0;
 let incorrectCount = 0;
 let currentSentence = {};
@@ -70,9 +72,8 @@ const TOTAL_LEVELS = 5;
 const QUESTIONS_PER_LEVEL = 10;
 
 let selectedTopic = localStorage.getItem("selectedTopic") || null;
-const SAVE_KEY = "sentencesGameSave";
 
-/* ===== VOCAB (kept exactly as you supplied) ===== */
+/* ===== VOCAB (kept exactly) ===== */
 const topics = {
   animals: ["dog","cat","mouse","rabbit","fish","bird"],
   food: ["apple","banana","blueberry","grape","orange","pear","pineapple","raspberry","strawberry","watermelon"],
@@ -94,9 +95,8 @@ function shuffleArray(arr){
   return a;
 }
 function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-
 function signPathFor(word){
-  if (!word) return "";
+  if(!word) return "";
   if (topics.animals.includes(word)) return `assets/signs/animals/${word}-sign.png`;
   if (topics.food.includes(word)) return `assets/signs/food/${word}-sign.png`;
   if (topics.emotions.includes(word)) return `assets/signs/emotions/sign-${word}.mp4`;
@@ -110,7 +110,7 @@ function signPathFor(word){
 
 /* ===== TIMER HELPERS ===== */
 function getTimeElapsed(){ return savedTimeElapsed + (startTime ? Math.round((Date.now()-startTime)/1000) : 0); }
-function setTimeElapsed(seconds){ savedTimeElapsed = seconds || 0; startTime = Date.now(); }
+function setTimeElapsed(seconds){ savedTimeElapsed = (seconds || 0); startTime = Date.now(); }
 
 /* ===== SAVE / LOAD / CLEAR ===== */
 function saveProgress(){
@@ -119,32 +119,31 @@ function saveProgress(){
     answersHistory, levelCorrect, levelIncorrect, timeElapsed: getTimeElapsed(),
     selectedTopic
   };
-  localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(payload)); } catch(e){ console.warn("save failed", e); }
 }
 function loadProgress(){
-  try { return JSON.parse(localStorage.getItem(SAVE_KEY)); }
-  catch(e){ return null; }
+  try { return JSON.parse(localStorage.getItem(SAVE_KEY)); } catch(e){ return null; }
 }
 function clearProgress(){
-  localStorage.removeItem(SAVE_KEY);
+  try { localStorage.removeItem(SAVE_KEY); } catch(e){ }
 }
 
 /* ===== TOPIC MODAL ===== */
 function openTopicModal(){ 
   if (!topicModal) return;
   topicModal.style.display = "flex";
-  // ensure modal is on top visually
   topicModal.style.zIndex = 3000;
 }
-
-// wire topic buttons (they exist in your HTML)
 document.querySelectorAll(".topicBtn").forEach(btn=>{
   btn.addEventListener("click", e=>{
     selectedTopic = e.currentTarget.dataset.topic;
     localStorage.setItem("selectedTopic", selectedTopic);
     topicModal.style.display = "none";
-    // reset progress for a new topic play
+    // reset progress for new topic
     currentLevel = 1; roundInLevel = 0; correctCount = 0; incorrectCount = 0;
+    levelCorrect = {1:0,2:0,3:0,4:0,5:0};
+    levelIncorrect = {1:0,2:0,3:0,4:0,5:0};
+    answersHistory = [];
     setTimeElapsed(0);
     buildQuestion();
   });
@@ -152,7 +151,6 @@ document.querySelectorAll(".topicBtn").forEach(btn=>{
 
 /* ===== GENERATE SENTENCE ===== */
 function generateSentence(){
-  // If no topic selected, pick one at random among the main topics (animals/food/emotions)
   if (!selectedTopic) selectedTopic = randomItem(Object.keys(topics));
   const mainTopic = selectedTopic;
   const word1 = randomItem(topics[mainTopic]);
@@ -161,7 +159,7 @@ function generateSentence(){
   else if (mainTopic === "food") word2 = randomItem(colours);
   else word2 = randomItem(zones);
   let verb = "want";
-  if (currentLevel === 3) verb = randomItem(["want", "have"]);
+  if (currentLevel === 3) verb = randomItem(["want","have"]);
   if (currentLevel >= 4) verb = randomItem(verbs);
   currentSentence = { topic: mainTopic, word1, word2, verb };
 }
@@ -178,21 +176,18 @@ function buildDropZones(isOdd){
     case 5: dropLabels = ["word1","word2","verb"]; break;
     default: dropLabels = ["word1","word2"]; break;
   }
-
-  dropLabels.forEach(label => {
+  dropLabels.forEach(label=>{
     const dz = document.createElement("div");
     dz.className = "dropzone";
     dz.dataset.placeholder = label;
-    dz.addEventListener("dragover", e => e.preventDefault());
+    dz.addEventListener("dragover", e=>e.preventDefault());
     dz.addEventListener("drop", dropHandler);
     answerArea.appendChild(dz);
   });
 }
 
-/* ===== DRAGGABLE CREATION ===== */
-let dragItem = null;
-let dragClone = null;
-let isTouch = false;
+/* ===== BUILD DRAGGABLES ===== */
+let dragItem = null, dragClone = null, isTouch = false;
 
 function buildDraggables(isOdd){
   leftDraggables.innerHTML = "";
@@ -210,7 +205,7 @@ function buildDraggables(isOdd){
     default: items = [word1, word2]; break;
   }
 
-  // Build decoy pool (topic specific except level 5)
+  // decoys
   let decoyPool = [];
   if (currentLevel < 5){
     decoyPool = [...(topics[selectedTopic] || [])];
@@ -221,16 +216,13 @@ function buildDraggables(isOdd){
     decoyPool = [...topics.animals, ...topics.food, ...topics.emotions, ...colours, ...numbers, ...zones];
   }
 
-  // Filter out real items and combos
   const combo = `${word1}-${word2}`;
   decoyPool = decoyPool.filter(d => !items.includes(d) && d !== combo);
 
-  // Fill up to 16 items and shuffle
   let decoys = shuffleArray(decoyPool);
   while (items.length < 16 && decoys.length > 0) items.push(decoys.pop());
   items = shuffleArray(items);
 
-  // create draggable nodes and place half left / half right
   const halves = [items.slice(0,8), items.slice(8,16)];
   halves.forEach((group, idx) => {
     const container = idx === 0 ? leftDraggables : rightDraggables;
@@ -240,15 +232,23 @@ function buildDraggables(isOdd){
       div.draggable = true;
       div.dataset.value = val;
       div.dataset.originalParent = container.id;
-      // create image (if path empty, show text fallback)
+
       const img = document.createElement("img");
       const path = signPathFor(val);
       img.src = path || "";
       img.alt = val;
-      img.onerror = () => { img.style.display = "none"; if(!div.querySelector(".fallback")){ const f = document.createElement("div"); f.className="fallback"; f.textContent = val; div.appendChild(f);} };
+      img.onerror = () => {
+        img.style.display = "none";
+        if (!div.querySelector(".fallback")){
+          const f = document.createElement("div");
+          f.className = "fallback";
+          f.textContent = val;
+          div.appendChild(f);
+        }
+      };
       div.appendChild(img);
 
-      // native dragstart (for desktop). For our clone drag we also support mouse/touch.
+      // native dragstart fallback
       div.addEventListener("dragstart", e => {
         try { e.dataTransfer.setData("text/plain", val); } catch(err){}
       });
@@ -260,13 +260,12 @@ function buildDraggables(isOdd){
 
 /* ===== DRAG CLONE (mouse + touch) ===== */
 function startDrag(e){
-  const target = e.target.closest(".draggable");
-  if(!target) return;
-  dragItem = target;
+  const t = e.target.closest ? e.target.closest(".draggable") : null;
+  if (!t) return;
+  dragItem = t;
   isTouch = e.type.startsWith("touch");
-  const rect = target.getBoundingClientRect();
-  dragClone = target.cloneNode(true);
-  // style clone so it follows pointer and doesn't block clicks (pointer-events none)
+  const rect = t.getBoundingClientRect();
+  dragClone = t.cloneNode(true);
   Object.assign(dragClone.style, {
     position: "fixed",
     left: rect.left + "px",
@@ -275,7 +274,7 @@ function startDrag(e){
     height: rect.height + "px",
     opacity: "0.85",
     pointerEvents: "none",
-    zIndex: "3000"
+    zIndex: 5000
   });
   document.body.appendChild(dragClone);
   e.preventDefault();
@@ -292,7 +291,7 @@ function startDrag(e){
 function moveDrag(e){
   if (!dragClone) return;
   let clientX, clientY;
-  if (isTouch && e.touches && e.touches.length > 0){
+  if (isTouch && e.touches && e.touches.length>0){
     clientX = e.touches[0].clientX; clientY = e.touches[0].clientY;
   } else {
     clientX = e.clientX; clientY = e.clientY;
@@ -304,19 +303,18 @@ function moveDrag(e){
 function endDrag(e){
   if (!dragItem || !dragClone) return;
   let clientX, clientY;
-  if (isTouch && e.changedTouches && e.changedTouches.length > 0){
+  if (isTouch && e.changedTouches && e.changedTouches.length>0){
     clientX = e.changedTouches[0].clientX; clientY = e.changedTouches[0].clientY;
   } else {
     clientX = e.clientX; clientY = e.clientY;
   }
 
   let dropped = false;
-  document.querySelectorAll(".dropzone").forEach(dz => {
+  document.querySelectorAll(".dropzone").forEach(dz=>{
     const rect = dz.getBoundingClientRect();
     if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom && dz.childElementCount === 0){
       const node = dragItem.cloneNode(true);
       node.classList.remove("draggable");
-      // if the clone includes an <img> that fails, it's fine — we simply append what we have
       dz.appendChild(node);
       dz.dataset.filled = dragItem.dataset.value;
       dz.classList.add("filled");
@@ -324,10 +322,10 @@ function endDrag(e){
     }
   });
 
-  // remove drag clone safely
   if (dragClone && dragClone.parentElement) document.body.removeChild(dragClone);
   dragClone = null;
   dragItem = null;
+
   if (isTouch){
     document.removeEventListener("touchmove", moveDrag, { passive:false });
     document.removeEventListener("touchend", endDrag);
@@ -342,78 +340,143 @@ function endDrag(e){
   }
 }
 
-// wire global pointer start so both mouse/touch start use our clone
+// global listeners to start our custom clone drag
 document.addEventListener("mousedown", startDrag);
 document.addEventListener("touchstart", startDrag, { passive:false });
 
-// dropHandler for native drop events (kept, but we rely on clone dropping)
-function dropHandler(e){ e.preventDefault(); }
+function dropHandler(e){
+  e.preventDefault();
+  // native drop is supported but we primarily use our clone logic
+}
 
 /* ===== CHECK ANSWER ===== */
-checkBtn.addEventListener("click", () => {
+if (checkBtn) checkBtn.addEventListener("click", ()=>{
   const dzs = Array.from(answerArea.querySelectorAll(".dropzone"));
   let allCorrect = true;
-  dzs.forEach(dz => {
+  dzs.forEach(dz=>{
     const filled = dz.dataset.filled || "";
     let expected = "";
     if (dz.dataset.placeholder === "word1") expected = currentSentence.word1;
     else if (dz.dataset.placeholder === "word2") expected = currentSentence.word2;
     else if (dz.dataset.placeholder === "verb") expected = currentSentence.verb;
-    // match exact equality
-    const correct = filled === expected;
+    const correct = (filled === expected);
     if (correct){
       correctCount++; levelCorrect[currentLevel]++; dz.classList.add("correct");
     } else {
       incorrectCount++; levelIncorrect[currentLevel]++; dz.classList.add("incorrect");
       allCorrect = false;
-      // clear incorrect drop so student retries
       dz.innerHTML = "";
       dz.dataset.filled = "";
       dz.classList.remove("filled","correct");
     }
-    if (filled) answersHistory.push({ level: currentLevel, label: dz.dataset.placeholder, value: filled, correct });
+    if (filled) answersHistory.push({level:currentLevel,label:dz.dataset.placeholder,value:filled,correct});
   });
 
+  feedbackDiv.innerHTML = "";
   const fb = document.createElement("img");
   fb.src = allCorrect ? "assets/correct.png" : "assets/wrong.png";
   fb.alt = allCorrect ? "Correct" : "Wrong";
-  feedbackDiv.innerHTML = "";
   feedbackDiv.appendChild(fb);
 
   saveProgress();
 
-  setTimeout(() => {
+  setTimeout(()=>{
     feedbackDiv.innerHTML = "";
     if (allCorrect) nextRound();
-    else {
-      // If not all correct, ensure again button visible so teacher/student can replay
-      againBtn.style.display = "inline-block";
-    }
-  }, 1100);
+    else againBtn.style.display = "inline-block";
+  }, 900);
 });
 
-/* ===== SAVE / LOAD / CLEAR ===== */
-const SAVE_KEY = "sentencesGameSave";
-function saveProgress(){
-  const payload = {
-    studentName, studentClass, currentLevel, roundInLevel, correctCount, incorrectCount,
-    answersHistory, levelCorrect, levelIncorrect, timeElapsed: getTimeElapsed(),
-    selectedTopic
-  };
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(payload)); }
-  catch(e){ console.warn("Save failed", e); }
+/* ===== AGAIN (in-level retry) ===== */
+if (againBtn) againBtn.addEventListener("click", ()=>{
+  feedbackDiv.innerHTML = "";
+  document.querySelectorAll(".dropzone").forEach(dz=>{
+    dz.innerHTML = "";
+    dz.dataset.filled = "";
+    dz.classList.remove("incorrect","filled","correct");
+  });
+  // restore draggables to their original containers
+  document.querySelectorAll(".draggable").forEach(d=>{
+    const container = document.getElementById(d.dataset.originalParent || "draggablesLeft");
+    if (container && d.parentElement !== container) container.appendChild(d);
+  });
+  checkBtn.style.display = "none";
+  againBtn.style.display = "none";
+});
+
+/* ===== NEXT ROUND & UI UPDATE ===== */
+function nextRound(){
+  roundInLevel++;
+  if (roundInLevel >= QUESTIONS_PER_LEVEL){
+    if (currentLevel < TOTAL_LEVELS){
+      currentLevel++;
+      roundInLevel = 0;
+      buildQuestion();
+      saveProgress();
+    } else {
+      endGame();
+    }
+  } else {
+    buildQuestion();
+    saveProgress();
+  }
 }
-function loadProgress(){
-  try { return JSON.parse(localStorage.getItem(SAVE_KEY)); }
-  catch(e){ return null; }
-}
-function clearProgress(){
-  try { localStorage.removeItem(SAVE_KEY); } catch(e){}
+function updateScoreDisplay(){
+  scoreDisplay.textContent = `Level ${currentLevel} - Question ${roundInLevel+1}/${QUESTIONS_PER_LEVEL}`;
 }
 
-/* ===== RESTORE (from saved object) ===== */
+/* ===== GOOGLE FORM SUBMISSION ===== */
+async function submitResults(){
+  const timeTaken = getTimeElapsed();
+  const totalCorrect = Object.values(levelCorrect).reduce((a,b)=>a+b,0);
+  const totalAttempts = totalCorrect + Object.values(levelIncorrect).reduce((a,b)=>a+b,0);
+  const percent = totalAttempts > 0 ? Math.round((totalCorrect/totalAttempts)*100) : 0;
+  const fd = new FormData();
+  fd.append(FORM_FIELD_MAP.name, studentName);
+  fd.append(FORM_FIELD_MAP.class, studentClass);
+  fd.append(FORM_FIELD_MAP.subject, selectedTopic || "Sentences");
+  fd.append(FORM_FIELD_MAP.timeTaken, timeTaken);
+  fd.append(FORM_FIELD_MAP.percent, percent);
+  for (let lvl=1; lvl<=TOTAL_LEVELS; lvl++){
+    fd.append(FORM_FIELD_MAP[`level${lvl}`].correct, levelCorrect[lvl] || 0);
+    fd.append(FORM_FIELD_MAP[`level${lvl}`].incorrect, levelIncorrect[lvl] || 0);
+  }
+  try {
+    await fetch(googleForm.action, { method: "POST", body: fd, mode: "no-cors" });
+  } catch(e){
+    console.warn("Form submit likely blocked by no-cors (expected):", e);
+  }
+  clearProgress();
+}
+
+/* ===== END / FINISH ===== */
+function endGame(){
+  if (document.getElementById("finalTime")) document.getElementById("finalTime").textContent = getTimeElapsed() + "s";
+  const total = correctCount + incorrectCount;
+  const percent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+  if (document.getElementById("finalScore")) document.getElementById("finalScore").textContent = `${correctCount} / ${total}`;
+  if (document.getElementById("finalPercent")) document.getElementById("finalPercent").textContent = `${percent}%`;
+  if (endModal) { endModal.style.display = "flex"; endModal.style.zIndex = 5000; }
+}
+
+/* finish/again end modal handlers (images used as buttons) */
+if (finishBtn) finishBtn.addEventListener("click", async ()=>{
+  if (dragClone && dragClone.parentElement) { dragClone.parentElement.removeChild(dragClone); dragClone = null; }
+  await submitResults();
+  window.location.href = "../hub.html";
+});
+if (againBtnEnd) againBtnEnd.addEventListener("click", ()=>{
+  if (endModal) endModal.style.display = "none";
+  currentLevel = 1; roundInLevel = 0; correctCount = 0; incorrectCount = 0;
+  levelCorrect = {1:0,2:0,3:0,4:0,5:0};
+  levelIncorrect = {1:0,2:0,3:0,4:0,5:0};
+  setTimeElapsed(0);
+  buildQuestion();
+});
+
+/* ===== RESTORE from saved object ===== */
 function restoreProgress(saved){
-  if(!saved) return;
+  if (!saved) return;
   studentName = saved.studentName || studentName;
   studentClass = saved.studentClass || studentClass;
   currentLevel = Number(saved.currentLevel) || 1;
@@ -428,132 +491,123 @@ function restoreProgress(saved){
   buildQuestion();
 }
 
-/* ===== RESUME MODAL (clean single layer) ===== */
-function showResumeModal(saved) {
+/* ===== RESUME MODAL (single clean layer) ===== */
+function showResumeModal(saved){
   if (!resumeModal || !saved) return;
 
-  // Hide all other modals first
+  // hide other modals
   [stopModal, endModal, topicModal].forEach(m => { if (m) m.style.display = "none"; });
 
-  // Set text
   resumeMessage.textContent = `You have progress saved at Level ${saved.currentLevel}, Question ${saved.roundInLevel + 1}. Continue or start over?`;
-
-  // Display modal on top
   resumeModal.style.display = "flex";
-  resumeModal.style.zIndex = 4000;
+  resumeModal.style.zIndex = 5000;
 
-  // Reset any handlers first
-  const newContinue = resumeContinue.cloneNode(true);
-  const newAgain = resumeAgain.cloneNode(true);
-  resumeContinue.parentNode.replaceChild(newContinue, resumeContinue);
-  resumeAgain.parentNode.replaceChild(newAgain, resumeAgain);
-
-  // Continue existing progress
-  newContinue.addEventListener("click", () => {
+  // remove previous listeners cleanly by using a one-time handler
+  const onContinue = () => {
     resumeModal.style.display = "none";
     restoreProgress(saved);
     startTime = Date.now();
-  });
-
-  // Start over from scratch
-  newAgain.addEventListener("click", () => {
+    // tidy any stray clone
+    if (dragClone && dragClone.parentElement) { dragClone.parentElement.removeChild(dragClone); dragClone = null; }
+    // update displayed student info again (in case changed)
+    studentNameSpan.textContent = studentName;
+    studentClassSpan.textContent = studentClass;
+  };
+  const onAgain = () => {
     resumeModal.style.display = "none";
     clearProgress();
-    currentLevel = 1;
-    roundInLevel = 0;
-    correctCount = 0;
-    incorrectCount = 0;
-    answersHistory = [];
+    currentLevel = 1; roundInLevel = 0; correctCount = 0; incorrectCount = 0;
     levelCorrect = {1:0,2:0,3:0,4:0,5:0};
     levelIncorrect = {1:0,2:0,3:0,4:0,5:0};
+    answersHistory = [];
     setTimeElapsed(0);
     buildQuestion();
-  });
+  };
+
+  // remove old listeners by replacing the elements with clones and re-querying
+  const continueClone = resumeContinue.cloneNode(true);
+  resumeContinue.parentNode.replaceChild(continueClone, resumeContinue);
+  const againClone = resumeAgain.cloneNode(true);
+  resumeAgain.parentNode.replaceChild(againClone, resumeAgain);
+
+  // rebind
+  continueClone.addEventListener("click", onContinue, { once: true });
+  againClone.addEventListener("click", onAgain, { once: true });
 }
 
-/* ===== STOP MODAL (no overlap with resume) ===== */
-if (stopBtn) {
-  stopBtn.addEventListener("click", () => {
-    if (resumeModal && resumeModal.style.display === "flex") return; // don't open stop if resume showing
-
+/* ===== STOP MODAL HANDLERS ===== */
+if (stopBtn){
+  stopBtn.addEventListener("click", ()=>{
+    if (resumeModal && resumeModal.style.display === "flex") return; // don't open stop if resume is showing
     [resumeModal, endModal, topicModal].forEach(m => { if (m) m.style.display = "none"; });
-
     const total = correctCount + incorrectCount;
     const percent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
     if (stopPercent) stopPercent.textContent = `Score so far: ${percent}%`;
-
-    stopModal.style.display = "flex";
-    stopModal.style.zIndex = 4000;
+    if (stopModal) { stopModal.style.display = "flex"; stopModal.style.zIndex = 5000; }
   });
 }
-
-if (stopContinue) stopContinue.addEventListener("click", () => {
-  stopModal.style.display = "none";
-});
-
-if (stopAgain) stopAgain.addEventListener("click", () => {
-  stopModal.style.display = "none";
-  currentLevel = 1;
-  roundInLevel = 0;
-  correctCount = 0;
-  incorrectCount = 0;
+if (stopContinue) stopContinue.addEventListener("click", ()=>{ if (stopModal) stopModal.style.display = "none"; });
+if (stopAgain) stopAgain.addEventListener("click", ()=>{
+  if (stopModal) stopModal.style.display = "none";
+  currentLevel = 1; roundInLevel = 0; correctCount = 0; incorrectCount = 0;
+  levelCorrect = {1:0,2:0,3:0,4:0,5:0};
+  levelIncorrect = {1:0,2:0,3:0,4:0,5:0};
+  answersHistory = [];
   setTimeElapsed(0);
   buildQuestion();
 });
-
-if (stopFinish) stopFinish.addEventListener("click", async () => {
-  stopModal.style.display = "none";
+if (stopFinish) stopFinish.addEventListener("click", async ()=>{
+  if (stopModal) stopModal.style.display = "none";
   await submitResults();
   window.location.href = "../index.html";
 });
 
-/* ===== DRAG / DROP CLONE (mouse + touch) ===== */
-/* (kept in your script above - ensure dragClone, startDrag, moveDrag, endDrag are present and unmodified) */
+/* ===== BUILD QUESTION (main) ===== */
+function buildQuestion(){
+  generateSentence();
+  questionArea.innerHTML = "";
+  answerArea.innerHTML = "";
+  feedbackDiv.innerHTML = "";
+  checkBtn.style.display = "none";
+  againBtn.style.display = "none";
 
-/* ===== CHECK / AGAIN / NEXT / UPDATE UI ===== */
-/* checkBtn, againBtn, nextRound, updateScoreDisplay are kept from your logic above.
-   (Your existing implementations are compatible with the handlers below.) */
+  const isOdd = (roundInLevel % 2) === 1;
 
-/* ===== END / FINISH ===== */
-function endGame(){
-  // fill final modal fields if present
-  if (document.getElementById("finalTime")) document.getElementById("finalTime").textContent = getTimeElapsed() + "s";
-  const total = correctCount + incorrectCount;
-  const percent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
-  if (document.getElementById("finalScore")) document.getElementById("finalScore").textContent = `${correctCount} / ${total}`;
-  if (document.getElementById("finalPercent")) document.getElementById("finalPercent").textContent = `${percent}%`;
-  if (endModal) { endModal.style.display = "flex"; endModal.style.zIndex = 4000; }
+  // Show main sign image for word1 (fallback to text)
+  const { word1, word2, verb } = currentSentence;
+  const q1 = document.createElement("div");
+  q1.className = "questionSign";
+  const img1 = document.createElement("img");
+  img1.src = signPathFor(word1);
+  img1.alt = word1;
+  img1.onerror = () => { img1.style.display = "none"; q1.textContent = word1; };
+  q1.appendChild(img1);
+  questionArea.appendChild(q1);
+
+  // placeholder area for extra info (keeps layout stable)
+  const qExtra = document.createElement("div");
+  qExtra.className = "questionExtra";
+  qExtra.textContent = ""; // leave empty - styling handles layout
+  questionArea.appendChild(qExtra);
+
+  buildDropZones(isOdd);
+  buildDraggables(isOdd);
+  updateScoreDisplay();
 }
 
-/* wiring finish / again in end modal (defensive existence checks) */
-if (finishBtn) finishBtn.addEventListener("click", async () => {
-  if (dragClone && dragClone.parentElement) { dragClone.parentElement.removeChild(dragClone); dragClone = null; }
-  await submitResults();
-  window.location.href = "../hub.html";
-});
-if (againBtnEnd) againBtnEnd.addEventListener("click", () => {
-  if (endModal) endModal.style.display = "none";
-  currentLevel = 1; roundInLevel = 0; correctCount = 0; incorrectCount = 0;
-  setTimeElapsed(0);
-  buildQuestion();
-});
-
 /* ===== INITIALISATION ===== */
-window.addEventListener("load", () => {
-  // top-layer buttons safety
-  [againBtn, finishBtn, againBtnEnd].forEach(b => { if (b){ b.style.zIndex = 4001; b.style.cursor = "pointer"; }});
+window.addEventListener("load", ()=>{
+  // ensure top-layer buttons visible
+  [againBtn, finishBtn, againBtnEnd].forEach(b => { if (b){ b.style.zIndex = 6000; b.style.cursor = "pointer"; }});
 
   const saved = loadProgress();
-  if (saved) {
-    // show the resume modal and defer restoring until user chooses
+  if (saved){
     showResumeModal(saved);
-  } else if (selectedTopic) {
-    // start fresh using stored selectedTopic
+  } else if (selectedTopic){
     setTimeElapsed(0);
     startTime = Date.now();
     buildQuestion();
   } else {
-    // no topic selected, open topic modal
     openTopicModal();
   }
 });
