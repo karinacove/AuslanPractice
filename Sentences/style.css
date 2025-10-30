@@ -29,6 +29,37 @@ body {
   color: #fff;
 }
 
+#studentInfo,
+#scoreDisplay {
+  background: #28a745;
+  color: #fff;
+  font-weight: bold;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  box-shadow: 1px 2px 6px rgba(0,0,0,0.2);
+  position: absolute;
+  z-index: 5;
+}
+
+#studentInfo { top: 20px; left: 20px; }
+#scoreDisplay { top: 62px; left: 20px; }
+
+/* Stop Button */
+#stopBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: absolute;
+  right: 20px;
+  top: 20px;
+}
+
+#stopBtn img { width: 80px; height: 80px; }
+
+/* ===========================
+   Topic Selection
+=========================== */
 .topic-button-container {
   display: flex;
   justify-content: center;
@@ -44,48 +75,13 @@ body {
   transition: transform 0.2s ease;
 }
 
-.topicBtn:hover {
-  transform: scale(1.1);
-}
+.topicBtn:hover { transform: scale(1.1); }
 
 .topic-img {
   width: 150px;
   height: auto;
   border-radius: 1rem;
   box-shadow: 0 0 10px rgba(0,0,0,0.3);
-}
-
-#scoreDisplay,
-#scoreboard,
-#studentInfo {
-  background: #28a745;
-  color: #fff;
-  font-weight: bold;
-  padding: 8px 10px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.2);
-  z-index: 5;
-  position: absolute;
-}
-
-#scoreDisplay,
-#scoreboard { top: 62px; left: 20px; }
-#studentInfo { top: 20px; left: 20px; }
-
-/* Stop Button */
-#stopBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  position: absolute;
-  right: 20px;
-  top: 20px;
-}
-
-#stopBtn img {
-  width: 80px;
-  height: 80px;
 }
 
 /* ===========================
@@ -100,15 +96,15 @@ body {
   grid-template-columns: repeat(2, 1fr);
   gap: 1px;
   padding: 5px;
-  max-height: 80vh;
+  max-height: 85vh;
   overflow-y: auto;
 }
 
 #draggablesLeft { left: 20px; }
 #draggablesRight { right: 20px; }
 
-#draggablesLeft img,
-#draggablesRight img {
+.draggables img,
+.draggable img {
   width: 115px;
   height: 115px;
   object-fit: contain;
@@ -121,20 +117,9 @@ body {
   cursor: grab;
 }
 
-.draggable img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
 .dontHaveWrapper {
   position: relative;
   display: inline-block;
-}
-
-.dontHaveWrapper img {
-  display: block;
-  max-width: 100%;
-  max-height: 100%;
 }
 
 .xOverlay {
@@ -151,7 +136,7 @@ body {
 }
 
 /* ===========================
-   Main Question & Answer Section
+   Center Area: Question & Answer
 =========================== */
 #centerArea {
   position: fixed;
@@ -164,7 +149,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 5px;
+  gap: 10px;
   padding: 0 10px;
 }
 
@@ -187,44 +172,7 @@ body {
   margin-bottom: 5px;
 }
 
-.dropzone {
-  min-width: 120px;
-  min-height: 120px;
-  border: 3px dashed #bbb;
-  border-radius: 12px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #fafafa;
-  font-weight: bold;
-  font-size: 0.8rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.dropzone::before {
-  content: attr(data-placeholder);
-  color: rgba(0, 0, 0, 0.25);
-  font-weight: normal;
-  font-size: 0.8rem;
-  position: absolute;
-  text-align: center;
-  pointer-events: none;
-}
-
-.dropzone.filled::before { content: ""; }
-
-.dropzone.correct {
-  background-color: #bbf7d0;
-  border-color: #22c55e;
-}
-
-.dropzone.incorrect {
-  background-color: #fecaca;
-  border-color: #dc2626;
-}
-
-.dropzone img { max-width: 100px; max-height: 100px; }
+.dropzone,
 .answerBox {
   min-width: 120px;
   min-height: 120px;
@@ -240,6 +188,7 @@ body {
   overflow: hidden;
 }
 
+.dropzone::before,
 .answerBox::before {
   content: attr(data-placeholder);
   color: rgba(0,0,0,0.25);
@@ -250,65 +199,19 @@ body {
   pointer-events: none;
 }
 
+.dropzone.filled::before,
 .answerBox.filled::before { content: ""; }
+
+.dropzone.correct,
 .answerBox.correct { background-color: #bbf7d0; border-color: #22c55e; }
+.dropzone.incorrect,
 .answerBox.incorrect { background-color: #fecaca; border-color: #dc2626; }
 
+.dropzone img,
 .answerBox img { max-width: 100px; max-height: 100px; }
 
-.dontHaveWrapper {
-  position: relative;
-  display: inline-block;
-}
-
-.xOverlay {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 2em;
-  color: red;
-  font-weight: bold;
-  pointer-events: none;
-}
-
 /* ===========================
-   Action Buttons
-=========================== */
-#checkBtn,
-#againBtn,
-#againBtnStop,
-#finishBtnStop,
-#continueBtn,
-#logoffBtn,
-#againBtnEnd,
-#finishBtn,
-#resumeContinue,
-#resumeAgain {
-  width: 120px;
-  height: 120px;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-#checkBtn, #againBtn { display: flex; gap: 8px; justify-content: center; background: transparent; border: none; margin: 0; }
-
-#checkBtn img,
-#againBtn img {
-  width: 120px;
-  height: 120px;
-  cursor: pointer;
-}
-
-#checkBtn img:hover,
-#againBtn img:hover {
-  transform: scale(1.1);
-}
-
-/* ===========================
-   Feedback (Correct / Wrong)
+   Feedback
 =========================== */
 #feedback {
   font-size: 1rem;
@@ -324,138 +227,103 @@ body {
 #feedback img { width: 100px; height: auto; }
 
 /* ===========================
-   End Modal
+   Buttons
 =========================== */
-#endModal {
-  display: none;
-  position: fixed;
-  top: 0; 
-  left: 0;
-  width: 100%; 
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
+#checkBtn,
+#againBtn,
+#againBtnStop,
+#finishBtnStop,
+#continueBtn,
+#againBtnEnd,
+#finishBtn,
+#resumeContinue,
+#resumeAgain {
+  width: 120px;
+  height: 120px;
+  cursor: pointer;
+  transition: transform 0.2s;
 }
 
-#endModalContent {
+#checkBtn,
+#againBtn {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  margin: 0;
+}
+
+#checkBtn img,
+#againBtn img {
+  width: 120px;
+  height: 120px;
+  cursor: pointer;
+}
+
+#checkBtn img:hover,
+#againBtn img:hover {
+  transform: scale(1.1);
+}
+
+/* ===========================
+   Modals
+=========================== */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal .modal-content {
   background: white;
   padding: 30px;
   border-radius: 20px;
   text-align: center;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+  max-width: 400px;
+  width: 80%;
 }
 
-#endButtons {
+.modal-buttons {
   display: flex;
-  gap: 10px;
+  gap: 15px;
   justify-content: center;
-  margin-top: 15px;
+  margin-top: 20px;
 }
 
-#endButtons img, #endGif { 
+.modal-buttons img {
+  width: 120px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.modal-buttons img:hover { transform: scale(1.1); }
+
+/* ===========================
+   End Modal
+=========================== */
+#endModalContent img,
+#endGif {
   width: 120px;
   margin: 10px;
   cursor: pointer;
   transition: transform 0.2s;
 }
 
-#endModalContent img:hover {
-  transform: scale(1.1);
-}
+#endModalContent img:hover { transform: scale(1.1); }
 
 /* ===========================
-   Resume Modal
+   Stop Modal optional styling
 =========================== */
-#resumeModal {
-  display: none; /* hidden initially */
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.7);
-  z-index: 2000;
-
-  display: flex;              /* add this */
-  flex-direction: column;     /* stack children vertically */
-  justify-content: center;    /* vertical centering */
-  align-items: center;        /* horizontal centering */
-}
-
-#resumeModal .modal-content {
-  background: white;
-  padding: 30px;
-  border-radius: 20px;
-  text-align: center;
-  box-shadow: 0 0 15px rgba(0,0,0,0.3);
-  max-width: 400px;
-  width: 80%;
-}
-
-#resumeModal .modal-buttons {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-  margin-top: 20px;
-}
-
-#resumeModal .modal-buttons img {
-  width: 120px;
-  margin: 0;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-#resumeModal .modal-buttons img:hover {
-  transform: scale(1.1);
-} 
-
-#stopModal {
-  display: none; /* hidden initially */
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.7);
-  z-index: 2000;
-
-  display: flex;              /* add this */
-  flex-direction: column;     /* stack children vertically */
-  justify-content: center;    /* vertical centering */
-  align-items: center;        /* horizontal centering */
-}
-
-#stopModal .modal-content {
-  background: white;
-  padding: 30px;
-  border-radius: 20px;
-  text-align: center;
-  box-shadow: 0 0 15px rgba(0,0,0,0.3);
-  max-width: 400px;
-  width: 80%;
-}
-
-#stopModal .modal-buttons {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-  margin-top: 20px;
-}
-
-#stopModal .modal-buttons img {
-  width: 120px;
-  margin: 0;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-#stopModal .modal-buttons img:hover {
-  transform: scale(1.1);
-}
-
-/* Optional: percentage text at top of modal */
 #stopModal #stopPercent {
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 20px;
 }
-
