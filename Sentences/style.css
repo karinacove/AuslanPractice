@@ -111,18 +111,27 @@ body {
   cursor: grab;
 }
 
-.draggable {
+.draggable, .drag-clone {
   width: 115px;
   height: 115px;
   cursor: grab;
+  touch-action: none;
+}
+
+.draggables::-webkit-scrollbar {
+   width: 8px;
+}
+.draggables::-webkit-scrollbar-thumb {
+   background: rgba(0,0,0,0.3);
+   border-radius: 10px;
 }
 
 .drag-clone {
   position: fixed;
   pointer-events: none;
   opacity: 0.8;
-  width: 120px;
-  height: 120px;
+  width: 115px;
+  height: 115px;
   transform: translate(-50%, -50%);
   z-index: 2000;
 }
@@ -161,6 +170,7 @@ body {
   justify-content: flex-start;
   gap: 10px;
   padding: 0 10px;
+  padding-bottom: 20px;
 }
 
 #questionArea {
@@ -286,9 +296,12 @@ body {
   width: 100%; height: 100%;
   background: rgba(0,0,0,0.7);
   z-index: 2000;
-  display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.modal.show {
+   display: flex;
 }
 
 .modal .modal-content {
@@ -319,15 +332,33 @@ body {
 /* ===========================
    End Modal
 =========================== */
-#endModalContent img,
-#endGif {
+#endModal .modal-content img,
+#endModal #endGif {
   width: 120px;
   margin: 10px;
   cursor: pointer;
   transition: transform 0.2s;
+  z-index: 3000;
 }
 
-#endModalContent img:hover { transform: scale(1.1); }
+#endModal .modal-content img:hover { 
+   transform: scale(1.1); 
+}
+
+/* ===========================
+   Resume Modal
+=========================== */
+#resumeModal .resumeModal-content img {
+  width: 120px;
+  margin: 10px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  z-index: 3000;
+}
+
+#resumeModal .resumeModal-content img:hover { 
+   transform: scale(1.1); 
+}
 
 /* ===========================
    Stop Modal optional styling
@@ -338,7 +369,7 @@ body {
   top: 0; left: 0;
   width: 100%; height: 100%;
   background: rgba(0,0,0,0.7);
-  z-index: 2000;
+  z-index: 3000;
   display: flex;
   flex-direction: column;
   justify-content: center;
