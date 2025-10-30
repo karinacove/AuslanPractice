@@ -75,7 +75,7 @@ function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function signPathFor(word){
   if(topics.animals.includes(word)) return `assets/signs/animals/${word}-sign.png`;
   if(topics.food.includes(word)) return `assets/signs/food/${word}-sign.png`;
-  if(topics.emotions.includes(word)) return `assets/signs/emotions/sign-${word}.png`;
+  if(topics.emotions.includes(word)) return `assets/signs/emotions/sign-${word}.mp4`;
   if(numbers.includes(word)) return `assets/signs/numbers/${word}-sign.png`;
   if(colours.includes(word)) return `assets/signs/colours/${word}-sign.png`;
   if(zones.includes(word)) return `assets/signs/zones/${word}.png`;
