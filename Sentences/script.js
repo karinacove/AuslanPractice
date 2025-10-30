@@ -331,6 +331,61 @@ againBtnEnd.addEventListener("click", ()=>{
   endModal.style.display="none"; currentLevel=1; roundInLevel=0; correctCount=0; incorrectCount=0; buildQuestion();
 });
 
+/* ===== BUTTONS & CLICK FIXES ===== */
+
+// Make sure buttons are visually on top
+[againBtn, finishBtn, againBtnEnd].forEach(btn => {
+  btn.style.position = "relative";
+  btn.style.zIndex = 2000;
+  btn.style.cursor = "pointer";
+});
+
+// Restore draggable positions helper
+function restoreDraggablePositions(){
+  document.querySelectorAll(".draggable").forEach(d=>{
+    const container = document.getElementById(d.dataset.originalParent || "draggablesLeft");
+    if(container) container.appendChild(d);
+  });
+}
+
+// AGAIN BUTTON (for wrong answers in-level)
+againBtn.addEventListener("click", ()=>{
+  feedbackDiv.innerHTML = "";
+  document.querySelectorAll(".dropzone").forEach(dz=>{
+    dz.innerHTML="";
+    dz.dataset.filled="";
+    dz.classList.remove("incorrect","filled","correct");
+  });
+  restoreDraggablePositions();
+  checkBtn.style.display="none";
+  againBtn.style.display="none";
+});
+
+// END-MODAL AGAIN BUTTON (restart whole game)
+againBtnEnd.addEventListener("click", ()=>{
+  endModal.style.display="none";
+  currentLevel = 1;
+  roundInLevel = 0;
+  correctCount = 0;
+  incorrectCount = 0;
+  buildQuestion();
+});
+
+// FINISH BUTTON (submit and go to hub)
+finishBtn.addEventListener("click", async ()=>{
+  if(dragClone){ document.body.removeChild(dragClone); dragClone=null; }
+  await submitResults();
+  window.location.href="../hub.html";
+});
+
+// Ensure drag clones do not block buttons
+function removeDragClone(){
+  if(dragClone){
+    document.body.removeChild(dragClone);
+    dragClone = null;
+  }
+}
+
 /* ===== START GAME ===== */
 startTime = Date.now();
 const saved = loadProgress();
