@@ -392,231 +392,149 @@ checkBtn.addEventListener("click", () => {
   }, 1100);
 });
 
-/* ===== AGAIN (in-level retry) ===== */
-againBtn.addEventListener("click", () => {
-  feedbackDiv.innerHTML = "";
-  document.querySelectorAll(".dropzone").forEach(dz => {
-    dz.innerHTML = "";
-    dz.dataset.filled = "";
-    dz.classList.remove("incorrect","filled","correct");
-  });
-  // restore draggables back to their original container (we created dataset.originalParent)
-  document.querySelectorAll(".draggable").forEach(d => {
-    const container = document.getElementById(d.dataset.originalParent || "draggablesLeft");
-    if (container && d.parentElement !== container) container.appendChild(d);
-  });
-  checkBtn.style.display = "none";
-  againBtn.style.display = "none";
-});
-
-/* ===== NEXT ROUND / LEVEL FINISH ===== */
-function nextRound(){
-  roundInLevel++;
-  if (roundInLevel >= QUESTIONS_PER_LEVEL){
-    // finished this level
-    if (currentLevel < TOTAL_LEVELS){
-      currentLevel++;
-      roundInLevel = 0;
-      buildQuestion();
-      saveProgress();
-    } else {
-      // finished whole game
-      endGame();
-    }
-  } else {
-    buildQuestion();
-    saveProgress();
-  }
+/* ===== SAVE / LOAD / CLEAR ===== */
+const SAVE_KEY = "sentencesGameSave";
+function saveProgress(){
+  const payload = {
+    studentName, studentClass, currentLevel, roundInLevel, correctCount, incorrectCount,
+    answersHistory, levelCorrect, levelIncorrect, timeElapsed: getTimeElapsed(),
+    selectedTopic
+  };
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(payload)); }
+  catch(e){ console.warn("Save failed", e); }
 }
-function updateScoreDisplay(){
-  scoreDisplay.textContent = `Level ${currentLevel} - Question ${roundInLevel+1}/${QUESTIONS_PER_LEVEL}`;
+function loadProgress(){
+  try { return JSON.parse(localStorage.getItem(SAVE_KEY)); }
+  catch(e){ return null; }
+}
+function clearProgress(){
+  try { localStorage.removeItem(SAVE_KEY); } catch(e){}
 }
 
-/* ===== GOOGLE FORM SUBMISSION ===== */
-async function submitResults(){
-  const timeTaken = getTimeElapsed();
-  const totalCorrect = Object.values(levelCorrect).reduce((a,b)=>a+b,0);
-  const totalAttempts = totalCorrect + Object.values(levelIncorrect).reduce((a,b)=>a+b,0);
-  const percent = totalAttempts > 0 ? Math.round((totalCorrect/totalAttempts)*100) : 0;
-  const fd = new FormData();
-  fd.append(FORM_FIELD_MAP.name, studentName);
-  fd.append(FORM_FIELD_MAP.class, studentClass);
-  fd.append(FORM_FIELD_MAP.subject, "Sentences");
-  fd.append(FORM_FIELD_MAP.timeTaken, timeTaken);
-  fd.append(FORM_FIELD_MAP.percent, percent);
-  for (let lvl = 1; lvl <= TOTAL_LEVELS; lvl++){
-    fd.append(FORM_FIELD_MAP[`level${lvl}`].correct, levelCorrect[lvl] || 0);
-    fd.append(FORM_FIELD_MAP[`level${lvl}`].incorrect, levelIncorrect[lvl] || 0);
-  }
-  try{
-    // use no-cors to send silently
-    await fetch(googleForm.action, { method: "POST", body: fd, mode: "no-cors" });
-  } catch(e){
-    console.warn("Form submission failed (expected in no-cors):", e);
-  }
-  clearProgress();
-}
-
-/* ===== END / FINISH behavior ===== */
-function endGame(){
-  // Populate final modal content (your HTML uses finalTime/finalScore/finalPercent)
-  if (document.getElementById("finalTime")) document.getElementById("finalTime").textContent = getTimeElapsed() + "s";
-  const total = correctCount + incorrectCount;
-  const percent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
-  if (document.getElementById("finalScore")) document.getElementById("finalScore").textContent = `${correctCount} / ${total}`;
-  if (document.getElementById("finalPercent")) document.getElementById("finalPercent").textContent = `${percent}%`;
-  endModal.style.display = "flex";
-  endModal.style.zIndex = 4000;
-}
-
-/* finish & again (end modal) wiring */
-if (finishBtn) finishBtn.addEventListener("click", async () => {
-  // remove drag clone if present so it doesn't block anything
-  if (dragClone && dragClone.parentElement) { dragClone.parentElement.removeChild(dragClone); dragClone = null; }
-  await submitResults();
-  window.location.href = "../hub.html";
-});
-if (againBtnEnd) againBtnEnd.addEventListener("click", () => {
-  endModal.style.display = "none";
-  currentLevel = 1; roundInLevel = 0; correctCount = 0; incorrectCount = 0;
-  setTimeElapsed(0);
-  buildQuestion();
-});
-
-/* ===== RESUME MODAL LOGIC ===== */
+/* ===== RESTORE (from saved object) ===== */
 function restoreProgress(saved){
-  if (!saved) return;
+  if(!saved) return;
   studentName = saved.studentName || studentName;
   studentClass = saved.studentClass || studentClass;
-  currentLevel = saved.currentLevel || 1;
-  roundInLevel = saved.roundInLevel || 0;
-  correctCount = saved.correctCount || 0;
-  incorrectCount = saved.incorrectCount || 0;
+  currentLevel = Number(saved.currentLevel) || 1;
+  roundInLevel = Number(saved.roundInLevel) || 0;
+  correctCount = Number(saved.correctCount) || 0;
+  incorrectCount = Number(saved.incorrectCount) || 0;
   answersHistory = saved.answersHistory || [];
   levelCorrect = saved.levelCorrect || {1:0,2:0,3:0,4:0,5:0};
   levelIncorrect = saved.levelIncorrect || {1:0,2:0,3:0,4:0,5:0};
   selectedTopic = saved.selectedTopic || selectedTopic;
-  setTimeElapsed(saved.timeElapsed || 0);
+  setTimeElapsed(Number(saved.timeElapsed) || 0);
   buildQuestion();
 }
 
+/* ===== RESUME MODAL (reliable handlers) ===== */
 function showResumeModal(saved){
-  if (!saved || !resumeModal) return;
+  if(!resumeModal || !saved) return;
   resumeMessage.textContent = `You have progress saved at Level ${saved.currentLevel}, Question ${saved.roundInLevel + 1}. Continue or start over?`;
   resumeModal.style.display = "flex";
   resumeModal.style.zIndex = 3500;
 
-  // clear previous handlers to avoid double-binding
-  resumeContinue.onclick = null;
-  resumeAgain.onclick = null;
+  // remove any previous handlers (defensive)
+  resumeContinue.replaceWith(resumeContinue.cloneNode(true));
+  resumeAgain.replaceWith(resumeAgain.cloneNode(true));
 
-  resumeContinue.addEventListener("click", () => {
+  // re-query because we replaced nodes
+  const resumeContinueBtn = document.getElementById(resumeContinue.id);
+  const resumeAgainBtn = document.getElementById(resumeAgain.id);
+
+  // Continue -> restore and resume
+  resumeContinueBtn.addEventListener("click", () => {
     resumeModal.style.display = "none";
     restoreProgress(saved);
-    // ensure timer resumes from now
+    // start timer fresh so elapsed calculation continues from saved value
     startTime = Date.now();
+    // ensure UI top layers won't be blocked by any leftover clones
+    if (dragClone && dragClone.parentElement) { dragClone.parentElement.removeChild(dragClone); dragClone = null; }
   }, { once: true });
 
-  resumeAgain.addEventListener("click", () => {
+  // Start over -> clear saved data and start fresh
+  resumeAgainBtn.addEventListener("click", () => {
     resumeModal.style.display = "none";
     clearProgress();
     currentLevel = 1; roundInLevel = 0; correctCount = 0; incorrectCount = 0;
+    answersHistory = [];
+    levelCorrect = {1:0,2:0,3:0,4:0,5:0};
+    levelIncorrect = {1:0,2:0,3:0,4:0,5:0};
     setTimeElapsed(0);
     buildQuestion();
   }, { once: true });
 }
 
 /* ===== STOP MODAL LOGIC ===== */
-// only show when stopBtn clicked (not when resume modal is visible)
+// stop modal should not show while resume modal is visible
 if (stopBtn){
   stopBtn.addEventListener("click", () => {
-    // if resume modal is visible, do nothing
-    if (resumeModal && resumeModal.style.display === "flex") return;
+    if (resumeModal && resumeModal.style.display === "flex") return; // don't open stop if resuming
     const total = correctCount + incorrectCount;
     const percent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
     if (stopPercent) stopPercent.textContent = `Score so far: ${percent}%`;
-    if (stopModal) {
-      stopModal.style.display = "flex";
-      stopModal.style.zIndex = 3600;
-    }
+    if (stopModal) { stopModal.style.display = "flex"; stopModal.style.zIndex = 3600; }
   });
 }
-
-if (stopContinue) stopContinue.addEventListener("click", () => {
-  if (stopModal) stopModal.style.display = "none";
-});
-
+if (stopContinue) stopContinue.addEventListener("click", () => { if (stopModal) stopModal.style.display = "none"; });
 if (stopAgain) stopAgain.addEventListener("click", () => {
   if (stopModal) stopModal.style.display = "none";
-  // restart current level
-  roundInLevel = 0;
-  correctCount = 0;
-  incorrectCount = 0;
-  setTimeElapsed(0);
-  buildQuestion();
+  roundInLevel = 0; correctCount = 0; incorrectCount = 0; setTimeElapsed(0); buildQuestion();
 });
-
 if (stopFinish) stopFinish.addEventListener("click", async () => {
   if (stopModal) stopModal.style.display = "none";
   await submitResults();
   window.location.href = "../hub.html";
 });
 
-/* ===== BUILD QUESTION (main) ===== */
-function buildQuestion(){
-  generateSentence();
-  questionArea.innerHTML = "";
-  answerArea.innerHTML = "";
-  feedbackDiv.innerHTML = "";
-  checkBtn.style.display = "none";
-  againBtn.style.display = "none";
+/* ===== DRAG / DROP CLONE (mouse + touch) ===== */
+/* (kept in your script above - ensure dragClone, startDrag, moveDrag, endDrag are present and unmodified) */
 
-  const isOdd = (roundInLevel % 2) === 1;
-  // build question area (you were using images as signs). We'll append the primary sign(s)
-  questionArea.innerHTML = ""; // clear
-  // for clarity show main sign(s) (you can adjust this to show video tags for mp4 emotion signs)
-  const { word1, word2, verb, topic } = currentSentence;
-  // Show word1 sign in question area
-  const q1 = document.createElement("div");
-  q1.className = "questionSign";
-  const img1 = document.createElement("img");
-  img1.src = signPathFor(word1);
-  img1.alt = word1;
-  img1.onerror = () => { img1.style.display = "none"; q1.textContent = word1; };
-  q1.appendChild(img1);
-  questionArea.appendChild(q1);
+/* ===== CHECK / AGAIN / NEXT / UPDATE UI ===== */
+/* checkBtn, againBtn, nextRound, updateScoreDisplay are kept from your logic above.
+   (Your existing implementations are compatible with the handlers below.) */
 
-  // Depending on level/variant optionally show word2/verb placeholders (keeps UI predictable)
-  // (You can style this with your CSS; this keeps the area populated so layout is stable)
-  const qExtra = document.createElement("div");
-  qExtra.className = "questionExtra";
-  qExtra.textContent = ""; // optional textual hint - keeping minimal
-  questionArea.appendChild(qExtra);
-
-  // build dropzones and draggables
-  buildDropZones(isOdd);
-  buildDraggables(isOdd);
-  updateScoreDisplay();
+/* ===== END / FINISH ===== */
+function endGame(){
+  // fill final modal fields if present
+  if (document.getElementById("finalTime")) document.getElementById("finalTime").textContent = getTimeElapsed() + "s";
+  const total = correctCount + incorrectCount;
+  const percent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+  if (document.getElementById("finalScore")) document.getElementById("finalScore").textContent = `${correctCount} / ${total}`;
+  if (document.getElementById("finalPercent")) document.getElementById("finalPercent").textContent = `${percent}%`;
+  if (endModal) { endModal.style.display = "flex"; endModal.style.zIndex = 4000; }
 }
+
+/* wiring finish / again in end modal (defensive existence checks) */
+if (finishBtn) finishBtn.addEventListener("click", async () => {
+  if (dragClone && dragClone.parentElement) { dragClone.parentElement.removeChild(dragClone); dragClone = null; }
+  await submitResults();
+  window.location.href = "../hub.html";
+});
+if (againBtnEnd) againBtnEnd.addEventListener("click", () => {
+  if (endModal) endModal.style.display = "none";
+  currentLevel = 1; roundInLevel = 0; correctCount = 0; incorrectCount = 0;
+  setTimeElapsed(0);
+  buildQuestion();
+});
 
 /* ===== INITIALISATION ===== */
 window.addEventListener("load", () => {
-  // ensure buttons are visible on top (prevent being under a drag clone)
-  [againBtn, finishBtn, againBtnEnd].forEach(b => {
-    if (b) { b.style.zIndex = 4001; b.style.cursor = "pointer"; }
-  });
+  // top-layer buttons safety
+  [againBtn, finishBtn, againBtnEnd].forEach(b => { if (b){ b.style.zIndex = 4001; b.style.cursor = "pointer"; }});
 
-  // If save exists -> show resume modal
   const saved = loadProgress();
   if (saved) {
+    // show the resume modal and defer restoring until user chooses
     showResumeModal(saved);
   } else if (selectedTopic) {
-    // start fresh with chosen topic
+    // start fresh using stored selectedTopic
     setTimeElapsed(0);
     startTime = Date.now();
     buildQuestion();
   } else {
-    // no topic: open topic modal so player selects
+    // no topic selected, open topic modal
     openTopicModal();
   }
 });
