@@ -445,12 +445,83 @@ stopFinish.addEventListener("click", () => {
 });
 
 
-/* ===== START GAME ===== */
-startTime = Date.now();
+/* ===== END GAME FUNCTION ===== */
+function endGame() {
+  endModal.style.display = "flex";
+  document.getElementById("finalTime").textContent = getTimeElapsed() + "s";
+  const total = correctCount + incorrectCount;
+  const percent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+  document.getElementById("finalScore").textContent = `${correctCount} / ${total}`;
+  document.getElementById("finalPercent").textContent = `${percent}%`;
+}
+
+/* ===== STOP MODAL LOGIC ===== */
+const stopModal = document.getElementById("stopModal");
+const stopPercent = document.getElementById("stopPercent");
+const stopContinue = document.getElementById("continueBtn");
+const stopAgain = document.getElementById("againBtnStop");
+const stopFinish = document.getElementById("finishBtnStop");
+
+stopBtn.addEventListener("click", () => {
+  const total = correctCount + incorrectCount;
+  const percent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+  stopPercent.textContent = `Score so far: ${percent}%`;
+  stopModal.style.display = "flex";
+});
+
+stopContinue.addEventListener("click", () => {
+  stopModal.style.display = "none";
+});
+
+stopAgain.addEventListener("click", () => {
+  stopModal.style.display = "none";
+  roundInLevel = 0;
+  correctCount = 0;
+  incorrectCount = 0;
+  buildQuestion();
+});
+
+stopFinish.addEventListener("click", async () => {
+  stopModal.style.display = "none";
+  await submitResults();
+  window.location.href = "../hub.html";
+});
+
+/* ===== RESUME MODAL LOGIC ===== */
+const resumeModal = document.getElementById("resumeModal");
+const resumeMessage = document.getElementById("resumeMessage");
+const resumeContinue = document.getElementById("resumeContinue");
+const resumeAgain = document.getElementById("resumeAgain");
+
+function showResumeModal(saved) {
+  resumeMessage.textContent = `You have progress saved at Level ${saved.currentLevel}, Question ${saved.roundInLevel + 1}. Would you like to continue or start over?`;
+  resumeModal.style.display = "flex";
+
+  resumeContinue.onclick = () => {
+    resumeModal.style.display = "none";
+    restoreProgress(saved);
+    startTime = Date.now(); // start timer *now* after continuing
+  };
+
+  resumeAgain.onclick = () => {
+    resumeModal.style.display = "none";
+    clearProgress();
+    currentLevel = 1;
+    roundInLevel = 0;
+    correctCount = 0;
+    incorrectCount = 0;
+    startTime = Date.now();
+    buildQuestion();
+  };
+}
+
+/* ===== GAME INITIALISATION ===== */
 const saved = loadProgress();
+
 if (saved) {
   showResumeModal(saved);
 } else if (selectedTopic) {
+  startTime = Date.now();
   buildQuestion();
 } else {
   openTopicModal();
