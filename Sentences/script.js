@@ -176,6 +176,8 @@ function buildDraggables(isOdd){
   leftDraggables.innerHTML=""; rightDraggables.innerHTML="";
   const {word1,word2,verb} = currentSentence;
   let items=[];
+  
+  // Determine main items for this round
   switch(currentLevel){
     case 1: items = isOdd ? [word1,word2] : [`${word1}-${word2}`]; break;
     case 2: items = isOdd ? [word1,word2] : [`${word1}-${word2}`]; break;
@@ -187,7 +189,7 @@ function buildDraggables(isOdd){
   // Determine decoys
   let decoyPool = [];
   if(currentLevel < 5){
-    // Topic-specific decoys only
+    // Topic-specific decoys
     decoyPool = [...topics[selectedTopic]];
     if(selectedTopic==="animals") decoyPool = decoyPool.concat(numbers);
     else if(selectedTopic==="food") decoyPool = decoyPool.concat(colours);
@@ -197,7 +199,19 @@ function buildDraggables(isOdd){
     decoyPool = [...topics.animals, ...topics.food, ...topics.emotions, ...colours, ...numbers, ...zones];
   }
 
-  let decoys = shuffleArray(decoyPool).filter(d=>!items.includes(d));
+  // Remove any items that are already correct answers, including combos
+  let realItems = items.slice();
+  decoyPool = decoyPool.filter(d=>{
+    if(realItems.includes(d)) return false;
+    if(currentLevel===2 || currentLevel===3){
+      // Also filter out combinations that match word1-word2
+      const combo = `${word1}-${word2}`;
+      if(d===combo) return false;
+    }
+    return true;
+  });
+
+  let decoys = shuffleArray(decoyPool);
   while(items.length<16 && decoys.length>0) items.push(decoys.pop());
   items = shuffleArray(items);
 
