@@ -386,9 +386,40 @@ function removeDragClone(){
   }
 }
 
+/* ===== RESUME MODAL LOGIC ===== */
+const resumeModal = document.getElementById("resumeModal");
+const resumeMessage = document.getElementById("resumeMessage");
+const resumeContinue = document.getElementById("resumeContinue");
+const resumeAgain = document.getElementById("resumeAgain");
+
+function showResumeModal(saved) {
+  resumeMessage.textContent = `You have progress saved at Level ${saved.currentLevel}, Question ${saved.roundInLevel + 1}. Would you like to continue or start over?`;
+  resumeModal.style.display = "flex";
+
+  resumeContinue.onclick = () => {
+    resumeModal.style.display = "none";
+    restoreProgress(saved);
+  };
+
+  resumeAgain.onclick = () => {
+    resumeModal.style.display = "none";
+    clearProgress();
+    currentLevel = 1;
+    roundInLevel = 0;
+    correctCount = 0;
+    incorrectCount = 0;
+    buildQuestion();
+  };
+}
+
+
 /* ===== START GAME ===== */
 startTime = Date.now();
 const saved = loadProgress();
-if(saved) restoreProgress(saved);
-else if(selectedTopic) buildQuestion();
-else openTopicModal();
+if (saved) {
+  showResumeModal(saved);
+} else if (selectedTopic) {
+  buildQuestion();
+} else {
+  openTopicModal();
+}
