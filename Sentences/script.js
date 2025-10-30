@@ -28,6 +28,7 @@ const endModal = document.getElementById("endModal");
 const finishBtn = document.getElementById("finishBtn");
 const againBtnEnd = document.getElementById("againBtnEnd");
 const googleForm = document.getElementById("googleForm");
+const topicModal = document.getElementById("topicModal");
 
 /* ===== STUDENT INFO ===== */
 let studentName = localStorage.getItem("studentName") || "";
@@ -54,6 +55,7 @@ let levelCorrect = {1:0,2:0,3:0,4:0,5:0};
 let levelIncorrect = {1:0,2:0,3:0,4:0,5:0};
 const TOTAL_LEVELS = 5;
 const QUESTIONS_PER_LEVEL = 10;
+let selectedTopic = localStorage.getItem("selectedTopic") || null;
 
 /* ===== VOCAB ===== */
 const topics = {
@@ -91,7 +93,8 @@ const SAVE_KEY = "sentencesGameSave";
 function saveProgress(){
   localStorage.setItem(SAVE_KEY,JSON.stringify({
     studentName, studentClass, currentLevel, roundInLevel, correctCount, incorrectCount,
-    answersHistory, levelCorrect, levelIncorrect, timeElapsed:getTimeElapsed()
+    answersHistory, levelCorrect, levelIncorrect, timeElapsed:getTimeElapsed(),
+    selectedTopic
   }));
 }
 function loadProgress(){ try{return JSON.parse(localStorage.getItem(SAVE_KEY));}catch{return null;} }
@@ -103,14 +106,28 @@ function restoreProgress(saved){
   answersHistory=saved.answersHistory||[];
   levelCorrect=saved.levelCorrect||{1:0,2:0,3:0,4:0,5:0};
   levelIncorrect=saved.levelIncorrect||{1:0,2:0,3:0,4:0,5:0};
+  selectedTopic = saved.selectedTopic || selectedTopic;
   setTimeElapsed(saved.timeElapsed||0);
   buildQuestion();
 }
 
+/* ===== TOPIC SELECTION ===== */
+function openTopicModal(){
+  topicModal.style.display = "flex";
+}
+document.querySelectorAll(".topicBtn").forEach(btn=>{
+  btn.addEventListener("click", e=>{
+    selectedTopic = e.currentTarget.dataset.topic;
+    localStorage.setItem("selectedTopic", selectedTopic);
+    topicModal.style.display = "none";
+    buildQuestion();
+  });
+});
+
 /* ===== GENERATE SENTENCE ===== */
 function generateSentence(){
-  const topicKeys = Object.keys(topics);
-  const mainTopic = randomItem(topicKeys); // animals, food, emotions
+  if(!selectedTopic) selectedTopic = randomItem(Object.keys(topics));
+  const mainTopic = selectedTopic;
   const word1 = randomItem(topics[mainTopic]);
   let word2;
   if(mainTopic==="animals") word2 = randomItem(numbers);
@@ -119,7 +136,7 @@ function generateSentence(){
   let verb="want";
   if(currentLevel===3) verb=randomItem(["want","have"]);
   if(currentLevel>=4) verb=randomItem(verbs);
-  currentSentence={topic:mainTopic,word1,word2,verb};
+  currentSentence = {topic: mainTopic, word1, word2, verb};
 }
 
 /* ===== BUILD QUESTION ===== */
@@ -127,7 +144,6 @@ function buildQuestion(){
   generateSentence();
   questionArea.innerHTML=""; answerArea.innerHTML=""; feedbackDiv.innerHTML="";
   checkBtn.style.display="none"; againBtn.style.display="none";
-
   const isOdd = roundInLevel%2===1;
   buildDropZones(isOdd);
   buildDraggables(isOdd);
@@ -142,10 +158,9 @@ function buildDropZones(isOdd){
     case 1: dropLabels = isOdd ? ["word1","word2"] : ["word1+word2"]; break;
     case 2: dropLabels = isOdd ? ["word1","word2"] : ["word1+word2"]; break;
     case 3: dropLabels = isOdd ? ["word1","word2","verb"] : ["word1+word2","verb"]; break;
-    case 4: dropLabels = ["word1","word2","verb"]; break;
+    case 4: 
     case 5: dropLabels = ["word1","word2","verb"]; break;
   }
-
   dropLabels.forEach(label=>{
     const dz = document.createElement("div");
     dz.className="dropzone"; dz.dataset.placeholder=label;
@@ -165,14 +180,12 @@ function buildDraggables(isOdd){
     case 1: items = isOdd ? [word1,word2] : [`${word1}-${word2}`]; break;
     case 2: items = isOdd ? [word1,word2] : [`${word1}-${word2}`]; break;
     case 3: items = isOdd ? [word1,word2,verb] : [`${word1}-${word2}`,verb]; break;
-    case 4: items = [word1,word2,verb]; break;
+    case 4:
     case 5: items = [word1,word2,verb]; break;
   }
-
-  const decoys = shuffleArray([...topics.animals,...topics.food,...topics.emotions,...colours,...numbers,...zones]).filter(d=>!items.includes(d));
+  const decoys = shuffleArray([...topics[selectedTopic], ...colours, ...numbers, ...zones]).filter(d=>!items.includes(d));
   while(items.length<16) items.push(decoys.pop());
   items = shuffleArray(items);
-
   const halves = [items.slice(0,8), items.slice(8,16)];
   halves.forEach((group,idx)=>{
     const container = idx===0?leftDraggables:rightDraggables;
@@ -234,11 +247,9 @@ checkBtn.addEventListener("click", ()=>{
     else { incorrectCount++; levelIncorrect[currentLevel]++; dz.classList.add("incorrect"); allCorrect=false; dz.innerHTML=""; dz.dataset.filled=""; dz.classList.remove("filled","correct"); }
     if(filled) answersHistory.push({level:currentLevel,label:dz.dataset.placeholder,value:filled,correct:correct});
   });
-
   const fb = document.createElement("img");
   fb.src = allCorrect?"assets/correct.png":"assets/wrong.png";
   feedbackDiv.appendChild(fb);
-
   saveProgress();
   setTimeout(()=>{
     feedbackDiv.innerHTML="";
@@ -295,4 +306,5 @@ againBtnEnd.addEventListener("click", ()=>{
 startTime = Date.now();
 const saved = loadProgress();
 if(saved) restoreProgress(saved);
-else buildQuestion();
+else if(selectedTopic) buildQuestion();
+else openTopicModal();
