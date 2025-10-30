@@ -60,14 +60,14 @@ let selectedTopic = localStorage.getItem("selectedTopic") || null;
 /* ===== VOCAB ===== */
 const topics = {
   animals: ["dog","cat","mouse","rabbit","fish","bird"],
-  food: ["apple","banana","blueberry","grape","orange","pear"],
-  emotions: ["happy","sad","angry","surprised","excited","bored"]
+  food: ["apple","banana","blueberry","grape","orange","pear","pineapple","raspberry","strawberry","watermelon"],
+  emotions: ["angry","annoyed","ashamed","bored","confident","confused","danger","disappointed","excited","exhausted","focus","frustrated","happy","jealous","lonely","loved","nervous","pain","proud","relax","sad","scared","shock","shy","sick","silly","stressed","support","surprised","tease","thankful","tired","worried"]
 };
 const colours = ["red","green","blue","orange","yellow","pink","purple","brown","black","white"];
 const numbers = ["one","two","three","four","five","six","seven","eight","nine","ten"];
-const zones = ["north","south","east","west"];
+const zones = ["green","blue","yellow","red"];
 const verbs = ["want","have","donthave"];
-const helpers = ["i","see","what"];
+const helpers = ["i","see","feel","what"];
 
 /* ===== HELPERS ===== */
 function shuffleArray(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
@@ -75,9 +75,9 @@ function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function signPathFor(word){
   if(topics.animals.includes(word)) return `assets/signs/animals/${word}-sign.png`;
   if(topics.food.includes(word)) return `assets/signs/food/${word}-sign.png`;
-  if(topics.emotions.includes(word)) return `assets/signs/emotions/${word}-sign.png`;
-  if(numbers.includes(word)) return `assets/signs/numbers/${word}.png`;
-  if(colours.includes(word)) return `assets/signs/colours/${word}.png`;
+  if(topics.emotions.includes(word)) return `assets/signs/emotions/sign-${word}.png`;
+  if(numbers.includes(word)) return `assets/signs/numbers/${word}-sign.png`;
+  if(colours.includes(word)) return `assets/signs/colours/${word}-sign.png`;
   if(zones.includes(word)) return `assets/signs/zones/${word}.png`;
   if(verbs.includes(word)) return `assets/signs/verbs/${word}.png`;
   if(helpers.includes(word)) return `assets/signs/helpers/${word}.png`;
