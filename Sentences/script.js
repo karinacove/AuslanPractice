@@ -180,12 +180,27 @@ function buildDraggables(isOdd){
     case 1: items = isOdd ? [word1,word2] : [`${word1}-${word2}`]; break;
     case 2: items = isOdd ? [word1,word2] : [`${word1}-${word2}`]; break;
     case 3: items = isOdd ? [word1,word2,verb] : [`${word1}-${word2}`,verb]; break;
-    case 4:
+    case 4: items = [word1,word2,verb]; break;
     case 5: items = [word1,word2,verb]; break;
   }
-  const decoys = shuffleArray([...topics[selectedTopic], ...colours, ...numbers, ...zones]).filter(d=>!items.includes(d));
-  while(items.length<16) items.push(decoys.pop());
+
+  // Determine decoys
+  let decoyPool = [];
+  if(currentLevel < 5){
+    // Topic-specific decoys only
+    decoyPool = [...topics[selectedTopic]];
+    if(selectedTopic==="animals") decoyPool = decoyPool.concat(numbers);
+    else if(selectedTopic==="food") decoyPool = decoyPool.concat(colours);
+    else decoyPool = decoyPool.concat(zones);
+  } else {
+    // Level 5 decoys from everything
+    decoyPool = [...topics.animals, ...topics.food, ...topics.emotions, ...colours, ...numbers, ...zones];
+  }
+
+  let decoys = shuffleArray(decoyPool).filter(d=>!items.includes(d));
+  while(items.length<16 && decoys.length>0) items.push(decoys.pop());
   items = shuffleArray(items);
+
   const halves = [items.slice(0,8), items.slice(8,16)];
   halves.forEach((group,idx)=>{
     const container = idx===0?leftDraggables:rightDraggables;
