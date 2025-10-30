@@ -402,8 +402,12 @@ const stopPercent = document.getElementById("stopPercent");
 const stopContinue = document.getElementById("continueBtn");
 const stopAgain = document.getElementById("againBtnStop");
 const stopFinish = document.getElementById("finishBtnStop");
+let resumedFromSave = false;
 
 stopBtn.addEventListener("click", () => {
+  // Prevent accidental open during resume
+  if (resumeModal.style.display === "flex") return;
+
   const total = correctCount + incorrectCount;
   const percent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
   stopPercent.textContent = `Score so far: ${percent}%`;
@@ -440,8 +444,9 @@ function showResumeModal(saved) {
 
   resumeContinue.onclick = () => {
     resumeModal.style.display = "none";
+    resumedFromSave = true;
     restoreProgress(saved);
-    startTime = Date.now(); // start timer *now* after continuing
+    startTime = Date.now();
   };
 
   resumeAgain.onclick = () => {
@@ -457,13 +462,15 @@ function showResumeModal(saved) {
 }
 
 /* ===== GAME INITIALISATION ===== */
-const saved = loadProgress();
+window.addEventListener("load", () => {
+  const saved = loadProgress();
 
-if (saved) {
-  showResumeModal(saved);
-} else if (selectedTopic) {
-  startTime = Date.now();
-  buildQuestion();
-} else {
-  openTopicModal();
-}
+  if (saved) {
+    showResumeModal(saved);
+  } else if (selectedTopic) {
+    startTime = Date.now();
+    buildQuestion();
+  } else {
+    openTopicModal();
+  }
+});
