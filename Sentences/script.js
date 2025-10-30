@@ -412,6 +412,38 @@ function showResumeModal(saved) {
   };
 }
 
+/* ===== STOP MODAL LOGIC ===== */
+const stopModal = document.getElementById("stopModal");
+const stopPercent = document.getElementById("stopPercent");
+const stopContinue = document.getElementById("continueBtn");
+const stopAgain = document.getElementById("againBtnStop");
+const stopFinish = document.getElementById("finishBtnStop");
+
+document.getElementById("stopBtn").addEventListener("click", () => {
+  const total = correctCount + incorrectCount;
+  const percent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+  stopPercent.textContent = `Score so far: ${percent}%`;
+  stopModal.style.display = "flex";
+});
+
+stopContinue.addEventListener("click", () => {
+  stopModal.style.display = "none";
+});
+
+stopAgain.addEventListener("click", () => {
+  stopModal.style.display = "none";
+  // Restart current level, same topic
+  roundInLevel = 0;
+  correctCount = 0;
+  incorrectCount = 0;
+  buildQuestion();
+});
+
+stopFinish.addEventListener("click", () => {
+  stopModal.style.display = "none";
+  endGame();
+});
+
 
 /* ===== START GAME ===== */
 startTime = Date.now();
