@@ -325,7 +325,7 @@ function endLevel(){
 }
 finishBtn.addEventListener("click", async ()=>{
   await submitResults();
-  window.location.href="../hub.html";
+  window.location.href="../index.html";
 });
 againBtnEnd.addEventListener("click", ()=>{
   endModal.style.display="none"; currentLevel=1; roundInLevel=0; correctCount=0; incorrectCount=0; buildQuestion();
