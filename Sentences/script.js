@@ -428,64 +428,83 @@ function restoreProgress(saved){
   buildQuestion();
 }
 
-/* ===== RESUME MODAL (reliable handlers) ===== */
-function showResumeModal(saved){
-  if(!resumeModal || !saved) return;
+/* ===== RESUME MODAL (clean single layer) ===== */
+function showResumeModal(saved) {
+  if (!resumeModal || !saved) return;
+
+  // Hide all other modals first
+  [stopModal, endModal, topicModal].forEach(m => { if (m) m.style.display = "none"; });
+
+  // Set text
   resumeMessage.textContent = `You have progress saved at Level ${saved.currentLevel}, Question ${saved.roundInLevel + 1}. Continue or start over?`;
+
+  // Display modal on top
   resumeModal.style.display = "flex";
-  resumeModal.style.zIndex = 3500;
+  resumeModal.style.zIndex = 4000;
 
-  // remove any previous handlers (defensive)
-  resumeContinue.replaceWith(resumeContinue.cloneNode(true));
-  resumeAgain.replaceWith(resumeAgain.cloneNode(true));
+  // Reset any handlers first
+  const newContinue = resumeContinue.cloneNode(true);
+  const newAgain = resumeAgain.cloneNode(true);
+  resumeContinue.parentNode.replaceChild(newContinue, resumeContinue);
+  resumeAgain.parentNode.replaceChild(newAgain, resumeAgain);
 
-  // re-query because we replaced nodes
-  const resumeContinueBtn = document.getElementById(resumeContinue.id);
-  const resumeAgainBtn = document.getElementById(resumeAgain.id);
-
-  // Continue -> restore and resume
-  resumeContinueBtn.addEventListener("click", () => {
+  // Continue existing progress
+  newContinue.addEventListener("click", () => {
     resumeModal.style.display = "none";
     restoreProgress(saved);
-    // start timer fresh so elapsed calculation continues from saved value
     startTime = Date.now();
-    // ensure UI top layers won't be blocked by any leftover clones
-    if (dragClone && dragClone.parentElement) { dragClone.parentElement.removeChild(dragClone); dragClone = null; }
-  }, { once: true });
+  });
 
-  // Start over -> clear saved data and start fresh
-  resumeAgainBtn.addEventListener("click", () => {
+  // Start over from scratch
+  newAgain.addEventListener("click", () => {
     resumeModal.style.display = "none";
     clearProgress();
-    currentLevel = 1; roundInLevel = 0; correctCount = 0; incorrectCount = 0;
+    currentLevel = 1;
+    roundInLevel = 0;
+    correctCount = 0;
+    incorrectCount = 0;
     answersHistory = [];
     levelCorrect = {1:0,2:0,3:0,4:0,5:0};
     levelIncorrect = {1:0,2:0,3:0,4:0,5:0};
     setTimeElapsed(0);
     buildQuestion();
-  }, { once: true });
+  });
 }
 
-/* ===== STOP MODAL LOGIC ===== */
-// stop modal should not show while resume modal is visible
-if (stopBtn){
+/* ===== STOP MODAL (no overlap with resume) ===== */
+if (stopBtn) {
   stopBtn.addEventListener("click", () => {
-    if (resumeModal && resumeModal.style.display === "flex") return; // don't open stop if resuming
+    if (resumeModal && resumeModal.style.display === "flex") return; // don't open stop if resume showing
+
+    [resumeModal, endModal, topicModal].forEach(m => { if (m) m.style.display = "none"; });
+
     const total = correctCount + incorrectCount;
     const percent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
     if (stopPercent) stopPercent.textContent = `Score so far: ${percent}%`;
-    if (stopModal) { stopModal.style.display = "flex"; stopModal.style.zIndex = 3600; }
+
+    stopModal.style.display = "flex";
+    stopModal.style.zIndex = 4000;
   });
 }
-if (stopContinue) stopContinue.addEventListener("click", () => { if (stopModal) stopModal.style.display = "none"; });
-if (stopAgain) stopAgain.addEventListener("click", () => {
-  if (stopModal) stopModal.style.display = "none";
-  roundInLevel = 0; correctCount = 0; incorrectCount = 0; setTimeElapsed(0); buildQuestion();
+
+if (stopContinue) stopContinue.addEventListener("click", () => {
+  stopModal.style.display = "none";
 });
+
+if (stopAgain) stopAgain.addEventListener("click", () => {
+  stopModal.style.display = "none";
+  currentLevel = 1;
+  roundInLevel = 0;
+  correctCount = 0;
+  incorrectCount = 0;
+  setTimeElapsed(0);
+  buildQuestion();
+});
+
 if (stopFinish) stopFinish.addEventListener("click", async () => {
-  if (stopModal) stopModal.style.display = "none";
+  stopModal.style.display = "none";
   await submitResults();
-  window.location.href = "../hub.html";
+  window.location.href = "../index.html";
 });
 
 /* ===== DRAG / DROP CLONE (mouse + touch) ===== */
