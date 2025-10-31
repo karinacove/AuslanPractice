@@ -142,9 +142,6 @@ function draggableKey(topic, a, b){
   return `${topic}::${a}::${b}`;
 }
 
-/* ===== Build the list of candidate draggables for each topic at start of game
-   We'll precompute all possible combos to avoid duplicates and to enforce "use once per game".
-*/
 const candidatePool = {
   animals: [], // [ {key, img, parts:{animal,number}} ]
   food: [],
@@ -337,11 +334,6 @@ function createDraggableNodeFromParts(topic,a,b){
   return div;
 }
 
-/* ===== Build the draggable grid for a given small set of candidates
-   params:
-     leftCandidates: array of candidate objects {key,img,parts}
-     rightCandidates: similar
-     leftCount, rightCount numbers to place (6 for levels 1-3)
 */
 function populateDraggables(leftCandidates, rightCandidates, leftCount=6, rightCount=6){
   leftDraggables.innerHTML = "";
@@ -426,8 +418,6 @@ function buildQuestion(){
     return shuffled[0] || null;
   }
 
-  // Build top sentence area: helper sign + the two signs (word1 and word2)
-  // Levels 1-3: one dropzone (word1+word2), 6 left & 6 right draggables (topic images), mode simple
   if(desc.type === "simple"){
     // topicIndex 1 => animals+numbers ; 2 => food+colours ; 3 => emotions+zones
     const topicIndex = desc.topicIndex;
@@ -485,8 +475,6 @@ function buildQuestion(){
     dz.addEventListener("drop", dropHandler);
     answerArea.appendChild(dz);
 
-    // Now build draggables: 6 left and 6 right. One of them must be the correct match (e.g. dog-two)
-    // Create the correct draggable candidate for topicName
     let correctCandidate;
     if(topicName === "animals"){
       correctCandidate = candidatePool.animals.find(c => c.parts.animal === word1 && c.parts.number === word2);
@@ -508,8 +496,6 @@ function buildQuestion(){
             : (topicName==="food") ? shuffleArray(candidatePool.food)
             : shuffleArray(candidatePool.emotions);
     pool = pool.filter(c=> c.key !== (correctCandidate.key) && !usedDraggables.has(c.key));
-    // pick total of 11 decoys then split 5 left 6 right (or similar). But spec asked 6 on each side (12 total) with 1 answer + rest decoys.
-    // We'll pick total 11 decoys (11 + 1 correct = 12)
     const decoys = pool.slice(0, 11);
     // place them shuffled and ensure correctCandidate sits somewhere
     const allItems = shuffleArray([ ...decoys, correctCandidate ]);
@@ -524,8 +510,6 @@ function buildQuestion(){
     dz.dataset.expected = correctCandidate.key;
 
   } else if(desc.type === "two"){
-    // Levels 4-6: sentence similar but two dropzones: first for topic (animal/food/emotion) second for additional (number/colour/zone)
-    // topicIndex = desc.topicIndex (1=animals,2=food,3=emotions)
     const topicIndex = desc.topicIndex;
     const topicName = topicIndex === 1 ? "animals" : (topicIndex===2 ? "food" : "emotions");
     // pick word1 and word2
@@ -563,12 +547,7 @@ function buildQuestion(){
     dz2.dataset.expectedType = (topicName==="animals"?"numbers":(topicName==="food"?"colours":"zones"));
     dz2.dataset.expectedValue = word2;
 
-    // now populate draggables: left contains topic images (animals/food/emotions) 6 items, right contains extra images (numbers/colours/zones) 6 items
-    // For extras (numbers/colours/zones) we will create simple images (use sign images as fallback) — but you said right side shows additional information - for consistency we'll show small images naming e.g. numbers images could be assets/images/numbers/two.png (not specified). We'll instead reuse the candidatePool but only for the topic and extra combos where extra alone is represented.
-    // Simpler approach: left: six topic items (single portion) - but the user expected items named like "bird-five.png" in animals. We'll supply combos but check logic will inspect parts.
-    // Build leftCandidates from candidatePool.topic, rightCandidates from candidatePool.topic but transformed to only include variants that represent just the 'extra' piece on the right.
-    // To meet spec, left = topic combos (animal-number), right = additional info (numbers or colours or zones) represented as small nodes with dataset.key like "numbers::two"
-    const leftPool = shuffleArray( (topicName==="animals"? candidatePool.animals : (topicName==="food"? candidatePool.food : candidatePool.emotions)) )
+   const leftPool = shuffleArray( (topicName==="animals"? candidatePool.animals : (topicName==="food"? candidatePool.food : candidatePool.emotions)) )
                       .filter(c => !usedDraggables.has(c.key));
     const leftSel = leftPool.slice(0,6);
 
@@ -593,11 +572,6 @@ function buildQuestion(){
     dz1.dataset.expectedExact = word1; // topic item must contain this word
     dz2.dataset.expectedExact = word2; // extra must equal this
   } else if(desc.type === "compound" || desc.type === "bonus"){
-    // Compound / bonus layouts are more custom. We'll implement core functionality:
-    // - show sentence starter "I see what?" (helper 'see' for non-emotion layouts)
-    // - create a series of dropzones per spec (2..5)
-    // - left and right draggables according to spec: animals+numbers left, food+colours right, verbs/overlays bottom where applicable
-    // We'll implement a general approach so the different layouts work:
     questionArea.innerHTML = "";
     const helperImg = document.createElement("img"); helperImg.src = VOCAB.helpers.see; helperImg.alt = "see";
     helperImg.onerror = () => { helperImg.style.display = "none"; };
@@ -688,14 +662,6 @@ function buildQuestion(){
   updateCheckVisibility();
 }
 
-/* ===== Check / grading logic =====
-   When checkBtn clicked:
-   - evaluate current answer(s) for the current layout
-   - show correct or wrong image in place of check button for 2 seconds
-   - if correct: mark dropzones correct (keep contents) and increment counters
-   - if incorrect: remove the incorrect draggable permanently (usedDraggables add), increment incorrect counters; allow student to pick another draggable
-   - after all correct, advance round or level and show clap gif for 2s between levels
-*/
 checkBtn.addEventListener("click", () => {
   // hide check to prevent double clicks
   checkBtn.style.display = "none";
@@ -724,7 +690,6 @@ checkBtn.addEventListener("click", () => {
       return;
     }
 
-    // For dz expecting exact or expectedValue
     if(dz.dataset.expectedExact){
       // expect a value contained inside the draggable's key parts
       const expected = dz.dataset.expectedExact;
@@ -737,7 +702,6 @@ checkBtn.addEventListener("click", () => {
       return;
     }
 
-    // For dz with expectedType (topic combos or type checks)
     if(dz.dataset.expectedType){
       const expectedType = dz.dataset.expectedType;
       if(expectedType === "animals_combo" || expectedType==="food_combo"){
@@ -753,8 +717,6 @@ checkBtn.addEventListener("click", () => {
       return;
     }
 
-    // Fallback: try to match parts (if the filledKey contains a meaningful sequence)
-    // if no rules, be lenient and mark as correct
     dz.classList.add("correct"); currentRoundCorrect.push(filledKey);
   }
 
@@ -762,43 +724,34 @@ checkBtn.addEventListener("click", () => {
 
   // Update counts
   if(allCorrect){
-    // increment correct counts for each dropzone (we count this round as correct)
     levelCorrect[currentLevel] = (levelCorrect[currentLevel] || 0) + dzs.length;
     correctCount += dzs.length;
     // mark used items so they won't appear again
     dzs.forEach(dz => { if(dz.dataset.filled) usedDraggables.add(dz.dataset.filled); });
   } else {
-    // for incorrect entries: mark incorrect counters and remove those draggables permanently (they disappear)
     currentRoundIncorrect.forEach(k => {
       levelIncorrect[currentLevel] = (levelIncorrect[currentLevel] || 0) + 1;
       incorrectCount++;
-      // remove DOM nodes where the draggable existed in left/right columns
       const dom = document.querySelector(`.draggable[data-key="${k}"]`);
       if(dom && dom.parentElement) dom.parentElement.removeChild(dom);
-      // mark used so it won't reappear
       usedDraggables.add(k);
-      // remove the incorrect item from the dropzone visually
       const dz = dzs.find(d=> d.dataset.filled === k);
       if(dz){
         dz.innerHTML = ""; dz.dataset.filled = ""; dz.classList.remove("filled");
       }
     });
-    // correct ones remain visible and are marked correct; also mark them used
     currentRoundCorrect.forEach(k => { if(k) usedDraggables.add(k); });
   }
 
-  // show feedback image where check button was (we'll place into feedbackDiv)
   feedbackDiv.innerHTML = "";
   const fbImg = document.createElement("img");
   fbImg.src = allCorrect ? "assets/correct.png" : "assets/wrong.png";
   fbImg.alt = allCorrect ? "Correct" : "Wrong";
   feedbackDiv.appendChild(fbImg);
 
-  // Save progress after this check
   saveProgress();
 
-  // After 2 seconds: clear fb, if allCorrect advance nextRound, else let student try again
-  setTimeout(() => {
+   setTimeout(() => {
     feedbackDiv.innerHTML = "";
     if(allCorrect){
       // advance round
@@ -811,8 +764,6 @@ checkBtn.addEventListener("click", () => {
             roundInLevel = 0;
             buildQuestion();
           } else {
-            // game end
-            // submit results silently (if at least 1 correct)
             finalSubmitThenEnd();
           }
         });
@@ -821,7 +772,6 @@ checkBtn.addEventListener("click", () => {
         buildQuestion();
       }
     } else {
-      // not all correct - show again button for retry
       againBtn.style.display = "inline-block";
     }
   }, 2000);
@@ -829,11 +779,9 @@ checkBtn.addEventListener("click", () => {
 
 /* ===== 'Again' button in-level: removes incorrect markers and allows retry ===== */
 againBtn.addEventListener("click", () => {
-  // clear feedback & incorrect classes but do not restore permanently-removed items
   feedbackDiv.innerHTML = "";
   Array.from(answerArea.querySelectorAll(".dropzone")).forEach(dz => {
     dz.classList.remove("incorrect");
-    // keep filled items where correct - but incorrect ones were already removed during check
   });
   checkBtn.style.display = "none";
   againBtn.style.display = "none";
@@ -852,9 +800,7 @@ function showClapThenAdvance(cb){
   }, 2000);
 }
 
-/* ===== Google Form submission =====
-   Submit only once at end if score >=1, and mark submitted in localStorage.
-*/
+// ===== Google Form submission =====
 let formSubmittedFlag = localStorage.getItem("sentencesGame_submitted") === "1";
 
 async function submitToGoogleForm(silent=true){
@@ -896,11 +842,8 @@ async function submitToGoogleForm(silent=true){
 
 /* ===== Final submission and end modal ===== */
 async function finalSubmitThenEnd(){
-  // Submit results if not already submitted and if there is at least one correct
   await submitToGoogleForm(true);
-  // clear saved progress (per spec)
   clearProgress();
-  // show end modal with clap gif and stats
   if(document.getElementById("finalTime")) document.getElementById("finalTime").textContent = getTimeElapsed() + "s";
   const totalCorrect = Object.values(levelCorrect).reduce((a,b)=>a+b,0);
   const totalIncorrect = Object.values(levelIncorrect).reduce((a,b)=>a+b,0);
