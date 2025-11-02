@@ -416,6 +416,11 @@ function updateCheckVisibility(){
   if(allFilled) checkBtn.style.display = "inline-block";
 }
 
+function handleDrop(e) {
+  e.preventDefault();
+  updateCheckVisibility();
+}
+
 /* ===== Build the question UI and draggables for the current level and round ===== */
 function buildQuestion(){
   questionArea.innerHTML = "";
@@ -471,14 +476,24 @@ function buildQuestion(){
     sign2.alt = word2; qdiv.appendChild(sign2);
     questionArea.appendChild(qdiv);
 
-    // Single dropzone with faint clue
-    const dz = document.createElement("div");
-    dz.className = "dropzone";
-    dz.dataset.placeholder = `${word1}+${word2}`;
-    dz.innerHTML = `<div class="placeholder faint">${word1} + ${word2}</div>`;
-    dz.addEventListener("dragover", e=>e.preventDefault());
-    dz.addEventListener("drop", dropHandler);
-    answerArea.appendChild(dz);
+// Single dropzone with faint clue
+const dz = document.createElement("div");
+dz.className = "dropzone";
+dz.dataset.placeholder = `${word1}+${word2}`;
+
+// NEW: topic-based hint only
+let hintLabel = "";
+if (topicName === "animals") hintLabel = "animal + number";
+else if (topicName === "food") hintLabel = "food + colour";
+else if (topicName === "emotions") hintLabel = "emotion + zone";
+dz.innerHTML = `<div class="placeholder faint">${hintLabel}</div>`;
+
+// handlers
+dz.addEventListener("dragover", e => e.preventDefault());
+dz.addEventListener("drop", handleDrop);
+
+answerArea.appendChild(dz);
+dz.dataset.expected = correctCandidate.key;
 
     // pick decoys from same pool (avoid usedDraggables and same key)
     let pool = (topicName==="animals") ? shuffleArray(candidatePool.animals)
