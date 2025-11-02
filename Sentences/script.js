@@ -494,11 +494,6 @@ function buildQuestion(){
     sign2.alt = word2; qdiv.appendChild(sign2);
     questionArea.appendChild(qdiv);
 
-// Single dropzone with faint clue
-const dz = document.createElement("div");
-dz.className = "dropzone";
-dz.dataset.placeholder = `${word1}+${word2}`;
-
 // NEW: topic-based hint only
 let hintLabel = "";
 if (topicName === "animals") hintLabel = "animal + number";
