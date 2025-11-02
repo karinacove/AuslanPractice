@@ -442,7 +442,6 @@ function buildQuestion(){
   answerArea.innerHTML = "";
   feedbackDiv.innerHTML = "";
   checkBtn.style.display = "none";
-
   updateScoreDisplay();
 
   const desc = levelDescriptor(currentLevel);
