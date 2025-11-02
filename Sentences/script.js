@@ -221,11 +221,8 @@ let dragClone = null;
 let isTouch = false;
 
 document.querySelectorAll(".dropzone").forEach(dz => {
-  dz.style.backgroundColor = "lightyellow"; // visualize
-});
-
-document.addEventListener("mouseup", (e)=>{
-  const dz = document.elementFromPoint(e.clientX, e.clientY).closest(".dropzone");
+  dz.addEventListener("dragover", e => e.preventDefault());
+  dz.addEventListener("drop", e => e.preventDefault());
 });
 
 function startDrag(e){
