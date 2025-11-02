@@ -226,9 +226,6 @@ document.querySelectorAll(".dropzone").forEach(dz => {
 
 document.addEventListener("mouseup", (e)=>{
   const dz = document.elementFromPoint(e.clientX, e.clientY).closest(".dropzone");
-  if(dz){
-    dz.textContent = "Dropped!";
-  }
 });
 
 function startDrag(e){
