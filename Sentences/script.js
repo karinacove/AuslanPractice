@@ -220,6 +220,17 @@ let dragItem = null;
 let dragClone = null;
 let isTouch = false;
 
+document.querySelectorAll(".dropzone").forEach(dz => {
+  dz.style.backgroundColor = "lightyellow"; // visualize
+});
+
+document.addEventListener("mouseup", (e)=>{
+  const dz = document.elementFromPoint(e.clientX, e.clientY).closest(".dropzone");
+  if(dz){
+    dz.textContent = "Dropped!";
+  }
+});
+
 function startDrag(e){
   const tgt = e.target.closest(".draggable");
   if(!tgt) return;
