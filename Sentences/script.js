@@ -114,6 +114,47 @@ function signPathFor(word){
   return "";
 }
 
+function renderSentenceRows(signs) {
+  // signs = array of image/video paths in order
+  const row1 = document.getElementById("sentenceRow1");
+  const row2 = document.getElementById("sentenceRow2");
+  const row3 = document.getElementById("sentenceRow3");
+  
+  // clear old rows
+  [row1, row2, row3].forEach(r => r.innerHTML = "");
+
+  // distribute across rows based on count
+  if (signs.length <= 3) {
+    signs.forEach(src => appendSign(row1, src));
+  } else if (signs.length <= 6) {
+    signs.slice(0, 3).forEach(src => appendSign(row1, src));
+    signs.slice(3).forEach(src => appendSign(row2, src));
+  } else {
+    signs.slice(0, 3).forEach(src => appendSign(row1, src));
+    signs.slice(3, 6).forEach(src => appendSign(row2, src));
+    signs.slice(6).forEach(src => appendSign(row3, src));
+  }
+}
+
+function appendSign(container, src) {
+  const isVideo = src.endsWith(".mp4");
+  if (isVideo) {
+    const vid = document.createElement("video");
+    vid.src = src;
+    vid.autoplay = true;
+    vid.loop = true;
+    vid.muted = true;
+    vid.className = "sign-video";
+    container.appendChild(vid);
+  } else {
+    const img = document.createElement("img");
+    img.src = src;
+    img.alt = "Sign";
+    img.className = "sign-img";
+    container.appendChild(img);
+  }
+}
+
 /* Descriptor */
 function levelDescriptor(level){
   if (level >=1 && level <=3) return { type: "simple", topicIndex: level }; // 1 animals, 2 food, 3 emotions
