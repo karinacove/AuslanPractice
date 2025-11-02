@@ -42,18 +42,29 @@
     <div id="draggablesLeft" class="draggables"></div>
 
     <div id="centerArea">
-      <div id="questionArea"></div>
-      <div id="answerArea"></div>
-      <div id="feedback"></div>
-      <div id="controls">
-        <button id="checkBtn" class="iconButton">
-          <img src="assets/check.png" alt="Check">
-        </button>
-        <button id="againBtn" class="iconButton">
-          <img src="assets/again.png" alt="Again">
-        </button>
-      </div>
-    </div>
+  <!-- Sentence / Question area -->
+  <div id="questionArea">
+    <div id="sentenceRow1" class="sentence-row"></div>
+    <div id="sentenceRow2" class="sentence-row"></div>
+    <div id="sentenceRow3" class="sentence-row"></div>
+  </div>
+
+  <!-- Answer area (drop zones will be dynamically added by JS) -->
+  <div id="answerArea"></div>
+
+  <!-- Feedback image (correct/wrong) -->
+  <div id="feedback"></div>
+
+  <!-- Control buttons -->
+  <div id="controls">
+    <button id="checkBtn" class="iconButton">
+      <img src="assets/check.png" alt="Check">
+    </button>
+    <button id="againBtn" class="iconButton">
+      <img src="assets/again.png" alt="Again">
+    </button>
+  </div>
+</div>
 
     <div id="draggablesRight" class="draggables"></div>
   </div>
