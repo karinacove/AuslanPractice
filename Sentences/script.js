@@ -798,14 +798,6 @@ checkBtn.addEventListener("click", () => {
   }, 2000);
 });
 
-/* ===== 'Again' button in-level: allows retry (rebuild same question state but keep removed items removed) ===== */
-againBtn.addEventListener("click", () => {
-  feedbackDiv.innerHTML = "";
-  Array.from(answerArea.querySelectorAll(".dropzone")).forEach(dz => dz.classList.remove("incorrect"));
-  checkBtn.style.display = "none";
-  againBtn.style.display = "none";
-});
-
 /* ===== Clap and advance ===== */
 function showClapThenAdvance(cb){
   const gif = document.createElement("img");
