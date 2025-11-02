@@ -453,7 +453,6 @@ function buildQuestion(){
 
   // helper: pick unused candidate (combo) from pool preferring not usedCombos
   function pickUnusedCombo(poolArr){
-    // poolArr is candidatePool.animals/food/emotions
     const shuffled = shuffleArray(poolArr).filter(c => !usedDraggables.has(c.key));
     for(const c of shuffled){
       if(!usedCombos.has(c.key)) return c;
@@ -461,199 +460,252 @@ function buildQuestion(){
     return shuffled[0] || null;
   }
 
+  // --- function to create a dropzone element with optional placeholder text ---
+  function createDropzone(placeholderText="", expectedKey=""){
+    const dz = document.createElement("div");
+    dz.className = "dropzone";
+    if(placeholderText) dz.innerHTML = `<div class="placeholder faint">${placeholderText}</div>`;
+    dz.dataset.expected = expectedKey;
+    dz.addEventListener("dragover", e => e.preventDefault());
+    dz.addEventListener("drop", handleDrop); // your drop handler
+    answerArea.appendChild(dz);
+    return dz;
+  }
+
+  // --- helper for setting up a question row ---
+  function buildQuestionRow(words, topicName){
+    const helperType = (topicName === "emotions") ? VOCAB.helpers.feel : VOCAB.helpers.see;
+    const helperImg = document.createElement("img");
+    helperImg.src = helperType;
+    helperImg.alt = "helper";
+    helperImg.style.maxWidth = "120px";
+
+    const qdiv = document.createElement("div");
+    qdiv.className = "questionRow";
+    qdiv.appendChild(helperImg);
+
+    words.forEach(word=>{
+      const sign = document.createElement(VOCAB.topics.emotions.includes(word) ? "video" : "img");
+      if(sign.tagName === "VIDEO"){
+        sign.src = signPathFor(word);
+        sign.autoplay = true; sign.loop = true; sign.muted = true;
+      } else {
+        sign.src = signPathFor(word);
+      }
+      sign.alt = word;
+      qdiv.appendChild(sign);
+    });
+
+    questionArea.appendChild(qdiv);
+  }
+
+  // --- simple type question ---
   if(desc.type === "simple"){
-    const topicIndex = desc.topicIndex; // 1 animals, 2 food, 3 emotions
-    const topicName = topicIndex === 1 ? "animals" : (topicIndex===2 ? "food" : "emotions");
-    // pick a correct candidate that hasn't been used as a correct combo before (usedCombos)
+    const topicIndex = desc.topicIndex;
+    const topicName = topicIndex===1 ? "animals" : topicIndex===2 ? "food" : "emotions";
+
+    // pick correct candidate
     let correctCandidate = null;
     if(topicName === "animals") correctCandidate = pickUnusedCombo(candidatePool.animals);
     if(topicName === "food") correctCandidate = pickUnusedCombo(candidatePool.food);
     if(topicName === "emotions") correctCandidate = pickUnusedCombo(candidatePool.emotions);
-    // fallback
+
     if(!correctCandidate){
-      const pool = (topicName==="animals") ? candidatePool.animals : (topicName==="food") ? candidatePool.food : candidatePool.emotions;
-      correctCandidate = shuffleArray(pool).find(c => !usedDraggables.has(c.key)) || pool[0];
+      const pool = topicName==="animals" ? candidatePool.animals
+                 : topicName==="food" ? candidatePool.food
+                 : candidatePool.emotions;
+      correctCandidate = shuffleArray(pool).find(c=>!usedDraggables.has(c.key)) || pool[0];
     }
-    const parts = correctCandidate ? correctCandidate.key.split("::") : [topicName,"",""];
-    let word1 = parts[1] || (topicName==="animals"? randomItem(VOCAB.topics.animals) : topicName==="food"? randomItem(VOCAB.topics.food) : randomItem(VOCAB.topics.emotions));
-    let word2 = parts[2] || (topicName==="animals"? randomItem(VOCAB.numbers) : topicName==="food"? randomItem(VOCAB.colours) : randomItem(VOCAB.zones));
-    // display helper (see/feel) + signs
-    const helperType = (topicName === "emotions") ? VOCAB.helpers.feel : VOCAB.helpers.see;
-    const helperImg = document.createElement("img"); helperImg.src = helperType; helperImg.alt = "helper"; helperImg.style.maxWidth="120px";
-    const qdiv = document.createElement("div"); qdiv.className="questionRow";
-    qdiv.appendChild(helperImg);
-    // sign1
-    const sign1 = document.createElement(VOCAB.topics.emotions.includes(word1) ? "video" : "img");
-    if(sign1.tagName==="VIDEO"){ sign1.src = signPathFor(word1); sign1.autoplay=true; sign1.loop=true; sign1.muted=true; }
-    else sign1.src = signPathFor(word1);
-    sign1.alt = word1; qdiv.appendChild(sign1);
-    // sign2
-    const sign2 = document.createElement(VOCAB.topics.emotions.includes(word2) ? "video" : "img");
-    if(sign2.tagName==="VIDEO"){ sign2.src = signPathFor(word2); sign2.autoplay=true; sign2.loop=true; sign2.muted=true; }
-    else sign2.src = signPathFor(word2);
-    sign2.alt = word2; qdiv.appendChild(sign2);
-    questionArea.appendChild(qdiv);
 
-// NEW: topic-based hint only
-let hintLabel = "";
-if (topicName === "animals") hintLabel = "animal + number";
-else if (topicName === "food") hintLabel = "food + colour";
-else if (topicName === "emotions") hintLabel = "emotion + zone";
-dz.innerHTML = `<div class="placeholder faint">${hintLabel}</div>`;
+    const parts = correctCandidate.key.split("::");
+    const word1 = parts[1] || (topicName==="animals"? randomItem(VOCAB.topics.animals)
+                  : topicName==="food"? randomItem(VOCAB.topics.food)
+                  : randomItem(VOCAB.topics.emotions));
+    const word2 = parts[2] || (topicName==="animals"? randomItem(VOCAB.numbers)
+                  : topicName==="food"? randomItem(VOCAB.colours)
+                  : randomItem(VOCAB.zones));
 
-// handlers
-dz.addEventListener("dragover", e => e.preventDefault());
-dz.addEventListener("drop", handleDrop);
+    buildQuestionRow([word1, word2], topicName);
 
-answerArea.appendChild(dz);
-dz.dataset.expected = correctCandidate.key;
+    // create dropzone with topic-based hint
+    let hintLabel = topicName==="animals" ? "animal + number"
+                  : topicName==="food" ? "food + colour"
+                  : "emotion + zone";
 
-    // pick decoys from same pool (avoid usedDraggables and same key)
-    let pool = (topicName==="animals") ? shuffleArray(candidatePool.animals)
-               : (topicName==="food") ? shuffleArray(candidatePool.food)
-               : shuffleArray(candidatePool.emotions);
-    pool = pool.filter(c => c.key !== (correctCandidate.key) && !usedDraggables.has(c.key));
+    const dz = createDropzone(hintLabel, correctCandidate.key);
+
+    // pick decoys
+    let pool = topicName==="animals" ? shuffleArray(candidatePool.animals)
+             : topicName==="food" ? shuffleArray(candidatePool.food)
+             : shuffleArray(candidatePool.emotions);
+
+    pool = pool.filter(c => c.key !== correctCandidate.key && !usedDraggables.has(c.key));
     const decoys = pool.slice(0,11);
-    const allItems = shuffleArray([ ...decoys, correctCandidate ]);
+    const allItems = shuffleArray([correctCandidate, ...decoys]);
     const leftItems = allItems.slice(0,6);
     const rightItems = allItems.slice(6,12);
     populateDraggables(leftItems, rightItems, 6, 6);
+  }
 
-    // expected key for checking
-    dz.dataset.expected = correctCandidate.key;
-
-  } else if(desc.type === "two"){
+  // --- two type question ---
+  else if(desc.type === "two"){
     const topicIndex = desc.topicIndex;
-    const topicName = topicIndex === 1 ? "animals" : (topicIndex===2 ? "food" : "emotions");
-    // pick a word1, word2 (avoid combos previously marked usedCombos if possible)
+    const topicName = topicIndex===1 ? "animals" : topicIndex===2 ? "food" : "emotions";
+    const pool = topicName==="animals" ? candidatePool.animals
+                : topicName==="food" ? candidatePool.food
+                : candidatePool.emotions;
+
     let chosen = null;
-    const pool = (topicName==="animals") ? candidatePool.animals : (topicName==="food") ? candidatePool.food : candidatePool.emotions;
     for(const c of shuffleArray(pool)){
-      if(!usedCombos.has(c.key) && !usedDraggables.has(c.key)){ chosen = c; break; }
+      if(!usedCombos.has(c.key) && !usedDraggables.has(c.key)){ chosen=c; break; }
     }
     if(!chosen) chosen = shuffleArray(pool).find(c=>!usedDraggables.has(c.key)) || pool[0];
     const parts = chosen.key.split("::");
     const word1 = parts[1], word2 = parts[2];
-    const helperType = (topicName === "emotions") ? VOCAB.helpers.feel : VOCAB.helpers.see;
-    const helperImg = document.createElement("img"); helperImg.src = helperType; helperImg.alt = "helper";
-    helperImg.onerror = () => { helperImg.style.display = "none"; };
-    const qdiv = document.createElement("div"); qdiv.className="questionRow";
-    qdiv.appendChild(helperImg);
-    const s1 = document.createElement(VOCAB.topics.emotions.includes(word1) ? "video" : "img"); if(s1.tagName==="VIDEO"){ s1.src = signPathFor(word1); s1.autoplay=true; s1.loop=true; s1.muted=true; } else s1.src = signPathFor(word1); s1.alt = word1; qdiv.appendChild(s1);
-    const s2 = document.createElement(VOCAB.topics.emotions.includes(word2) ? "video" : "img"); if(s2.tagName==="VIDEO"){ s2.src = signPathFor(word2); s2.autoplay=true; s2.loop=true; s2.muted=true; } else s2.src = signPathFor(word2); s2.alt = word2; qdiv.appendChild(s2);
-    questionArea.appendChild(qdiv);
 
-    // Two dropzones
-    const dz1 = document.createElement("div"); dz1.className="dropzone"; dz1.dataset.placeholder = "topic";
-    dz1.addEventListener("dragover", e=>e.preventDefault()); dz1.addEventListener("drop", dropHandler);
-    const dz2 = document.createElement("div"); dz2.className="dropzone"; dz2.dataset.placeholder = "extra";
-    dz2.addEventListener("dragover", e=>e.preventDefault()); dz2.addEventListener("drop", dropHandler);
-    answerArea.appendChild(dz1); answerArea.appendChild(dz2);
+    buildQuestionRow([word1, word2], topicName);
 
-    // set expected values for checking
-    dz1.dataset.expectedType = topicName; dz1.dataset.expectedValue = word1;
-    dz2.dataset.expectedType = (topicName==="animals"?"numbers":(topicName==="food"?"colours":"zones"));
+    // create two dropzones
+    const dz1 = createDropzone("topic", chosen.key);
+    const dz2 = createDropzone("extra", "");
+
+    dz1.dataset.expectedValue = word1;
     dz2.dataset.expectedValue = word2;
 
-    // build left candidates (full combos) and right candidates (extras)
-    const leftPool = shuffleArray(pool).filter(c => !usedDraggables.has(c.key)).slice(0,9);
+    // build left and right candidates
+    const leftPool = shuffleArray(pool).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
     const rightSel = [];
-    if(topicName==="animals"){
-      shuffleArray(VOCAB.numbers).slice(0,6).forEach(n => rightSel.push({ key: `numbers::${n}`, img: `assets/images/numbers/${n}.png`, parts:{number:n} }));
-    } else if(topicName==="food"){
-      shuffleArray(VOCAB.colours).slice(0,6).forEach(c => rightSel.push({ key: `colours::${c}`, img: `assets/images/colours/${c}.png`, parts:{colour:c} }));
-    } else {
-      shuffleArray(VOCAB.zones).slice(0,6).forEach(z => rightSel.push({ key: `zones::${z}`, img: `assets/images/zones/${z}.png`, parts:{zone:z} }));
-    }
+    if(topicName==="animals") shuffleArray(VOCAB.numbers).slice(0,6).forEach(n => rightSel.push({ key:`numbers::${n}`, img:`assets/images/numbers/${n}.png`, parts:{number:n} }));
+    else if(topicName==="food") shuffleArray(VOCAB.colours).slice(0,6).forEach(c => rightSel.push({ key:`colours::${c}`, img:`assets/images/colours/${c}.png`, parts:{colour:c} }));
+    else shuffleArray(VOCAB.zones).slice(0,6).forEach(z => rightSel.push({ key:`zones::${z}`, img:`assets/images/zones/${z}.png`, parts:{zone:z} }));
+
     populateDraggables(leftPool.slice(0,6), rightSel, Math.min(6,leftPool.length), rightSel.length);
+  }
 
-    dz1.dataset.expectedExact = word1;
-    dz2.dataset.expectedExact = word2;
+  // --- compound / bonus / layouts ---
+  else if(desc.type==="compound" || desc.type==="bonus"){
+    questionArea.innerHTML = ""; // clear top
 
-  } else if(desc.type === "compound" || desc.type === "bonus"){
-    // For compound/bonus layouts we will pick all required parts and also pick a verb where needed
-    questionArea.innerHTML = "";
-    const helperImg = document.createElement("img"); helperImg.src = VOCAB.helpers.see; helperImg.alt = "see";
-    helperImg.onerror = () => { helperImg.style.display = "none"; };
-    const qtop = document.createElement("div"); qtop.className = "questionRow";
+    const helperImg = document.createElement("img"); helperImg.src = VOCAB.helpers.see; helperImg.alt="see";
+    helperImg.onerror = ()=>{ helperImg.style.display="none"; };
+    const qtop = document.createElement("div"); qtop.className="questionRow";
     qtop.appendChild(helperImg);
     questionArea.appendChild(qtop);
 
     const dzs = [];
 
-    if(desc.layout === "A"){
-      // Level 7: top sentence then below: dropzone1 = animal+number, dropzone2 = food+colour
-      // Also choose a verb for the sentence (have/donthave) and display its sign between sentence rows
+    if(desc.layout==="A"){
       const verb = randomItem(["have","donthave"]);
-      // display verb sign under the top row
-      const verbSign = document.createElement("img"); verbSign.src = signPathFor(verb); verbSign.alt = verb; verbSign.className="inlineVerb";
+      const verbSign = document.createElement("img"); verbSign.src = signPathFor(verb); verbSign.alt=verb; verbSign.className="inlineVerb";
       qtop.appendChild(verbSign);
 
-      const dz1 = document.createElement("div"); dz1.className="dropzone"; dz1.dataset.placeholder="animal+number";
-      const dz2 = document.createElement("div"); dz2.className="dropzone"; dz2.dataset.placeholder="food+colour";
-      [dz1,dz2].forEach(d=>{ d.addEventListener("dragover",e=>e.preventDefault()); d.addEventListener("drop", dropHandler); answerArea.appendChild(d); dzs.push(d); });
+      const dz1 = createDropzone("animal+number", "");
+      const dz2 = createDropzone("food+colour", "");
+      dz1.dataset.expectedType="animals_combo"; dz2.dataset.expectedType="food_combo";
+      dz1.dataset.expectedVerb=verb; dz2.dataset.expectedVerb=verb;
+      dzs.push(dz1,dz2);
 
-      // Pick expected combos: animal+number and food+colour
       const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
       const rightCandidates = shuffleArray(candidatePool.food).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-      // overlay random have/donthave on right candidates
-      rightCandidates.forEach(c => { c.overlay = Math.random()>0.5 ? "have" : "donthave"; });
-
-      populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
-
-      dz1.dataset.expectedType = "animals_combo"; dz2.dataset.expectedType = "food_combo";
-      dz1.dataset.expectedVerb = verb; dz2.dataset.expectedVerb = verb; // so check can enforce overlay for food when verb is present
-
-    } else if(desc.layout === "B"){
-      // Level 8: 5 dropzones animal, number, verb, food, colour
-      const keys = ["animal","number","verb","food","colour"];
-      keys.forEach(k => {
-        const dz = document.createElement("div"); dz.className="dropzone"; dz.dataset.placeholder = k;
-        dz.addEventListener("dragover", e=>e.preventDefault()); dz.addEventListener("drop", dropHandler);
-        answerArea.appendChild(dz); dzs.push(dz);
-      });
-      const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-      const rightCandidates = shuffleArray(candidatePool.food).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-      populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
-      // append two verb drag elements to bottom (have / donthave)
-      const verbs = [{key:"verb::have", img: signPathFor("have"), parts:{verb:"have"}},{key:"verb::donthave", img: signPathFor("donthave"), parts:{verb:"donthave"}}];
-      verbs.forEach(v=>{
-        const div = document.createElement("div"); div.className="draggable"; div.draggable=true; div.dataset.key=v.key; div.dataset.img=v.img;
-        const img = document.createElement("img"); img.src=v.img; img.alt=v.key; div.appendChild(img); rightDraggables.appendChild(div);
-      });
-    } else if(desc.layout === "C"){
-      // Level 9: dropzones animal, number, emotion+zone
-      const dz1 = document.createElement("div"); dz1.className="dropzone"; dz1.dataset.placeholder="animal";
-      const dz2 = document.createElement("div"); dz2.className="dropzone"; dz2.dataset.placeholder="number";
-      const dz3 = document.createElement("div"); dz3.className="dropzone"; dz3.dataset.placeholder="emotion+zone";
-      [dz1,dz2,dz3].forEach(d=>{ d.addEventListener("dragover",e=>e.preventDefault()); d.addEventListener("drop", dropHandler); answerArea.appendChild(d); dzs.push(d); });
-      const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-      const rightCandidates = shuffleArray(candidatePool.emotions).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-      populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
-    } else if(desc.layout === "D"){
-      // Level 10: two dropzones animal+number and emotion+zone (right candidates with overlays sometimes)
-      const dz1 = document.createElement("div"); dz1.className="dropzone"; dz1.dataset.placeholder="animal+number";
-      const dz2 = document.createElement("div"); dz2.className="dropzone"; dz2.dataset.placeholder="emotion+zone";
-      [dz1,dz2].forEach(d=>{ d.addEventListener("dragover",e=>e.preventDefault()); d.addEventListener("drop", dropHandler); answerArea.appendChild(d); dzs.push(d); });
-      const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-      const rightCandidates = shuffleArray(candidatePool.emotions).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-      rightCandidates.forEach((c,idx)=>{ if(Math.random()>0.5) c.overlay="have"; else c.overlay="donthave"; });
-      populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
-    } else if(desc.layout === "E" || desc.layout === "F"){
-      // Bonus layouts
-      const placeholders = desc.layout === "E" ? ["animal","number","emotion","zone","verb","food","colour"] : ["animal","number","emotion","zone","food+colour"];
-      placeholders.forEach(ph => {
-        const dz = document.createElement("div"); dz.className="dropzone"; dz.dataset.placeholder = ph;
-        dz.addEventListener("dragover",e=>e.preventDefault()); dz.addEventListener("drop", dropHandler);
-        answerArea.appendChild(dz);
-      });
-      const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-      const rightCandidates = shuffleArray(candidatePool.food).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
+      rightCandidates.forEach(c=>{ c.overlay=Math.random()>0.5?"have":"donthave"; });
       populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
     }
-    // done compound/bonus build
+
+// --- compound / bonus / layouts ---
+else if(desc.type==="compound" || desc.type==="bonus"){
+  questionArea.innerHTML = ""; // clear top
+
+  const helperImg = document.createElement("img");
+  helperImg.src = VOCAB.helpers.see; helperImg.alt="see";
+  helperImg.onerror = ()=>{ helperImg.style.display="none"; };
+  const qtop = document.createElement("div"); qtop.className="questionRow";
+  qtop.appendChild(helperImg);
+  questionArea.appendChild(qtop);
+
+  const dzs = [];
+
+  // --- Layout A ---
+  if(desc.layout==="A"){
+    const verb = randomItem(["have","donthave"]);
+    const verbSign = document.createElement("img"); 
+    verbSign.src = signPathFor(verb); verbSign.alt=verb; verbSign.className="inlineVerb";
+    qtop.appendChild(verbSign);
+
+    const dz1 = createDropzone("animal+number", "");
+    const dz2 = createDropzone("food+colour", "");
+    dz1.dataset.expectedType="animals_combo"; dz2.dataset.expectedType="food_combo";
+    dz1.dataset.expectedVerb=verb; dz2.dataset.expectedVerb=verb;
+    dzs.push(dz1,dz2);
+
+    const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
+    const rightCandidates = shuffleArray(candidatePool.food).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
+    rightCandidates.forEach(c=>{ c.overlay=Math.random()>0.5?"have":"donthave"; });
+    populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
   }
 
+  // --- Layout B: 5 dropzones (animal, number, verb, food, colour) ---
+  else if(desc.layout==="B"){
+    const keys = ["animal","number","verb","food","colour"];
+    keys.forEach(k=>{
+      const dz = createDropzone(k,"");
+      dz.dataset.placeholder = k;
+      dzs.push(dz);
+    });
+
+    const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
+    const rightCandidates = shuffleArray(candidatePool.food).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
+    populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
+
+    // add two verb draggables
+    const verbs = ["have","donthave"];
+    verbs.forEach(v=>{
+      const div = document.createElement("div");
+      div.className="draggable"; div.draggable=true;
+      div.dataset.key = `verb::${v}`; div.dataset.img = signPathFor(v);
+      const img = document.createElement("img"); img.src = signPathFor(v); img.alt=v; div.appendChild(img);
+      rightDraggables.appendChild(div);
+    });
+  }
+
+  // --- Layout C: 3 dropzones (animal, number, emotion+zone) ---
+  else if(desc.layout==="C"){
+    const dz1 = createDropzone("animal",""); 
+    const dz2 = createDropzone("number",""); 
+    const dz3 = createDropzone("emotion+zone","");
+    dzs.push(dz1,dz2,dz3);
+
+    const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
+    const rightCandidates = shuffleArray(candidatePool.emotions).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
+    populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
+  }
+
+  // --- Layout D: 2 dropzones (animal+number, emotion+zone) ---
+  else if(desc.layout==="D"){
+    const dz1 = createDropzone("animal+number","");
+    const dz2 = createDropzone("emotion+zone","");
+    dzs.push(dz1,dz2);
+
+    const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
+    const rightCandidates = shuffleArray(candidatePool.emotions).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
+    rightCandidates.forEach(c=>{ c.overlay=Math.random()>0.5?"have":"donthave"; });
+    populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
+  }
+
+  // --- Layout E / F: bonus layouts ---
+  else if(desc.layout==="E" || desc.layout==="F"){
+    const placeholders = desc.layout==="E" 
+      ? ["animal","number","emotion","zone","verb","food","colour"] 
+      : ["animal","number","emotion","zone","food+colour"];
+
+    placeholders.forEach(ph=>{
+      const dz = createDropzone(ph,"");
+      dzs.push(dz);
+    });
+
+    const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
+    const rightCandidates = shuffleArray(candidatePool.food).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
+    populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
+  }
   updateCheckVisibility();
 } // end buildQuestion
 
