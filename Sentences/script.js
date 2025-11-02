@@ -50,7 +50,6 @@ const stopFinish = document.getElementById("finishBtnStop");
 let studentName = localStorage.getItem("studentName") || "";
 let studentClass = localStorage.getItem("studentClass") || "";
 if (!studentName || !studentClass) {
-  // keep this behaviour (redirect to index)
   alert("Please log in first.");
   window.location.href = "../index.html";
 } else {
@@ -72,14 +71,15 @@ let levelCorrect = {};       // per-level counters
 let levelIncorrect = {};
 for(let i=1;i<=TOTAL_LEVELS;i++){ levelCorrect[i]=0; levelIncorrect[i]=0; }
 
-let answersHistory = [];     // {level,round,label,value,correct}
+let answersHistory = [];     // {level,round,correctKeys,incorrectKeys}
 
 let startTime = null;
 let savedTimeElapsed = 0;     // seconds accumulated before pause
 
-// ensure once-per-game draggable usage: store keys like "animals-dog-5" etc.
-let usedDraggables = new Set();
+let usedDraggables = new Set(); // permanently removed / used items
+let usedCombos = new Set();     // combos answered correctly first-try (prevent as future questions)
 
+/* ===== VOCAB ===== */
 const VOCAB = {
   topics: {
     animals: ["dog","cat","mouse","rabbit","fish","bird"],
@@ -100,10 +100,9 @@ function timeNowSeconds(){ return Math.round(Date.now()/1000); }
 function getTimeElapsed(){ return savedTimeElapsed + (startTime ? Math.round((Date.now()-startTime)/1000) : 0); }
 function setTimeElapsed(seconds){ savedTimeElapsed = seconds || 0; startTime = Date.now(); }
 
-// sign path helper for signs (words and combos)
-function signPathFor(word, typeHint){
+/* sign path helper */
+function signPathFor(word){
   if (!word) return "";
-  // words may be "dog" or "one" or "sign-angry.mp4" — we map by vocab sets
   if (VOCAB.topics.animals.includes(word)) return `assets/signs/animals/${word}-sign.png`;
   if (VOCAB.topics.food && VOCAB.topics.food.includes(word)) return `assets/signs/food/${word}-sign.png`;
   if (VOCAB.topics.emotions && VOCAB.topics.emotions.includes(word)) return `assets/signs/emotions/sign-${word}.mp4`;
@@ -111,13 +110,12 @@ function signPathFor(word, typeHint){
   if (VOCAB.colours.includes(word)) return `assets/signs/colours/${word}-sign.png`;
   if (VOCAB.zones.includes(word)) return `assets/signs/zones/${word}.png`;
   if (VOCAB.verbs.includes(word)) return `assets/signs/verbs/${word}.png`;
-  if (Object.values(VOCAB.helpers).includes(word)) return word; // pass through
+  if (Object.values(VOCAB.helpers).includes(word)) return word;
   return "";
 }
 
+/* Descriptor */
 function levelDescriptor(level){
-  // returns object describing what to show and where draggables come from
-  // We'll use types: "simple" (one dropzone, top shows helper + two signs), "two" (two dropzones), "compound" (multiple)
   if (level >=1 && level <=3) return { type: "simple", topicIndex: level }; // 1 animals, 2 food, 3 emotions
   if (level >=4 && level <=6) return { type: "two", topicIndex: level-3 }; // 4 animals(opposite),5 food(opposite),6 emotions(opposite)
   if (level ===7) return { type: "compound", layout: "A" };
@@ -129,41 +127,30 @@ function levelDescriptor(level){
   return { type: "simple", topicIndex: 1 };
 }
 
+/* Build draggable filename */
 function buildDraggableFilename(topic, a, b){
-  // topic: "animals" | "food" | "emotions"
-  if(topic==="animals"){ return `assets/images/animals/${a}-${b}.png`; } // e.g. dog-two.png
-  if(topic==="food"){ return `assets/images/food/${a}-${b}.png`; }      // apple-red.png
-  if(topic==="emotions"){ return `assets/images/emotions/${a}-${b}.png`; } // angry-blue.png (zone)
+  if(topic==="animals"){ return `assets/images/animals/${a}-${b}.png`; }
+  if(topic==="food"){ return `assets/images/food/${a}-${b}.png`; }
+  if(topic==="emotions"){ return `assets/images/emotions/${a}-${b}.png`; }
   return "";
 }
+function draggableKey(topic,a,b){ return `${topic}::${a}::${b}`; }
 
-// unique identifier for a draggable (usedDraggables set key)
-function draggableKey(topic, a, b){
-  return `${topic}::${a}::${b}`;
-}
-
-const candidatePool = {
-  animals: [], // [ {key, img, parts:{animal,number}} ]
-  food: [],
-  emotions: []
-};
-
+/* Candidate pools */
+const candidatePool = { animals: [], food: [], emotions: [] };
 (function buildCandidatePools(){
-  // animals x numbers
   VOCAB.topics.animals.forEach(animal=>{
     VOCAB.numbers.forEach(num=>{
       const key = draggableKey("animals",animal,num);
       candidatePool.animals.push({ key, img: buildDraggableFilename("animals",animal,num), parts: { animal, number: num } });
     });
   });
-  // food x colours
   VOCAB.topics.food.forEach(food=>{
     VOCAB.colours.forEach(col=>{
       const key = draggableKey("food",food,col);
       candidatePool.food.push({ key, img: buildDraggableFilename("food",food,col), parts: { food, colour: col } });
     });
   });
-  // emotions x zones
   VOCAB.topics.emotions.forEach(em=>{
     VOCAB.zones.forEach(z=>{
       const key = draggableKey("emotions",em,z);
@@ -172,7 +159,7 @@ const candidatePool = {
   });
 })();
 
-/* ===== Drag clone machinery (mouse + touch) ===== */
+/* ===== Drag clone machinery (mouse + touch) - preserved with centering ===== */
 let dragItem = null;
 let dragClone = null;
 let isTouch = false;
@@ -190,9 +177,10 @@ function startDrag(e){
     top: rect.top + "px",
     width: rect.width + "px",
     height: rect.height + "px",
-    opacity: "0.9",
+    opacity: "0.95",
     pointerEvents: "none",
-    zIndex: 5000
+    zIndex: 5000,
+    transform: "translate(-50%,-50%)"
   });
   dragClone.classList.add("drag-clone");
   document.body.appendChild(dragClone);
@@ -210,8 +198,8 @@ function moveDrag(e){
   let clientX, clientY;
   if(isTouch && e.touches && e.touches.length>0){ clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }
   else { clientX = e.clientX; clientY = e.clientY; }
-  dragClone.style.left = (clientX - dragClone.offsetWidth/2) + "px";
-  dragClone.style.top = (clientY - dragClone.offsetHeight/2) + "px";
+  dragClone.style.left = clientX + "px";
+  dragClone.style.top = clientY + "px";
 }
 function endDrag(e){
   if(!dragItem || !dragClone) return;
@@ -224,14 +212,17 @@ function endDrag(e){
   for(const dz of dzs){
     const rect = dz.getBoundingClientRect();
     if(clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom){
-      // only allow drop if empty
       if(dz.childElementCount === 0){
         const node = dragItem.cloneNode(true);
         node.classList.remove("draggable");
         node.classList.add("dropped");
+        // center the dropped image for better visuals
+        node.style.display = "block";
+        node.style.margin = "auto";
         dz.appendChild(node);
-        dz.dataset.filled = dragItem.dataset.key; // our key identifies the draggable
-        dz.dataset.src = dragItem.dataset.img || ""; // remember src
+        // store filled key AFTER we append (so restore can find it)
+        dz.dataset.filled = dragItem.dataset.key;
+        dz.dataset.src = dragItem.dataset.img || "";
         dz.classList.add("filled");
         dropped = true;
       }
@@ -249,17 +240,13 @@ function endDrag(e){
     document.removeEventListener("mouseup", endDrag);
   }
 
-  if(dropped){
-    // reveal check button if (for single-drop levels) any drop exists, or (for two-drop) both filled
-    updateCheckVisibility();
-  }
+  if(dropped) updateCheckVisibility();
 }
 
 // global pointer start
 document.addEventListener("mousedown", startDrag);
 document.addEventListener("touchstart", startDrag, { passive:false });
 
-// native drop handler not used, but keep signature
 function dropHandler(e){ e.preventDefault(); }
 
 /* ===== UI helpers ===== */
@@ -267,54 +254,43 @@ function updateScoreDisplay(){
   scoreDisplay.textContent = `Level ${currentLevel} - Question ${roundInLevel+1}/${QUESTIONS_PER_LEVEL}`;
 }
 
-/* ===== Double-tap / double-click removal on dropzones =====
-   Implement double click or double-tap to remove the dropped item and return it to its original container (unless used across game).
-*/
+/* ===== Double-tap / double-click removal on dropzones ===== */
 let lastTap = 0;
 answerArea.addEventListener("click", (ev) => {
   const dz = ev.target.closest(".dropzone");
   if(!dz) return;
   const now = Date.now();
   if (now - lastTap < 350){ // double tap detected
-    // remove dropped item
     if(dz.dataset.filled){
-      // remove node
+      const filledKey = dz.dataset.filled; // capture BEFORE clearing
+      // remove node and metadata
       dz.innerHTML = "";
       dz.dataset.filled = "";
       dz.dataset.src = "";
       dz.classList.remove("filled","incorrect","correct");
-      // restore draggable to its side container if original exists AND if not globally used (we only permanently remove wrong answers)
-      // find the original draggable in DOM by data-key if present - else re-create from candidate pool
-      restoreDraggableByKeyToSide(dz.dataset.filled);
+      // restore draggable to its side container if not permanently removed
+      restoreDraggableByKeyToSide(filledKey);
       updateCheckVisibility();
     }
   }
   lastTap = now;
 });
 
-/* helper: restore draggable DOM node back to its original side container if possible */
+/* restore draggable */
 function restoreDraggableByKeyToSide(key){
   if(!key) return;
-  // If the original draggable is still in the DOM somewhere, do nothing
   if(document.querySelector(`.draggable[data-key="${key}"]`)) return;
-  // If the item was permanently used (wrong and removed), we don't recreate it
   if(usedDraggables.has(key)) return;
-  // Otherwise, re-create a draggable element and append to left/right with space
-  // decide which side based on topic prefix
   const parts = key.split("::");
   if(parts.length !== 3) return;
-  const topic = parts[0];
-  const a = parts[1];
-  const b = parts[2];
-
-  const container = (topic === "animals" || topic==="food" || topic==="emotions") ? (leftDraggables.childElementCount <= rightDraggables.childElementCount ? leftDraggables : rightDraggables) : leftDraggables;
+  const topic = parts[0], a = parts[1], b = parts[2];
+  const container = (leftDraggables.childElementCount <= rightDraggables.childElementCount) ? leftDraggables : rightDraggables;
   const div = createDraggableNodeFromParts(topic, a, b);
   if(container) container.appendChild(div);
 }
 
-/* ===== Create draggable nodes from parts (topic,a,b) ===== */
+/* create draggable from parts */
 function createDraggableNodeFromParts(topic,a,b){
-  // find candidate with that key
   const key = draggableKey(topic,a,b);
   const imgSrc = buildDraggableFilename(topic,a,b);
   const div = document.createElement("div");
@@ -323,18 +299,16 @@ function createDraggableNodeFromParts(topic,a,b){
   div.dataset.key = key;
   div.dataset.img = imgSrc;
   div.style.userSelect = "none";
-  // image fallback
   const img = document.createElement("img");
   img.src = imgSrc;
   img.alt = `${a}-${b}`;
   img.onerror = function(){ img.style.display = "none"; if(!div.querySelector(".fallback")){ const f = document.createElement("div"); f.className="fallback"; f.textContent = `${a}-${b}`; div.appendChild(f); } };
   div.appendChild(img);
-  // native dragstart set data
   div.addEventListener("dragstart", e => { try{ e.dataTransfer.setData("text/plain", key);}catch{} });
   return div;
 }
 
-*/
+/* populate draggables (left + right arrays provided) */
 function populateDraggables(leftCandidates, rightCandidates, leftCount=6, rightCount=6){
   leftDraggables.innerHTML = "";
   rightDraggables.innerHTML = "";
@@ -343,17 +317,24 @@ function populateDraggables(leftCandidates, rightCandidates, leftCount=6, rightC
   const rightSelection = rightCandidates.slice(0,rightCount);
 
   leftSelection.forEach(c => {
-    if(usedDraggables.has(c.key)) return; // skip used
+    if(usedDraggables.has(c.key)) return;
     const div = document.createElement("div");
     div.className = "draggable";
     div.draggable = true;
     div.dataset.key = c.key;
     div.dataset.img = c.img;
+    if(c.overlay) div.dataset.overlay = c.overlay; // for have/donthave
     const img = document.createElement("img");
     img.src = c.img;
     img.alt = c.key;
     img.onerror = () => { img.style.display = "none"; if(!div.querySelector(".fallback")){ const f = document.createElement("div"); f.className="fallback"; f.textContent = (c.parts.animal||c.parts.food||c.parts.emotion) + (c.parts.number?`-${c.parts.number}`:""); div.appendChild(f);} };
     div.appendChild(img);
+    if(c.overlay){ // create overlay marker (tick or X) as text (no image provided)
+      const ov = document.createElement("div");
+      ov.className = "overlay " + c.overlay;
+      ov.textContent = (c.overlay === "have") ? "✓" : "✕"; // simple symbol overlay
+      div.appendChild(ov);
+    }
     div.addEventListener("dragstart", e => { try{ e.dataTransfer.setData("text/plain", c.key);}catch{} });
     leftDraggables.appendChild(div);
   });
@@ -365,38 +346,37 @@ function populateDraggables(leftCandidates, rightCandidates, leftCount=6, rightC
     div.draggable = true;
     div.dataset.key = c.key;
     div.dataset.img = c.img;
+    if(c.overlay) div.dataset.overlay = c.overlay;
     const img = document.createElement("img");
     img.src = c.img;
     img.alt = c.key;
     img.onerror = () => { img.style.display = "none"; if(!div.querySelector(".fallback")){ const f = document.createElement("div"); f.className="fallback"; f.textContent = (c.parts.food||c.parts.colour||c.parts.zone) + (c.parts.colour?`-${c.parts.colour}`:""); div.appendChild(f);} };
     div.appendChild(img);
+    if(c.overlay){
+      const ov = document.createElement("div");
+      ov.className = "overlay " + c.overlay;
+      ov.textContent = (c.overlay === "have") ? "✓" : "✕";
+      div.appendChild(ov);
+    }
     div.addEventListener("dragstart", e => { try{ e.dataTransfer.setData("text/plain", c.key);}catch{} });
     rightDraggables.appendChild(div);
   });
 
-  // update pointer cursor
   document.querySelectorAll(".draggable").forEach(d=> d.style.cursor = "grab");
 }
 
-/* ===== updateCheckVisibility: shows/hides the check button for current layout ===== */
+/* updateCheckVisibility */
 function updateCheckVisibility(){
   checkBtn.style.display = "none";
   const desc = levelDescriptor(currentLevel);
-  if(desc.type === "simple" || desc.type === "compound" || desc.type === "bonus"){
-    // one dropzone or multiple but requirement: show check only when all required dropzones are filled
-    const required = Array.from(answerArea.querySelectorAll(".dropzone"));
-    const allFilled = required.length>0 && required.every(d=>d.dataset.filled && d.dataset.filled.length>0);
-    if(allFilled) checkBtn.style.display = "inline-block";
-  } else if(desc.type === "two"){
-    const dzs = Array.from(answerArea.querySelectorAll(".dropzone"));
-    const allFilled = dzs.length>0 && dzs.every(d=>d.dataset.filled && d.dataset.filled.length>0);
-    if(allFilled) checkBtn.style.display = "inline-block";
-  }
+  const required = Array.from(answerArea.querySelectorAll(".dropzone"));
+  if(required.length === 0) return;
+  const allFilled = required.every(d=>d.dataset.filled && d.dataset.filled.length>0);
+  if(allFilled) checkBtn.style.display = "inline-block";
 }
 
 /* ===== Build the question UI and draggables for the current level and round ===== */
 function buildQuestion(){
-  // clear feedback and answer area
   questionArea.innerHTML = "";
   answerArea.innerHTML = "";
   feedbackDiv.innerHTML = "";
@@ -407,171 +387,122 @@ function buildQuestion(){
 
   const desc = levelDescriptor(currentLevel);
 
-  // helper to pick an unused candidate from pool, removing used ones for the remainder of the game if used.
-  function pickUnusedFromPool(poolArr){
-    // shuffle and pick first unused
-    const shuffled = shuffleArray(poolArr);
+  // helper: pick unused candidate (combo) from pool preferring not usedCombos
+  function pickUnusedCombo(poolArr){
+    // poolArr is candidatePool.animals/food/emotions
+    const shuffled = shuffleArray(poolArr).filter(c => !usedDraggables.has(c.key));
     for(const c of shuffled){
-      if(!usedDraggables.has(c.key)) return c;
+      if(!usedCombos.has(c.key)) return c;
     }
-    // if none available (shouldn't happen in typical runs), allow reused one
     return shuffled[0] || null;
   }
 
   if(desc.type === "simple"){
-    // topicIndex 1 => animals+numbers ; 2 => food+colours ; 3 => emotions+zones
-    const topicIndex = desc.topicIndex;
+    const topicIndex = desc.topicIndex; // 1 animals, 2 food, 3 emotions
     const topicName = topicIndex === 1 ? "animals" : (topicIndex===2 ? "food" : "emotions");
-    // choose word1 and word2 for the question (they must be unused combos ideally)
-    let word1, word2, word1SignPath, word2SignPath;
-    // For animals level, word1=animal, word2=number
-    if(topicName === "animals"){
-      word1 = randomItem(VOCAB.topics.animals);
-      word2 = randomItem(VOCAB.numbers);
-      word1SignPath = signPathFor(word1);
-      word2SignPath = signPathFor(word2);
-    } else if(topicName==="food"){
-      word1 = randomItem(VOCAB.topics.food);
-      word2 = randomItem(VOCAB.colours);
-      word1SignPath = signPathFor(word1);
-      word2SignPath = signPathFor(word2);
-    } else { // emotions
-      word1 = randomItem(VOCAB.topics.emotions);
-      word2 = randomItem(VOCAB.zones);
-      word1SignPath = signPathFor(word1);
-      word2SignPath = signPathFor(word2);
+    // pick a correct candidate that hasn't been used as a correct combo before (usedCombos)
+    let correctCandidate = null;
+    if(topicName === "animals") correctCandidate = pickUnusedCombo(candidatePool.animals);
+    if(topicName === "food") correctCandidate = pickUnusedCombo(candidatePool.food);
+    if(topicName === "emotions") correctCandidate = pickUnusedCombo(candidatePool.emotions);
+    // fallback
+    if(!correctCandidate){
+      const pool = (topicName==="animals") ? candidatePool.animals : (topicName==="food") ? candidatePool.food : candidatePool.emotions;
+      correctCandidate = shuffleArray(pool).find(c => !usedDraggables.has(c.key)) || pool[0];
     }
-
-    // create and show helper sentence "I see what?" or "I feel what?"
+    const parts = correctCandidate ? correctCandidate.key.split("::") : [topicName,"",""];
+    let word1 = parts[1] || (topicName==="animals"? randomItem(VOCAB.topics.animals) : topicName==="food"? randomItem(VOCAB.topics.food) : randomItem(VOCAB.topics.emotions));
+    let word2 = parts[2] || (topicName==="animals"? randomItem(VOCAB.numbers) : topicName==="food"? randomItem(VOCAB.colours) : randomItem(VOCAB.zones));
+    // display helper (see/feel) + signs
     const helperType = (topicName === "emotions") ? VOCAB.helpers.feel : VOCAB.helpers.see;
-    const helperImg = document.createElement("img");
-    helperImg.src = helperType;
-    helperImg.alt = "helper";
-    helperImg.style.maxWidth = "120px";
-    const qdiv = document.createElement("div");
-    qdiv.className = "questionRow";
+    const helperImg = document.createElement("img"); helperImg.src = helperType; helperImg.alt = "helper"; helperImg.style.maxWidth="120px";
+    const qdiv = document.createElement("div"); qdiv.className="questionRow";
     qdiv.appendChild(helperImg);
-
-    // add first sign
-    const s1 = document.createElement("img");
-    s1.src = word1SignPath;
-    s1.alt = word1;
-    s1.onerror = () => { s1.style.display = "none"; };
-    qdiv.appendChild(s1);
-    // add second sign
-    const s2 = document.createElement("img");
-    s2.src = word2SignPath;
-    s2.alt = word2;
-    s2.onerror = () => { s2.style.display = "none"; };
-    qdiv.appendChild(s2);
-
+    // sign1
+    const sign1 = document.createElement(VOCAB.topics.emotions.includes(word1) ? "video" : "img");
+    if(sign1.tagName==="VIDEO"){ sign1.src = signPathFor(word1); sign1.autoplay=true; sign1.loop=true; sign1.muted=true; }
+    else sign1.src = signPathFor(word1);
+    sign1.alt = word1; qdiv.appendChild(sign1);
+    // sign2
+    const sign2 = document.createElement(VOCAB.topics.emotions.includes(word2) ? "video" : "img");
+    if(sign2.tagName==="VIDEO"){ sign2.src = signPathFor(word2); sign2.autoplay=true; sign2.loop=true; sign2.muted=true; }
+    else sign2.src = signPathFor(word2);
+    sign2.alt = word2; qdiv.appendChild(sign2);
     questionArea.appendChild(qdiv);
 
-    // Single dropzone with faint clue "word1+word2"
+    // Single dropzone with faint clue
     const dz = document.createElement("div");
     dz.className = "dropzone";
-    dz.dataset.placeholder = "word1+word2";
-    dz.addEventListener("dragover", e => e.preventDefault());
+    dz.dataset.placeholder = `${word1}+${word2}`;
+    dz.innerHTML = `<div class="placeholder faint">${word1} + ${word2}</div>`;
+    dz.addEventListener("dragover", e=>e.preventDefault());
     dz.addEventListener("drop", dropHandler);
     answerArea.appendChild(dz);
 
-    let correctCandidate;
-    if(topicName === "animals"){
-      correctCandidate = candidatePool.animals.find(c => c.parts.animal === word1 && c.parts.number === word2);
-    } else if(topicName === "food"){
-      correctCandidate = candidatePool.food.find(c => c.parts.food === word1 && c.parts.colour === word2);
-    } else {
-      correctCandidate = candidatePool.emotions.find(c => c.parts.emotion === word1 && c.parts.zone === word2);
-    }
-    // ensure it exists
-    if(!correctCandidate){
-      // fallback: build from parts
-      const img = buildDraggableFilename(topicName, word1, word2);
-      const key = draggableKey(topicName, word1, word2);
-      correctCandidate = { key, img, parts: {} };
-    }
-
-    // choose decoys from same topic pool but avoid the chosen combo or any already usedDraggables
+    // pick decoys from same pool (avoid usedDraggables and same key)
     let pool = (topicName==="animals") ? shuffleArray(candidatePool.animals)
-            : (topicName==="food") ? shuffleArray(candidatePool.food)
-            : shuffleArray(candidatePool.emotions);
-    pool = pool.filter(c=> c.key !== (correctCandidate.key) && !usedDraggables.has(c.key));
-    const decoys = pool.slice(0, 11);
-    // place them shuffled and ensure correctCandidate sits somewhere
+               : (topicName==="food") ? shuffleArray(candidatePool.food)
+               : shuffleArray(candidatePool.emotions);
+    pool = pool.filter(c => c.key !== (correctCandidate.key) && !usedDraggables.has(c.key));
+    const decoys = pool.slice(0,11);
     const allItems = shuffleArray([ ...decoys, correctCandidate ]);
-    // ensure no duplicates globally
     const leftItems = allItems.slice(0,6);
     const rightItems = allItems.slice(6,12);
-
-    // populate left / right using helper
     populateDraggables(leftItems, rightItems, 6, 6);
 
-    // record the correct value for checking (store on dropzone)
+    // expected key for checking
     dz.dataset.expected = correctCandidate.key;
 
   } else if(desc.type === "two"){
     const topicIndex = desc.topicIndex;
     const topicName = topicIndex === 1 ? "animals" : (topicIndex===2 ? "food" : "emotions");
-    // pick word1 and word2
-    let word1, word2, sign1, sign2;
-    if(topicName==="animals"){ word1 = randomItem(VOCAB.topics.animals); word2 = randomItem(VOCAB.numbers); }
-    else if(topicName==="food"){ word1 = randomItem(VOCAB.topics.food); word2 = randomItem(VOCAB.colours); }
-    else { word1 = randomItem(VOCAB.topics.emotions); word2 = randomItem(VOCAB.zones); }
-    sign1 = signPathFor(word1);
-    sign2 = signPathFor(word2);
-
-    // sentence top
+    // pick a word1, word2 (avoid combos previously marked usedCombos if possible)
+    let chosen = null;
+    const pool = (topicName==="animals") ? candidatePool.animals : (topicName==="food") ? candidatePool.food : candidatePool.emotions;
+    for(const c of shuffleArray(pool)){
+      if(!usedCombos.has(c.key) && !usedDraggables.has(c.key)){ chosen = c; break; }
+    }
+    if(!chosen) chosen = shuffleArray(pool).find(c=>!usedDraggables.has(c.key)) || pool[0];
+    const parts = chosen.key.split("::");
+    const word1 = parts[1], word2 = parts[2];
     const helperType = (topicName === "emotions") ? VOCAB.helpers.feel : VOCAB.helpers.see;
     const helperImg = document.createElement("img"); helperImg.src = helperType; helperImg.alt = "helper";
     helperImg.onerror = () => { helperImg.style.display = "none"; };
-    const qdiv = document.createElement("div");
-    qdiv.className = "questionRow";
+    const qdiv = document.createElement("div"); qdiv.className="questionRow";
     qdiv.appendChild(helperImg);
-    const s1 = document.createElement("img"); s1.src = sign1; s1.alt = word1;
-    s1.onerror = () => { s1.style.display = "none"; };
-    qdiv.appendChild(s1);
-    const s2 = document.createElement("img"); s2.src = sign2; s2.alt = word2;
-    s2.onerror = () => { s2.style.display = "none"; };
-    qdiv.appendChild(s2);
+    const s1 = document.createElement(VOCAB.topics.emotions.includes(word1) ? "video" : "img"); if(s1.tagName==="VIDEO"){ s1.src = signPathFor(word1); s1.autoplay=true; s1.loop=true; s1.muted=true; } else s1.src = signPathFor(word1); s1.alt = word1; qdiv.appendChild(s1);
+    const s2 = document.createElement(VOCAB.topics.emotions.includes(word2) ? "video" : "img"); if(s2.tagName==="VIDEO"){ s2.src = signPathFor(word2); s2.autoplay=true; s2.loop=true; s2.muted=true; } else s2.src = signPathFor(word2); s2.alt = word2; qdiv.appendChild(s2);
     questionArea.appendChild(qdiv);
 
-    // Two dropzones: first placeholder topic (word1), second placeholder extra (word2)
-    const dz1 = document.createElement("div"); dz1.className = "dropzone"; dz1.dataset.placeholder = "topic";
+    // Two dropzones
+    const dz1 = document.createElement("div"); dz1.className="dropzone"; dz1.dataset.placeholder = "topic";
     dz1.addEventListener("dragover", e=>e.preventDefault()); dz1.addEventListener("drop", dropHandler);
-    const dz2 = document.createElement("div"); dz2.className = "dropzone"; dz2.dataset.placeholder = "extra";
+    const dz2 = document.createElement("div"); dz2.className="dropzone"; dz2.dataset.placeholder = "extra";
     dz2.addEventListener("dragover", e=>e.preventDefault()); dz2.addEventListener("drop", dropHandler);
     answerArea.appendChild(dz1); answerArea.appendChild(dz2);
-    // set expected keys so check can compare
-    // expected for dz1 is any draggable whose key part contains the topic word (e.g. animal), for dz2 is the extra part
+
+    // set expected values for checking
     dz1.dataset.expectedType = topicName; dz1.dataset.expectedValue = word1;
     dz2.dataset.expectedType = (topicName==="animals"?"numbers":(topicName==="food"?"colours":"zones"));
     dz2.dataset.expectedValue = word2;
 
-   const leftPool = shuffleArray( (topicName==="animals"? candidatePool.animals : (topicName==="food"? candidatePool.food : candidatePool.emotions)) )
-                      .filter(c => !usedDraggables.has(c.key));
-    const leftSel = leftPool.slice(0,6);
-
-    // build right candidates as pseudo-candidates representing only the extra
+    // build left candidates (full combos) and right candidates (extras)
+    const leftPool = shuffleArray(pool).filter(c => !usedDraggables.has(c.key)).slice(0,9);
     const rightSel = [];
     if(topicName==="animals"){
-      // extras numbers
-      const options = shuffleArray(VOCAB.numbers).slice(0,6);
-      options.forEach(n => rightSel.push({ key: `numbers::${n}`, img: `assets/images/numbers/${n}.png`, parts: { number: n } }));
+      shuffleArray(VOCAB.numbers).slice(0,6).forEach(n => rightSel.push({ key: `numbers::${n}`, img: `assets/images/numbers/${n}.png`, parts:{number:n} }));
     } else if(topicName==="food"){
-      const options = shuffleArray(VOCAB.colours).slice(0,6);
-      options.forEach(c => rightSel.push({ key: `colours::${c}`, img: `assets/images/colours/${c}.png`, parts: { colour: c } }));
+      shuffleArray(VOCAB.colours).slice(0,6).forEach(c => rightSel.push({ key: `colours::${c}`, img: `assets/images/colours/${c}.png`, parts:{colour:c} }));
     } else {
-      const options = shuffleArray(VOCAB.zones).slice(0,6);
-      options.forEach(z => rightSel.push({ key: `zones::${z}`, img: `assets/images/zones/${z}.png`, parts: { zone: z } }));
+      shuffleArray(VOCAB.zones).slice(0,6).forEach(z => rightSel.push({ key: `zones::${z}`, img: `assets/images/zones/${z}.png`, parts:{zone:z} }));
     }
+    populateDraggables(leftPool.slice(0,6), rightSel, Math.min(6,leftPool.length), rightSel.length);
 
-    // populate left and right containers
-    populateDraggables(leftSel, rightSel, leftSel.length, rightSel.length);
+    dz1.dataset.expectedExact = word1;
+    dz2.dataset.expectedExact = word2;
 
-    // store expected combination on dz1/dz2 for checking
-    dz1.dataset.expectedExact = word1; // topic item must contain this word
-    dz2.dataset.expectedExact = word2; // extra must equal this
   } else if(desc.type === "compound" || desc.type === "bonus"){
+    // For compound/bonus layouts we will pick all required parts and also pick a verb where needed
     questionArea.innerHTML = "";
     const helperImg = document.createElement("img"); helperImg.src = VOCAB.helpers.see; helperImg.alt = "see";
     helperImg.onerror = () => { helperImg.style.display = "none"; };
@@ -579,52 +510,50 @@ function buildQuestion(){
     qtop.appendChild(helperImg);
     questionArea.appendChild(qtop);
 
-    // create dropzones depending on layout
     const dzs = [];
-    if(desc.layout === "A"){ // Level 7: top sentence + below two dropzones (animal+number, food+colour) with have/donthave overlay
-      // two dropzones placed side-by-side
-      const dz1 = document.createElement("div"); dz1.className="dropzone"; dz1.dataset.placeholder="animal+number";
-      dz1.addEventListener("dragover", e=>e.preventDefault()); dz1.addEventListener("drop", dropHandler);
-      const dz2 = document.createElement("div"); dz2.className="dropzone"; dz2.dataset.placeholder="food+colour";
-      dz2.addEventListener("dragover", e=>e.preventDefault()); dz2.addEventListener("drop", dropHandler);
-      answerArea.appendChild(dz1); answerArea.appendChild(dz2);
-      dzs.push(dz1,dz2);
 
-      // left draggables: 9 animal+number combos
+    if(desc.layout === "A"){
+      // Level 7: top sentence then below: dropzone1 = animal+number, dropzone2 = food+colour
+      // Also choose a verb for the sentence (have/donthave) and display its sign between sentence rows
+      const verb = randomItem(["have","donthave"]);
+      // display verb sign under the top row
+      const verbSign = document.createElement("img"); verbSign.src = signPathFor(verb); verbSign.alt = verb; verbSign.className="inlineVerb";
+      qtop.appendChild(verbSign);
+
+      const dz1 = document.createElement("div"); dz1.className="dropzone"; dz1.dataset.placeholder="animal+number";
+      const dz2 = document.createElement("div"); dz2.className="dropzone"; dz2.dataset.placeholder="food+colour";
+      [dz1,dz2].forEach(d=>{ d.addEventListener("dragover",e=>e.preventDefault()); d.addEventListener("drop", dropHandler); answerArea.appendChild(d); dzs.push(d); });
+
+      // Pick expected combos: animal+number and food+colour
       const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-      // right draggables: 9 food+colour combos - but need overlays indicating have/donthave on some of them
       const rightCandidates = shuffleArray(candidatePool.food).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-      // For overlays, we'll attach dataset.overlay = "have" or "donthave" randomly
+      // overlay random have/donthave on right candidates
       rightCandidates.forEach(c => { c.overlay = Math.random()>0.5 ? "have" : "donthave"; });
 
       populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
-      // store expected checks on dzs (we'll match exact key when checking)
+
       dz1.dataset.expectedType = "animals_combo"; dz2.dataset.expectedType = "food_combo";
-    }
-    else if(desc.layout === "B"){ // Level 8 inverse - sentence starter and dropzone have 5 options: animal, number, verb, food, colour
-      // For brevity, create 5 dropzones
+      dz1.dataset.expectedVerb = verb; dz2.dataset.expectedVerb = verb; // so check can enforce overlay for food when verb is present
+
+    } else if(desc.layout === "B"){
+      // Level 8: 5 dropzones animal, number, verb, food, colour
       const keys = ["animal","number","verb","food","colour"];
       keys.forEach(k => {
-        const dz = document.createElement("div"); dz.className="dropzone"; dz.dataset.placeholder=k;
+        const dz = document.createElement("div"); dz.className="dropzone"; dz.dataset.placeholder = k;
         dz.addEventListener("dragover", e=>e.preventDefault()); dz.addEventListener("drop", dropHandler);
         answerArea.appendChild(dz); dzs.push(dz);
       });
-      // left draggables: animals and numbers combos (9)
       const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-      // right draggables: food and colours combos (9)
       const rightCandidates = shuffleArray(candidatePool.food).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-      // bottom verbs: create two draggable small nodes for 'have' and 'donthave'
-      // we'll create them as part of right side here but set dataset.key to 'verb::have'
-      const bottomVerbs = [{key:"verb::have", img:"assets/images/verbs/have.png", parts:{verb:"have"}},{key:"verb::donthave", img:"assets/images/verbs/donthave.png", parts:{verb:"donthave"}}];
       populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
-      // append verbs to rightDraggables area bottom (or left) - add separately
-      bottomVerbs.forEach(v=>{
-        const div = document.createElement("div"); div.className="draggable"; div.draggable=true; div.dataset.key = v.key; div.dataset.img = v.img;
-        const img = document.createElement("img"); img.src = v.img; img.alt = v.key; img.onerror = ()=>{ img.style.display="none"; if(!div.querySelector(".fallback")){ const f=document.createElement("div"); f.className="fallback"; f.textContent = v.key; div.appendChild(f); } };
-        div.appendChild(img); rightDraggables.appendChild(div);
+      // append two verb drag elements to bottom (have / donthave)
+      const verbs = [{key:"verb::have", img: signPathFor("have"), parts:{verb:"have"}},{key:"verb::donthave", img: signPathFor("donthave"), parts:{verb:"donthave"}}];
+      verbs.forEach(v=>{
+        const div = document.createElement("div"); div.className="draggable"; div.draggable=true; div.dataset.key=v.key; div.dataset.img=v.img;
+        const img = document.createElement("img"); img.src=v.img; img.alt=v.key; div.appendChild(img); rightDraggables.appendChild(div);
       });
-    }
-    else if(desc.layout === "C"){ // Level 9: I see what? animal number feel emotion zone (3 dropzones)
+    } else if(desc.layout === "C"){
+      // Level 9: dropzones animal, number, emotion+zone
       const dz1 = document.createElement("div"); dz1.className="dropzone"; dz1.dataset.placeholder="animal";
       const dz2 = document.createElement("div"); dz2.className="dropzone"; dz2.dataset.placeholder="number";
       const dz3 = document.createElement("div"); dz3.className="dropzone"; dz3.dataset.placeholder="emotion+zone";
@@ -632,19 +561,17 @@ function buildQuestion(){
       const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
       const rightCandidates = shuffleArray(candidatePool.emotions).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
       populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
-    }
-    else if(desc.layout === "D"){ // Level 10: I see what? animal+number feel emotion+zone (two dropzones)
+    } else if(desc.layout === "D"){
+      // Level 10: two dropzones animal+number and emotion+zone (right candidates with overlays sometimes)
       const dz1 = document.createElement("div"); dz1.className="dropzone"; dz1.dataset.placeholder="animal+number";
       const dz2 = document.createElement("div"); dz2.className="dropzone"; dz2.dataset.placeholder="emotion+zone";
       [dz1,dz2].forEach(d=>{ d.addEventListener("dragover",e=>e.preventDefault()); d.addEventListener("drop", dropHandler); answerArea.appendChild(d); dzs.push(d); });
       const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
       const rightCandidates = shuffleArray(candidatePool.emotions).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-      // ensure some of right candidates include overlay representations for have/donthave - find or assign randomly
       rightCandidates.forEach((c,idx)=>{ if(Math.random()>0.5) c.overlay="have"; else c.overlay="donthave"; });
       populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
-    }
-    else if(desc.layout === "E" || desc.layout === "F"){ // bonus rounds simplified: more dropzones and more draggables
-      // E: I see what? (animal number feel emotion zone) why? verb food colour
+    } else if(desc.layout === "E" || desc.layout === "F"){
+      // Bonus layouts
       const placeholders = desc.layout === "E" ? ["animal","number","emotion","zone","verb","food","colour"] : ["animal","number","emotion","zone","food+colour"];
       placeholders.forEach(ph => {
         const dz = document.createElement("div"); dz.className="dropzone"; dz.dataset.placeholder = ph;
@@ -655,46 +582,29 @@ function buildQuestion(){
       const rightCandidates = shuffleArray(candidatePool.food).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
       populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
     }
+    // done compound/bonus build
+  }
 
-  } // end compound/bonus
-
-  // ensure dropzones have the double-tap handler (already globally listened) and check button visibility updated
   updateCheckVisibility();
-}
+} // end buildQuestion
 
+/* ===== Check button logic (full handling for simple, two, compound, bonus) ===== */
 checkBtn.addEventListener("click", () => {
-  // hide check to prevent double clicks
   checkBtn.style.display = "none";
 
   const desc = levelDescriptor(currentLevel);
   const dzs = Array.from(answerArea.querySelectorAll(".dropzone"));
   let allCorrect = true;
-  const currentRoundCorrect = []; // keys that are correct to possibly mark used
-  const currentRoundIncorrect = []; // keys that are incorrect (we remove permanently)
+  const currentRoundCorrect = [];
+  const currentRoundIncorrect = [];
 
-  // Helper to parse and check a single dropzone
   function checkDropzone(dz){
     const filledKey = dz.dataset.filled || "";
     if(!filledKey){ allCorrect = false; return; }
-    // For standard simple case (dz.dataset.expected present)
+
+    // simple exact expected key
     if(dz.dataset.expected){
       if(filledKey === dz.dataset.expected){
-        // correct
-        dz.classList.add("correct");
-        currentRoundCorrect.push(filledKey);
-      } else {
-        dz.classList.add("incorrect");
-        currentRoundIncorrect.push(filledKey);
-        allCorrect = false;
-      }
-      return;
-    }
-
-    if(dz.dataset.expectedExact){
-      // expect a value contained inside the draggable's key parts
-      const expected = dz.dataset.expectedExact;
-      // attempt to parse filledKey: our candidate keys are often like "animals::dog::two" or "numbers::two"
-      if(filledKey.includes(expected)) {
         dz.classList.add("correct"); currentRoundCorrect.push(filledKey);
       } else {
         dz.classList.add("incorrect"); currentRoundIncorrect.push(filledKey); allCorrect = false;
@@ -702,62 +612,99 @@ checkBtn.addEventListener("click", () => {
       return;
     }
 
+    // expectedExact: check if the filledKey includes expected token (e.g., word present)
+    if(dz.dataset.expectedExact){
+      const expected = dz.dataset.expectedExact;
+      if(filledKey.includes(expected)){ dz.classList.add("correct"); currentRoundCorrect.push(filledKey); }
+      else { dz.classList.add("incorrect"); currentRoundIncorrect.push(filledKey); allCorrect = false; }
+      return;
+    }
+
+    // expectedType handling (animals_combo, food_combo or generic)
     if(dz.dataset.expectedType){
-      const expectedType = dz.dataset.expectedType;
-      if(expectedType === "animals_combo" || expectedType==="food_combo"){
-        // accept any dropped item whose key starts with animals:: or food:: respectively
-        if(filledKey.startsWith(expectedType.split("_")[0])){ dz.classList.add("correct"); currentRoundCorrect.push(filledKey); }
+      const et = dz.dataset.expectedType;
+      const expectedValue = dz.dataset.expectedValue;
+      if(et === "animals_combo"){
+        if(filledKey.startsWith("animals::")){ dz.classList.add("correct"); currentRoundCorrect.push(filledKey); }
         else { dz.classList.add("incorrect"); currentRoundIncorrect.push(filledKey); allCorrect = false; }
+      } else if(et === "food_combo"){
+        // if verb expected overlay exists, verify overlay matches expected verb
+        if(filledKey.startsWith("food::")){
+          // if dz expects a verb overlay (many compound levels pass dataset.expectedVerb)
+          const expectedVerb = dz.dataset.expectedVerb || null;
+          const placedOverlay = (() => {
+            // the draggable in DOM may be removed, but we can lookup dataset.overlay on the draggable in the side (if still present)
+            const dom = document.querySelector(`.draggable[data-key="${filledKey}"]`);
+            if(dom && dom.dataset && dom.dataset.overlay) return dom.dataset.overlay;
+            // fallback: maybe the dropped element was the clone; check the node inside the dropzone
+            const node = Array.from(dz.querySelectorAll("[data-overlay]"))[0];
+            if(node && node.dataset && node.dataset.overlay) return node.dataset.overlay;
+            // fallback check dataset on the dropzone if saved
+            return dz.dataset.overlay || null;
+          })();
+          if(expectedVerb){
+            if(placedOverlay === expectedVerb){ dz.classList.add("correct"); currentRoundCorrect.push(filledKey); }
+            else { dz.classList.add("incorrect"); currentRoundIncorrect.push(filledKey); allCorrect = false; }
+          } else {
+            dz.classList.add("correct"); currentRoundCorrect.push(filledKey);
+          }
+        } else { dz.classList.add("incorrect"); currentRoundIncorrect.push(filledKey); allCorrect = false; }
       } else {
-        // generic check: if filled includes expectedValue
-        const expectedValue = dz.dataset.expectedValue;
-        if(expectedValue && filledKey.includes(expectedValue)) { dz.classList.add("correct"); currentRoundCorrect.push(filledKey); }
+        // generic expectedType: check expectedValue contained
+        if(expectedValue && filledKey.includes(expectedValue)){ dz.classList.add("correct"); currentRoundCorrect.push(filledKey); }
         else { dz.classList.add("incorrect"); currentRoundIncorrect.push(filledKey); allCorrect = false; }
       }
       return;
     }
 
+    // if no expectation metadata, accept anything
     dz.classList.add("correct"); currentRoundCorrect.push(filledKey);
   }
 
   dzs.forEach(checkDropzone);
 
-  // Update counts
+  // Update counts & mark used items
   if(allCorrect){
     levelCorrect[currentLevel] = (levelCorrect[currentLevel] || 0) + dzs.length;
     correctCount += dzs.length;
-    // mark used items so they won't appear again
     dzs.forEach(dz => { if(dz.dataset.filled) usedDraggables.add(dz.dataset.filled); });
+    // If this round had ZERO incorrect items and is first try, mark combos so they won't be asked again
+    // (we assume combos are keys like animals::dog::two)
+    currentRoundCorrect.forEach(k=> {
+      if(k && !usedCombos.has(k)) usedCombos.add(k);
+    });
   } else {
+    // for incorrect keys remove their draggable dom and mark used permanently
     currentRoundIncorrect.forEach(k => {
       levelIncorrect[currentLevel] = (levelIncorrect[currentLevel] || 0) + 1;
       incorrectCount++;
       const dom = document.querySelector(`.draggable[data-key="${k}"]`);
       if(dom && dom.parentElement) dom.parentElement.removeChild(dom);
       usedDraggables.add(k);
+      // clear any dropzone that had that filledKey
       const dz = dzs.find(d=> d.dataset.filled === k);
-      if(dz){
-        dz.innerHTML = ""; dz.dataset.filled = ""; dz.classList.remove("filled");
-      }
+      if(dz){ dz.innerHTML = ""; dz.dataset.filled = ""; dz.classList.remove("filled"); }
     });
+    // mark correct ones as used too so they don't reappear
     currentRoundCorrect.forEach(k => { if(k) usedDraggables.add(k); });
   }
 
+  // feedback image
   feedbackDiv.innerHTML = "";
   const fbImg = document.createElement("img");
   fbImg.src = allCorrect ? "assets/correct.png" : "assets/wrong.png";
   fbImg.alt = allCorrect ? "Correct" : "Wrong";
   feedbackDiv.appendChild(fbImg);
 
+  // push to answers history
+  answersHistory.push({ level: currentLevel, round: roundInLevel, correct: currentRoundCorrect.slice(), incorrect: currentRoundIncorrect.slice() });
+
   saveProgress();
 
-   setTimeout(() => {
+  setTimeout(() => {
     feedbackDiv.innerHTML = "";
     if(allCorrect){
-      // advance round
-      // if finished level -> show auslan-clap.gif then next level
       if(roundInLevel + 1 >= QUESTIONS_PER_LEVEL){
-        // level done - show clap then next level
         showClapThenAdvance(() => {
           if(currentLevel < TOTAL_LEVELS){
             currentLevel++;
@@ -772,22 +719,23 @@ checkBtn.addEventListener("click", () => {
         buildQuestion();
       }
     } else {
+      // allow user another attempt on same question (again button shows)
       againBtn.style.display = "inline-block";
+      // also re-check check visibility (in case dropzones are empty)
+      updateCheckVisibility();
     }
   }, 2000);
 });
 
-/* ===== 'Again' button in-level: removes incorrect markers and allows retry ===== */
+/* ===== 'Again' button in-level: allows retry (rebuild same question state but keep removed items removed) ===== */
 againBtn.addEventListener("click", () => {
   feedbackDiv.innerHTML = "";
-  Array.from(answerArea.querySelectorAll(".dropzone")).forEach(dz => {
-    dz.classList.remove("incorrect");
-  });
+  Array.from(answerArea.querySelectorAll(".dropzone")).forEach(dz => dz.classList.remove("incorrect"));
   checkBtn.style.display = "none";
   againBtn.style.display = "none";
 });
 
-/* ===== show clap gif and then call callback ===== */
+/* ===== Clap and advance ===== */
 function showClapThenAdvance(cb){
   const gif = document.createElement("img");
   gif.src = "assets/auslan-clap.gif";
@@ -800,21 +748,17 @@ function showClapThenAdvance(cb){
   }, 2000);
 }
 
-// ===== Google Form submission =====
+/* ===== Google Form submission (silent) ===== */
 let formSubmittedFlag = localStorage.getItem("sentencesGame_submitted") === "1";
 
 async function submitToGoogleForm(silent=true){
-  // compute summary and per-level fields
   const timeTaken = getTimeElapsed();
   const totalCorrect = Object.values(levelCorrect).reduce((a,b)=>a+b,0);
   const totalIncorrect = Object.values(levelIncorrect).reduce((a,b)=>a+b,0);
   const totalAttempts = totalCorrect + totalIncorrect;
   const percent = totalAttempts > 0 ? Math.round((totalCorrect/totalAttempts)*100) : 0;
 
-  if(totalCorrect < 1){
-    // do not submit if no correct answers per spec
-    return false;
-  }
+  if(totalCorrect < 1) return false; // per spec don't submit if none correct
 
   const fd = new FormData();
   fd.append(FORM_FIELD_MAP.name, studentName);
@@ -829,10 +773,9 @@ async function submitToGoogleForm(silent=true){
   }
 
   try{
-    // Using no-cors fetch to submit silently — note you cannot confirm response with no-cors.
     await fetch(googleForm.action, { method: "POST", body: fd, mode: "no-cors" });
     formSubmittedFlag = true;
-    localStorage.setItem("sentencesGame_submitted","1");
+    localStorage.setItem("sentencesGame_submitted", "1");
     return true;
   }catch(e){
     console.warn("Form submission failed:", e);
@@ -852,30 +795,21 @@ async function finalSubmitThenEnd(){
   if(document.getElementById("finalScore")) document.getElementById("finalScore").textContent = `${totalCorrect} / ${totalAttempts}`;
   if(document.getElementById("finalPercent")) document.getElementById("finalPercent").textContent = `${percent}%`;
 
-  // show the clap gif inside end modal content if possible
   const endGif = document.getElementById("endGif");
-  if(endGif){
-    endGif.src = "assets/auslan-clap.gif";
-    endGif.style.display = "block";
-  }
-  if(endModal) {
-    endModal.style.display = "flex";
-    endModal.style.zIndex = 5000;
-  }
+  if(endGif){ endGif.src = "assets/auslan-clap.gif"; endGif.style.display = "block"; }
+  if(endModal){ endModal.style.display = "flex"; endModal.style.zIndex = 5000; }
 }
 
 /* Finish & Again (end modal) wiring */
 if (finishBtn) finishBtn.addEventListener("click", async () => {
-  // go to index.html (spec)
   window.location.href = "../index.html";
 });
 if (againBtnEnd) againBtnEnd.addEventListener("click", () => {
-  // restart game from level 1
   if(endModal) endModal.style.display = "none";
   currentLevel = 1; roundInLevel = 0; correctCount = 0; incorrectCount = 0;
   for(let i=1;i<=TOTAL_LEVELS;i++){ levelCorrect[i]=0; levelIncorrect[i]=0; }
   answersHistory = [];
-  usedDraggables.clear();
+  usedDraggables.clear(); usedCombos.clear();
   setTimeElapsed(0);
   buildQuestion();
 });
@@ -883,16 +817,14 @@ if (againBtnEnd) againBtnEnd.addEventListener("click", () => {
 /* ===== STOP modal wiring ===== */
 if(stopBtn){
   stopBtn.addEventListener("click", () => {
-    // Pause timer and show stop modal
-    if(resumeModal && resumeModal.style.display === "flex") return; // don't show stop while resume visible
-    // pause timer
+    if(resumeModal && resumeModal.style.display === "flex") return;
     savedTimeElapsed = getTimeElapsed();
     startTime = null;
     const totalCorrect = Object.values(levelCorrect).reduce((a,b)=>a+b,0);
     const totalIncorrect = Object.values(levelIncorrect).reduce((a,b)=>a+b,0);
     const totalAttempts = totalCorrect + totalIncorrect;
     const percent = totalAttempts>0 ? Math.round((totalCorrect/totalAttempts)*100) : 0;
-    if(stopPercent) stopPercent.textContent = `Score so far: ${percent}%`;
+    if(stopPercent) stopPercent.textContent = `Score so far: ${percent}% — Time: ${getTimeElapsed()}s`;
     if(stopModal) { stopModal.style.display = "flex"; stopModal.style.zIndex = 5000; }
   });
 }
@@ -901,11 +833,9 @@ if(stopContinue) stopContinue.addEventListener("click", () => {
   setTimeElapsed(savedTimeElapsed);
 });
 if(stopAgain) stopAgain.addEventListener("click", async () => {
-  // "again" when pressed from stop should submit then restart from level1
   if(stopModal) stopModal.style.display = "none";
   await submitToGoogleForm(true);
-  // clear everything and restart
-  usedDraggables.clear();
+  usedDraggables.clear(); usedCombos.clear();
   for(let i=1;i<=TOTAL_LEVELS;i++){ levelCorrect[i]=0; levelIncorrect[i]=0; }
   correctCount = 0; incorrectCount = 0; answersHistory = [];
   currentLevel = 1; roundInLevel = 0;
@@ -913,7 +843,6 @@ if(stopAgain) stopAgain.addEventListener("click", async () => {
   buildQuestion();
 });
 if(stopFinish) stopFinish.addEventListener("click", async () => {
-  // submit but do not clear data, then redirect
   if(stopModal) stopModal.style.display = "none";
   await submitToGoogleForm(true);
   window.location.href = "../index.html";
@@ -928,7 +857,8 @@ function saveProgress(){
     levelCorrect, levelIncorrect,
     answersHistory,
     savedTimeElapsed: getTimeElapsed(),
-    usedDraggables: Array.from(usedDraggables)
+    usedDraggables: Array.from(usedDraggables),
+    usedCombos: Array.from(usedCombos)
   };
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(payload)); }catch(e){ console.warn("save failed",e); }
 }
@@ -957,6 +887,7 @@ function restoreProgress(saved){
   answersHistory = saved.answersHistory || [];
   savedTimeElapsed = Number(saved.savedTimeElapsed) || 0;
   usedDraggables = new Set((saved.usedDraggables) ? saved.usedDraggables : []);
+  usedCombos = new Set((saved.usedCombos) ? saved.usedCombos : []);
   setTimeElapsed(saved.savedTimeElapsed || 0);
   buildQuestion();
 }
@@ -964,7 +895,6 @@ function restoreProgress(saved){
 /* ===== Resume modal logic (show and attach handlers) ===== */
 function showResumeModal(saved){
   if(!resumeModal || !saved) return;
-  // hide other modals
   if(stopModal) stopModal.style.display = "none";
   if(endModal) endModal.style.display = "none";
   if(topicModal) topicModal.style.display = "none";
@@ -972,7 +902,6 @@ function showResumeModal(saved){
   resumeModal.style.display = "flex";
   resumeModal.style.zIndex = 5000;
 
-  // To avoid double binding, replace nodes and re-query
   resumeContinue.parentNode.replaceChild(resumeContinue.cloneNode(true), resumeContinue);
   resumeAgain.parentNode.replaceChild(resumeAgain.cloneNode(true), resumeAgain);
 
@@ -982,20 +911,17 @@ function showResumeModal(saved){
   newCont.addEventListener("click", () => {
     resumeModal.style.display = "none";
     restoreProgress(saved);
-    // resume timer from saved time
     startTime = Date.now();
   }, { once: true });
 
   newAgain.addEventListener("click", async () => {
     resumeModal.style.display = "none";
-    // If there is at least one correct and not yet submitted, submit (per spec)
     const totalCorrect = Object.values(saved.levelCorrect || {}).reduce((a,b)=>a+b,0);
     if(totalCorrect > 0 && !formSubmittedFlag){
       await submitToGoogleForm(true);
     }
-    // clear and start fresh
     clearProgress();
-    usedDraggables.clear();
+    usedDraggables.clear(); usedCombos.clear();
     for(let i=1;i<=TOTAL_LEVELS;i++){ levelCorrect[i]=0; levelIncorrect[i]=0; }
     correctCount = 0; incorrectCount = 0; answersHistory = [];
     currentLevel = 1; roundInLevel = 0;
@@ -1006,15 +932,11 @@ function showResumeModal(saved){
 
 /* ===== INITIALISATION on window load ===== */
 window.addEventListener("load", () => {
-  // top-level UI safety
   [againBtn, finishBtn, againBtnEnd].forEach(b => { if(b){ b.style.zIndex = 6001; b.style.cursor = "pointer"; }});
-
-  // load saved progress if exists
   const saved = loadProgress();
   if(saved){
     showResumeModal(saved);
   } else {
-    // no saved progress - start fresh
     setTimeElapsed(0);
     startTime = Date.now();
     buildQuestion();
