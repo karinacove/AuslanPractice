@@ -19,6 +19,21 @@ const FORM_FIELD_MAP = {
   level12:{ correct: "entry.1570476410", incorrect: "entry.1307112644" }
 };
 
+const levels = {
+  1: { lineCount: 1, type: "sign", qItems: ["animal", "number"] },
+  2: { lineCount: 1, type: "sign", qItems: ["food", "colour"] },
+  3: { lineCount: 1, type: "sign", qItems: ["emotion", "zone"], starter: "feel" },
+  4: { lineCount: 1, type: "image", qItems: ["animal", "number"] },
+  5: { lineCount: 1, type: "image", qItems: ["food", "colour"] },
+  6: { lineCount: 1, type: "image", qItems: ["emotion", "zone"], starter: "feel" },
+  7: { lineCount: 2, type: "sign", qItems: ["animal+number","food+colour"], verb: ["has","donthave"] },
+  8: { lineCount: 2, type: "sign", qItems: ["animal+number","emotion+zone"], verb: ["feel"] },
+  9: { lineCount: 2, type: "image", qItems: ["animal+number","food+colour"], verb: ["has","donthave"] },
+  10:{ lineCount: 2, type: "image", qItems: ["animal+number","emotion+zone"], verb: ["feel"] },
+  11:{ lineCount: 3, type: "sign", qItems: ["animal+number","emotion+zone","food+colour"], verb: ["feel","has","donthave"] },
+  12:{ lineCount: 3, type: "image", qItems: ["animal+number","emotion+zone","food+colour"], verb: ["feel","has","donthave"] },
+};
+
 /* ===== DOM Elements ===== */
 const studentNameSpan = document.getElementById("studentName");
 const studentClassSpan = document.getElementById("studentClass");
@@ -90,7 +105,7 @@ const VOCAB = {
   numbers: ["one","two","three","four","five","six","seven","eight","nine","ten"],
   zones: ["green","blue","yellow","red"],
   verbs: ["want","have","donthave"],
-  helpers: { see: "assets/signs/helpers/see.png", feel: "assets/signs/helpers/feel.png" }
+  helpers: { i: "assets/signs/helpers/i.png", see: "assets/signs/helpers/see.png", feel: "assets/signs/helpers/feel.png" what: "assets/signs/helpers/what.png" }
 };
 
 /* ===== Helpers ===== */
