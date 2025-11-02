@@ -105,7 +105,7 @@ const VOCAB = {
   numbers: ["one","two","three","four","five","six","seven","eight","nine","ten"],
   zones: ["green","blue","yellow","red"],
   verbs: ["want","have","donthave"],
-  helpers: { i: "assets/signs/helpers/i.png", see: "assets/signs/helpers/see.png", feel: "assets/signs/helpers/feel.png" what: "assets/signs/helpers/what.png" }
+  helpers: { i: "assets/signs/helpers/i.png", see: "assets/signs/helpers/see.png", feel: "assets/signs/helpers/feel.png", what: "assets/signs/helpers/what.png" }
 };
 
 /* ===== Helpers ===== */
