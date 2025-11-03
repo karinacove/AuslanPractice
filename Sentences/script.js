@@ -1055,3 +1055,4 @@ window.addEventListener("load", () => {
     buildQuestion();
   }
 });
+}
