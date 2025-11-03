@@ -582,35 +582,6 @@ function buildQuestion(){
     populateDraggables(leftPool.slice(0,6), rightSel, Math.min(6,leftPool.length), rightSel.length);
   }
 
-  // --- compound / bonus / layouts ---
-  else if(desc.type==="compound" || desc.type==="bonus"){
-    questionArea.innerHTML = ""; // clear top
-
-    const helperImg = document.createElement("img"); helperImg.src = VOCAB.helpers.see; helperImg.alt="see";
-    helperImg.onerror = ()=>{ helperImg.style.display="none"; };
-    const qtop = document.createElement("div"); qtop.className="questionRow";
-    qtop.appendChild(helperImg);
-    questionArea.appendChild(qtop);
-
-    const dzs = [];
-
-    if(desc.layout==="A"){
-      const verb = randomItem(["have","donthave"]);
-      const verbSign = document.createElement("img"); verbSign.src = signPathFor(verb); verbSign.alt=verb; verbSign.className="inlineVerb";
-      qtop.appendChild(verbSign);
-
-      const dz1 = createDropzone("animal+number", "");
-      const dz2 = createDropzone("food+colour", "");
-      dz1.dataset.expectedType="animals_combo"; dz2.dataset.expectedType="food_combo";
-      dz1.dataset.expectedVerb=verb; dz2.dataset.expectedVerb=verb;
-      dzs.push(dz1,dz2);
-
-      const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-      const rightCandidates = shuffleArray(candidatePool.food).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-      rightCandidates.forEach(c=>{ c.overlay=Math.random()>0.5?"have":"donthave"; });
-      populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
-    }
-
 // --- compound / bonus / layouts ---
 else if(desc.type==="compound" || desc.type==="bonus"){
   questionArea.innerHTML = ""; // clear top
