@@ -1054,5 +1054,4 @@ window.addEventListener("load", () => {
     startTime = Date.now();
     buildQuestion();
   }
-});
 }
