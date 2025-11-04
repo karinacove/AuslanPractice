@@ -262,11 +262,15 @@ function moveDrag(e){
   dragClone.style.left = clientX + "px";
   dragClone.style.top = clientY + "px";
 }
-function endDrag(e) {
-  if (!dragItem || !dragClone) return;
+
+// Handles dropping a draggable into a dropzone
+function handleDrop(e) {
+  e.preventDefault();
+
+  if (!dragItem) return; // nothing being dragged
 
   let clientX, clientY;
-  if (isTouch && e.changedTouches && e.changedTouches.length > 0) {
+  if (e.changedTouches && e.changedTouches.length > 0) {
     clientX = e.changedTouches[0].clientX;
     clientY = e.changedTouches[0].clientY;
   } else {
@@ -274,7 +278,6 @@ function endDrag(e) {
     clientY = e.clientY;
   }
 
-  let dropped = false;
   const targetEl = document.elementFromPoint(clientX, clientY);
   const dz = targetEl ? targetEl.closest(".dropzone") : null;
 
@@ -292,31 +295,39 @@ function endDrag(e) {
     dz.dataset.filled = dragItem.dataset.key;
     dz.dataset.src = dragItem.dataset.img || "";
     dz.classList.add("filled");
-    dropped = true;
   }
 
-  if (dragClone && dragClone.parentElement)
+  // Remove drag clone
+  if (dragClone && dragClone.parentElement) {
     dragClone.parentElement.removeChild(dragClone);
+  }
   dragClone = null;
   dragItem = null;
 
+  // Remove dragging listeners
   if (isTouch) {
     document.removeEventListener("touchmove", moveDrag, { passive: false });
-    document.removeEventListener("touchend", endDrag);
+    document.removeEventListener("touchend", handleDrop);
   } else {
     document.removeEventListener("mousemove", moveDrag);
-    document.removeEventListener("mouseup", endDrag);
+    document.removeEventListener("mouseup", handleDrop);
   }
 
-  // ✅ Always check visibility at the end (even if nothing was dropped)
   updateCheckVisibility();
 }
 
-// global pointer start
+// Replace endDrag with a call to handleDrop
+function endDrag(e) {
+  handleDrop(e);
+}
+
+// Start dragging
 document.addEventListener("mousedown", startDrag);
 document.addEventListener("touchstart", startDrag, { passive:false });
 
-function dropHandler(e){ e.preventDefault(); }
+// Prevent default browser drag behavior
+document.addEventListener("dragover", e => e.preventDefault());
+document.addEventListener("drop", handleDrop);
 
 /* ===== UI helpers ===== */
 function updateScoreDisplay(){
@@ -442,11 +453,6 @@ function updateCheckVisibility(){
   if(required.length === 0) return;
   const allFilled = required.every(d=>d.dataset.filled && d.dataset.filled.length>0);
   if(allFilled) checkBtn.style.display = "inline-block";
-}
-
-function handleDrop(e) {
-  e.preventDefault();
-  updateCheckVisibility();
 }
 
 /* ===== Build the question UI and draggables for the current level and round ===== */
@@ -688,51 +694,6 @@ else if(desc.type==="compound" || desc.type==="bonus"){
   updateCheckVisibility();
   } // end buildQuestion
 }
-
-/* ===== Unified Drop Handling ===== */
-
-// Runs whenever a draggable is released or dropped
-function handleDrop(e) {
-  e.preventDefault();
-
-  let clientX, clientY;
-  if (e.changedTouches && e.changedTouches.length > 0) {
-    clientX = e.changedTouches[0].clientX;
-    clientY = e.changedTouches[0].clientY;
-  } else {
-    clientX = e.clientX;
-    clientY = e.clientY;
-  }
-
-  const targetEl = document.elementFromPoint(clientX, clientY);
-  const dz = targetEl ? targetEl.closest(".dropzone") : null;
-  if (!dz || dz.childElementCount > 0) return;
-
-  if (dragItem) {
-    const node = dragItem.cloneNode(true);
-    node.classList.remove("draggable");
-    node.classList.add("dropped");
-    node.style.display = "block";
-    node.style.margin = "auto";
-    node.style.maxWidth = "100%";
-    node.style.maxHeight = "100%";
-    node.style.objectFit = "contain";
-    dz.appendChild(node);
-
-    dz.dataset.filled = dragItem.dataset.key;
-    dz.dataset.src = dragItem.dataset.img || "";
-    dz.classList.add("filled");
-  }
-
-  updateCheckVisibility();
-}
-
-// Prevent browser default drag behaviour
-document.addEventListener("dragover", e => e.preventDefault());
-document.addEventListener("drop", e => {
-  e.preventDefault();
-  handleDrop(e);
-});
 
 /* ===== Check button logic (full handling for simple, two, compound, bonus) ===== */
 checkBtn.addEventListener("click", () => {
