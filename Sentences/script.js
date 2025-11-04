@@ -689,18 +689,26 @@ else if(desc.type==="compound" || desc.type==="bonus"){
   } // end buildQuestion
 }
 
-// Enable HTML5 drop support
-document.addEventListener("dragover", e => {
-  e.preventDefault(); // required for ondrop to fire
-});
+/* ===== Unified Drop Handling ===== */
 
-document.addEventListener("drop", e => {
+// Runs whenever a draggable is released or dropped
+function handleDrop(e) {
   e.preventDefault();
-  const dz = e.target.closest(".dropzone");
-  if (!dz) return;
 
-  // Use your manual logic for placing the item
-  if (dragItem && !dz.dataset.filled) {
+  let clientX, clientY;
+  if (e.changedTouches && e.changedTouches.length > 0) {
+    clientX = e.changedTouches[0].clientX;
+    clientY = e.changedTouches[0].clientY;
+  } else {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }
+
+  const targetEl = document.elementFromPoint(clientX, clientY);
+  const dz = targetEl ? targetEl.closest(".dropzone") : null;
+  if (!dz || dz.childElementCount > 0) return;
+
+  if (dragItem) {
     const node = dragItem.cloneNode(true);
     node.classList.remove("draggable");
     node.classList.add("dropped");
@@ -710,11 +718,20 @@ document.addEventListener("drop", e => {
     node.style.maxHeight = "100%";
     node.style.objectFit = "contain";
     dz.appendChild(node);
+
     dz.dataset.filled = dragItem.dataset.key;
     dz.dataset.src = dragItem.dataset.img || "";
     dz.classList.add("filled");
-    updateCheckVisibility();
   }
+
+  updateCheckVisibility();
+}
+
+// Prevent browser default drag behaviour
+document.addEventListener("dragover", e => e.preventDefault());
+document.addEventListener("drop", e => {
+  e.preventDefault();
+  handleDrop(e);
 });
 
 /* ===== Check button logic (full handling for simple, two, compound, bonus) ===== */
