@@ -262,44 +262,54 @@ function moveDrag(e){
   dragClone.style.left = clientX + "px";
   dragClone.style.top = clientY + "px";
 }
-function endDrag(e){
-  if(!dragItem || !dragClone) return;
+function endDrag(e) {
+  if (!dragItem || !dragClone) return;
+
   let clientX, clientY;
-  if(isTouch && e.changedTouches && e.changedTouches.length>0){ clientX = e.changedTouches[0].clientX; clientY = e.changedTouches[0].clientY; }
-  else { clientX = e.clientX; clientY = e.clientY; }
+  if (isTouch && e.changedTouches && e.changedTouches.length > 0) {
+    clientX = e.changedTouches[0].clientX;
+    clientY = e.changedTouches[0].clientY;
+  } else {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }
 
-let dropped = false;
-const targetEl = document.elementFromPoint(clientX, clientY);
-const dz = targetEl ? targetEl.closest(".dropzone") : null;
+  let dropped = false;
+  const targetEl = document.elementFromPoint(clientX, clientY);
+  const dz = targetEl ? targetEl.closest(".dropzone") : null;
 
-if (dz && dz.childElementCount === 0) {
-  const node = dragItem.cloneNode(true);
-  node.classList.remove("draggable");
-  node.classList.add("dropped");
-  node.style.display = "block";
-  node.style.margin = "auto";
-  node.style.maxWidth = "100%";
-  node.style.maxHeight = "100%";
-  node.style.objectFit = "contain";
-  dz.appendChild(node);
-  dz.dataset.filled = dragItem.dataset.key;
-  dz.dataset.src = dragItem.dataset.img || "";
-  dz.classList.add("filled");
-  dropped = true;
-}
+  if (dz && dz.childElementCount === 0) {
+    const node = dragItem.cloneNode(true);
+    node.classList.remove("draggable");
+    node.classList.add("dropped");
+    node.style.display = "block";
+    node.style.margin = "auto";
+    node.style.maxWidth = "100%";
+    node.style.maxHeight = "100%";
+    node.style.objectFit = "contain";
+    dz.appendChild(node);
 
-  if(dragClone && dragClone.parentElement) dragClone.parentElement.removeChild(dragClone);
+    dz.dataset.filled = dragItem.dataset.key;
+    dz.dataset.src = dragItem.dataset.img || "";
+    dz.classList.add("filled");
+    dropped = true;
+  }
+
+  if (dragClone && dragClone.parentElement)
+    dragClone.parentElement.removeChild(dragClone);
   dragClone = null;
   dragItem = null;
-  if(isTouch){
-    document.removeEventListener("touchmove", moveDrag, { passive:false });
+
+  if (isTouch) {
+    document.removeEventListener("touchmove", moveDrag, { passive: false });
     document.removeEventListener("touchend", endDrag);
   } else {
     document.removeEventListener("mousemove", moveDrag);
     document.removeEventListener("mouseup", endDrag);
   }
 
-  if(dropped) updateCheckVisibility();
+  // ✅ Always check visibility at the end (even if nothing was dropped)
+  updateCheckVisibility();
 }
 
 // global pointer start
