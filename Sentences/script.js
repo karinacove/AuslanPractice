@@ -268,27 +268,25 @@ function endDrag(e){
   if(isTouch && e.changedTouches && e.changedTouches.length>0){ clientX = e.changedTouches[0].clientX; clientY = e.changedTouches[0].clientY; }
   else { clientX = e.clientX; clientY = e.clientY; }
 
-  let dropped = false;
-  const dzs = Array.from(document.querySelectorAll(".dropzone"));
-  for(const dz of dzs){
-    const rect = dz.getBoundingClientRect();
-    if(clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom){
-      if(dz.childElementCount === 0){
-        const node = dragItem.cloneNode(true);
-        node.classList.remove("draggable");
-        node.classList.add("dropped");
-        // center the dropped image for better visuals
-        node.style.display = "block";
-        node.style.margin = "auto";
-        dz.appendChild(node);
-        // store filled key AFTER we append (so restore can find it)
-        dz.dataset.filled = dragItem.dataset.key;
-        dz.dataset.src = dragItem.dataset.img || "";
-        dz.classList.add("filled");
-        dropped = true;
-      }
-    }
-  }
+let dropped = false;
+const targetEl = document.elementFromPoint(clientX, clientY);
+const dz = targetEl ? targetEl.closest(".dropzone") : null;
+
+if (dz && dz.childElementCount === 0) {
+  const node = dragItem.cloneNode(true);
+  node.classList.remove("draggable");
+  node.classList.add("dropped");
+  node.style.display = "block";
+  node.style.margin = "auto";
+  node.style.maxWidth = "100%";
+  node.style.maxHeight = "100%";
+  node.style.objectFit = "contain";
+  dz.appendChild(node);
+  dz.dataset.filled = dragItem.dataset.key;
+  dz.dataset.src = dragItem.dataset.img || "";
+  dz.classList.add("filled");
+  dropped = true;
+}
 
   if(dragClone && dragClone.parentElement) dragClone.parentElement.removeChild(dragClone);
   dragClone = null;
