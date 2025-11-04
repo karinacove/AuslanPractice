@@ -679,6 +679,34 @@ else if(desc.type==="compound" || desc.type==="bonus"){
   } // end buildQuestion
 }
 
+// Enable HTML5 drop support
+document.addEventListener("dragover", e => {
+  e.preventDefault(); // required for ondrop to fire
+});
+
+document.addEventListener("drop", e => {
+  e.preventDefault();
+  const dz = e.target.closest(".dropzone");
+  if (!dz) return;
+
+  // Use your manual logic for placing the item
+  if (dragItem && !dz.dataset.filled) {
+    const node = dragItem.cloneNode(true);
+    node.classList.remove("draggable");
+    node.classList.add("dropped");
+    node.style.display = "block";
+    node.style.margin = "auto";
+    node.style.maxWidth = "100%";
+    node.style.maxHeight = "100%";
+    node.style.objectFit = "contain";
+    dz.appendChild(node);
+    dz.dataset.filled = dragItem.dataset.key;
+    dz.dataset.src = dragItem.dataset.img || "";
+    dz.classList.add("filled");
+    updateCheckVisibility();
+  }
+});
+
 /* ===== Check button logic (full handling for simple, two, compound, bonus) ===== */
 checkBtn.addEventListener("click", () => {
   checkBtn.style.display = "none";
