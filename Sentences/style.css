@@ -118,9 +118,16 @@ body {
   touch-action: none;
 }
 
+.dropzone {
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+}
+
 .draggables::-webkit-scrollbar {
    width: 8px;
 }
+
 .draggables::-webkit-scrollbar-thumb {
    background: rgba(0,0,0,0.3);
    border-radius: 10px;
@@ -133,7 +140,7 @@ body {
   width: 115px;
   height: 115px;
   transform: translate(-50%, -50%);
-  z-index: 2000;
+  z-index: 5000;
 }
 
 .dontHaveWrapper {
