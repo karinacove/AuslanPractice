@@ -678,7 +678,8 @@ else if(desc.type==="compound" || desc.type==="bonus"){
     populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
   }
   updateCheckVisibility();
-} // end buildQuestion
+  } // end buildQuestion
+}
 
 /* ===== Check button logic (full handling for simple, two, compound, bonus) ===== */
 checkBtn.addEventListener("click", () => {
