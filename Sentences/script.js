@@ -127,16 +127,26 @@ function createDraggableNode(topic,val1,val2=""){
   div.className="draggable"; div.draggable=true; div.dataset.key=key;
 
   let path="";
-  if(topic==="helpers") path=`assets/signs/helpers/${val1}`;
+  if(topic==="helpers") path=`assets/signs/helpers/${VOCAB.helpers[val1]}`; // use filename from VOCAB
   else if(topic==="emotions") path=`assets/signs/emotions/sign-${val1}.mp4`;
   else path=`assets/images/${topic}/${val1}${val2?'-'+val2:''}.png`;
 
   if(path.endsWith(".mp4")){
-    const v=document.createElement("video"); v.src=path; v.autoplay=true; v.loop=true; v.muted=true; v.playsInline=true; v.width=80; v.height=80;
+    const v=document.createElement("video"); 
+    v.src=path; v.autoplay=true; v.loop=true; v.muted=true; v.playsInline=true; v.width=80; v.height=80;
     div.appendChild(v);
   }else{
-    const img=document.createElement("img"); img.src=path; img.alt=key;
-    img.onerror=()=>{ img.style.display="none"; if(!div.querySelector(".fallback")){ const f=document.createElement("div"); f.className="fallback"; f.textContent=val1+(val2?`-${val2}`:""); div.appendChild(f); } };
+    const img=document.createElement("img"); 
+    img.src=path; img.alt=key;
+    img.onerror=()=>{ 
+      img.style.display="none"; 
+      if(!div.querySelector(".fallback")){ 
+        const f=document.createElement("div"); 
+        f.className="fallback"; 
+        f.textContent=val1+(val2?`-${val2}`:""); 
+        div.appendChild(f); 
+      } 
+    };
     div.appendChild(img);
   }
 
