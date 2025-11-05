@@ -437,7 +437,7 @@ function buildQuestion(){
     if(placeholderText) dz.innerHTML = `<div class="placeholder faint">${placeholderText}</div>`;
     dz.dataset.expected = expectedKey;
     dz.addEventListener("dragover", e => e.preventDefault());
-    dz.addEventListener("drop", handleDrop); // your drop handler
+    dz.addEventListener("drop", e => e.preventDefault());
     answerArea.appendChild(dz);
     return dz;
   }
