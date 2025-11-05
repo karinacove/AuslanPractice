@@ -102,7 +102,7 @@ function signPathFor(word){
   if (VOCAB.topics.emotions.includes(word)) return `assets/signs/emotions/sign-${word}.mp4`;
   if (VOCAB.numbers.includes(word)) return `assets/signs/numbers/${word}-sign.png`;
   if (VOCAB.colours.includes(word)) return `assets/signs/colours/${word}-sign.png`;
-  if (VOCAB.zones.includes(word)) return `assets/signs/zones/${word}.png`;
+  if (VOCAB.zones.includes(word)) return `assets/signs/zones/${word}-sign.png`;
   if (VOCAB.verbs.includes(word)) return `assets/signs/verbs/${word}.png`;
   if (Object.keys(VOCAB.helpers).includes(word)) return `assets/signs/helpers/${VOCAB.helpers[word]}`;
   return "";
@@ -129,17 +129,17 @@ const candidatePool = { animals: [], food: [], emotions: [] };
 (function buildCandidatePools(){
   VOCAB.topics.animals.forEach(a=>{
     VOCAB.numbers.forEach(n=>{
-      candidatePool.animals.push({ key:`animals::${a}::${n}`, parts:{animal:a,number:n}, img:`assets/images/animals/${a}-${n}.png` });
+      candidatePool.animals.push({ key:`animals::${a}::${n}`, parts:{animal:a,number:n}, img:`assets/images/animals/${a}+${n}.png` });
     });
   });
   VOCAB.topics.food.forEach(f=>{
     VOCAB.colours.forEach(c=>{
-      candidatePool.food.push({ key:`food::${f}::${c}`, parts:{food:f,colour:c}, img:`assets/images/food/${f}-${c}.png` });
+      candidatePool.food.push({ key:`food::${f}::${c}`, parts:{food:f,colour:c}, img:`assets/images/food/${f}+${c}.png` });
     });
   });
   VOCAB.topics.emotions.forEach(e=>{
     VOCAB.zones.forEach(z=>{
-      candidatePool.emotions.push({ key:`emotions::${e}::${z}`, parts:{emotion:e,zone:z}, img:`assets/images/emotions/${e}-${z}.png` });
+      candidatePool.emotions.push({ key:`emotions::${e}::${z}`, parts:{emotion:e,zone:z}, img:`assets/images/emotions/${e}+${z}.png` });
     });
   });
 })();
