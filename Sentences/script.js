@@ -254,8 +254,34 @@ function loadProgress(){
 
 /* ===== INIT GAME ===== */
 function initGame(){
-  if(loadProgress()) console.log("Progress restored");
   populateDraggables(currentLevel);
   startTime = Date.now();
 }
-initGame();
+
+// ===== RESUME CHECK =====
+function checkResumeModal() {
+  if (loadProgress() && !formSubmittedFlag) {
+    const resumeModal = document.getElementById("resumeModal");
+    resumeModal.classList.add("show");
+
+    // Setup buttons
+    document.getElementById("resumeContinue").onclick = () => {
+      resumeModal.classList.remove("show");
+      initGame();
+    };
+    document.getElementById("resumeAgain").onclick = () => {
+      localStorage.removeItem(SAVE_KEY);
+      resumeModal.classList.remove("show");
+      currentLevel = 1;
+      roundInLevel = 0;
+      usedDraggables.clear();
+      usedCombos.clear();
+      initGame();
+    };
+  } else {
+    initGame();
+  }
+}
+
+// Call resume check instead of direct init
+checkResumeModal();
