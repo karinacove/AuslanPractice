@@ -186,10 +186,6 @@ function renderSentenceRows(items) {
   }
 }
 
-  row1.forEach(i => appendItem(sentenceRow1, i));
-  row2.forEach(i => appendItem(sentenceRow2, i));
-  row3.forEach(i => appendItem(sentenceRow3, i));
-
 /* ===== Build question (updated) ===== */
 function buildQuestion() {
   if (!sentenceRow1 || !sentenceRow2 || !sentenceRow3 || !answerArea) return;
