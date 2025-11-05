@@ -38,11 +38,12 @@
         </button>
       </div>
     </div>
-    <div id="verbDraggables"></div>
+
     <div id="draggablesRight" class="draggables"></div>
   </div>
-  <!-- Feedback image (correct/wrong) -->
-  <div id="feedback"></div>
+
+  <!-- Verb draggables at bottom -->
+  <div id="verbDraggables" class="draggables-bottom"></div>
 
   <!-- End Modal -->
   <div id="endModal" class="modal">
@@ -51,30 +52,44 @@
       <p>Time: <span id="finalTime"></span></p>
       <p>Score: <span id="finalScore"></span></p>
       <p>Percentage: <span id="finalPercent"></span></p>
-      <img id="finishBtn" src="assets/finish.png" alt="Finish">
-      <img id="againBtnEnd" src="assets/again.png" alt="Play Again">
+      <button id="finishBtn" class="modalButton">
+        <img src="assets/finish.png" alt="Finish">
+      </button>
+      <button id="againBtnEnd" class="modalButton">
+        <img src="assets/again.png" alt="Play Again">
+      </button>
     </div>
   </div>
 
-<!-- STOP MODAL -->
-<div id="stopModal">
-  <div class="modal-content">
-    <h2 id="stopPercent">Score so far: 0%</h2>
-    <div class="modal-buttons">
-      <img id="continueBtn" src="assets/continue.png" alt="Continue">
-      <img id="againBtnStop" src="assets/again.png" alt="Again">
-      <img id="finishBtnStop" src="assets/finish.png" alt="Finish">
+  <!-- STOP MODAL -->
+  <div id="stopModal" class="modal">
+    <div class="modal-content">
+      <h2 id="stopPercent">Score so far: 0%</h2>
+      <div class="modal-buttons">
+        <button id="continueBtn" class="modalButton">
+          <img src="assets/continue.png" alt="Continue">
+        </button>
+        <button id="againBtnStop" class="modalButton">
+          <img src="assets/again.png" alt="Again">
+        </button>
+        <button id="finishBtnStop" class="modalButton">
+          <img src="assets/finish.png" alt="Finish">
+        </button>
+      </div>
     </div>
   </div>
-</div>
 
   <!-- Resume Modal -->
   <div id="resumeModal" class="modal">
     <div class="modal-content">
       <p id="resumeMessage"></p>
       <div class="modal-buttons">
-        <img id="resumeContinue" src="assets/continue.png" alt="Continue" />
-        <img id="resumeAgain" src="assets/again.png" alt="Start Over" />
+        <button id="resumeContinue" class="modalButton">
+          <img src="assets/continue.png" alt="Continue" />
+        </button>
+        <button id="resumeAgain" class="modalButton">
+          <img src="assets/again.png" alt="Start Over" />
+        </button>
       </div>
     </div>
   </div>
