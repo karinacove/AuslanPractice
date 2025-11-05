@@ -215,7 +215,6 @@ const candidatePool = { animals: [], food: [], emotions: [] };
   });
 })();
 
-/* ===== Drag clone machinery (mouse + touch) ===== */
 let dragItem = null;
 let dragClone = null;
 let isTouch = false;
@@ -272,15 +271,13 @@ function moveDrag(e) {
   dragClone.style.top = clientY + "px";
 }
 
-// --- End dragging ---
+// --- End dragging / Drop detection ---
 function endDrag(e) {
   if (!dragItem || !dragClone) return;
 
-  // --- Remove clone ---
   dragClone.remove();
   dragClone = null;
 
-  // --- Remove event listeners ---
   if (isTouch) {
     document.removeEventListener("touchmove", moveDrag, { passive: false });
     document.removeEventListener("touchend", endDrag);
@@ -289,15 +286,13 @@ function endDrag(e) {
     document.removeEventListener("mouseup", endDrag);
   }
 
-  // --- Drop detection ---
-  let clientX, clientY;
-  if (isTouch && e.changedTouches && e.changedTouches.length > 0) {
-    clientX = e.changedTouches[0].clientX;
-    clientY = e.changedTouches[0].clientY;
-  } else {
-    clientX = e.clientX;
-    clientY = e.clientY;
-  }
+  // --- Coordinate-based drop detection ---
+  let clientX = isTouch && e.changedTouches && e.changedTouches.length > 0
+    ? e.changedTouches[0].clientX
+    : e.clientX;
+  let clientY = isTouch && e.changedTouches && e.changedTouches.length > 0
+    ? e.changedTouches[0].clientY
+    : e.clientY;
 
   let dropped = false;
   document.querySelectorAll(".dropzone").forEach(dz => {
@@ -326,9 +321,123 @@ function endDrag(e) {
   dragItem = null;
 }
 
-/* ===== Event listeners ===== */
 document.addEventListener("mousedown", startDrag);
 document.addEventListener("touchstart", startDrag, { passive: false });
+
+function restoreDraggableByKeyToSide(key) {
+  if (!key) return;
+  if (document.querySelector(`.draggable[data-key="${key}"]`)) return;
+  if (usedDraggables.has(key)) return;
+  const parts = key.split("::");
+  if (parts.length !== 3) return;
+
+  const topic = parts[0], a = parts[1], b = parts[2];
+  const container = (leftDraggables.childElementCount <= rightDraggables.childElementCount)
+    ? leftDraggables
+    : rightDraggables;
+
+  const div = createDraggableNodeFromParts(topic, a, b);
+  if (container) container.appendChild(div);
+}
+
+function createDraggableNodeFromParts(topic, a, b) {
+  const key = draggableKey(topic, a, b);
+  const imgSrc = buildDraggableFilename(topic, a, b);
+  const div = document.createElement("div");
+  div.className = "draggable";
+  div.draggable = true;
+  div.dataset.key = key;
+  div.dataset.img = imgSrc;
+  div.style.userSelect = "none";
+
+  const img = document.createElement("img");
+  img.src = imgSrc;
+  img.alt = `${a}-${b}`;
+  img.onerror = function() {
+    img.style.display = "none";
+    if (!div.querySelector(".fallback")) {
+      const f = document.createElement("div");
+      f.className = "fallback";
+      f.textContent = `${a}-${b}`;
+      div.appendChild(f);
+    }
+  };
+  div.appendChild(img);
+
+  div.addEventListener("dragstart", e => { try { e.dataTransfer.setData("text/plain", key); } catch{} });
+
+  return div;
+}
+
+function populateDraggables(leftCandidates, rightCandidates, leftCount = 6, rightCount = 6) {
+  leftDraggables.innerHTML = "";
+  rightDraggables.innerHTML = "";
+
+  const leftSelection = leftCandidates.slice(0, leftCount);
+  const rightSelection = rightCandidates.slice(0, rightCount);
+
+  leftSelection.forEach(c => {
+    if (usedDraggables.has(c.key)) return;
+    const div = createCandidateDiv(c);
+    leftDraggables.appendChild(div);
+  });
+
+  rightSelection.forEach(c => {
+    if (usedDraggables.has(c.key)) return;
+    const div = createCandidateDiv(c);
+    rightDraggables.appendChild(div);
+  });
+
+  document.querySelectorAll(".draggable").forEach(d => d.style.cursor = "grab");
+}
+
+function createCandidateDiv(c) {
+  const div = document.createElement("div");
+  div.className = "draggable";
+  div.draggable = true;
+  div.dataset.key = c.key;
+  div.dataset.img = c.img;
+
+  if (c.overlay) div.dataset.overlay = c.overlay;
+
+  const img = document.createElement("img");
+  img.src = c.img;
+  img.alt = c.key;
+  img.onerror = () => {
+    img.style.display = "none";
+    if (!div.querySelector(".fallback")) {
+      const f = document.createElement("div");
+      f.className = "fallback";
+      f.textContent = (c.parts.animal || c.parts.food || c.parts.emotion || c.parts.colour || c.parts.zone)
+        + (c.parts.number ? `-${c.parts.number}` : "");
+      div.appendChild(f);
+    }
+  };
+  div.appendChild(img);
+
+  if (c.overlay) {
+    const ov = document.createElement("div");
+    ov.className = "overlay " + c.overlay;
+    ov.textContent = (c.overlay === "have") ? "✓" : "✕";
+    div.appendChild(ov);
+  }
+
+  div.addEventListener("dragstart", e => { try { e.dataTransfer.setData("text/plain", c.key); } catch{} });
+
+  return div;
+}
+
+function updateCheckVisibility() {
+  checkBtn.style.display = "none";
+  const required = Array.from(answerArea.querySelectorAll(".dropzone"));
+  if (required.length === 0) return;
+  const allFilled = required.every(d => d.dataset.filled && d.dataset.filled.length > 0);
+  if (allFilled) checkBtn.style.display = "inline-block";
+}
+
+function updateScoreDisplay() {
+  scoreDisplay.textContent = `Level ${currentLevel} - Question ${roundInLevel + 1}/${QUESTIONS_PER_LEVEL}`;
+}
 
 /* ===== Double-tap / double-click removal ===== */
 let lastTap = 0;
@@ -351,111 +460,9 @@ answerArea.addEventListener("click", (ev) => {
   lastTap = now;
 });
 
-/* restore draggable */
-function restoreDraggableByKeyToSide(key){
-  if(!key) return;
-  if(document.querySelector(`.draggable[data-key="${key}"]`)) return;
-  if(usedDraggables.has(key)) return;
-  const parts = key.split("::");
-  if(parts.length !== 3) return;
-  const topic = parts[0], a = parts[1], b = parts[2];
-  const container = (leftDraggables.childElementCount <= rightDraggables.childElementCount) ? leftDraggables : rightDraggables;
-  const div = createDraggableNodeFromParts(topic, a, b);
-  if(container) container.appendChild(div);
-}
-
-/* create draggable from parts */
-function createDraggableNodeFromParts(topic,a,b){
-  const key = draggableKey(topic,a,b);
-  const imgSrc = buildDraggableFilename(topic,a,b);
-  const div = document.createElement("div");
-  div.className = "draggable";
-  div.draggable = true;
-  div.dataset.key = key;
-  div.dataset.img = imgSrc;
-  div.style.userSelect = "none";
-  const img = document.createElement("img");
-  img.src = imgSrc;
-  img.alt = `${a}-${b}`;
-  img.onerror = function(){ img.style.display = "none"; if(!div.querySelector(".fallback")){ const f = document.createElement("div"); f.className="fallback"; f.textContent = `${a}-${b}`; div.appendChild(f); } };
-  div.appendChild(img);
-  div.addEventListener("dragstart", e => { try{ e.dataTransfer.setData("text/plain", key);}catch{} });
-  return div;
-}
-
-/* populate draggables (left + right arrays provided) */
-function populateDraggables(leftCandidates, rightCandidates, leftCount=6, rightCount=6){
-  leftDraggables.innerHTML = "";
-  rightDraggables.innerHTML = "";
-
-  const leftSelection = leftCandidates.slice(0,leftCount);
-  const rightSelection = rightCandidates.slice(0,rightCount);
-
-  leftSelection.forEach(c => {
-    if(usedDraggables.has(c.key)) return;
-    const div = document.createElement("div");
-    div.className = "draggable";
-    div.draggable = true;
-    div.dataset.key = c.key;
-    div.dataset.img = c.img;
-    if(c.overlay) div.dataset.overlay = c.overlay; // for have/donthave
-    const img = document.createElement("img");
-    img.src = c.img;
-    img.alt = c.key;
-    img.onerror = () => { img.style.display = "none"; if(!div.querySelector(".fallback")){ const f = document.createElement("div"); f.className="fallback"; f.textContent = (c.parts.animal||c.parts.food||c.parts.emotion) + (c.parts.number?`-${c.parts.number}`:""); div.appendChild(f);} };
-    div.appendChild(img);
-    if(c.overlay){ // create overlay marker (tick or X) as text (no image provided)
-      const ov = document.createElement("div");
-      ov.className = "overlay " + c.overlay;
-      ov.textContent = (c.overlay === "have") ? "✓" : "✕"; // simple symbol overlay
-      div.appendChild(ov);
-    }
-    div.addEventListener("dragstart", e => { try{ e.dataTransfer.setData("text/plain", c.key);}catch{} });
-    leftDraggables.appendChild(div);
-  });
-
-  rightSelection.forEach(c => {
-    if(usedDraggables.has(c.key)) return;
-    const div = document.createElement("div");
-    div.className = "draggable";
-    div.draggable = true;
-    div.dataset.key = c.key;
-    div.dataset.img = c.img;
-    if(c.overlay) div.dataset.overlay = c.overlay;
-    const img = document.createElement("img");
-    img.src = c.img;
-    img.alt = c.key;
-    img.onerror = () => { img.style.display = "none"; if(!div.querySelector(".fallback")){ const f = document.createElement("div"); f.className="fallback"; f.textContent = (c.parts.food||c.parts.colour||c.parts.zone) + (c.parts.colour?`-${c.parts.colour}`:""); div.appendChild(f);} };
-    div.appendChild(img);
-    if(c.overlay){
-      const ov = document.createElement("div");
-      ov.className = "overlay " + c.overlay;
-      ov.textContent = (c.overlay === "have") ? "✓" : "✕";
-      div.appendChild(ov);
-    }
-    div.addEventListener("dragstart", e => { try{ e.dataTransfer.setData("text/plain", c.key);}catch{} });
-    rightDraggables.appendChild(div);
-  });
-
-  document.querySelectorAll(".draggable").forEach(d=> d.style.cursor = "grab");
-}
-
-/* updateCheckVisibility */
-function updateCheckVisibility(){
-  checkBtn.style.display = "none";
-  const desc = levelDescriptor(currentLevel);
-  const required = Array.from(answerArea.querySelectorAll(".dropzone"));
-  if(required.length === 0) return;
-  const allFilled = required.every(d=>d.dataset.filled && d.dataset.filled.length>0);
-  if(allFilled) checkBtn.style.display = "inline-block";
-}
-
-function updateScoreDisplay() {
-  scoreDisplay.textContent = `Level ${currentLevel} - Question ${roundInLevel + 1}/${QUESTIONS_PER_LEVEL}`;
-}
-
 /* ===== Build the question UI and draggables for the current level and round ===== */
-function buildQuestion(){
+function buildQuestion() {
+  // --- Clear old UI ---
   questionArea.innerHTML = "";
   answerArea.innerHTML = "";
   feedbackDiv.innerHTML = "";
@@ -464,54 +471,62 @@ function buildQuestion(){
 
   const desc = levelDescriptor(currentLevel);
 
-  // helper: pick unused candidate (combo) from pool preferring not usedCombos
-  function pickUnusedCombo(poolArr){
+  // --- Helper: pick an unused candidate from pool ---
+  function pickUnusedCombo(poolArr) {
     const shuffled = shuffleArray(poolArr).filter(c => !usedDraggables.has(c.key));
-    for(const c of shuffled){
-      if(!usedCombos.has(c.key)) return c;
+    for (const c of shuffled) {
+      if (!usedCombos.has(c.key)) return c;
     }
     return shuffled[0] || null;
   }
-/* ===== Drag-and-drop helpers ===== */
-function handleDrop(e) {
-  e.preventDefault();
-  const key = e.dataTransfer?.getData("text/plain");
-  if (!key) return;
 
-  const dz = e.currentTarget;
-  if (dz.childElementCount === 0) {
-    const div = document.querySelector(`.draggable[data-key="${key}"]`);
+  // --- Drag-and-drop clone handler ---
+  function handleDropClone(dz, draggedKey) {
+    if (!draggedKey || dz.childElementCount > 0) return;
+    const div = document.querySelector(`.draggable[data-key="${draggedKey}"]`);
     if (div) {
       const clone = div.cloneNode(true);
       clone.classList.remove("draggable");
       dz.appendChild(clone);
-      dz.dataset.filled = key;
+      dz.dataset.filled = draggedKey;
       dz.classList.add("filled");
       updateCheckVisibility();
     }
   }
-}
-  // --- function to create a dropzone element with optional placeholder text ---
-function createDropzone(placeholderText = "", expectedKey = "") {
-  const dz = document.createElement("div");
-  dz.className = "dropzone";
-  dz.dataset.expected = expectedKey;
 
-  const placeholder = document.createElement("div");
-  placeholder.className = "placeholder faint";
-  placeholder.textContent = placeholderText;
-  dz.appendChild(placeholder);
+  // --- Create dropzone ---
+  function createDropzone(placeholderText = "", expectedKey = "") {
+    const dz = document.createElement("div");
+    dz.className = "dropzone";
+    dz.dataset.expected = expectedKey;
 
-  dz.addEventListener("dragover", e => e.preventDefault());
-  dz.addEventListener("drop", handleDrop);
+    const placeholder = document.createElement("div");
+    placeholder.className = "placeholder faint";
+    placeholder.textContent = placeholderText;
+    dz.appendChild(placeholder);
 
-  answerArea.appendChild(dz);
-  return dz;
-}
+    // Mouse/touch drop detection
+    dz.addEventListener("mouseup", () => { if (dragItem) handleDropClone(dz, dragItem.dataset.key); });
+    dz.addEventListener("touchend", (e) => {
+      if (dragItem && e.changedTouches.length > 0) {
+        const touch = e.changedTouches[0];
+        const rect = dz.getBoundingClientRect();
+        if (
+          touch.clientX >= rect.left && touch.clientX <= rect.right &&
+          touch.clientY >= rect.top && touch.clientY <= rect.bottom
+        ) {
+          handleDropClone(dz, dragItem.dataset.key);
+        }
+      }
+    });
 
-  // --- helper for setting up a question row ---
-  function buildQuestionRow(words, topicName){
-    const helperType = (topicName === "emotions") ? VOCAB.helpers.feel : VOCAB.helpers.see;
+    answerArea.appendChild(dz);
+    return dz;
+  }
+
+  // --- Build question row (videos/images) ---
+  function buildQuestionRow(words, topicName) {
+    const helperType = topicName === "emotions" ? VOCAB.helpers.feel : VOCAB.helpers.see;
     const helperImg = document.createElement("img");
     helperImg.src = helperType;
     helperImg.alt = "helper";
@@ -521,11 +536,14 @@ function createDropzone(placeholderText = "", expectedKey = "") {
     qdiv.className = "questionRow";
     qdiv.appendChild(helperImg);
 
-    words.forEach(word=>{
-      const sign = document.createElement(VOCAB.topics.emotions.includes(word) ? "video" : "img");
-      if(sign.tagName === "VIDEO"){
+    words.forEach(word => {
+      const isVideo = VOCAB.topics.emotions.includes(word);
+      const sign = document.createElement(isVideo ? "video" : "img");
+      if (isVideo) {
         sign.src = signPathFor(word);
-        sign.autoplay = true; sign.loop = true; sign.muted = true;
+        sign.autoplay = true;
+        sign.loop = true;
+        sign.muted = true;
       } else {
         sign.src = signPathFor(word);
       }
@@ -536,186 +554,148 @@ function createDropzone(placeholderText = "", expectedKey = "") {
     questionArea.appendChild(qdiv);
   }
 
-  // --- simple type question ---
-  if(desc.type === "simple"){
-    const topicIndex = desc.topicIndex;
-    const topicName = topicIndex===1 ? "animals" : topicIndex===2 ? "food" : "emotions";
+  // --- Simple type question ---
+  if (desc.type === "simple") {
+    const topicName = desc.topicIndex === 1 ? "animals"
+                     : desc.topicIndex === 2 ? "food"
+                     : "emotions";
 
-    // pick correct candidate
-    let correctCandidate = null;
-    if(topicName === "animals") correctCandidate = pickUnusedCombo(candidatePool.animals);
-    if(topicName === "food") correctCandidate = pickUnusedCombo(candidatePool.food);
-    if(topicName === "emotions") correctCandidate = pickUnusedCombo(candidatePool.emotions);
-
-    if(!correctCandidate){
-      const pool = topicName==="animals" ? candidatePool.animals
-                 : topicName==="food" ? candidatePool.food
-                 : candidatePool.emotions;
-      correctCandidate = shuffleArray(pool).find(c=>!usedDraggables.has(c.key)) || pool[0];
-    }
-
+    let correctCandidate = pickUnusedCombo(candidatePool[topicName]) || candidatePool[topicName][0];
     const parts = correctCandidate.key.split("::");
-    const word1 = parts[1] || (topicName==="animals"? randomItem(VOCAB.topics.animals)
-                  : topicName==="food"? randomItem(VOCAB.topics.food)
-                  : randomItem(VOCAB.topics.emotions));
-    const word2 = parts[2] || (topicName==="animals"? randomItem(VOCAB.numbers)
-                  : topicName==="food"? randomItem(VOCAB.colours)
-                  : randomItem(VOCAB.zones));
+    const word1 = parts[1] || randomItem(VOCAB.topics[topicName]);
+    const word2 = parts[2] || (topicName === "animals" ? randomItem(VOCAB.numbers)
+                      : topicName === "food" ? randomItem(VOCAB.colours)
+                      : randomItem(VOCAB.zones));
 
     buildQuestionRow([word1, word2], topicName);
 
-    // create dropzone with topic-based hint
-    let hintLabel = topicName==="animals" ? "animal + number"
-                  : topicName==="food" ? "food + colour"
+    let hintLabel = topicName === "animals" ? "animal + number"
+                  : topicName === "food" ? "food + colour"
                   : "emotion + zone";
 
-    const dz = createDropzone(hintLabel, correctCandidate.key);
+    createDropzone(hintLabel, correctCandidate.key);
 
-    // pick decoys
-    let pool = topicName==="animals" ? shuffleArray(candidatePool.animals)
-             : topicName==="food" ? shuffleArray(candidatePool.food)
-             : shuffleArray(candidatePool.emotions);
-
-    pool = pool.filter(c => c.key !== correctCandidate.key && !usedDraggables.has(c.key));
-    const decoys = pool.slice(0,11);
+    const pool = shuffleArray(candidatePool[topicName]).filter(c => c.key !== correctCandidate.key && !usedDraggables.has(c.key));
+    const decoys = pool.slice(0, 11);
     const allItems = shuffleArray([correctCandidate, ...decoys]);
-    const leftItems = allItems.slice(0,6);
-    const rightItems = allItems.slice(6,12);
+    const leftItems = allItems.slice(0, 6);
+    const rightItems = allItems.slice(6, 12);
     populateDraggables(leftItems, rightItems, 6, 6);
   }
 
-  // --- two type question ---
-  else if(desc.type === "two"){
-    const topicIndex = desc.topicIndex;
-    const topicName = topicIndex===1 ? "animals" : topicIndex===2 ? "food" : "emotions";
-    const pool = topicName==="animals" ? candidatePool.animals
-                : topicName==="food" ? candidatePool.food
-                : candidatePool.emotions;
+  // --- Two-type question ---
+  else if (desc.type === "two") {
+    const topicName = desc.topicIndex === 1 ? "animals"
+                     : desc.topicIndex === 2 ? "food"
+                     : "emotions";
+    const pool = candidatePool[topicName];
 
     let chosen = null;
-    for(const c of shuffleArray(pool)){
-      if(!usedCombos.has(c.key) && !usedDraggables.has(c.key)){ chosen=c; break; }
+    for (const c of shuffleArray(pool)) {
+      if (!usedCombos.has(c.key) && !usedDraggables.has(c.key)) { chosen = c; break; }
     }
-    if(!chosen) chosen = shuffleArray(pool).find(c=>!usedDraggables.has(c.key)) || pool[0];
+    if (!chosen) chosen = shuffleArray(pool).find(c => !usedDraggables.has(c.key)) || pool[0];
+
     const parts = chosen.key.split("::");
     const word1 = parts[1], word2 = parts[2];
-
     buildQuestionRow([word1, word2], topicName);
 
     // create two dropzones
     const dz1 = createDropzone("topic", chosen.key);
     const dz2 = createDropzone("extra", "");
-
     dz1.dataset.expectedValue = word1;
     dz2.dataset.expectedValue = word2;
 
-    // build left and right candidates
-    const leftPool = shuffleArray(pool).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
+    const leftPool = shuffleArray(pool).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
     const rightSel = [];
-    if(topicName==="animals") shuffleArray(VOCAB.numbers).slice(0,6).forEach(n => rightSel.push({ key:`numbers::${n}`, img:`assets/images/numbers/${n}.png`, parts:{number:n} }));
-    else if(topicName==="food") shuffleArray(VOCAB.colours).slice(0,6).forEach(c => rightSel.push({ key:`colours::${c}`, img:`assets/images/colours/${c}.png`, parts:{colour:c} }));
-    else shuffleArray(VOCAB.zones).slice(0,6).forEach(z => rightSel.push({ key:`zones::${z}`, img:`assets/images/zones/${z}.png`, parts:{zone:z} }));
+    if (topicName === "animals") shuffleArray(VOCAB.numbers).slice(0, 6).forEach(n => rightSel.push({ key: `numbers::${n}`, img: `assets/images/numbers/${n}.png`, parts: { number: n } }));
+    else if (topicName === "food") shuffleArray(VOCAB.colours).slice(0, 6).forEach(c => rightSel.push({ key: `colours::${c}`, img: `assets/images/colours/${c}.png`, parts: { colour: c } }));
+    else shuffleArray(VOCAB.zones).slice(0, 6).forEach(z => rightSel.push({ key: `zones::${z}`, img: `assets/images/zones/${z}.png`, parts: { zone: z } }));
 
-    populateDraggables(leftPool.slice(0,6), rightSel, Math.min(6,leftPool.length), rightSel.length);
+    populateDraggables(leftPool.slice(0, 6), rightSel, Math.min(6, leftPool.length), rightSel.length);
   }
 
-// --- compound / bonus / layouts ---
-else if(desc.type==="compound" || desc.type==="bonus"){
-  questionArea.innerHTML = ""; // clear top
+  // --- Compound / Bonus / Layout questions ---
+  else if (desc.type === "compound" || desc.type === "bonus") {
+    questionArea.innerHTML = ""; // clear top
 
-  const helperImg = document.createElement("img");
-  helperImg.src = VOCAB.helpers.see; helperImg.alt="see";
-  helperImg.onerror = ()=>{ helperImg.style.display="none"; };
-  const qtop = document.createElement("div"); qtop.className="questionRow";
-  qtop.appendChild(helperImg);
-  questionArea.appendChild(qtop);
+    const helperImg = document.createElement("img");
+    helperImg.src = VOCAB.helpers.see; helperImg.alt = "see";
+    helperImg.onerror = () => { helperImg.style.display = "none"; };
+    const qtop = document.createElement("div"); qtop.className = "questionRow";
+    qtop.appendChild(helperImg);
+    questionArea.appendChild(qtop);
 
-  const dzs = [];
+    const dzs = [];
 
-  // --- Layout A ---
-  if(desc.layout==="A"){
-    const verb = randomItem(["have","donthave"]);
-    const verbSign = document.createElement("img"); 
-    verbSign.src = signPathFor(verb); verbSign.alt=verb; verbSign.className="inlineVerb";
-    qtop.appendChild(verbSign);
+    // --- Layout A ---
+    if (desc.layout === "A") {
+      const verb = randomItem(["have", "donthave"]);
+      const verbSign = document.createElement("img");
+      verbSign.src = signPathFor(verb); verbSign.alt = verb; verbSign.className = "inlineVerb";
+      qtop.appendChild(verbSign);
 
-    const dz1 = createDropzone("animal+number", "");
-    const dz2 = createDropzone("food+colour", "");
-    dz1.dataset.expectedType="animals_combo"; dz2.dataset.expectedType="food_combo";
-    dz1.dataset.expectedVerb=verb; dz2.dataset.expectedVerb=verb;
-    dzs.push(dz1,dz2);
+      const dz1 = createDropzone("animal+number", "");
+      const dz2 = createDropzone("food+colour", "");
+      dz1.dataset.expectedType = "animals_combo"; dz2.dataset.expectedType = "food_combo";
+      dz1.dataset.expectedVerb = verb; dz2.dataset.expectedVerb = verb;
+      dzs.push(dz1, dz2);
 
-    const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-    const rightCandidates = shuffleArray(candidatePool.food).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-    rightCandidates.forEach(c=>{ c.overlay=Math.random()>0.5?"have":"donthave"; });
-    populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
+      const leftCandidates = shuffleArray(candidatePool.animals).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
+      const rightCandidates = shuffleArray(candidatePool.food).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
+      rightCandidates.forEach(c => { c.overlay = Math.random() > 0.5 ? "have" : "donthave"; });
+      populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
+    }
+
+    // --- Layout B ---
+    else if (desc.layout === "B") {
+      ["animal", "number", "verb", "food", "colour"].forEach(k => {
+        const dz = createDropzone(k, ""); dz.dataset.placeholder = k; dzs.push(dz);
+      });
+      const leftCandidates = shuffleArray(candidatePool.animals).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
+      const rightCandidates = shuffleArray(candidatePool.food).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
+      populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
+
+      ["have", "donthave"].forEach(v => {
+        const div = document.createElement("div"); div.className = "draggable"; div.draggable = true;
+        div.dataset.key = `verb::${v}`; div.dataset.img = signPathFor(v);
+        const img = document.createElement("img"); img.src = signPathFor(v); img.alt = v; div.appendChild(img);
+        rightDraggables.appendChild(div);
+      });
+    }
+
+    // --- Layout C ---
+    else if (desc.layout === "C") {
+      const dz1 = createDropzone("animal", ""); const dz2 = createDropzone("number", ""); const dz3 = createDropzone("emotion+zone", "");
+      dzs.push(dz1, dz2, dz3);
+      const leftCandidates = shuffleArray(candidatePool.animals).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
+      const rightCandidates = shuffleArray(candidatePool.emotions).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
+      populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
+    }
+
+    // --- Layout D ---
+    else if (desc.layout === "D") {
+      const dz1 = createDropzone("animal+number", ""); const dz2 = createDropzone("emotion+zone", ""); dzs.push(dz1, dz2);
+      const leftCandidates = shuffleArray(candidatePool.animals).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
+      const rightCandidates = shuffleArray(candidatePool.emotions).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
+      rightCandidates.forEach(c => { c.overlay = Math.random() > 0.5 ? "have" : "donthave"; });
+      populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
+    }
+
+    // --- Layout E/F ---
+    else if (desc.layout === "E" || desc.layout === "F") {
+      const placeholders = desc.layout === "E"
+        ? ["animal","number","emotion","zone","verb","food","colour"]
+        : ["animal","number","emotion","zone","food+colour"];
+      placeholders.forEach(ph => { dzs.push(createDropzone(ph, "")); });
+
+      const leftCandidates = shuffleArray(candidatePool.animals).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
+      const rightCandidates = shuffleArray(candidatePool.food).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
+      populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
+    }
   }
 
-  // --- Layout B: 5 dropzones (animal, number, verb, food, colour) ---
-  else if(desc.layout==="B"){
-    const keys = ["animal","number","verb","food","colour"];
-    keys.forEach(k=>{
-      const dz = createDropzone(k,"");
-      dz.dataset.placeholder = k;
-      dzs.push(dz);
-    });
-
-    const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-    const rightCandidates = shuffleArray(candidatePool.food).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-    populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
-
-    // add two verb draggables
-    const verbs = ["have","donthave"];
-    verbs.forEach(v=>{
-      const div = document.createElement("div");
-      div.className="draggable"; div.draggable=true;
-      div.dataset.key = `verb::${v}`; div.dataset.img = signPathFor(v);
-      const img = document.createElement("img"); img.src = signPathFor(v); img.alt=v; div.appendChild(img);
-      rightDraggables.appendChild(div);
-    });
-  }
-
-  // --- Layout C: 3 dropzones (animal, number, emotion+zone) ---
-  else if(desc.layout==="C"){
-    const dz1 = createDropzone("animal",""); 
-    const dz2 = createDropzone("number",""); 
-    const dz3 = createDropzone("emotion+zone","");
-    dzs.push(dz1,dz2,dz3);
-
-    const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-    const rightCandidates = shuffleArray(candidatePool.emotions).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-    populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
-  }
-
-  // --- Layout D: 2 dropzones (animal+number, emotion+zone) ---
-  else if(desc.layout==="D"){
-    const dz1 = createDropzone("animal+number","");
-    const dz2 = createDropzone("emotion+zone","");
-    dzs.push(dz1,dz2);
-
-    const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-    const rightCandidates = shuffleArray(candidatePool.emotions).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-    rightCandidates.forEach(c=>{ c.overlay=Math.random()>0.5?"have":"donthave"; });
-    populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
-  }
-
-  // --- Layout E / F: bonus layouts ---
-  else if(desc.layout==="E" || desc.layout==="F"){
-    const placeholders = desc.layout==="E" 
-      ? ["animal","number","emotion","zone","verb","food","colour"] 
-      : ["animal","number","emotion","zone","food+colour"];
-
-    placeholders.forEach(ph=>{
-      const dz = createDropzone(ph,"");
-      dzs.push(dz);
-    });
-
-    const leftCandidates = shuffleArray(candidatePool.animals).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-    const rightCandidates = shuffleArray(candidatePool.food).filter(c=>!usedDraggables.has(c.key)).slice(0,9);
-    populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
-  }
   updateCheckVisibility();
-  } // end buildQuestion
 }
 
 /* ===== Check button logic (full handling for simple, two, compound, bonus) ===== */
