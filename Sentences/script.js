@@ -431,16 +431,22 @@ function buildQuestion(){
   }
 
   // --- function to create a dropzone element with optional placeholder text ---
-  function createDropzone(placeholderText="", expectedKey=""){
-    const dz = document.createElement("div");
-    dz.className = "dropzone";
-    if(placeholderText) dz.innerHTML = `<div class="placeholder faint">${placeholderText}</div>`;
-    dz.dataset.expected = expectedKey;
-    dz.addEventListener("dragover", e => e.preventDefault());
-    dz.addEventListener("drop", e => e.preventDefault());
-    answerArea.appendChild(dz);
-    return dz;
-  }
+function createDropzone(placeholderText = "", expectedKey = "") {
+  const dz = document.createElement("div");
+  dz.className = "dropzone";
+  dz.dataset.expected = expectedKey;
+
+  const placeholder = document.createElement("div");
+  placeholder.className = "placeholder faint";
+  placeholder.textContent = placeholderText;
+  dz.appendChild(placeholder);
+
+  dz.addEventListener("dragover", e => e.preventDefault());
+  dz.addEventListener("drop", e => e.preventDefault()); // instead of handleDrop
+
+  answerArea.appendChild(dz);
+  return dz;
+}
 
   // --- helper for setting up a question row ---
   function buildQuestionRow(words, topicName){
