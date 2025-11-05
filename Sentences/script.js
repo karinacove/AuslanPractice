@@ -215,21 +215,39 @@ const candidatePool = { animals: [], food: [], emotions: [] };
   });
 })();
 
-/* ===== Drag clone machinery (mouse + touch) - preserved with centering ===== */
+/* ===== Drag & Drop machinery (mouse + touch) - preserved with centering ===== */
 let dragItem = null;
 let dragClone = null;
 let isTouch = false;
 
-document.querySelectorAll(".dropzone").forEach(dz => {
-  dz.addEventListener("dragover", e => e.preventDefault());
-  dz.addEventListener("drop", e => e.preventDefault());
-});
+/* ===== HandleDrop: runs when a draggable is dropped into a dropzone ===== */
+function handleDrop(e) {
+  e.preventDefault();
+  const key = e.dataTransfer?.getData("text/plain");
+  if (!key) return;
 
-function startDrag(e){
+  const dz = e.currentTarget;
+  if (dz.childElementCount === 0) {
+    const div = document.querySelector(`.draggable[data-key="${key}"]`);
+    if (div) {
+      const clone = div.cloneNode(true);
+      clone.classList.remove("draggable");
+      dz.appendChild(clone);
+      dz.dataset.filled = key;
+      dz.classList.add("filled");
+      updateCheckVisibility();
+    }
+  }
+}
+
+/* ===== Start Drag ===== */
+function startDrag(e) {
   const tgt = e.target.closest(".draggable");
-  if(!tgt) return;
+  if (!tgt) return;
+
   dragItem = tgt;
   isTouch = e.type.startsWith("touch");
+
   const rect = tgt.getBoundingClientRect();
   dragClone = tgt.cloneNode(true);
   Object.assign(dragClone.style, {
@@ -243,67 +261,119 @@ function startDrag(e){
     zIndex: 10000,
     transform: "translate(-50%,-50%)"
   });
+
   dragClone.classList.add("drag-clone");
   document.body.appendChild(dragClone);
   e.preventDefault();
-  if(isTouch){
-    document.addEventListener("touchmove", moveDrag, { passive:false });
+
+  if (isTouch) {
+    document.addEventListener("touchmove", moveDrag, { passive: false });
     document.addEventListener("touchend", endDrag);
   } else {
     document.addEventListener("mousemove", moveDrag);
     document.addEventListener("mouseup", endDrag);
   }
 }
-function moveDrag(e){
-  if(!dragClone) return;
+
+/* ===== Move Drag ===== */
+function moveDrag(e) {
+  if (!dragClone) return;
   let clientX, clientY;
-  if(isTouch && e.touches && e.touches.length>0){ clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }
-  else { clientX = e.clientX; clientY = e.clientY; }
+
+  if (isTouch && e.touches && e.touches.length > 0) {
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  } else {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }
+
   dragClone.style.left = clientX + "px";
   dragClone.style.top = clientY + "px";
 }
 
-// Handles dropping a draggable into a dropzone
+/* ===== End Drag ===== */
 function endDrag(e) {
-  if (!dragItem||!dragClone) return; let clientX, clientY;
-  if (isTouch && e.changedTouches && e.changedTouches.length>0) { clientX=e.changedTouches[0].clientX; clientY=e.changedTouches[0].clientY;}
-  else{clientX=e.clientX; clientY=e.clientY;}
-  let dropped=false;
-  document.querySelectorAll(".dropzone").forEach(dz=>{
-    const rect=dz.getBoundingClientRect();
-    if(clientX>=rect.left && clientX<=rect.right && clientY>=rect.top && clientY<=rect.bottom && dz.childElementCount===0){
-      const node=dragItem.cloneNode(true); node.classList.remove("draggable"); dz.appendChild(node);
-      dz.dataset.filled=dragItem.dataset.key; dz.classList.add("filled"); dropped=true;
+  if (!dragItem || !dragClone) return;
+
+  // --- remove the floating clone ---
+  if (dragClone && dragClone.parentNode) {
+    document.body.removeChild(dragClone);
+  }
+
+  // --- remove event listeners ---
+  if (isTouch) {
+    document.removeEventListener("touchmove", moveDrag, { passive: false });
+    document.removeEventListener("touchend", endDrag);
+  } else {
+    document.removeEventListener("mousemove", moveDrag);
+    document.removeEventListener("mouseup", endDrag);
+  }
+
+  // --- touch fallback: simulate drop detection by coordinates ---
+  if (isTouch && e.changedTouches && e.changedTouches.length > 0) {
+    const clientX = e.changedTouches[0].clientX;
+    const clientY = e.changedTouches[0].clientY;
+    let dropped = false;
+
+    document.querySelectorAll(".dropzone").forEach(dz => {
+      const rect = dz.getBoundingClientRect();
+      if (
+        clientX >= rect.left && clientX <= rect.right &&
+        clientY >= rect.top && clientY <= rect.bottom &&
+        dz.childElementCount === 0
+      ) {
+        const clone = dragItem.cloneNode(true);
+        clone.classList.remove("draggable");
+        dz.appendChild(clone);
+        dz.dataset.filled = dragItem.dataset.key;
+        dz.classList.add("filled");
+        dropped = true;
+      }
+    });
+
+    if (dropped) {
+      againBtn.style.display = "inline-block";
+      checkBtn.style.display = Array.from(document.querySelectorAll(".dropzone"))
+        .every(d => d.dataset.filled)
+        ? "inline-block"
+        : "none";
     }
-  });
-  if(dragClone) document.body.removeChild(dragClone);
-  dragClone=null; dragItem=null;
-  if(isTouch){document.removeEventListener("touchmove",moveDrag,{passive:false});document.removeEventListener("touchend",endDrag);}
-  else{document.removeEventListener("mousemove",moveDrag);document.removeEventListener("mouseup",endDrag);}
-  if(dropped){againBtn.style.display="inline-block"; checkBtn.style.display=Array.from(document.querySelectorAll(".dropzone")).every(d=>d.dataset.filled)?"inline-block":"none";}
+  }
+
+  dragClone = null;
+  dragItem = null;
 }
-document.addEventListener("mousedown",startDrag); document.addEventListener("touchstart",startDrag,{passive:false});
-function dropHandler(e){ e.preventDefault(); }
- 
+
+/* ===== Initial Dropzone event bindings ===== */
+document.querySelectorAll(".dropzone").forEach(dz => {
+  dz.addEventListener("dragover", e => e.preventDefault());
+  dz.addEventListener("drop", handleDrop);
+});
+
+/* ===== Start listeners for dragging ===== */
+document.addEventListener("mousedown", startDrag);
+document.addEventListener("touchstart", startDrag, { passive: false });
+
 /* ===== UI helpers ===== */
-function updateScoreDisplay(){
-  scoreDisplay.textContent = `Level ${currentLevel} - Question ${roundInLevel+1}/${QUESTIONS_PER_LEVEL}`;
+function updateScoreDisplay() {
+  scoreDisplay.textContent = `Level ${currentLevel} - Question ${roundInLevel + 1}/${QUESTIONS_PER_LEVEL}`;
 }
 
 /* ===== Double-tap / double-click removal on dropzones ===== */
 let lastTap = 0;
-answerArea.addEventListener("click", (ev) => {
+answerArea.addEventListener("click", ev => {
   const dz = ev.target.closest(".dropzone");
-  if(!dz) return;
+  if (!dz) return;
   const now = Date.now();
-  if (now - lastTap < 350){ // double tap detected
-    if(dz.dataset.filled){
+  if (now - lastTap < 350) { // double tap detected
+    if (dz.dataset.filled) {
       const filledKey = dz.dataset.filled; // capture BEFORE clearing
       // remove node and metadata
       dz.innerHTML = "";
       dz.dataset.filled = "";
       dz.dataset.src = "";
-      dz.classList.remove("filled","incorrect","correct");
+      dz.classList.remove("filled", "incorrect", "correct");
       // restore draggable to its side container if not permanently removed
       restoreDraggableByKeyToSide(filledKey);
       updateCheckVisibility();
@@ -442,7 +512,7 @@ function createDropzone(placeholderText = "", expectedKey = "") {
   dz.appendChild(placeholder);
 
   dz.addEventListener("dragover", e => e.preventDefault());
-  dz.addEventListener("drop", e => e.preventDefault()); // instead of handleDrop
+  dz.addEventListener("drop", handleDrop);
 
   answerArea.appendChild(dz);
   return dz;
