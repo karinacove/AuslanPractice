@@ -115,12 +115,12 @@ function timeNowSeconds(){ return Math.round(Date.now()/1000); }
 function getTimeElapsed(){ return savedTimeElapsed + (startTime ? Math.round((Date.now()-startTime)/1000) : 0); }
 function setTimeElapsed(seconds){ savedTimeElapsed = seconds || 0; startTime = Date.now(); }
 
-/* sign path helper */
+/* ===== Sign path helper ===== */
 function signPathFor(word){
   if (!word) return "";
   if (VOCAB.topics.animals.includes(word)) return `assets/signs/animals/${word}-sign.png`;
-  if (VOCAB.topics.food && VOCAB.topics.food.includes(word)) return `assets/signs/food/${word}-sign.png`;
-  if (VOCAB.topics.emotions && VOCAB.topics.emotions.includes(word)) return `assets/signs/emotions/sign-${word}.mp4`;
+  if (VOCAB.topics.food.includes(word)) return `assets/signs/food/${word}-sign.png`;
+  if (VOCAB.topics.emotions.includes(word)) return `assets/signs/emotions/sign-${word}.mp4`;
   if (VOCAB.numbers.includes(word)) return `assets/signs/numbers/${word}-sign.png`;
   if (VOCAB.colours.includes(word)) return `assets/signs/colours/${word}-sign.png`;
   if (VOCAB.zones.includes(word)) return `assets/signs/zones/${word}.png`;
@@ -129,784 +129,163 @@ function signPathFor(word){
   return "";
 }
 
-function renderSentenceRows(signs) {
-  // signs = array of image/video paths in order
+/* ===== Sentence rendering ===== */
+function renderSentenceRows(signs){
   const row1 = document.getElementById("sentenceRow1");
   const row2 = document.getElementById("sentenceRow2");
   const row3 = document.getElementById("sentenceRow3");
-  
-  // clear old rows
-  [row1, row2, row3].forEach(r => r.innerHTML = "");
-
-  // distribute across rows based on count
-  if (signs.length <= 3) {
-    signs.forEach(src => appendSign(row1, src));
-  } else if (signs.length <= 6) {
-    signs.slice(0, 3).forEach(src => appendSign(row1, src));
-    signs.slice(3).forEach(src => appendSign(row2, src));
-  } else {
-    signs.slice(0, 3).forEach(src => appendSign(row1, src));
-    signs.slice(3, 6).forEach(src => appendSign(row2, src));
-    signs.slice(6).forEach(src => appendSign(row3, src));
+  [row1,row2,row3].forEach(r=>r.innerHTML="");
+  if(signs.length<=3){ signs.forEach(s=>appendSign(row1,s)); }
+  else if(signs.length<=6){ signs.slice(0,3).forEach(s=>appendSign(row1,s)); signs.slice(3).forEach(s=>appendSign(row2,s)); }
+  else{ signs.slice(0,3).forEach(s=>appendSign(row1,s)); signs.slice(3,6).forEach(s=>appendSign(row2,s)); signs.slice(6).forEach(s=>appendSign(row3,s)); }
+}
+function appendSign(container,src){
+  if(src.endsWith(".mp4")){
+    const v=document.createElement("video");
+    v.src=src; v.autoplay=true; v.loop=true; v.muted=true; v.className="sign-video"; container.appendChild(v);
+  }else{
+    const i=document.createElement("img"); i.src=src; i.alt="Sign"; i.className="sign-img"; container.appendChild(i);
   }
 }
 
-function appendSign(container, src) {
-  const isVideo = src.endsWith(".mp4");
-  if (isVideo) {
-    const vid = document.createElement("video");
-    vid.src = src;
-    vid.autoplay = true;
-    vid.loop = true;
-    vid.muted = true;
-    vid.className = "sign-video";
-    container.appendChild(vid);
-  } else {
-    const img = document.createElement("img");
-    img.src = src;
-    img.alt = "Sign";
-    img.className = "sign-img";
-    container.appendChild(img);
-  }
-}
-
-/* Descriptor */
+/* ===== Level descriptor ===== */
 function levelDescriptor(level){
-  if (level >=1 && level <=3) return { type: "simple", topicIndex: level }; // 1 animals, 2 food, 3 emotions
-  if (level >=4 && level <=6) return { type: "two", topicIndex: level-3 }; // 4 animals(opposite),5 food(opposite),6 emotions(opposite)
-  if (level ===7) return { type: "compound", layout: "A" };
-  if (level ===8) return { type: "compound", layout: "B" };
-  if (level ===9) return { type: "compound", layout: "C" };
-  if (level ===10) return { type: "compound", layout: "D" };
-  if (level ===11) return { type: "bonus", layout: "E" };
-  if (level ===12) return { type: "bonus", layout: "F" };
-  return { type: "simple", topicIndex: 1 };
+  if(level>=1 && level<=3) return {type:"simple",topicIndex:level};
+  if(level>=4 && level<=6) return {type:"two",topicIndex:level-3};
+  if(level===7) return {type:"compound",layout:"A"};
+  if(level===8) return {type:"compound",layout:"B"};
+  if(level===9) return {type:"compound",layout:"C"};
+  if(level===10) return {type:"compound",layout:"D"};
+  if(level===11) return {type:"bonus",layout:"E"};
+  if(level===12) return {type:"bonus",layout:"F"};
+  return {type:"simple",topicIndex:1};
 }
 
-/* Build draggable filename */
-function buildDraggableFilename(topic, a, b){
-  if(topic==="animals"){ return `assets/images/animals/${a}-${b}.png`; }
-  if(topic==="food"){ return `assets/images/food/${a}-${b}.png`; }
-  if(topic==="emotions"){ return `assets/images/emotions/${a}-${b}.png`; }
-  return "";
-}
+/* ===== Draggable filename helpers ===== */
+function buildDraggableFilename(topic,a,b){ return `assets/images/${topic}/${a}-${b}.png`; }
 function draggableKey(topic,a,b){ return `${topic}::${a}::${b}`; }
 
-/* Candidate pools */
-const candidatePool = { animals: [], food: [], emotions: [] };
-(function buildCandidatePools(){
-  VOCAB.topics.animals.forEach(animal=>{
-    VOCAB.numbers.forEach(num=>{
-      const key = draggableKey("animals",animal,num);
-      candidatePool.animals.push({ key, img: buildDraggableFilename("animals",animal,num), parts: { animal, number: num } });
-    });
-  });
-  VOCAB.topics.food.forEach(food=>{
-    VOCAB.colours.forEach(col=>{
-      const key = draggableKey("food",food,col);
-      candidatePool.food.push({ key, img: buildDraggableFilename("food",food,col), parts: { food, colour: col } });
-    });
-  });
-  VOCAB.topics.emotions.forEach(em=>{
-    VOCAB.zones.forEach(z=>{
-      const key = draggableKey("emotions",em,z);
-      candidatePool.emotions.push({ key, img: buildDraggableFilename("emotions",em,z), parts: { emotion: em, zone: z } });
-    });
-  });
+/* ===== Candidate pools ===== */
+const candidatePool={animals:[],food:[],emotions:[]};
+(function(){
+  VOCAB.topics.animals.forEach(a=>VOCAB.numbers.forEach(n=>candidatePool.animals.push({key:draggableKey("animals",a,n),img:buildDraggableFilename("animals",a,n),parts:{animal:a,number:n}})));
+  VOCAB.topics.food.forEach(f=>VOCAB.colours.forEach(c=>candidatePool.food.push({key:draggableKey("food",f,c),img:buildDraggableFilename("food",f,c),parts:{food:f,colour:c}})));
+  VOCAB.topics.emotions.forEach(e=>VOCAB.zones.forEach(z=>candidatePool.emotions.push({key:draggableKey("emotions",e,z),img:buildDraggableFilename("emotions",e,z),parts:{emotion:e,zone:z}})));
 })();
 
-let dragItem = null;
-let dragClone = null;
-let isTouch = false;
-
-// --- Start dragging ---
-function startDrag(e) {
-  const tgt = e.target.closest(".draggable");
-  if (!tgt) return;
-
-  dragItem = tgt;
-  isTouch = e.type.startsWith("touch");
-
-  const rect = tgt.getBoundingClientRect();
-  dragClone = tgt.cloneNode(true);
-  Object.assign(dragClone.style, {
-    position: "fixed",
-    left: rect.left + "px",
-    top: rect.top + "px",
-    width: rect.width + "px",
-    height: rect.height + "px",
-    opacity: "0.7",
-    pointerEvents: "none",
-    zIndex: 10000,
-    transform: "translate(-50%,-50%)"
-  });
-  dragClone.classList.add("drag-clone");
-  document.body.appendChild(dragClone);
-
+/* ===== Drag / Drop ===== */
+let dragItem=null, dragClone=null, isTouch=false;
+function startDrag(e){
+  const tgt=e.target.closest(".draggable"); if(!tgt) return;
+  dragItem=tgt; isTouch=e.type.startsWith("touch");
+  const rect=tgt.getBoundingClientRect();
+  dragClone=tgt.cloneNode(true);
+  Object.assign(dragClone.style,{position:"fixed",left:rect.left+"px",top:rect.top+"px",width:rect.width+"px",height:rect.height+"px",opacity:"0.7",pointerEvents:"none",zIndex:10000,transform:"translate(-50%,-50%)"});
+  dragClone.classList.add("drag-clone"); document.body.appendChild(dragClone);
   e.preventDefault();
-
-  if (isTouch) {
-    document.addEventListener("touchmove", moveDrag, { passive: false });
-    document.addEventListener("touchend", endDrag);
-  } else {
-    document.addEventListener("mousemove", moveDrag);
-    document.addEventListener("mouseup", endDrag);
-  }
+  if(isTouch){ document.addEventListener("touchmove",moveDrag,{passive:false}); document.addEventListener("touchend",endDrag); }
+  else{ document.addEventListener("mousemove",moveDrag); document.addEventListener("mouseup",endDrag); }
 }
-
-// --- Move dragging clone ---
-function moveDrag(e) {
-  if (!dragClone) return;
-
-  let clientX, clientY;
-  if (isTouch && e.touches && e.touches.length > 0) {
-    clientX = e.touches[0].clientX;
-    clientY = e.touches[0].clientY;
-  } else {
-    clientX = e.clientX;
-    clientY = e.clientY;
-  }
-
-  dragClone.style.left = clientX + "px";
-  dragClone.style.top = clientY + "px";
+function moveDrag(e){
+  if(!dragClone) return;
+  let clientX,clientY;
+  if(isTouch && e.touches && e.touches.length>0){ clientX=e.touches[0].clientX; clientY=e.touches[0].clientY; }
+  else{ clientX=e.clientX; clientY=e.clientY; }
+  dragClone.style.left=clientX+"px"; dragClone.style.top=clientY+"px";
 }
-
-// --- End dragging / Drop detection ---
-function endDrag(e) {
-  if (!dragItem || !dragClone) return;
-
-  dragClone.remove();
-  dragClone = null;
-
-  if (isTouch) {
-    document.removeEventListener("touchmove", moveDrag, { passive: false });
-    document.removeEventListener("touchend", endDrag);
-  } else {
-    document.removeEventListener("mousemove", moveDrag);
-    document.removeEventListener("mouseup", endDrag);
-  }
-
-  // --- Coordinate-based drop detection ---
-  let clientX = isTouch && e.changedTouches && e.changedTouches.length > 0
-    ? e.changedTouches[0].clientX
-    : e.clientX;
-  let clientY = isTouch && e.changedTouches && e.changedTouches.length > 0
-    ? e.changedTouches[0].clientY
-    : e.clientY;
-
-  let dropped = false;
-  document.querySelectorAll(".dropzone").forEach(dz => {
-    const rect = dz.getBoundingClientRect();
-    if (
-      clientX >= rect.left && clientX <= rect.right &&
-      clientY >= rect.top && clientY <= rect.bottom &&
-      dz.childElementCount === 0
-    ) {
-      const clone = dragItem.cloneNode(true);
-      clone.classList.remove("draggable");
-      dz.appendChild(clone);
-      dz.dataset.filled = dragItem.dataset.key;
-      dz.classList.add("filled");
-      dropped = true;
+function endDrag(e){
+  if(!dragItem||!dragClone) return;
+  dragClone.remove(); dragClone=null;
+  if(isTouch){ document.removeEventListener("touchmove",moveDrag,{passive:false}); document.removeEventListener("touchend",endDrag); }
+  else{ document.removeEventListener("mousemove",moveDrag); document.removeEventListener("mouseup",endDrag); }
+  let clientX=isTouch&&e.changedTouches&&e.changedTouches.length>0?e.changedTouches[0].clientX:e.clientX;
+  let clientY=isTouch&&e.changedTouches&&e.changedTouches.length>0?e.changedTouches[0].clientY:e.clientY;
+  let dropped=false;
+  document.querySelectorAll(".dropzone").forEach(dz=>{
+    const rect=dz.getBoundingClientRect();
+    if(clientX>=rect.left&&clientX<=rect.right&&clientY>=rect.top&&clientY<=rect.bottom&&dz.childElementCount===0){
+      const clone=dragItem.cloneNode(true);
+      clone.classList.remove("draggable"); dz.appendChild(clone); dz.dataset.filled=dragItem.dataset.key; dz.classList.add("filled");
+      dropped=true;
     }
   });
+  if(dropped){ againBtn.style.display="inline-block"; checkBtn.style.display=Array.from(document.querySelectorAll(".dropzone")).every(d=>d.dataset.filled)?"inline-block":"none"; }
+  dragItem=null;
+}
+document.addEventListener("mousedown",startDrag);
+document.addEventListener("touchstart",startDrag,{passive:false});
 
-  if (dropped) {
-    againBtn.style.display = "inline-block";
-    checkBtn.style.display = Array.from(document.querySelectorAll(".dropzone")).every(d => d.dataset.filled)
-      ? "inline-block"
-      : "none";
-  }
-
-  dragItem = null;
+/* ===== Restore draggable to side ===== */
+function restoreDraggableByKeyToSide(key){
+  if(!key) return;
+  if(document.querySelector(`.draggable[data-key="${key}"]`)||usedDraggables.has(key)) return;
+  const parts=key.split("::"); if(parts.length!==3) return;
+  const div=createDraggableNodeFromParts(parts[0],parts[1],parts[2]);
+  const container=(leftDraggables.childElementCount<=rightDraggables.childElementCount)?leftDraggables:rightDraggables;
+  if(container) container.appendChild(div);
 }
 
-document.addEventListener("mousedown", startDrag);
-document.addEventListener("touchstart", startDrag, { passive: false });
-
-function restoreDraggableByKeyToSide(key) {
-  if (!key) return;
-  if (document.querySelector(`.draggable[data-key="${key}"]`)) return;
-  if (usedDraggables.has(key)) return;
-  const parts = key.split("::");
-  if (parts.length !== 3) return;
-
-  const topic = parts[0], a = parts[1], b = parts[2];
-  const container = (leftDraggables.childElementCount <= rightDraggables.childElementCount)
-    ? leftDraggables
-    : rightDraggables;
-
-  const div = createDraggableNodeFromParts(topic, a, b);
-  if (container) container.appendChild(div);
-}
-
-function createDraggableNodeFromParts(topic, a, b) {
-  const key = draggableKey(topic, a, b);
-  const imgSrc = buildDraggableFilename(topic, a, b);
-  const div = document.createElement("div");
-  div.className = "draggable";
-  div.draggable = true;
-  div.dataset.key = key;
-  div.dataset.img = imgSrc;
-  div.style.userSelect = "none";
-
-  const img = document.createElement("img");
-  img.src = imgSrc;
-  img.alt = `${a}-${b}`;
-  img.onerror = function() {
-    img.style.display = "none";
-    if (!div.querySelector(".fallback")) {
-      const f = document.createElement("div");
-      f.className = "fallback";
-      f.textContent = `${a}-${b}`;
-      div.appendChild(f);
-    }
-  };
+/* ===== Create draggable from parts ===== */
+function createDraggableNodeFromParts(topic,a,b){
+  const key=draggableKey(topic,a,b), imgSrc=buildDraggableFilename(topic,a,b);
+  const div=document.createElement("div");
+  div.className="draggable"; div.draggable=true; div.dataset.key=key; div.dataset.img=imgSrc; div.style.userSelect="none";
+  const img=document.createElement("img"); img.src=imgSrc; img.alt=`${a}-${b}`;
+  img.onerror=function(){ img.style.display="none"; if(!div.querySelector(".fallback")){ const f=document.createElement("div"); f.className="fallback"; f.textContent=`${a}-${b}`; div.appendChild(f); } };
   div.appendChild(img);
-
-  div.addEventListener("dragstart", e => { try { e.dataTransfer.setData("text/plain", key); } catch{} });
-
+  div.addEventListener("dragstart",e=>{try{e.dataTransfer.setData("text/plain",key);}catch{}});
   return div;
 }
 
-function populateDraggables(leftCandidates, rightCandidates, leftCount = 6, rightCount = 6) {
-  leftDraggables.innerHTML = "";
-  rightDraggables.innerHTML = "";
-
-  const leftSelection = leftCandidates.slice(0, leftCount);
-  const rightSelection = rightCandidates.slice(0, rightCount);
-
-  leftSelection.forEach(c => {
-    if (usedDraggables.has(c.key)) return;
-    const div = createCandidateDiv(c);
-    leftDraggables.appendChild(div);
-  });
-
-  rightSelection.forEach(c => {
-    if (usedDraggables.has(c.key)) return;
-    const div = createCandidateDiv(c);
-    rightDraggables.appendChild(div);
-  });
-
-  document.querySelectorAll(".draggable").forEach(d => d.style.cursor = "grab");
+/* ===== Populate draggables ===== */
+function populateDraggables(leftCandidates,rightCandidates,leftCount=6,rightCount=6){
+  leftDraggables.innerHTML=""; rightDraggables.innerHTML="";
+  leftCandidates.slice(0,leftCount).forEach(c=>{ if(usedDraggables.has(c.key)) return; leftDraggables.appendChild(createCandidateDiv(c)); });
+  rightCandidates.slice(0,rightCount).forEach(c=>{ if(usedDraggables.has(c.key)) return; rightDraggables.appendChild(createCandidateDiv(c)); });
+  document.querySelectorAll(".draggable").forEach(d=>d.style.cursor="grab");
 }
-
-function createCandidateDiv(c) {
-  const div = document.createElement("div");
-  div.className = "draggable";
-  div.draggable = true;
-  div.dataset.key = c.key;
-  div.dataset.img = c.img;
-
-  if (c.overlay) div.dataset.overlay = c.overlay;
-
-  const img = document.createElement("img");
-  img.src = c.img;
-  img.alt = c.key;
-  img.onerror = () => {
-    img.style.display = "none";
-    if (!div.querySelector(".fallback")) {
-      const f = document.createElement("div");
-      f.className = "fallback";
-      f.textContent = (c.parts.animal || c.parts.food || c.parts.emotion || c.parts.colour || c.parts.zone)
-        + (c.parts.number ? `-${c.parts.number}` : "");
-      div.appendChild(f);
-    }
-  };
+function createCandidateDiv(c){
+  const div=document.createElement("div"); div.className="draggable"; div.draggable=true; div.dataset.key=c.key; div.dataset.img=c.img;
+  if(c.overlay) div.dataset.overlay=c.overlay;
+  const img=document.createElement("img"); img.src=c.img; img.alt=c.key;
+  img.onerror=()=>{ img.style.display="none"; if(!div.querySelector(".fallback")){ const f=document.createElement("div"); f.className="fallback"; f.textContent=(c.parts.animal||c.parts.food||c.parts.emotion||c.parts.colour||c.parts.zone)+(c.parts.number?`-${c.parts.number}`:""); div.appendChild(f); } };
   div.appendChild(img);
-
-  if (c.overlay) {
-    const ov = document.createElement("div");
-    ov.className = "overlay " + c.overlay;
-    ov.textContent = (c.overlay === "have") ? "✓" : "✕";
-    div.appendChild(ov);
-  }
-
-  div.addEventListener("dragstart", e => { try { e.dataTransfer.setData("text/plain", c.key); } catch{} });
-
+  if(c.overlay){ const ov=document.createElement("div"); ov.className="overlay "+c.overlay; ov.textContent=(c.overlay==="have")?"✓":"✕"; div.appendChild(ov); }
+  div.addEventListener("dragstart",e=>{try{e.dataTransfer.setData("text/plain",c.key);}catch{}});
   return div;
 }
 
-function updateCheckVisibility() {
-  checkBtn.style.display = "none";
-  const required = Array.from(answerArea.querySelectorAll(".dropzone"));
-  if (required.length === 0) return;
-  const allFilled = required.every(d => d.dataset.filled && d.dataset.filled.length > 0);
-  if (allFilled) checkBtn.style.display = "inline-block";
+/* ===== Check visibility & score display ===== */
+function updateCheckVisibility(){
+  checkBtn.style.display="none";
+  const required=Array.from(answerArea.querySelectorAll(".dropzone"));
+  if(required.length===0) return;
+  const allFilled=required.every(d=>d.dataset.filled && d.dataset.filled.length>0);
+  if(allFilled) checkBtn.style.display="inline-block";
 }
+function updateScoreDisplay(){ scoreDisplay.textContent=`Level ${currentLevel} - Question ${roundInLevel+1}/${QUESTIONS_PER_LEVEL}`; }
 
-function updateScoreDisplay() {
-  scoreDisplay.textContent = `Level ${currentLevel} - Question ${roundInLevel + 1}/${QUESTIONS_PER_LEVEL}`;
-}
-
-/* ===== Double-tap / double-click removal ===== */
-let lastTap = 0;
-answerArea.addEventListener("click", (ev) => {
-  const dz = ev.target.closest(".dropzone");
-  if (!dz) return;
-
-  const now = Date.now();
-  if (now - lastTap < 350) { // double-tap
-    if (dz.dataset.filled) {
-      const filledKey = dz.dataset.filled;
-      dz.innerHTML = "";
-      dz.dataset.filled = "";
-      dz.dataset.src = "";
-      dz.classList.remove("filled", "incorrect", "correct");
-      restoreDraggableByKeyToSide(filledKey);
-      updateCheckVisibility();
-    }
-  }
-  lastTap = now;
+/* ===== Double-tap removal ===== */
+let lastTap=0;
+answerArea.addEventListener("click",(ev)=>{
+  const dz=ev.target.closest(".dropzone"); if(!dz) return;
+  const now=Date.now();
+  if(now-lastTap<350 && dz.dataset.filled){ const filledKey=dz.dataset.filled; dz.innerHTML=""; dz.dataset.filled=""; dz.dataset.src=""; dz.classList.remove("filled","incorrect","correct"); restoreDraggableByKeyToSide(filledKey); updateCheckVisibility(); }
+  lastTap=now;
 });
 
-function buildQuestion() {
-  questionArea.innerHTML = "";
-  answerArea.innerHTML = "";
-  feedbackDiv.innerHTML = "";
-  checkBtn.style.display = "none";
-  againBtn.style.display = "none";
-  updateScoreDisplay();
+/* ===== Pick N random ===== */
+function pickRandom(arr,count){ return shuffleArray(arr).slice(0,count); }
 
-  const desc = levelDescriptor(currentLevel);
-  const questionItems = desc.items || []; // array of images or signs for this question
-  const helperWord = desc.helperWord || "see"; // "see" or "feel"
-  const totalItems = questionItems.length;
-
-  let currentRow = document.createElement("div");
-  currentRow.classList.add("sentence-row");
-  let rowItemCount = 0;
-  let totalItemCount = 0;
-
-  // --- Add constant starter images ---
-  const imgI = document.createElement("img");
-  imgI.src = "assets/signs/helpers/i.png";
-  imgI.alt = "I";
-  imgI.classList.add("sentence-constant");
-  currentRow.appendChild(imgI);
-
-  const imgHelper = document.createElement("img");
-  imgHelper.src = `assets/signs/helpers/${helperWord}.png`;
-  imgHelper.alt = helperWord;
-  imgHelper.classList.add("sentence-constant");
-  currentRow.appendChild(imgHelper);
-
-  const imgWhat = document.createElement("img");
-  imgWhat.src = "assets/signs/helpers/what.png";
-  imgWhat.alt = "what";
-  imgWhat.classList.add("sentence-constant");
-  currentRow.appendChild(imgWhat);
-
-  // --- Add question items with row overflow rules ---
-  for (let i = 0; i < questionItems.length; i++) {
-    const item = questionItems[i];
-    const img = document.createElement("img");
-    img.src = item.src;
-    img.alt = item.alt;
-    img.classList.add("sentence-item");
-
-    // Determine max per row
-    let maxInRow;
-    if (totalItems <= 5) {
-      maxInRow = 5; // all items fit in row 1
-    } else if (totalItemCount < 3) {
-      maxInRow = 3; // first row limited to 3
-    } else if (totalItemCount < 8) {
-      maxInRow = 5; // second row up to 5 items
-    } else {
-      maxInRow = Infinity; // third row can hold remaining items
-    }
-
-    if (rowItemCount >= maxInRow) {
-      questionArea.appendChild(currentRow);
-      currentRow = document.createElement("div");
-      currentRow.classList.add("sentence-row");
-      rowItemCount = 0;
-
-      // third row starts with WHY if needed
-      if (totalItemCount >= 8) {
-        const imgWhy = document.createElement("img");
-        imgWhy.src = "assets/signs/helpers/why.png";
-        imgWhy.alt = "why";
-        imgWhy.classList.add("sentence-constant");
-        currentRow.appendChild(imgWhy);
-      }
-    }
-
-    currentRow.appendChild(img);
-    rowItemCount++;
-    totalItemCount++;
-  }
-
-  questionArea.appendChild(currentRow);
-
-  // --- Build answer area with draggables (opposite type) ---
-  const isQuestionImages = desc.itemsType === "images"; // or "signs"
-  const answerDraggables = desc.options || [];
-
-  answerDraggables.forEach(opt => {
-    const drag = document.createElement("img");
-    drag.src = opt.src;
-    drag.alt = opt.alt;
-    drag.classList.add("draggable");
-    drag.dataset.key = opt.key;
-    answerArea.appendChild(drag);
-
-    drag.addEventListener("mousedown", startDrag);
-    drag.addEventListener("touchstart", startDrag);
-  });
-
-  const numDropzones = desc.numTargets || 1;
-  for (let i = 0; i < numDropzones; i++) {
-    const dz = document.createElement("div");
-    dz.classList.add("dropzone");
-    answerArea.appendChild(dz);
-  }
-
-  updateCheckVisibility();
+/* ===== Create dropzone ===== */
+function createDropzone(placeholderText="",expectedKey=""){
+  const dz=document.createElement("div"); dz.className="dropzone"; dz.dataset.expected=expectedKey;
+  const placeholder=document.createElement("div"); placeholder.className="placeholder faint"; placeholder.textContent=placeholderText; dz.appendChild(placeholder);
+  dz.addEventListener("mouseup",()=>{ if(dragItem) handleDropClone(dz,dragItem.dataset.key); });
+  dz.addEventListener("touchend",(e)=>{ if(dragItem && e.changedTouches.length>0){ const t=e.changedTouches[0]; const r=dz.getBoundingClientRect(); if(t.clientX>=r.left && t.clientX<=r.right && t.clientY>=r.top && t.clientY<=r.bottom) handleDropClone(dz,dragItem.dataset.key); }});
+  answerArea.appendChild(dz); return dz;
 }
 
-  // --- Create dropzone ---
-  function createDropzone(placeholderText = "", expectedKey = "") {
-    const dz = document.createElement("div");
-    dz.className = "dropzone";
-    dz.dataset.expected = expectedKey;
-
-    const placeholder = document.createElement("div");
-    placeholder.className = "placeholder faint";
-    placeholder.textContent = placeholderText;
-    dz.appendChild(placeholder);
-
-    // Mouse/touch drop detection
-    dz.addEventListener("mouseup", () => { if (dragItem) handleDropClone(dz, dragItem.dataset.key); });
-    dz.addEventListener("touchend", (e) => {
-      if (dragItem && e.changedTouches.length > 0) {
-        const touch = e.changedTouches[0];
-        const rect = dz.getBoundingClientRect();
-        if (
-          touch.clientX >= rect.left && touch.clientX <= rect.right &&
-          touch.clientY >= rect.top && touch.clientY <= rect.bottom
-        ) {
-          handleDropClone(dz, dragItem.dataset.key);
-        }
-      }
-    });
-
-    answerArea.appendChild(dz);
-    return dz;
-  }
-
-  // --- Build question row (videos/images) ---
-  function buildQuestionRow(words, topicName) {
-    const helperType = topicName === "emotions" ? VOCAB.helpers.feel : VOCAB.helpers.see;
-    const helperImg = document.createElement("img");
-    helperImg.src = helperType;
-    helperImg.alt = "helper";
-    helperImg.style.maxWidth = "120px";
-
-    const qdiv = document.createElement("div");
-    qdiv.className = "questionRow";
-    qdiv.appendChild(helperImg);
-
-    words.forEach(word => {
-      const isVideo = VOCAB.topics.emotions.includes(word);
-      const sign = document.createElement(isVideo ? "video" : "img");
-      if (isVideo) {
-        sign.src = signPathFor(word);
-        sign.autoplay = true;
-        sign.loop = true;
-        sign.muted = true;
-      } else {
-        sign.src = signPathFor(word);
-      }
-      sign.alt = word;
-      qdiv.appendChild(sign);
-    });
-
-    questionArea.appendChild(qdiv);
-  }
-
-  // --- Simple type question ---
-  if (desc.type === "simple") {
-    const topicName = desc.topicIndex === 1 ? "animals"
-                     : desc.topicIndex === 2 ? "food"
-                     : "emotions";
-
-    let correctCandidate = pickUnusedCombo(candidatePool[topicName]) || candidatePool[topicName][0];
-    const parts = correctCandidate.key.split("::");
-    const word1 = parts[1] || randomItem(VOCAB.topics[topicName]);
-    const word2 = parts[2] || (topicName === "animals" ? randomItem(VOCAB.numbers)
-                      : topicName === "food" ? randomItem(VOCAB.colours)
-                      : randomItem(VOCAB.zones));
-
-    buildQuestionRow([word1, word2], topicName);
-
-    let hintLabel = topicName === "animals" ? "animal + number"
-                  : topicName === "food" ? "food + colour"
-                  : "emotion + zone";
-
-    createDropzone(hintLabel, correctCandidate.key);
-
-    const pool = shuffleArray(candidatePool[topicName]).filter(c => c.key !== correctCandidate.key && !usedDraggables.has(c.key));
-    const decoys = pool.slice(0, 11);
-    const allItems = shuffleArray([correctCandidate, ...decoys]);
-    const leftItems = allItems.slice(0, 6);
-    const rightItems = allItems.slice(6, 12);
-    populateDraggables(leftItems, rightItems, 6, 6);
-  }
-
-  // --- Two-type question ---
-  else if (desc.type === "two") {
-    const topicName = desc.topicIndex === 1 ? "animals"
-                     : desc.topicIndex === 2 ? "food"
-                     : "emotions";
-    const pool = candidatePool[topicName];
-
-    let chosen = null;
-    for (const c of shuffleArray(pool)) {
-      if (!usedCombos.has(c.key) && !usedDraggables.has(c.key)) { chosen = c; break; }
-    }
-    if (!chosen) chosen = shuffleArray(pool).find(c => !usedDraggables.has(c.key)) || pool[0];
-
-    const parts = chosen.key.split("::");
-    const word1 = parts[1], word2 = parts[2];
-    buildQuestionRow([word1, word2], topicName);
-
-    // create two dropzones
-    const dz1 = createDropzone("topic", chosen.key);
-    const dz2 = createDropzone("extra", "");
-    dz1.dataset.expectedValue = word1;
-    dz2.dataset.expectedValue = word2;
-
-    const leftPool = shuffleArray(pool).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
-    const rightSel = [];
-    if (topicName === "animals") shuffleArray(VOCAB.numbers).slice(0, 6).forEach(n => rightSel.push({ key: `numbers::${n}`, img: `assets/images/numbers/${n}.png`, parts: { number: n } }));
-    else if (topicName === "food") shuffleArray(VOCAB.colours).slice(0, 6).forEach(c => rightSel.push({ key: `colours::${c}`, img: `assets/images/colours/${c}.png`, parts: { colour: c } }));
-    else shuffleArray(VOCAB.zones).slice(0, 6).forEach(z => rightSel.push({ key: `zones::${z}`, img: `assets/images/zones/${z}.png`, parts: { zone: z } }));
-
-    populateDraggables(leftPool.slice(0, 6), rightSel, Math.min(6, leftPool.length), rightSel.length);
-  }
-
-  // --- Compound / Bonus / Layout questions ---
-  else if (desc.type === "compound" || desc.type === "bonus") {
-    questionArea.innerHTML = ""; // clear top
-
-    const helperImg = document.createElement("img");
-    helperImg.src = VOCAB.helpers.see; helperImg.alt = "see";
-    helperImg.onerror = () => { helperImg.style.display = "none"; };
-    const qtop = document.createElement("div"); qtop.className = "questionRow";
-    qtop.appendChild(helperImg);
-    questionArea.appendChild(qtop);
-
-    const dzs = [];
-
-    // --- Layout A ---
-    if (desc.layout === "A") {
-      const verb = randomItem(["have", "donthave"]);
-      const verbSign = document.createElement("img");
-      verbSign.src = signPathFor(verb); verbSign.alt = verb; verbSign.className = "inlineVerb";
-      qtop.appendChild(verbSign);
-
-      const dz1 = createDropzone("animal+number", "");
-      const dz2 = createDropzone("food+colour", "");
-      dz1.dataset.expectedType = "animals_combo"; dz2.dataset.expectedType = "food_combo";
-      dz1.dataset.expectedVerb = verb; dz2.dataset.expectedVerb = verb;
-      dzs.push(dz1, dz2);
-
-      const leftCandidates = shuffleArray(candidatePool.animals).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
-      const rightCandidates = shuffleArray(candidatePool.food).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
-      rightCandidates.forEach(c => { c.overlay = Math.random() > 0.5 ? "have" : "donthave"; });
-      populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
-    }
-
-    // --- Layout B ---
-    else if (desc.layout === "B") {
-      ["animal", "number", "verb", "food", "colour"].forEach(k => {
-        const dz = createDropzone(k, ""); dz.dataset.placeholder = k; dzs.push(dz);
-      });
-      const leftCandidates = shuffleArray(candidatePool.animals).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
-      const rightCandidates = shuffleArray(candidatePool.food).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
-      populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
-
-      ["have", "donthave"].forEach(v => {
-        const div = document.createElement("div"); div.className = "draggable"; div.draggable = true;
-        div.dataset.key = `verb::${v}`; div.dataset.img = signPathFor(v);
-        const img = document.createElement("img"); img.src = signPathFor(v); img.alt = v; div.appendChild(img);
-        rightDraggables.appendChild(div);
-      });
-    }
-
-    // --- Layout C ---
-    else if (desc.layout === "C") {
-      const dz1 = createDropzone("animal", ""); const dz2 = createDropzone("number", ""); const dz3 = createDropzone("emotion+zone", "");
-      dzs.push(dz1, dz2, dz3);
-      const leftCandidates = shuffleArray(candidatePool.animals).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
-      const rightCandidates = shuffleArray(candidatePool.emotions).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
-      populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
-    }
-
-    // --- Layout D ---
-    else if (desc.layout === "D") {
-      const dz1 = createDropzone("animal+number", ""); const dz2 = createDropzone("emotion+zone", ""); dzs.push(dz1, dz2);
-      const leftCandidates = shuffleArray(candidatePool.animals).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
-      const rightCandidates = shuffleArray(candidatePool.emotions).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
-      rightCandidates.forEach(c => { c.overlay = Math.random() > 0.5 ? "have" : "donthave"; });
-      populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
-    }
-
-    // --- Layout E/F ---
-    else if (desc.layout === "E" || desc.layout === "F") {
-      const placeholders = desc.layout === "E"
-        ? ["animal","number","emotion","zone","verb","food","colour"]
-        : ["animal","number","emotion","zone","food+colour"];
-      placeholders.forEach(ph => { dzs.push(createDropzone(ph, "")); });
-
-      const leftCandidates = shuffleArray(candidatePool.animals).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
-      const rightCandidates = shuffleArray(candidatePool.food).filter(c => !usedDraggables.has(c.key)).slice(0, 9);
-      populateDraggables(leftCandidates, rightCandidates, leftCandidates.length, rightCandidates.length);
-    }
-  }
-
-  updateCheckVisibility();
-
-/* ===== Check button logic (full handling for simple, two, compound, bonus) ===== */
-checkBtn.addEventListener("click", () => {
-  checkBtn.style.display = "none";
-
-  const desc = levelDescriptor(currentLevel);
-  const dzs = Array.from(answerArea.querySelectorAll(".dropzone"));
-  let allCorrect = true;
-  const currentRoundCorrect = [];
-  const currentRoundIncorrect = [];
-
-  function checkDropzone(dz){
-    const filledKey = dz.dataset.filled || "";
-    if(!filledKey){ allCorrect = false; return; }
-
-    // simple exact expected key
-    if(dz.dataset.expected){
-      if(filledKey === dz.dataset.expected){
-        dz.classList.add("correct"); currentRoundCorrect.push(filledKey);
-      } else {
-        dz.classList.add("incorrect"); currentRoundIncorrect.push(filledKey); allCorrect = false;
-      }
-      return;
-    }
-
-    // expectedExact: check if the filledKey includes expected token (e.g., word present)
-    if(dz.dataset.expectedExact){
-      const expected = dz.dataset.expectedExact;
-      if(filledKey.includes(expected)){ dz.classList.add("correct"); currentRoundCorrect.push(filledKey); }
-      else { dz.classList.add("incorrect"); currentRoundIncorrect.push(filledKey); allCorrect = false; }
-      return;
-    }
-
-    // expectedType handling (animals_combo, food_combo or generic)
-    if(dz.dataset.expectedType){
-      const et = dz.dataset.expectedType;
-      const expectedValue = dz.dataset.expectedValue;
-      if(et === "animals_combo"){
-        if(filledKey.startsWith("animals::")){ dz.classList.add("correct"); currentRoundCorrect.push(filledKey); }
-        else { dz.classList.add("incorrect"); currentRoundIncorrect.push(filledKey); allCorrect = false; }
-      } else if(et === "food_combo"){
-        // if verb expected overlay exists, verify overlay matches expected verb
-        if(filledKey.startsWith("food::")){
-          // if dz expects a verb overlay (many compound levels pass dataset.expectedVerb)
-          const expectedVerb = dz.dataset.expectedVerb || null;
-          const placedOverlay = (() => {
-            // the draggable in DOM may be removed, but we can lookup dataset.overlay on the draggable in the side (if still present)
-            const dom = document.querySelector(`.draggable[data-key="${filledKey}"]`);
-            if(dom && dom.dataset && dom.dataset.overlay) return dom.dataset.overlay;
-            // fallback: maybe the dropped element was the clone; check the node inside the dropzone
-            const node = Array.from(dz.querySelectorAll("[data-overlay]"))[0];
-            if(node && node.dataset && node.dataset.overlay) return node.dataset.overlay;
-            // fallback check dataset on the dropzone if saved
-            return dz.dataset.overlay || null;
-          })();
-          if(expectedVerb){
-            if(placedOverlay === expectedVerb){ dz.classList.add("correct"); currentRoundCorrect.push(filledKey); }
-            else { dz.classList.add("incorrect"); currentRoundIncorrect.push(filledKey); allCorrect = false; }
-          } else {
-            dz.classList.add("correct"); currentRoundCorrect.push(filledKey);
-          }
-        } else { dz.classList.add("incorrect"); currentRoundIncorrect.push(filledKey); allCorrect = false; }
-      } else {
-        // generic expectedType: check expectedValue contained
-        if(expectedValue && filledKey.includes(expectedValue)){ dz.classList.add("correct"); currentRoundCorrect.push(filledKey); }
-        else { dz.classList.add("incorrect"); currentRoundIncorrect.push(filledKey); allCorrect = false; }
-      }
-      return;
-    }
-
-    // if no expectation metadata, accept anything
-    dz.classList.add("correct"); currentRoundCorrect.push(filledKey);
-  }
-
-  dzs.forEach(checkDropzone);
-
-  // Update counts & mark used items
-  if(allCorrect){
-    levelCorrect[currentLevel] = (levelCorrect[currentLevel] || 0) + dzs.length;
-    correctCount += dzs.length;
-    dzs.forEach(dz => { if(dz.dataset.filled) usedDraggables.add(dz.dataset.filled); });
-    // If this round had ZERO incorrect items and is first try, mark combos so they won't be asked again
-    // (we assume combos are keys like animals::dog::two)
-    currentRoundCorrect.forEach(k=> {
-      if(k && !usedCombos.has(k)) usedCombos.add(k);
-    });
-  } else {
-    // for incorrect keys remove their draggable dom and mark used permanently
-    currentRoundIncorrect.forEach(k => {
-      levelIncorrect[currentLevel] = (levelIncorrect[currentLevel] || 0) + 1;
-      incorrectCount++;
-      const dom = document.querySelector(`.draggable[data-key="${k}"]`);
-      if(dom && dom.parentElement) dom.parentElement.removeChild(dom);
-      usedDraggables.add(k);
-      // clear any dropzone that had that filledKey
-      const dz = dzs.find(d=> d.dataset.filled === k);
-      if(dz){ dz.innerHTML = ""; dz.dataset.filled = ""; dz.classList.remove("filled"); }
-    });
-    // mark correct ones as used too so they don't reappear
-    currentRoundCorrect.forEach(k => { if(k) usedDraggables.add(k); });
-  }
-
-  // feedback image
-  feedbackDiv.innerHTML = "";
-  const fbImg = document.createElement("img");
-  fbImg.src = allCorrect ? "assets/correct.png" : "assets/wrong.png";
-  fbImg.alt = allCorrect ? "Correct" : "Wrong";
-  feedbackDiv.appendChild(fbImg);
-
-  // push to answers history
-  answersHistory.push({ level: currentLevel, round: roundInLevel, correct: currentRoundCorrect.slice(), incorrect: currentRoundIncorrect.slice() });
-
-  saveProgress();
-
-  setTimeout(() => {
-    feedbackDiv.innerHTML = "";
-    if(allCorrect){
-      if(roundInLevel + 1 >= QUESTIONS_PER_LEVEL){
-        showClapThenAdvance(() => {
-          if(currentLevel < TOTAL_LEVELS){
-            currentLevel++;
-            roundInLevel = 0;
-            buildQuestion();
-          } else {
-            finalSubmitThenEnd();
-          }
-        });
-      } else {
-        roundInLevel++;
-        buildQuestion();
-      }
-    } else {
-      // allow user another attempt on same question (again button shows)
-      againBtn.style.display = "inline-block";
-      // also re-check check visibility (in case dropzones are empty)
-      updateCheckVisibility();
-    }
-  }, 2000);
-});
 
 /* ===== Clap and advance ===== */
 function showClapThenAdvance(cb){
