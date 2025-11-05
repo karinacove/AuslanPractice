@@ -45,6 +45,7 @@ const scoreDisplay = document.getElementById("scoreDisplay");
 const checkBtn = document.getElementById("checkBtn");
 const againBtn = document.getElementById("againBtn");
 const finishBtn = document.getElementById("finishBtn");
+const questionDisplay = document.getElementById("questionDisplay"); // new: display question
 
 /* ===== STUDENT INFO ===== */
 let studentName = localStorage.getItem("studentName") || "";
@@ -166,10 +167,22 @@ function populateDraggables(level) {
       });
     }
   }
+
+  displayQuestion();
+}
+
+/* ===== DISPLAY QUESTION ===== */
+function displayQuestion() {
+  if (!levels[currentLevel]) return;
+  const level = levels[currentLevel];
+  let text = "Match the following: ";
+  if (level.qItems) text += level.qItems.join(", ");
+  questionDisplay.textContent = text;
 }
 
 /* ===== DRAG / DROP ===== */
 let dragItem=null, dragClone=null, isTouch=false;
+
 function startDrag(e){
   const tgt=e.target.closest(".draggable"); if(!tgt) return;
   dragItem=tgt; isTouch=e.type.startsWith("touch");
@@ -205,15 +218,13 @@ function moveDrag(e){
   dragClone.style.left = clientX+"px";
   dragClone.style.top = clientY+"px";
 }
-
-// === UPDATED END DRAG WITH CHECK BUTTON ===
 function endDrag(e){
   if(!dragItem||!dragClone) return;
   
   const dropzone = document.elementFromPoint(
     isTouch ? e.changedTouches[0].clientX : e.clientX,
     isTouch ? e.changedTouches[0].clientY : e.clientY
-  )?.closest(".answerBox, .dropzone"); // adjust class to your dropzones
+  )?.closest(".answerBox, .dropzone");
 
   if(dropzone && !dropzone.classList.contains("filled")) {
     dropzone.appendChild(dragItem);
@@ -231,21 +242,19 @@ function endDrag(e){
   }
   dragItem=null;
 
-  // Update check button visibility
   updateCheckBtnVisibility();
 }
+
 document.addEventListener("mousedown",startDrag);
 document.addEventListener("touchstart",startDrag,{passive:false});
 
 /* ===== CHECK BUTTON VISIBILITY ===== */
 function updateCheckBtnVisibility() {
-  const dropzones = document.querySelectorAll(".answerBox, .dropzone"); // adjust selector to match your dropzones
+  const dropzones = document.querySelectorAll(".answerBox, .dropzone");
   const allFilled = Array.from(dropzones).every(dz => dz.classList.contains("filled"));
-  
-  if (allFilled) checkBtn.style.display = "flex";
-  else checkBtn.style.display = "none";
+  checkBtn.style.display = allFilled ? "flex" : "none";
 }
-checkBtn.style.display = "none"; // hide initially
+checkBtn.style.display = "none";
 
 /* ===== SAVE / LOAD ===== */
 function saveProgress(){
