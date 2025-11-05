@@ -149,17 +149,14 @@ function renderSentenceRows(items) {
   if (!sentenceRow1 || !sentenceRow2 || !sentenceRow3) return;
   
   [sentenceRow1, sentenceRow2, sentenceRow3].forEach(r => r.innerHTML = "");
-  if (!Array.isArray(items)) return;
+  if (!Array.isArray(items) || items.length === 0) return;
 
-  // distribute across 3 rows
-  const total = items.length;
-  const row1Count = Math.min(3, total);
-  const row1 = items.slice(0, row1Count);
-  const row2Count = Math.min(5, total - row1Count);
-  const row2 = items.slice(row1Count, row1Count + row2Count);
-  const row3 = items.slice(row1Count + row2Count);
+  // Simple distribution: first item row1, second item row2, rest row3
+  if(items[0]) appendItem(sentenceRow1, items[0]);
+  if(items[1]) appendItem(sentenceRow2, items[1]);
+  for(let i=2;i<items.length;i++) appendItem(sentenceRow3, items[i]);
 
-  const appendItem = (container, item) => {
+  function appendItem(container, item) {
     if (!item) return;
     if (item.isVideo) {
       const v = document.createElement("video");
@@ -186,7 +183,8 @@ function renderSentenceRows(items) {
       };
       container.appendChild(img);
     }
-  };
+  }
+}
 
   row1.forEach(i => appendItem(sentenceRow1, i));
   row2.forEach(i => appendItem(sentenceRow2, i));
