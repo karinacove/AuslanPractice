@@ -144,41 +144,114 @@ const candidatePool = { animals: [], food: [], emotions: [] };
   });
 })();
 
-/* ===== Render sentence rows (helpers + question items) ===== */
-function renderSentenceRows(signs){
-  if(!sentenceRow1||!sentenceRow2||!sentenceRow3) return;
-  [sentenceRow1,sentenceRow2,sentenceRow3].forEach(r=>r.innerHTML="");
-  if(!Array.isArray(signs)) return;
+/* ===== Render sentence rows ===== */
+function renderSentenceRows(items) {
+  if (!sentenceRow1 || !sentenceRow2 || !sentenceRow3) return;
+  
+  [sentenceRow1, sentenceRow2, sentenceRow3].forEach(r => r.innerHTML = "");
+  if (!Array.isArray(items)) return;
 
-  // distribute logically across three rows
-  const total = signs.length;
-  let row1Count = Math.min(3, total);
-  if(total <= 5) row1Count = total;
-  const row1 = signs.slice(0, row1Count);
-  const rest = signs.slice(row1Count);
-  const row2Count = Math.min(5, rest.length);
-  const row2 = rest.slice(0, row2Count);
-  const row3 = rest.slice(row2Count);
+  // distribute across 3 rows
+  const total = items.length;
+  const row1Count = Math.min(3, total);
+  const row1 = items.slice(0, row1Count);
+  const row2Count = Math.min(5, total - row1Count);
+  const row2 = items.slice(row1Count, row1Count + row2Count);
+  const row3 = items.slice(row1Count + row2Count);
 
-  function appendTo(container, item){
-    if(item.isVideo){
+  const appendItem = (container, item) => {
+    if (!item) return;
+    if (item.isVideo) {
       const v = document.createElement("video");
-      v.src = item.src; v.autoplay = true; v.loop = true; v.muted = true; v.playsInline = true; v.className="sign-video";
+      v.src = item.src;
+      v.autoplay = true;
+      v.loop = true;
+      v.muted = true;
+      v.playsInline = true;
+      v.className = "sign-video";
       container.appendChild(v);
     } else {
       const img = document.createElement("img");
-      img.src = item.src; img.alt = item.key || ""; img.className="sign-img";
-      // fallback: if image 404, show text
-      img.onerror = () => { img.style.display="none"; if(!container.querySelector(".fallback")){ const f=document.createElement("div"); f.className="fallback"; f.textContent = item.fallbackText || ""; container.appendChild(f); } };
+      img.src = item.src;
+      img.alt = item.key || "";
+      img.className = "sign-img";
+      img.onerror = () => {
+        img.style.display = "none";
+        if (!container.querySelector(".fallback")) {
+          const f = document.createElement("div");
+          f.className = "fallback";
+          f.textContent = item.fallbackText || item.key || "";
+          container.appendChild(f);
+        }
+      };
       container.appendChild(img);
     }
-  }
+  };
 
-  row1.forEach(it=>appendTo(sentenceRow1, it));
-  row2.forEach(it=>appendTo(sentenceRow2, it));
-  row3.forEach(it=>appendTo(sentenceRow3, it));
+  row1.forEach(i => appendItem(sentenceRow1, i));
+  row2.forEach(i => appendItem(sentenceRow2, i));
+  row3.forEach(i => appendItem(sentenceRow3, i));
 }
 
+/* ===== Build question (updated) ===== */
+function buildQuestion() {
+  if (!sentenceRow1 || !sentenceRow2 || !sentenceRow3 || !answerArea) return;
+
+  // clear previous
+  answerArea.innerHTML = "";
+  [sentenceRow1, sentenceRow2, sentenceRow3].forEach(r => r.innerHTML = "");
+  if (feedbackDiv) feedbackDiv.innerHTML = "";
+  if (checkBtn) checkBtn.style.display = "none";
+  if (againBtn) againBtn.style.display = "none";
+  updateScoreDisplay();
+
+  const lvl = levels[currentLevel];
+  if (!lvl) return;
+
+  // build helpers
+  const helperVerb = lvl.starter || (lvl.verb && lvl.verb[0]) || "see";
+  const helperItems = [
+    { src: signPathFor("i"), isVideo: false, fallbackText: "I" },
+    { src: signPathFor(helperVerb), isVideo: helperVerb.endsWith(".mp4"), fallbackText: helperVerb },
+    { src: signPathFor("what"), isVideo: false, fallbackText: "what" }
+  ];
+
+  // pick question items
+  const pool = [];
+  lvl.qItems.forEach(q => q.split("+").forEach(topic => {
+    if (topic === "animals") candidatePool.animals.forEach(x => pool.push({ ...x, topic: "animals" }));
+    if (topic === "food") candidatePool.food.forEach(x => pool.push({ ...x, topic: "food" }));
+    if (topic === "emotions") candidatePool.emotions.forEach(x => pool.push({ ...x, topic: "emotions" }));
+  }));
+  
+  const filtered = shuffleArray(pool).filter(c => !usedCombos.has(c.key) && !usedDraggables.has(c.key));
+  let desiredCount = lvl.dropCount || 1;
+  const questionItems = filtered.slice(0, desiredCount);
+
+  // build sentence sources (helpers first)
+  const sentenceSources = helperItems.slice();
+  questionItems.forEach(qi => {
+    const token = (qi.key.split("::")[1] || "");
+    const src = (lvl.type === "image") ? qi.img : signPathFor(token) || qi.img;
+    sentenceSources.push({ src, isVideo: src.endsWith(".mp4"), key: qi.key, fallbackText: token });
+  });
+
+  // prefill WHY for level11/12
+  if (lvl.prefillWhy) {
+    sentenceSources.push({ src: signPathFor("why"), isVideo: false, fallbackText: "why" });
+  }
+
+  renderSentenceRows(sentenceSources);
+
+  // create dropzones
+  answerArea.innerHTML = "";
+  for (let i = 0; i < desiredCount; i++) createDropzone();
+
+  // populate draggables
+  populateDraggablesForLevel(currentLevel, questionItems, lvl.type, lvl.verb || []);
+
+  updateCheckVisibility();
+}
 /* ===== Create draggable nodes (image or sign/video) ===== */
 function createDraggableNodeFromCandidate(c, asSign=false, overlay=null){
   const div = document.createElement("div");
