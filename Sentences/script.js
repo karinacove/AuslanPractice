@@ -440,6 +440,10 @@ function updateCheckVisibility(){
   if(allFilled) checkBtn.style.display = "inline-block";
 }
 
+function updateScoreDisplay() {
+  scoreDisplay.textContent = `Level ${currentLevel} - Question ${roundInLevel + 1}/${QUESTIONS_PER_LEVEL}`;
+}
+
 /* ===== Build the question UI and draggables for the current level and round ===== */
 function buildQuestion(){
   questionArea.innerHTML = "";
