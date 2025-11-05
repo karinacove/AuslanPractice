@@ -318,7 +318,7 @@ body {
   top: 0; left: 0;
   width: 100%; height: 100%;
   background: rgba(0,0,0,0.7);
-  z-index: 2000;
+  z-index: 10000;
   justify-content: center;
   align-items: center;
   z-index:10000;
@@ -340,11 +340,11 @@ body {
 }
 
 button.controlButton {
-  all: unset;              /* removes padding, border, background, font, etc. */
+  all: unset;              
   display: inline-block;
-  width: 120px;             /* adjust to match original image size */
-  height: 120px;            /* adjust to match original image size */
-  cursor: pointer;         /* pointer cursor for clickability */
+  width: 120px;         
+  height: 120px;            
+  cursor: pointer;       
   position: relative;
   z-index: 10001;
 }
@@ -389,7 +389,7 @@ button.controlButton:focus {
   margin: 10px;
   cursor: pointer;
   transition: transform 0.2s;
-  z-index: 3000;
+  z-index: 10000;
 }
 
 #endModal .modal-content img:hover { 
