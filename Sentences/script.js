@@ -273,6 +273,28 @@ function moveDrag(e) {
 function endDrag(e) {
   if (!dragItem || !dragClone) return;
 
+  // --- find dropzone under pointer/finger ---
+  let dropzone = null;
+  if (isTouch && e.changedTouches && e.changedTouches.length > 0) {
+    const touch = e.changedTouches[0];
+    dropzone = document.elementFromPoint(touch.clientX, touch.clientY)
+      ?.closest(".dropzone");
+  } else if (!isTouch) {
+    dropzone = document.elementFromPoint(e.clientX, e.clientY)
+      ?.closest(".dropzone");
+  }
+
+  if (dropzone && dropzone.childElementCount === 0) {
+    // --- append clone into dropzone ---
+    const clone = dragItem.cloneNode(true);
+    clone.classList.remove("draggable");
+    dropzone.appendChild(clone);
+
+    dropzone.dataset.filled = dragItem.dataset.key;
+    dropzone.classList.add("filled");
+    updateCheckVisibility();
+  }
+
   dragClone.remove();
   dragClone = null;
   dragItem = null;
@@ -286,40 +308,11 @@ function endDrag(e) {
   }
 }
 
-/* ===== Drop handling ===== */
-function handleDrop(e) {
-  e.preventDefault();
-  const dz = e.currentTarget;
-  if (dz.childElementCount > 0 || !dragItem) return;
-
-  const clone = dragItem.cloneNode(true);
-  clone.classList.remove("draggable");
-  dz.appendChild(clone);
-
-  dz.dataset.filled = dragItem.dataset.key;
-  dz.classList.add("filled");
-  updateCheckVisibility();
-}
-
-/* ===== Initialize dropzones ===== */
-function createDropzone(container) {
-  const dz = document.createElement("div");
-  dz.classList.add("dropzone");
-  dz.dataset.filled = "";
-  container.appendChild(dz);
-
+/* ===== Initialize existing dropzones ===== */
+document.querySelectorAll(".dropzone").forEach(dz => {
   dz.addEventListener("dragover", e => e.preventDefault());
-  dz.addEventListener("drop", handleDrop);
-
-  return dz;
-}
-
-// Example: create multiple dropzones dynamically
-const answerArea = document.querySelector("#answerArea"); // your container
-const NUM_DROPZONES = 6; // change as needed
-for (let i = 0; i < NUM_DROPZONES; i++) {
-  createDropzone(answerArea);
-}
+  dz.addEventListener("drop", e => e.preventDefault()); // prevents default drag-drop
+});
 
 /* ===== UI helpers ===== */
 function updateCheckVisibility() {
