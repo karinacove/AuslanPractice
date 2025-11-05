@@ -40,12 +40,11 @@ const studentNameSpan = document.getElementById("studentName");
 const studentClassSpan = document.getElementById("studentClass");
 const leftDraggables = document.getElementById("draggablesLeft");
 const rightDraggables = document.getElementById("draggablesRight");
-const bottomVerbs = document.getElementById("verbDraggables"); 
+const bottomVerbs = document.getElementById("verbDraggables");
 const scoreDisplay = document.getElementById("scoreDisplay");
 const checkBtn = document.getElementById("checkBtn");
 const againBtn = document.getElementById("againBtn");
 const finishBtn = document.getElementById("finishBtn");
-const questionDisplay = document.getElementById("questionDisplay"); // new: display question
 
 /* ===== STUDENT INFO ===== */
 let studentName = localStorage.getItem("studentName") || "";
@@ -75,7 +74,7 @@ const VOCAB = {
   topics: {
     animals: ["dog","cat","mouse","rabbit","fish","bird"],
     food: ["apple","banana","blueberry","grape","orange","pear","pineapple","raspberry","strawberry","watermelon"],
-    emotions: ["angry","annoyed","ashamed","bored","confident","confused","danger","disappointed","excited","exhausted","focus","frustrated","happy","jealous","lonely","loved","nervous","pain","proud","relax","sad","scared","shock","shy","sick","silly","stressed","support","surprised","tease","thankful","tired","worried"],
+    emotions: ["angry","annoyed","ashamed","bored","confident","confused","danger","disappointed","excited","exhausted","focus","frustrated","happy","jealous","lonely","loved","nervous","pain","proud","relax","sad","scared","shock","shy","sick","silly","stressed","support","surprised","tease","thankful","tired","worried"]
   },
   colours: ["red","green","blue","orange","yellow","pink","purple","brown","black","white"],
   numbers: ["one","two","three","four","five","six","seven","eight","nine","ten"],
@@ -127,76 +126,51 @@ function createDraggableNode(topic,val1,val2="") {
   return div;
 }
 
-/* ===== POPULATE DRAGGABLES ===== */
-function populateDraggables(level) {
-  leftDraggables.innerHTML = "";
-  rightDraggables.innerHTML = "";
-  bottomVerbs.innerHTML = "";
+/* ===== POPULATE QUESTION & DRAGGABLES ===== */
+function populateQuestionAndDraggables(level) {
+  const lvl = levels[level];
+  if (!lvl) return;
 
-  // Helpers always on top row
-  Object.keys(VOCAB.helpers).forEach(h => {
-    leftDraggables.appendChild(createDraggableNode("helpers", h));
+  // Clear sentence rows
+  for (let i=1;i<=3;i++){ document.getElementById(`sentenceRow${i}`).innerHTML=""; }
+
+  // Display question in each sentence row
+  for (let i=0;i<lvl.lineCount;i++){
+    const row = document.getElementById(`sentenceRow${i+1}`);
+    const topics = lvl.qItems[i].split("+");
+    row.textContent = "Match: "+topics.join(" & ");
+  }
+
+  // Clear draggable areas
+  leftDraggables.innerHTML = ""; rightDraggables.innerHTML = ""; bottomVerbs.innerHTML = "";
+
+  // Add helpers
+  Object.keys(VOCAB.helpers).forEach(h => { leftDraggables.appendChild(createDraggableNode("helpers", h)); });
+
+  // Populate topic draggables
+  const leftCandidates=[], rightCandidates=[];
+  lvl.qItems.forEach(q=>{
+    if(q.includes("+")) q.split("+").forEach(t=>addCandidate(t,leftCandidates,rightCandidates));
+    else addCandidate(q,leftCandidates,rightCandidates);
   });
+  const leftCount = lvl.lineCount===1?6:9;
+  const rightCount = lvl.lineCount===1?6:9;
+  leftCandidates.slice(0,leftCount).forEach(c=>{if(!usedDraggables.has(c.key)) leftDraggables.appendChild(createDraggableNode(c.topic,c.val1,c.val2));});
+  rightCandidates.slice(0,rightCount).forEach(c=>{if(!usedDraggables.has(c.key)) rightDraggables.appendChild(createDraggableNode(c.topic,c.val1,c.val2));});
 
-  const leftCandidates = [], rightCandidates = [];
-  if (levels[level].qItems) {
-    levels[level].qItems.forEach(q => {
-      if (q.includes("+")) q.split("+").forEach(topic => addCandidate(topic, leftCandidates, rightCandidates));
-      else addCandidate(q, leftCandidates, rightCandidates);
-    });
-  }
+  // Populate verbs
+  if(lvl.verb) lvl.verb.forEach(v=>{ bottomVerbs.appendChild(createDraggableNode("verbs",v)); });
 
-  const leftCount = level <= 6 ? 6 : 9;
-  const rightCount = level <= 6 ? 6 : 9;
-  leftCandidates.slice(0,leftCount).forEach(c => { if (!usedDraggables.has(c.key)) leftDraggables.appendChild(createDraggableNode(c.topic,c.val1,c.val2)); });
-  rightCandidates.slice(0,rightCount).forEach(c => { if (!usedDraggables.has(c.key)) rightDraggables.appendChild(createDraggableNode(c.topic,c.val1,c.val2)); });
-
-  // Verbs at bottom
-  if (levels[level].verb) {
-    levels[level].verb.forEach(v => {
-      bottomVerbs.appendChild(createDraggableNode("verbs", v));
-    });
-  }
-
-  function addCandidate(topic, leftArr, rightArr){
-    if (VOCAB.topics[topic]) {
-      VOCAB.topics[topic].forEach(t => {
-        if (topic==="emotions") VOCAB.zones.forEach(z => { leftArr.push({topic,val1:t,val2:z}); rightArr.push({topic,val1:t,val2:z}); });
-        else if (topic==="food") VOCAB.colours.forEach(c => { leftArr.push({topic,val1:t,val2:c}); rightArr.push({topic,val1:t,val2:c}); });
-        else if (topic==="animals" || topic==="numbers") VOCAB.numbers.forEach(n => { leftArr.push({topic,val1:t,val2:n}); rightArr.push({topic,val1:t,val2:n}); });
+  function addCandidate(topic,leftArr,rightArr){
+    if(VOCAB.topics[topic]){
+      VOCAB.topics[topic].forEach(t=>{
+        if(topic==="emotions") VOCAB.zones.forEach(z=>{ leftArr.push({topic,val1:t,val2:z}); rightArr.push({topic,val1:t,val2:z}); });
+        else if(topic==="food") VOCAB.colours.forEach(c=>{ leftArr.push({topic,val1:t,val2:c}); rightArr.push({topic,val1:t,val2:c}); });
+        else if(topic==="animals" || topic==="numbers") VOCAB.numbers.forEach(n=>{ leftArr.push({topic,val1:t,val2:n}); rightArr.push({topic,val1:t,val2:n}); });
       });
     }
   }
-
-  displayQuestion();
 }
-
-/* ===== DISPLAY QUESTION ===== */
-function displayQuestion() {
-  const level = levels[currentLevel];
-  if (!level) return;
-
-  // Clear all rows first
-  for (let i = 1; i <= 3; i++) {
-    const row = document.getElementById(`sentenceRow${i}`);
-    row.innerHTML = "";
-  }
-
-  // For each line in this level, populate a sentence row with topics and helpers
-  for (let i = 0; i < level.lineCount; i++) {
-    const row = document.getElementById(`sentenceRow${i + 1}`);
-    let text = "";
-
-    if (level.qItems[i]) {
-      // Split multiple topics joined with '+'
-      const topics = level.qItems[i].split("+");
-      text = "Match: " + topics.join(" & ");
-    }
-
-    row.textContent = text;
-  }
-}
-
 
 /* ===== DRAG / DROP ===== */
 let dragItem=null, dragClone=null, isTouch=false;
@@ -206,134 +180,76 @@ function startDrag(e){
   dragItem=tgt; isTouch=e.type.startsWith("touch");
   const rect=tgt.getBoundingClientRect();
   dragClone=tgt.cloneNode(true);
-  Object.assign(dragClone.style,{
-    position:"fixed",
-    left:rect.left+"px",
-    top:rect.top+"px",
-    width:rect.width+"px",
-    height:rect.height+"px",
-    opacity:0.7,
-    pointerEvents:"none",
-    zIndex:10000,
-    transform:"translate(-50%,-50%)"
-  });
-  dragClone.classList.add("drag-clone"); 
+  Object.assign(dragClone.style,{position:"fixed",left:rect.left+"px",top:rect.top+"px",width:rect.width+"px",height:rect.height+"px",opacity:0.7,pointerEvents:"none",zIndex:10000,transform:"translate(-50%,-50%)"});
+  dragClone.classList.add("drag-clone");
   document.body.appendChild(dragClone);
   e.preventDefault();
-  if (isTouch){ 
-    document.addEventListener("touchmove",moveDrag,{passive:false}); 
-    document.addEventListener("touchend",endDrag);
-  } else { 
-    document.addEventListener("mousemove",moveDrag); 
-    document.addEventListener("mouseup",endDrag);
-  }
+  if(isTouch){ document.addEventListener("touchmove",moveDrag,{passive:false}); document.addEventListener("touchend",endDrag); }
+  else { document.addEventListener("mousemove",moveDrag); document.addEventListener("mouseup",endDrag); }
 }
 function moveDrag(e){
   if(!dragClone) return;
   let clientX, clientY;
   if(isTouch && e.touches && e.touches.length>0){ clientX=e.touches[0].clientX; clientY=e.touches[0].clientY; }
-  else{ clientX=e.clientX; clientY=e.clientY; }
-  dragClone.style.left = clientX+"px";
-  dragClone.style.top = clientY+"px";
+  else { clientX=e.clientX; clientY=e.clientY; }
+  dragClone.style.left = clientX+"px"; dragClone.style.top = clientY+"px";
 }
 function endDrag(e){
   if(!dragItem||!dragClone) return;
-  
-  const dropzone = document.elementFromPoint(
-    isTouch ? e.changedTouches[0].clientX : e.clientX,
-    isTouch ? e.changedTouches[0].clientY : e.clientY
-  )?.closest(".answerBox, .dropzone");
-
-  if(dropzone && !dropzone.classList.contains("filled")) {
-    dropzone.appendChild(dragItem);
-    dropzone.classList.add("filled");
-  }
-
+  const dropzone = document.elementFromPoint(isTouch?e.changedTouches[0].clientX:e.clientX,isTouch?e.changedTouches[0].clientY:e.clientY)?.closest(".answerBox,.dropzone");
+  if(dropzone && !dropzone.classList.contains("filled")){ dropzone.appendChild(dragItem); dropzone.classList.add("filled"); }
   dragClone.remove(); dragClone=null;
-
-  if(isTouch){
-    document.removeEventListener("touchmove",moveDrag,{passive:false}); 
-    document.removeEventListener("touchend",endDrag);
-  } else {
-    document.removeEventListener("mousemove",moveDrag); 
-    document.removeEventListener("mouseup",endDrag);
-  }
+  if(isTouch){ document.removeEventListener("touchmove",moveDrag,{passive:false}); document.removeEventListener("touchend",endDrag); }
+  else { document.removeEventListener("mousemove",moveDrag); document.removeEventListener("mouseup",endDrag); }
   dragItem=null;
-
   updateCheckBtnVisibility();
 }
-
 document.addEventListener("mousedown",startDrag);
 document.addEventListener("touchstart",startDrag,{passive:false});
 
 /* ===== CHECK BUTTON VISIBILITY ===== */
-function updateCheckBtnVisibility() {
-  const dropzones = document.querySelectorAll(".answerBox, .dropzone");
-  const allFilled = Array.from(dropzones).every(dz => dz.classList.contains("filled"));
-  checkBtn.style.display = allFilled ? "flex" : "none";
+function updateCheckBtnVisibility(){
+  const dropzones = document.querySelectorAll(".answerBox,.dropzone");
+  const allFilled = Array.from(dropzones).every(dz=>dz.classList.contains("filled"));
+  checkBtn.style.display = allFilled ? "flex":"none";
 }
-checkBtn.style.display = "none";
+checkBtn.style.display="none";
 
 /* ===== SAVE / LOAD ===== */
 function saveProgress(){
-  const payload = {
-    studentName, studentClass, currentLevel, roundInLevel,
-    correctCount, incorrectCount,
-    levelCorrect, levelIncorrect, answersHistory,
-    savedTimeElapsed:getTimeElapsed(),
-    usedDraggables:Array.from(usedDraggables), usedCombos:Array.from(usedCombos)
-  };
-  localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+  const payload={ studentName, studentClass, currentLevel, roundInLevel, correctCount, incorrectCount, levelCorrect, levelIncorrect, answersHistory, savedTimeElapsed:getTimeElapsed(), usedDraggables:Array.from(usedDraggables), usedCombos:Array.from(usedCombos) };
+  localStorage.setItem(SAVE_KEY,JSON.stringify(payload));
 }
 function loadProgress(){
-  const saved = localStorage.getItem(SAVE_KEY); 
-  if (!saved) return false;
-  try {
-    const p = JSON.parse(saved);
-    studentName = p.studentName || studentName;
-    studentClass = p.studentClass || studentClass;
-    currentLevel = p.currentLevel || 1;
-    roundInLevel = p.roundInLevel || 0;
-    correctCount = p.correctCount || 0;
-    incorrectCount = p.incorrectCount || 0;
-    levelCorrect = p.levelCorrect || levelCorrect;
-    levelIncorrect = p.levelIncorrect || levelIncorrect;
-    answersHistory = p.answersHistory || [];
-    savedTimeElapsed = p.savedTimeElapsed || 0;
-    usedDraggables = new Set(p.usedDraggables || []);
-    usedCombos = new Set(p.usedCombos || []);
+  const saved=localStorage.getItem(SAVE_KEY); if(!saved) return false;
+  try{
+    const p=JSON.parse(saved);
+    studentName=p.studentName||studentName;
+    studentClass=p.studentClass||studentClass;
+    currentLevel=p.currentLevel||1;
+    roundInLevel=p.roundInLevel||0;
+    correctCount=p.correctCount||0;
+    incorrectCount=p.incorrectCount||0;
+    levelCorrect=p.levelCorrect||levelCorrect;
+    levelIncorrect=p.levelIncorrect||levelIncorrect;
+    answersHistory=p.answersHistory||[];
+    savedTimeElapsed=p.savedTimeElapsed||0;
+    usedDraggables=new Set(p.usedDraggables||[]);
+    usedCombos=new Set(p.usedCombos||[]);
     return true;
   } catch { return false; }
 }
 
 /* ===== INIT GAME ===== */
-function initGame(){
-  populateDraggables(currentLevel);
-  startTime = Date.now();
-}
+function initGame(){ populateQuestionAndDraggables(currentLevel); startTime=Date.now(); }
 
 /* ===== RESUME CHECK ===== */
-function checkResumeModal() {
-  if (loadProgress() && !formSubmittedFlag) {
-    const resumeModal = document.getElementById("resumeModal");
+function checkResumeModal(){
+  if(loadProgress() && !formSubmittedFlag){
+    const resumeModal=document.getElementById("resumeModal");
     resumeModal.classList.add("show");
-
-    document.getElementById("resumeContinue").onclick = () => {
-      resumeModal.classList.remove("show");
-      initGame();
-    };
-    document.getElementById("resumeAgain").onclick = () => {
-      localStorage.removeItem(SAVE_KEY);
-      resumeModal.classList.remove("show");
-      currentLevel = 1;
-      roundInLevel = 0;
-      usedDraggables.clear();
-      usedCombos.clear();
-      initGame();
-    };
-  } else {
-    initGame();
-  }
+    document.getElementById("resumeContinue").onclick=()=>{ resumeModal.classList.remove("show"); initGame(); };
+    document.getElementById("resumeAgain").onclick=()=>{ localStorage.removeItem(SAVE_KEY); resumeModal.classList.remove("show"); currentLevel=1; roundInLevel=0; usedDraggables.clear(); usedCombos.clear(); initGame(); };
+  } else initGame();
 }
-
 checkResumeModal();
