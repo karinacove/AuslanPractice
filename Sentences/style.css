@@ -261,7 +261,7 @@ button.controlButton {
   height: 120px;
   cursor: pointer;
   position: relative;
-  z-index: 1001;
+  z-index: 10002;
 }
 
 button.controlButton img {
@@ -279,7 +279,7 @@ button.controlButton:focus { outline: none; }
   gap: 15px;
   justify-content: center;
   margin-top: 20px;
-  z-index: 1001;
+  z-index: 10002;
 }
 
 .modal-buttons img:hover { transform: scale(1.1); }
