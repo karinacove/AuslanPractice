@@ -9,7 +9,7 @@
 
 body {
   font-family: sans-serif;
-  background: #5b65a9; /* Game background */
+  background: #5b65a9;
   height: 100vh;
   overflow: hidden;
   display: flex;
@@ -39,7 +39,7 @@ body {
   font-size: 0.9rem;
   box-shadow: 1px 2px 6px rgba(0,0,0,0.2);
   position: absolute;
-  z-index: 5;
+  z-index: 10;
 }
 
 #studentInfo { top: 20px; left: 20px; }
@@ -53,6 +53,7 @@ body {
   position: absolute;
   right: 20px;
   top: 20px;
+  z-index: 10;
 }
 
 #stopBtn img { width: 80px; height: 80px; }
@@ -98,6 +99,7 @@ body {
   padding: 5px;
   max-height: 85vh;
   overflow-y: auto;
+  z-index: 5;
 }
 
 #draggablesLeft { left: 20px; }
@@ -127,12 +129,12 @@ body {
 }
 
 .draggables::-webkit-scrollbar {
-   width: 8px;
+  width: 8px;
 }
 
 .draggables::-webkit-scrollbar-thumb {
-   background: rgba(0,0,0,0.3);
-   border-radius: 10px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 10px;
 }
 
 .drag-clone {
@@ -142,25 +144,7 @@ body {
   width: 115px;
   height: 115px;
   transform: translate(-50%, -50%);
-  z-index: 10000;
-}
-
-.dontHaveWrapper {
-  position: relative;
-  display: inline-block;
-}
-
-.xOverlay {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 2em;
-  color: red;
-  font-weight: bold;
-  pointer-events: none;
+  z-index: 1000;
 }
 
 /* ===========================
@@ -178,8 +162,8 @@ body {
   align-items: center;
   justify-content: flex-start;
   gap: 10px;
-  padding: 0 10px;
-  padding-bottom: 20px;
+  padding: 0 10px 20px;
+  z-index: 5;
 }
 
 #questionArea {
@@ -204,8 +188,6 @@ body {
   max-width: 120px;
   object-fit: contain;
 }
-
-#questionArea img { max-width: 120px; max-height: 120px; }
 
 #answerArea {
   display: flex;
@@ -272,45 +254,38 @@ body {
 /* ===========================
    Buttons
 =========================== */
-#checkBtn,
-#againBtn,
-#againBtnStop,
-#finishBtnStop,
-#continueBtn,
-#againBtnEnd,
-#finishBtn,
-#resumeContinue,
-#resumeAgain {
+button.controlButton {
+  all: unset;
+  display: inline-block;
   width: 120px;
   height: 120px;
   cursor: pointer;
-  transition: transform 0.2s;
+  position: relative;
+  z-index: 1001;
 }
 
-#checkBtn,
-#againBtn {
+button.controlButton img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+button.controlButton:active { transform: scale(0.95); }
+button.controlButton:focus { outline: none; }
+
+.modal-buttons {
   display: flex;
-  gap: 8px;
+  gap: 15px;
   justify-content: center;
-  background: transparent;
-  border: none;
-  margin: 0;
+  margin-top: 20px;
+  z-index: 1001;
 }
 
-#checkBtn img,
-#againBtn img {
-  width: 120px;
-  height: 120px;
-  cursor: pointer;
-}
-
-#checkBtn img:hover,
-#againBtn img:hover {
-  transform: scale(1.1);
-}
+.modal-buttons img:hover { transform: scale(1.1); }
 
 /* ===========================
-   Modals
+   Modals (Resume, Stop, End)
 =========================== */
 .modal {
   display: none;
@@ -318,18 +293,15 @@ body {
   top: 0; left: 0;
   width: 100%; height: 100%;
   background: rgba(0,0,0,0.7);
-  z-index: 10000;
   justify-content: center;
   align-items: center;
-  z-index:10000;
+  z-index: 10000;
 }
 
-.modal.show {
-   display: flex;
-}
+.modal.show { display: flex; }
 
 .modal .modal-content {
-  background: white;
+  background: #fff;
   padding: 30px;
   border-radius: 20px;
   text-align: center;
@@ -339,126 +311,17 @@ body {
   z-index: 10001;
 }
 
-button.controlButton {
-  all: unset;              
-  display: inline-block;
-  width: 120px;         
-  height: 120px;            
-  cursor: pointer;       
-  position: relative;
+#resumeModal .modal-content,
+#stopModal .modal-content,
+#endModal .modal-content {
   z-index: 10001;
 }
 
-button.controlButton img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;   /* maintains aspect ratio */
-  pointer-events: none;
+#resumeModal button,
+#stopModal button,
+#endModal button {
   z-index: 10002;
 }
 
-button.controlButton:active {
-  transform: scale(0.95);  /* gives visual feedback */
-}
-
-button.controlButton:focus {
-  outline: none;           /* removes default focus ring */
-}
-
-.modal-buttons {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-  margin-top: 20px;
-}
-
-.modal-buttons img {
-  width: 120px;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.modal-buttons img:hover { transform: scale(1.1); }
-
-/* ===========================
-   End Modal
-=========================== */
-#endModal .modal-content img,
-#endModal #endGif {
-  width: 120px;
-  margin: 10px;
-  cursor: pointer;
-  transition: transform 0.2s;
-  z-index: 10000;
-}
-
-#endModal .modal-content img:hover { 
-   transform: scale(1.1); 
-}
-
-/* ===========================
-   Resume Modal
-=========================== */
-#resumeModal .resumeModal-content img {
-  width: 120px;
-  margin: 10px;
-  cursor: pointer;
-  transition: transform 0.2s;
-  z-index: 10000;
-}
-
-#resumeModal .resumeModal-content img:hover { 
-   transform: scale(1.1); 
-   z-index: 10001;
-}
-
-/* ===========================
-   Stop Modal optional styling
-=========================== */
-#stopModal {
-  display: none;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.7);
-  z-index: 10000;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-#stopModal .modal-content {
-  background: white;
-  padding: 30px;
-  border-radius: 20px;
-  text-align: center;
-  box-shadow: 0 0 15px rgba(0,0,0,0.3);
-  max-width: 400px;
-  width: 80%;
-  z-index: 10001;
-}
-
-#stopModal .modal-buttons {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-  margin-top: 20px;
-  z-index: 10002;
-}
-
-#stopModal .modal-buttons img {
-  width: 120px;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-#stopModal .modal-buttons img:hover {
-  transform: scale(1.1);
-}
-
-#stopModal #stopPercent {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 20px;
-}
+/* Resume Modal Specific */
+#resumeModal img:hover { transform: scale(1.1); }
