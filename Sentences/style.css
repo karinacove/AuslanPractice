@@ -58,31 +58,13 @@ body {
 
 #stopBtn img { width: 80px; height: 80px; }
 
-/* ===========================
-   Topic Selection
-=========================== */
-.topic-button-container {
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  flex-wrap: wrap;
-  margin-top: 1rem;
-}
-
-.topicBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.topicBtn:hover { transform: scale(1.1); }
-
-.topic-img {
-  width: 150px;
-  height: auto;
-  border-radius: 1rem;
-  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+#checkBtn {
+  display: none; /* hidden initially */
+  position: fixed; /* optional: place wherever you want later */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10001; /* above modal backdrop but below modal content */
 }
 
 /* ===========================
