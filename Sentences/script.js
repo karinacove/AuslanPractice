@@ -220,9 +220,7 @@ let dragItem = null;
 let dragClone = null;
 let isTouch = false;
 
-document.addEventListener("mousedown", startDrag);
-document.addEventListener("touchstart", startDrag, { passive: false });
-
+// --- Start dragging ---
 function startDrag(e) {
   const tgt = e.target.closest(".draggable");
   if (!tgt) return;
@@ -247,6 +245,7 @@ function startDrag(e) {
   document.body.appendChild(dragClone);
 
   e.preventDefault();
+
   if (isTouch) {
     document.addEventListener("touchmove", moveDrag, { passive: false });
     document.addEventListener("touchend", endDrag);
@@ -256,8 +255,10 @@ function startDrag(e) {
   }
 }
 
+// --- Move dragging clone ---
 function moveDrag(e) {
   if (!dragClone) return;
+
   let clientX, clientY;
   if (isTouch && e.touches && e.touches.length > 0) {
     clientX = e.touches[0].clientX;
@@ -266,39 +267,20 @@ function moveDrag(e) {
     clientX = e.clientX;
     clientY = e.clientY;
   }
+
   dragClone.style.left = clientX + "px";
   dragClone.style.top = clientY + "px";
 }
 
+// --- End dragging ---
 function endDrag(e) {
   if (!dragItem || !dragClone) return;
 
-  // --- find dropzone under pointer/finger ---
-  let dropzone = null;
-  if (isTouch && e.changedTouches && e.changedTouches.length > 0) {
-    const touch = e.changedTouches[0];
-    dropzone = document.elementFromPoint(touch.clientX, touch.clientY)
-      ?.closest(".dropzone");
-  } else if (!isTouch) {
-    dropzone = document.elementFromPoint(e.clientX, e.clientY)
-      ?.closest(".dropzone");
-  }
-
-  if (dropzone && dropzone.childElementCount === 0) {
-    // --- append clone into dropzone ---
-    const clone = dragItem.cloneNode(true);
-    clone.classList.remove("draggable");
-    dropzone.appendChild(clone);
-
-    dropzone.dataset.filled = dragItem.dataset.key;
-    dropzone.classList.add("filled");
-    updateCheckVisibility();
-  }
-
+  // --- Remove clone ---
   dragClone.remove();
   dragClone = null;
-  dragItem = null;
 
+  // --- Remove event listeners ---
   if (isTouch) {
     document.removeEventListener("touchmove", moveDrag, { passive: false });
     document.removeEventListener("touchend", endDrag);
@@ -306,33 +288,61 @@ function endDrag(e) {
     document.removeEventListener("mousemove", moveDrag);
     document.removeEventListener("mouseup", endDrag);
   }
+
+  // --- Drop detection ---
+  let clientX, clientY;
+  if (isTouch && e.changedTouches && e.changedTouches.length > 0) {
+    clientX = e.changedTouches[0].clientX;
+    clientY = e.changedTouches[0].clientY;
+  } else {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }
+
+  let dropped = false;
+  document.querySelectorAll(".dropzone").forEach(dz => {
+    const rect = dz.getBoundingClientRect();
+    if (
+      clientX >= rect.left && clientX <= rect.right &&
+      clientY >= rect.top && clientY <= rect.bottom &&
+      dz.childElementCount === 0
+    ) {
+      const clone = dragItem.cloneNode(true);
+      clone.classList.remove("draggable");
+      dz.appendChild(clone);
+      dz.dataset.filled = dragItem.dataset.key;
+      dz.classList.add("filled");
+      dropped = true;
+    }
+  });
+
+  if (dropped) {
+    againBtn.style.display = "inline-block";
+    checkBtn.style.display = Array.from(document.querySelectorAll(".dropzone")).every(d => d.dataset.filled)
+      ? "inline-block"
+      : "none";
+  }
+
+  dragItem = null;
 }
 
-/* ===== Initialize existing dropzones ===== */
-document.querySelectorAll(".dropzone").forEach(dz => {
-  dz.addEventListener("dragover", e => e.preventDefault());
-  dz.addEventListener("drop", e => e.preventDefault()); // prevents default drag-drop
-});
+/* ===== Event listeners ===== */
+document.addEventListener("mousedown", startDrag);
+document.addEventListener("touchstart", startDrag, { passive: false });
 
-/* ===== UI helpers ===== */
-function updateCheckVisibility() {
-  const allFilled = Array.from(document.querySelectorAll(".dropzone"))
-    .every(d => d.dataset.filled);
-  checkBtn.style.display = allFilled ? "inline-block" : "none";
-  againBtn.style.display = allFilled ? "inline-block" : "none";
-}
-
-/* ===== Double-tap / double-click removal on dropzones ===== */
+/* ===== Double-tap / double-click removal ===== */
 let lastTap = 0;
 answerArea.addEventListener("click", (ev) => {
   const dz = ev.target.closest(".dropzone");
   if (!dz) return;
+
   const now = Date.now();
-  if (now - lastTap < 350) {
+  if (now - lastTap < 350) { // double-tap
     if (dz.dataset.filled) {
       const filledKey = dz.dataset.filled;
       dz.innerHTML = "";
       dz.dataset.filled = "";
+      dz.dataset.src = "";
       dz.classList.remove("filled", "incorrect", "correct");
       restoreDraggableByKeyToSide(filledKey);
       updateCheckVisibility();
