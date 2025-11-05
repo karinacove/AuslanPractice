@@ -205,9 +205,23 @@ function moveDrag(e){
   dragClone.style.left = clientX+"px";
   dragClone.style.top = clientY+"px";
 }
+
+// === UPDATED END DRAG WITH CHECK BUTTON ===
 function endDrag(e){
   if(!dragItem||!dragClone) return;
+  
+  const dropzone = document.elementFromPoint(
+    isTouch ? e.changedTouches[0].clientX : e.clientX,
+    isTouch ? e.changedTouches[0].clientY : e.clientY
+  )?.closest(".answerBox, .dropzone"); // adjust class to your dropzones
+
+  if(dropzone && !dropzone.classList.contains("filled")) {
+    dropzone.appendChild(dragItem);
+    dropzone.classList.add("filled");
+  }
+
   dragClone.remove(); dragClone=null;
+
   if(isTouch){
     document.removeEventListener("touchmove",moveDrag,{passive:false}); 
     document.removeEventListener("touchend",endDrag);
@@ -216,9 +230,22 @@ function endDrag(e){
     document.removeEventListener("mouseup",endDrag);
   }
   dragItem=null;
+
+  // Update check button visibility
+  updateCheckBtnVisibility();
 }
 document.addEventListener("mousedown",startDrag);
 document.addEventListener("touchstart",startDrag,{passive:false});
+
+/* ===== CHECK BUTTON VISIBILITY ===== */
+function updateCheckBtnVisibility() {
+  const dropzones = document.querySelectorAll(".answerBox, .dropzone"); // adjust selector to match your dropzones
+  const allFilled = Array.from(dropzones).every(dz => dz.classList.contains("filled"));
+  
+  if (allFilled) checkBtn.style.display = "flex";
+  else checkBtn.style.display = "none";
+}
+checkBtn.style.display = "none"; // hide initially
 
 /* ===== SAVE / LOAD ===== */
 function saveProgress(){
@@ -258,13 +285,12 @@ function initGame(){
   startTime = Date.now();
 }
 
-// ===== RESUME CHECK =====
+/* ===== RESUME CHECK ===== */
 function checkResumeModal() {
   if (loadProgress() && !formSubmittedFlag) {
     const resumeModal = document.getElementById("resumeModal");
     resumeModal.classList.add("show");
 
-    // Setup buttons
     document.getElementById("resumeContinue").onclick = () => {
       resumeModal.classList.remove("show");
       initGame();
@@ -283,5 +309,4 @@ function checkResumeModal() {
   }
 }
 
-// Call resume check instead of direct init
 checkResumeModal();
