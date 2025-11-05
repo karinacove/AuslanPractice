@@ -460,39 +460,111 @@ answerArea.addEventListener("click", (ev) => {
   lastTap = now;
 });
 
-/* ===== Build the question UI and draggables for the current level and round ===== */
 function buildQuestion() {
-  // --- Clear old UI ---
   questionArea.innerHTML = "";
   answerArea.innerHTML = "";
   feedbackDiv.innerHTML = "";
   checkBtn.style.display = "none";
+  againBtn.style.display = "none";
   updateScoreDisplay();
 
   const desc = levelDescriptor(currentLevel);
+  const questionItems = desc.items || []; // array of images or signs for this question
+  const helperWord = desc.helperWord || "see"; // "see" or "feel"
+  const totalItems = questionItems.length;
 
-  // --- Helper: pick an unused candidate from pool ---
-  function pickUnusedCombo(poolArr) {
-    const shuffled = shuffleArray(poolArr).filter(c => !usedDraggables.has(c.key));
-    for (const c of shuffled) {
-      if (!usedCombos.has(c.key)) return c;
+  let currentRow = document.createElement("div");
+  currentRow.classList.add("sentence-row");
+  let rowItemCount = 0;
+  let totalItemCount = 0;
+
+  // --- Add constant starter images ---
+  const imgI = document.createElement("img");
+  imgI.src = "assets/signs/helpers/i.png";
+  imgI.alt = "I";
+  imgI.classList.add("sentence-constant");
+  currentRow.appendChild(imgI);
+
+  const imgHelper = document.createElement("img");
+  imgHelper.src = `assets/signs/helpers/${helperWord}.png`;
+  imgHelper.alt = helperWord;
+  imgHelper.classList.add("sentence-constant");
+  currentRow.appendChild(imgHelper);
+
+  const imgWhat = document.createElement("img");
+  imgWhat.src = "assets/signs/helpers/what.png";
+  imgWhat.alt = "what";
+  imgWhat.classList.add("sentence-constant");
+  currentRow.appendChild(imgWhat);
+
+  // --- Add question items with row overflow rules ---
+  for (let i = 0; i < questionItems.length; i++) {
+    const item = questionItems[i];
+    const img = document.createElement("img");
+    img.src = item.src;
+    img.alt = item.alt;
+    img.classList.add("sentence-item");
+
+    // Determine max per row
+    let maxInRow;
+    if (totalItems <= 5) {
+      maxInRow = 5; // all items fit in row 1
+    } else if (totalItemCount < 3) {
+      maxInRow = 3; // first row limited to 3
+    } else if (totalItemCount < 8) {
+      maxInRow = 5; // second row up to 5 items
+    } else {
+      maxInRow = Infinity; // third row can hold remaining items
     }
-    return shuffled[0] || null;
+
+    if (rowItemCount >= maxInRow) {
+      questionArea.appendChild(currentRow);
+      currentRow = document.createElement("div");
+      currentRow.classList.add("sentence-row");
+      rowItemCount = 0;
+
+      // third row starts with WHY if needed
+      if (totalItemCount >= 8) {
+        const imgWhy = document.createElement("img");
+        imgWhy.src = "assets/signs/helpers/why.png";
+        imgWhy.alt = "why";
+        imgWhy.classList.add("sentence-constant");
+        currentRow.appendChild(imgWhy);
+      }
+    }
+
+    currentRow.appendChild(img);
+    rowItemCount++;
+    totalItemCount++;
   }
 
-  // --- Drag-and-drop clone handler ---
-  function handleDropClone(dz, draggedKey) {
-    if (!draggedKey || dz.childElementCount > 0) return;
-    const div = document.querySelector(`.draggable[data-key="${draggedKey}"]`);
-    if (div) {
-      const clone = div.cloneNode(true);
-      clone.classList.remove("draggable");
-      dz.appendChild(clone);
-      dz.dataset.filled = draggedKey;
-      dz.classList.add("filled");
-      updateCheckVisibility();
-    }
+  questionArea.appendChild(currentRow);
+
+  // --- Build answer area with draggables (opposite type) ---
+  const isQuestionImages = desc.itemsType === "images"; // or "signs"
+  const answerDraggables = desc.options || [];
+
+  answerDraggables.forEach(opt => {
+    const drag = document.createElement("img");
+    drag.src = opt.src;
+    drag.alt = opt.alt;
+    drag.classList.add("draggable");
+    drag.dataset.key = opt.key;
+    answerArea.appendChild(drag);
+
+    drag.addEventListener("mousedown", startDrag);
+    drag.addEventListener("touchstart", startDrag);
+  });
+
+  const numDropzones = desc.numTargets || 1;
+  for (let i = 0; i < numDropzones; i++) {
+    const dz = document.createElement("div");
+    dz.classList.add("dropzone");
+    answerArea.appendChild(dz);
   }
+
+  updateCheckVisibility();
+}
 
   // --- Create dropzone ---
   function createDropzone(placeholderText = "", expectedKey = "") {
