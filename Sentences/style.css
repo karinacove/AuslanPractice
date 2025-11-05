@@ -170,6 +170,11 @@ body {
   max-width: 120px;
   object-fit: contain;
 }
+.helper-img {
+   height: 90px;
+   max-width: 120px;
+   object-fit: contain;
+}
 
 #answerArea {
   display: flex;
