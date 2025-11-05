@@ -215,32 +215,14 @@ const candidatePool = { animals: [], food: [], emotions: [] };
   });
 })();
 
-/* ===== Drag & Drop machinery (mouse + touch) - preserved with centering ===== */
+/* ===== Drag clone machinery (mouse + touch) ===== */
 let dragItem = null;
 let dragClone = null;
 let isTouch = false;
 
-/* ===== HandleDrop: runs when a draggable is dropped into a dropzone ===== */
-function handleDrop(e) {
-  e.preventDefault();
-  const key = e.dataTransfer?.getData("text/plain");
-  if (!key) return;
+document.addEventListener("mousedown", startDrag);
+document.addEventListener("touchstart", startDrag, { passive: false });
 
-  const dz = e.currentTarget;
-  if (dz.childElementCount === 0) {
-    const div = document.querySelector(`.draggable[data-key="${key}"]`);
-    if (div) {
-      const clone = div.cloneNode(true);
-      clone.classList.remove("draggable");
-      dz.appendChild(clone);
-      dz.dataset.filled = key;
-      dz.classList.add("filled");
-      updateCheckVisibility();
-    }
-  }
-}
-
-/* ===== Start Drag ===== */
 function startDrag(e) {
   const tgt = e.target.closest(".draggable");
   if (!tgt) return;
@@ -261,11 +243,10 @@ function startDrag(e) {
     zIndex: 10000,
     transform: "translate(-50%,-50%)"
   });
-
   dragClone.classList.add("drag-clone");
   document.body.appendChild(dragClone);
-  e.preventDefault();
 
+  e.preventDefault();
   if (isTouch) {
     document.addEventListener("touchmove", moveDrag, { passive: false });
     document.addEventListener("touchend", endDrag);
@@ -275,11 +256,9 @@ function startDrag(e) {
   }
 }
 
-/* ===== Move Drag ===== */
 function moveDrag(e) {
   if (!dragClone) return;
   let clientX, clientY;
-
   if (isTouch && e.touches && e.touches.length > 0) {
     clientX = e.touches[0].clientX;
     clientY = e.touches[0].clientY;
@@ -287,21 +266,17 @@ function moveDrag(e) {
     clientX = e.clientX;
     clientY = e.clientY;
   }
-
   dragClone.style.left = clientX + "px";
   dragClone.style.top = clientY + "px";
 }
 
-/* ===== End Drag ===== */
 function endDrag(e) {
   if (!dragItem || !dragClone) return;
 
-  // --- remove the floating clone ---
-  if (dragClone && dragClone.parentNode) {
-    document.body.removeChild(dragClone);
-  }
+  dragClone.remove();
+  dragClone = null;
+  dragItem = null;
 
-  // --- remove event listeners ---
   if (isTouch) {
     document.removeEventListener("touchmove", moveDrag, { passive: false });
     document.removeEventListener("touchend", endDrag);
@@ -309,72 +284,63 @@ function endDrag(e) {
     document.removeEventListener("mousemove", moveDrag);
     document.removeEventListener("mouseup", endDrag);
   }
-
-  // --- touch fallback: simulate drop detection by coordinates ---
-  if (isTouch && e.changedTouches && e.changedTouches.length > 0) {
-    const clientX = e.changedTouches[0].clientX;
-    const clientY = e.changedTouches[0].clientY;
-    let dropped = false;
-
-    document.querySelectorAll(".dropzone").forEach(dz => {
-      const rect = dz.getBoundingClientRect();
-      if (
-        clientX >= rect.left && clientX <= rect.right &&
-        clientY >= rect.top && clientY <= rect.bottom &&
-        dz.childElementCount === 0
-      ) {
-        const clone = dragItem.cloneNode(true);
-        clone.classList.remove("draggable");
-        dz.appendChild(clone);
-        dz.dataset.filled = dragItem.dataset.key;
-        dz.classList.add("filled");
-        dropped = true;
-      }
-    });
-
-    if (dropped) {
-      againBtn.style.display = "inline-block";
-      checkBtn.style.display = Array.from(document.querySelectorAll(".dropzone"))
-        .every(d => d.dataset.filled)
-        ? "inline-block"
-        : "none";
-    }
-  }
-
-  dragClone = null;
-  dragItem = null;
 }
 
-/* ===== Initial Dropzone event bindings ===== */
-document.querySelectorAll(".dropzone").forEach(dz => {
+/* ===== Drop handling ===== */
+function handleDrop(e) {
+  e.preventDefault();
+  const dz = e.currentTarget;
+  if (dz.childElementCount > 0 || !dragItem) return;
+
+  const clone = dragItem.cloneNode(true);
+  clone.classList.remove("draggable");
+  dz.appendChild(clone);
+
+  dz.dataset.filled = dragItem.dataset.key;
+  dz.classList.add("filled");
+  updateCheckVisibility();
+}
+
+/* ===== Initialize dropzones ===== */
+function createDropzone(container) {
+  const dz = document.createElement("div");
+  dz.classList.add("dropzone");
+  dz.dataset.filled = "";
+  container.appendChild(dz);
+
   dz.addEventListener("dragover", e => e.preventDefault());
   dz.addEventListener("drop", handleDrop);
-});
 
-/* ===== Start listeners for dragging ===== */
-document.addEventListener("mousedown", startDrag);
-document.addEventListener("touchstart", startDrag, { passive: false });
+  return dz;
+}
+
+// Example: create multiple dropzones dynamically
+const answerArea = document.querySelector("#answerArea"); // your container
+const NUM_DROPZONES = 6; // change as needed
+for (let i = 0; i < NUM_DROPZONES; i++) {
+  createDropzone(answerArea);
+}
 
 /* ===== UI helpers ===== */
-function updateScoreDisplay() {
-  scoreDisplay.textContent = `Level ${currentLevel} - Question ${roundInLevel + 1}/${QUESTIONS_PER_LEVEL}`;
+function updateCheckVisibility() {
+  const allFilled = Array.from(document.querySelectorAll(".dropzone"))
+    .every(d => d.dataset.filled);
+  checkBtn.style.display = allFilled ? "inline-block" : "none";
+  againBtn.style.display = allFilled ? "inline-block" : "none";
 }
 
 /* ===== Double-tap / double-click removal on dropzones ===== */
 let lastTap = 0;
-answerArea.addEventListener("click", ev => {
+answerArea.addEventListener("click", (ev) => {
   const dz = ev.target.closest(".dropzone");
   if (!dz) return;
   const now = Date.now();
-  if (now - lastTap < 350) { // double tap detected
+  if (now - lastTap < 350) {
     if (dz.dataset.filled) {
-      const filledKey = dz.dataset.filled; // capture BEFORE clearing
-      // remove node and metadata
+      const filledKey = dz.dataset.filled;
       dz.innerHTML = "";
       dz.dataset.filled = "";
-      dz.dataset.src = "";
       dz.classList.remove("filled", "incorrect", "correct");
-      // restore draggable to its side container if not permanently removed
       restoreDraggableByKeyToSide(filledKey);
       updateCheckVisibility();
     }
