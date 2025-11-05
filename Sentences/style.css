@@ -120,8 +120,10 @@ body {
 
 .dropzone {
   position: relative;
-  z-index: 1;
-  pointer-events: auto;
+  z-index: 0;
+  border: 2px dashed rgba(0,0,0,0.3);
+  min-height: 115px;
+  min-width: 115px;
 }
 
 .draggables::-webkit-scrollbar {
@@ -136,11 +138,11 @@ body {
 .drag-clone {
   position: fixed;
   pointer-events: none;
-  opacity: 0.8;
+  opacity: 0.75;
   width: 115px;
   height: 115px;
   transform: translate(-50%, -50%);
-  z-index: 5000;
+  z-index: 10000;
 }
 
 .dontHaveWrapper {
