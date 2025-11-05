@@ -238,9 +238,9 @@ function startDrag(e){
     top: rect.top + "px",
     width: rect.width + "px",
     height: rect.height + "px",
-    opacity: "0.95",
+    opacity: "0.7",
     pointerEvents: "none",
-    zIndex: 5000,
+    zIndex: 10000,
     transform: "translate(-50%,-50%)"
   });
   dragClone.classList.add("drag-clone");
@@ -264,71 +264,27 @@ function moveDrag(e){
 }
 
 // Handles dropping a draggable into a dropzone
-function handleDrop(e) {
-  e.preventDefault();
-
-  if (!dragItem) return; // nothing being dragged
-
-  let clientX, clientY;
-  if (e.changedTouches && e.changedTouches.length > 0) {
-    clientX = e.changedTouches[0].clientX;
-    clientY = e.changedTouches[0].clientY;
-  } else {
-    clientX = e.clientX;
-    clientY = e.clientY;
-  }
-
-  const targetEl = document.elementFromPoint(clientX, clientY);
-  const dz = targetEl ? targetEl.closest(".dropzone") : null;
-
-  if (dz && dz.childElementCount === 0) {
-    const node = dragItem.cloneNode(true);
-    node.classList.remove("draggable");
-    node.classList.add("dropped");
-    node.style.display = "block";
-    node.style.margin = "auto";
-    node.style.maxWidth = "100%";
-    node.style.maxHeight = "100%";
-    node.style.objectFit = "contain";
-    dz.appendChild(node);
-
-    dz.dataset.filled = dragItem.dataset.key;
-    dz.dataset.src = dragItem.dataset.img || "";
-    dz.classList.add("filled");
-  }
-
-  // Remove drag clone
-  if (dragClone && dragClone.parentElement) {
-    dragClone.parentElement.removeChild(dragClone);
-  }
-  dragClone = null;
-  dragItem = null;
-
-  // Remove dragging listeners
-  if (isTouch) {
-    document.removeEventListener("touchmove", moveDrag, { passive: false });
-    document.removeEventListener("touchend", handleDrop);
-  } else {
-    document.removeEventListener("mousemove", moveDrag);
-    document.removeEventListener("mouseup", handleDrop);
-  }
-
-  updateCheckVisibility();
-}
-
-// Replace endDrag with a call to handleDrop
 function endDrag(e) {
-  handleDrop(e);
+  if (!dragItem||!dragClone) return; let clientX, clientY;
+  if (isTouch && e.changedTouches && e.changedTouches.length>0) { clientX=e.changedTouches[0].clientX; clientY=e.changedTouches[0].clientY;}
+  else{clientX=e.clientX; clientY=e.clientY;}
+  let dropped=false;
+  document.querySelectorAll(".dropzone").forEach(dz=>{
+    const rect=dz.getBoundingClientRect();
+    if(clientX>=rect.left && clientX<=rect.right && clientY>=rect.top && clientY<=rect.bottom && dz.childElementCount===0){
+      const node=dragItem.cloneNode(true); node.classList.remove("draggable"); dz.appendChild(node);
+      dz.dataset.filled=dragItem.dataset.key; dz.classList.add("filled"); dropped=true;
+    }
+  });
+  if(dragClone) document.body.removeChild(dragClone);
+  dragClone=null; dragItem=null;
+  if(isTouch){document.removeEventListener("touchmove",moveDrag,{passive:false});document.removeEventListener("touchend",endDrag);}
+  else{document.removeEventListener("mousemove",moveDrag);document.removeEventListener("mouseup",endDrag);}
+  if(dropped){againBtn.style.display="inline-block"; checkBtn.style.display=Array.from(document.querySelectorAll(".dropzone")).every(d=>d.dataset.filled)?"inline-block":"none";}
 }
-
-// Start dragging
-document.addEventListener("mousedown", startDrag);
-document.addEventListener("touchstart", startDrag, { passive:false });
-
-// Prevent default browser drag behavior
-document.addEventListener("dragover", e => e.preventDefault());
-document.addEventListener("drop", handleDrop);
-
+document.addEventListener("mousedown",startDrag); document.addEventListener("touchstart",startDrag,{passive:false});
+function dropHandler(e){ e.preventDefault(); }
+ 
 /* ===== UI helpers ===== */
 function updateScoreDisplay(){
   scoreDisplay.textContent = `Level ${currentLevel} - Question ${roundInLevel+1}/${QUESTIONS_PER_LEVEL}`;
