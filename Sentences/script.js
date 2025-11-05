@@ -21,182 +21,200 @@ const FORM_FIELD_MAP = {
 
 /* ===== LEVEL CONFIG ===== */
 const levels = {
-  1: { lineCount: 1, type: "sign", qItems: ["animal","number"] },
-  2: { lineCount: 1, type: "sign", qItems: ["food","colour"] },
-  3: { lineCount: 1, type: "sign", qItems: ["emotion","zone"], starter: "feel" },
-  4: { lineCount: 1, type: "image", qItems: ["animal","number"] },
-  5: { lineCount: 1, type: "image", qItems: ["food","colour"] },
-  6: { lineCount: 1, type: "image", qItems: ["emotion","zone"], starter: "feel" },
-  7: { lineCount: 2, type: "sign", qItems: ["animal+number","food+colour"], verb: ["has","donthave"] },
-  8: { lineCount: 2, type: "sign", qItems: ["animal+number","emotion+zone"], verb: ["feel"] },
-  9: { lineCount: 2, type: "image", qItems: ["animal+number","food+colour"], verb: ["has","donthave"] },
-  10:{ lineCount: 2, type: "image", qItems: ["animal+number","emotion+zone"], verb: ["feel"] },
-  11:{ lineCount: 3, type: "sign", qItems: ["animal+number","emotion+zone","food+colour"], verb: ["feel","has","donthave"] },
-  12:{ lineCount: 3, type: "image", qItems: ["animal+number","emotion+zone","food+colour"], verb: ["feel","has","donthave"] }
+  1: { lineCount: 1, type: "sign", qItems: ["animals","numbers"] },
+  2: { lineCount: 1, type: "sign", qItems: ["food","colours"] },
+  3: { lineCount: 1, type: "sign", qItems: ["emotions","zones"] },
+  4: { lineCount: 1, type: "image", qItems: ["animals","numbers"] },
+  5: { lineCount: 1, type: "image", qItems: ["food","colours"] },
+  6: { lineCount: 1, type: "image", qItems: ["emotions","zones"] },
+  7: { lineCount: 2, type: "sign", qItems: ["animals+numbers","food+colours"], verbs:["has","donthave"] },
+  8: { lineCount: 2, type: "sign", qItems: ["animals+numbers","emotions+zones"], verbs:["feel"] },
+  9: { lineCount: 2, type: "image", qItems: ["animals+numbers","food+colours"], verbs:["has","donthave"] },
+  10:{ lineCount: 2, type: "image", qItems: ["animals+numbers","emotions+zones"], verbs:["feel"] },
+  11:{ lineCount: 3, type: "sign", qItems: ["animals+numbers","emotions+zones","food+colours"], verbs:["feel","has","donthave"] },
+  12:{ lineCount: 3, type: "image", qItems: ["animals+numbers","emotions+zones","food+colours"], verbs:["feel","has","donthave"] }
 };
 
 /* ===== DOM ELEMENTS ===== */
-const DOM = {
-  studentName: document.getElementById("studentName"),
-  studentClass: document.getElementById("studentClass"),
-  scoreDisplay: document.getElementById("scoreDisplay"),
-  stopBtn: document.getElementById("stopBtn"),
-  leftDraggables: document.getElementById("draggablesLeft"),
-  rightDraggables: document.getElementById("draggablesRight"),
-  questionArea: document.getElementById("questionArea"),
-  answerArea: document.getElementById("answerArea"),
-  feedbackDiv: document.getElementById("feedback"),
-  checkBtn: document.getElementById("checkBtn"),
-  againBtn: document.getElementById("againBtn"),
-  endModal: document.getElementById("endModal"),
-  finishBtnEnd: document.getElementById("finishBtnEnd"),
-  againBtnEnd: document.getElementById("againBtnEnd"),
-  googleForm: document.getElementById("googleForm"),
-  topicModal: document.getElementById("topicModal"),
-  resumeModal: document.getElementById("resumeModal"),
-  resumeMessage: document.getElementById("resumeMessage"),
-  resumeContinue: document.getElementById("resumeContinue"),
-  resumeAgain: document.getElementById("resumeAgain"),
-  stopModal: document.getElementById("stopModal"),
-  stopPercent: document.getElementById("stopPercent"),
-  stopContinue: document.getElementById("continueBtn"),
-  stopAgain: document.getElementById("againBtnStop"),
-  stopFinish: document.getElementById("finishBtnStop")
-};
+const studentNameSpan = document.getElementById("studentName");
+const studentClassSpan = document.getElementById("studentClass");
+const scoreDisplay = document.getElementById("scoreDisplay");
+const stopBtn = document.getElementById("stopBtn");
+const leftDraggables = document.getElementById("draggablesLeft");
+const rightDraggables = document.getElementById("draggablesRight");
+const verbsContainer = document.getElementById("verbsContainer"); // new container for verbs
+const questionArea = document.getElementById("questionArea");
+const answerArea = document.getElementById("answerArea");
+const feedbackDiv = document.getElementById("feedback");
+const checkBtn = document.getElementById("checkBtn");
+const againBtn = document.getElementById("againBtn");
+const endModal = document.getElementById("endModal");
+const finishBtn = document.getElementById("finishBtn");
+const againBtnEnd = document.getElementById("againBtnEnd");
+const googleForm = document.getElementById("googleForm");
+const topicModal = document.getElementById("topicModal");
+const resumeModal = document.getElementById("resumeModal");
+const resumeMessage = document.getElementById("resumeMessage");
+const resumeContinue = document.getElementById("resumeContinue");
+const resumeAgain = document.getElementById("resumeAgain");
+const stopModal = document.getElementById("stopModal");
+const stopPercent = document.getElementById("stopPercent");
+const stopContinue = document.getElementById("continueBtn");
+const stopAgain = document.getElementById("againBtnStop");
+const stopFinish = document.getElementById("finishBtnStop");
 
 /* ===== STUDENT INFO ===== */
 let studentName = localStorage.getItem("studentName") || "";
 let studentClass = localStorage.getItem("studentClass") || "";
-if(!studentName || !studentClass){ alert("Please log in first."); window.location.href="../index.html"; }
-else { DOM.studentName.textContent=studentName; DOM.studentClass.textContent=studentClass; }
+if (!studentName || !studentClass) {
+  alert("Please log in first.");
+  window.location.href = "../index.html";
+} else {
+  studentNameSpan.textContent = studentName;
+  studentClassSpan.textContent = studentClass;
+}
 
 /* ===== GAME STATE ===== */
-const SAVE_KEY="sentencesGameSave_v1";
-let currentLevel=1, roundInLevel=0;
-const QUESTIONS_PER_LEVEL=10, TOTAL_LEVELS=12;
-let correctCount=0, incorrectCount=0;
-let levelCorrect={}, levelIncorrect={};
+const SAVE_KEY = "sentencesGameSave_v2";
+let currentLevel = 1;
+let roundInLevel = 0;
+const QUESTIONS_PER_LEVEL = 10;
+const TOTAL_LEVELS = 12;
+
+let correctCount = 0;
+let incorrectCount = 0;
+
+let levelCorrect = {};
+let levelIncorrect = {};
 for(let i=1;i<=TOTAL_LEVELS;i++){ levelCorrect[i]=0; levelIncorrect[i]=0; }
-let answersHistory=[], savedTimeElapsed=0;
-let usedDraggables=new Set(), usedCombos=new Set();
-let startTime=null;
-let dragItem=null, dragClone=null, isTouch=false;
-let formSubmittedFlag=localStorage.getItem("sentencesGame_submitted")==="1";
+
+let answersHistory = [];
+let startTime = null;
+let savedTimeElapsed = 0;
+
+let usedDraggables = new Set();
+let usedCombos = new Set();
 
 /* ===== VOCAB ===== */
 const VOCAB = {
-  topics: { animals:["dog","cat","mouse","rabbit","fish","bird"], food:["apple","banana","blueberry","grape","orange","pear","pineapple","raspberry","strawberry","watermelon"], emotions:["angry","annoyed","ashamed","bored","confident","confused","danger","disappointed","excited","exhausted","focus","frustrated","happy","jealous","lonely","loved","nervous","pain","proud","relax","sad","scared","shock","shy","sick","silly","stressed","support","surprised","tease","thankful","tired","worried"] },
+  topics: {
+    animals: ["dog","cat","mouse","rabbit","fish","bird"],
+    food: ["apple","banana","blueberry","grape","orange","pear","pineapple","raspberry","strawberry","watermelon"],
+    emotions: ["angry","bored","confident","happy","sad","surprised","shy"]
+  },
   colours: ["red","green","blue","orange","yellow","pink","purple","brown","black","white"],
   numbers: ["one","two","three","four","five","six","seven","eight","nine","ten"],
   zones: ["green","blue","yellow","red"],
-  verbs: ["want","have","donthave"],
-  helpers: { i:"assets/signs/helpers/i.png", see:"assets/signs/helpers/see.png", feel:"assets/signs/helpers/feel.png", what:"assets/signs/helpers/what.png" }
+  verbs: ["want","have","donthave","feel"]
 };
 
 /* ===== HELPERS ===== */
-const shuffleArray = arr => arr.slice().sort(()=>Math.random()-0.5);
-const randomItem = arr => arr[Math.floor(Math.random()*arr.length)];
-const timeNowSeconds = () => Math.round(Date.now()/1000);
-const getTimeElapsed = () => savedTimeElapsed + (startTime ? Math.round((Date.now()-startTime)/1000) : 0);
-const setTimeElapsed = s => { savedTimeElapsed = s||0; startTime = Date.now(); };
-const signPathFor = word=>{
-  if(!word) return "";
-  if(VOCAB.topics.animals.includes(word)) return `assets/signs/animals/${word}-sign.png`;
-  if(VOCAB.topics.food.includes(word)) return `assets/signs/food/${word}-sign.png`;
-  if(VOCAB.topics.emotions.includes(word)) return `assets/signs/emotions/sign-${word}.mp4`;
-  if(VOCAB.numbers.includes(word)) return `assets/signs/numbers/${word}-sign.png`;
-  if(VOCAB.colours.includes(word)) return `assets/signs/colours/${word}.png`;
-  if(VOCAB.zones.includes(word)) return `assets/signs/zones/${word}.png`;
-  if(VOCAB.verbs.includes(word)) return `assets/signs/verbs/${word}.png`;
-  if(Object.values(VOCAB.helpers).includes(word)) return word;
-  return "";
-};
-function renderSentenceRows(signs){
-  const r1=document.getElementById("sentenceRow1"), r2=document.getElementById("sentenceRow2"), r3=document.getElementById("sentenceRow3");
-  [r1,r2,r3].forEach(r=>r.innerHTML="");
-  if(signs.length<=3) signs.forEach(s=>appendSign(r1,s));
-  else if(signs.length<=6){ signs.slice(0,3).forEach(s=>appendSign(r1,s)); signs.slice(3).forEach(s=>appendSign(r2,s)); }
-  else{ signs.slice(0,3).forEach(s=>appendSign(r1,s)); signs.slice(3,6).forEach(s=>appendSign(r2,s)); signs.slice(6).forEach(s=>appendSign(r3,s)); }
-}
-function appendSign(container,src){
-  if(src.endsWith(".mp4")){ const v=document.createElement("video"); v.src=src; v.autoplay=true; v.loop=true; v.muted=true; v.className="sign-video"; container.appendChild(v); }
-  else{ const i=document.createElement("img"); i.src=src; i.alt="Sign"; i.className="sign-img"; container.appendChild(i); }
+function shuffleArray(arr){ const a = arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function timeNowSeconds(){ return Math.round(Date.now()/1000); }
+function getTimeElapsed(){ return savedTimeElapsed + (startTime ? Math.round((Date.now()-startTime)/1000) : 0); }
+function setTimeElapsed(seconds){ savedTimeElapsed = seconds || 0; startTime = Date.now(); }
+
+/* ===== CREATE DRAGGABLE NODE ===== */
+function createDraggableNode(topic,a,b){
+  const key = `${topic}::${a}::${b}`;
+  const imgSrc = `assets/images/${topic}/${a}-${b}.png`;
+  const div = document.createElement("div");
+  div.className = "draggable";
+  div.draggable = true;
+  div.dataset.key = key;
+  const img = document.createElement("img");
+  img.src = imgSrc;
+  img.alt = key;
+  img.onerror = () => { img.style.display="none"; };
+  div.appendChild(img);
+  div.addEventListener("dragstart",e=>{ try{ e.dataTransfer.setData("text/plain",key);} catch{} });
+  return div;
 }
 
-/* ===== DRAG & DROP ===== */
-function startDrag(e){
-  const tgt = e.target.closest(".draggable"); if(!tgt) return;
-  dragItem=tgt; isTouch=e.type.startsWith("touch");
-  const rect=tgt.getBoundingClientRect();
-  dragClone=tgt.cloneNode(true);
-  Object.assign(dragClone.style,{position:"fixed",left:rect.left+"px",top:rect.top+"px",width:rect.width+"px",height:rect.height+"px",opacity:"0.7",pointerEvents:"none",zIndex:10000,transform:"translate(-50%,-50%)"});
-  dragClone.classList.add("drag-clone"); document.body.appendChild(dragClone);
-  e.preventDefault();
-  if(isTouch){ document.addEventListener("touchmove",moveDrag,{passive:false}); document.addEventListener("touchend",endDrag); }
-  else{ document.addEventListener("mousemove",moveDrag); document.addEventListener("mouseup",endDrag); }
-}
-function moveDrag(e){
-  if(!dragClone) return;
-  let clientX,clientY;
-  if(isTouch && e.touches && e.touches.length>0){ clientX=e.touches[0].clientX; clientY=e.touches[0].clientY; }
-  else{ clientX=e.clientX; clientY=e.clientY; }
-  dragClone.style.left=clientX+"px"; dragClone.style.top=clientY+"px";
-}
-function endDrag(e){
-  if(!dragItem||!dragClone) return;
-  dragClone.remove(); dragClone=null;
-  if(isTouch){ document.removeEventListener("touchmove",moveDrag,{passive:false}); document.removeEventListener("touchend",endDrag); }
-  else{ document.removeEventListener("mousemove",moveDrag); document.removeEventListener("mouseup",endDrag); }
-  let clientX=isTouch&&e.changedTouches&&e.changedTouches.length>0?e.changedTouches[0].clientX:e.clientX;
-  let clientY=isTouch&&e.changedTouches&&e.changedTouches.length>0?e.changedTouches[0].clientY:e.clientY;
-  document.querySelectorAll(".dropzone").forEach(dz=>{
-    const rect=dz.getBoundingClientRect();
-    if(clientX>=rect.left&&clientX<=rect.right&&clientY>=rect.top&&clientY<=rect.bottom&&dz.childElementCount===0){
-      handleDropClone(dz, dragItem.dataset.key);
-    }
-  });
-  dragItem=null;
-}
-document.addEventListener("mousedown",startDrag);
-document.addEventListener("touchstart",startDrag,{passive:false});
+/* ===== POPULATE DRAGGABLES ===== */
+function populateDraggables(leftCandidates,rightCandidates,verbs=[]){
+  leftDraggables.innerHTML="";
+  rightDraggables.innerHTML="";
+  verbsContainer.innerHTML="";
+  let leftCount = (currentLevel<=6)?6:9;
+  let rightCount = leftCount;
 
-/* ===== HANDLE DROP ===== */
-function handleDropClone(dropzone,key){
-  if(!key || !dropzone) return;
-  const clone=dragItem.cloneNode(true);
-  clone.classList.remove("draggable"); dropzone.appendChild(clone);
-  dropzone.dataset.filled=key; dropzone.classList.add("filled");
-  usedDraggables.add(key);
-  updateCheckVisibility();
-  DOM.againBtn.style.display="inline-block";
+  leftCandidates.slice(0,leftCount).forEach(c=>{ if(!usedDraggables.has(c.key)) leftDraggables.appendChild(createDraggableNode(c.topic,c.part1,c.part2)); });
+  rightCandidates.slice(0,rightCount).forEach(c=>{ if(!usedDraggables.has(c.key)) rightDraggables.appendChild(createDraggableNode(c.topic,c.part1,c.part2)); });
+  verbs.forEach(v => { verbsContainer.appendChild(createDraggableNode("verbs",v,"")); });
+}
+
+/* ===== SAVE / LOAD / RESTORE ===== */
+function saveProgress(){
+  const payload = { studentName, studentClass, currentLevel, roundInLevel, correctCount, incorrectCount, levelCorrect, levelIncorrect, answersHistory, savedTimeElapsed:getTimeElapsed(), usedDraggables:Array.from(usedDraggables), usedCombos:Array.from(usedCombos)};
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(payload)); } catch(e){ console.warn(e); }
+}
+
+function loadProgress(){
+  try{ return JSON.parse(localStorage.getItem(SAVE_KEY)); } catch(e){ return null; }
+}
+
+function restoreProgress(saved){
+  if(!saved) return;
+  studentName = saved.studentName || studentName;
+  studentClass = saved.studentClass || studentClass;
+  currentLevel = Number(saved.currentLevel) || 1;
+  roundInLevel = Number(saved.roundInLevel) || 0;
+  correctCount = Number(saved.correctCount) || 0;
+  incorrectCount = Number(saved.incorrectCount) || 0;
+  levelCorrect = saved.levelCorrect || levelCorrect;
+  levelIncorrect = saved.levelIncorrect || levelIncorrect;
+  answersHistory = saved.answersHistory || [];
+  savedTimeElapsed = Number(saved.savedTimeElapsed) || 0;
+  usedDraggables = new Set(saved.usedDraggables || []);
+  usedCombos = new Set(saved.usedCombos || []);
+  setTimeElapsed(saved.savedTimeElapsed || 0);
+  buildQuestion();
 }
 
 /* ===== BUILD QUESTION ===== */
 function buildQuestion(){
-  DOM.answerArea.innerHTML="";
+  questionArea.innerHTML="";
+  answerArea.innerHTML="";
+  const lvlConfig = levels[currentLevel];
+  if(!lvlConfig) return;
+
+  // Determine candidates
+  let leftCandidates=[], rightCandidates=[], verbs=[];
+  lvlConfig.qItems.forEach(q => {
+    if(q.includes("+")){
+      const [topic1,topic2] = q.split("+");
+      VOCAB[topic1].forEach(p1 => VOCAB[topic2].forEach(p2 => {
+        const key = `${topic1}::${p1}::${p2}`;
+        leftCandidates.push({topic:topic1,part1:p1,part2:p2,key});
+        rightCandidates.push({topic:topic2,part1:p2,part2:"",key});
+      }));
+    } else {
+      VOCAB[q].forEach(p => { leftCandidates.push({topic:q,part1:p,part2:"",key:`${q}::${p}::`}); rightCandidates.push({topic:q,part1:p,part2:"",key:`${q}::${p}::`}); });
+    }
+  });
+
+  if(lvlConfig.verbs) verbs = lvlConfig.verbs;
+
+  populateDraggables(shuffleArray(leftCandidates), shuffleArray(rightCandidates), verbs);
   updateScoreDisplay();
-  const levelData = levels[currentLevel];
-  // For demo: pick random 2 draggables per level
-  const leftCandidates = []; const rightCandidates = [];
-  if(levelData.qItems.includes("animal")) leftCandidates.push(...VOCAB.topics.animals.map(a=>({key:a,img:signPathFor(a)})));
-  if(levelData.qItems.includes("number")) rightCandidates.push(...VOCAB.numbers.map(n=>({key:n,img:signPathFor(n)})));
-  // Populate draggables
-  populateDraggables(leftCandidates,rightCandidates);
-  // Create dropzones
-  const dz1=createDropzone("Drop here 1"); const dz2=createDropzone("Drop here 2");
 }
 
-/* ===== POPULATE DRAGGABLES ===== */
-function populateDraggables(left,right){ DOM.leftDraggables.innerHTML=""; DOM.rightDraggables.innerHTML=""; left.forEach(c=>DOM.leftDraggables.appendChild(createCandidateDiv(c))); right.forEach(c=>DOM.rightDraggables.appendChild(createCandidateDiv(c))); }
-function createCandidateDiv(c){ const div=document.createElement("div"); div.className="draggable"; div.draggable=true; div.dataset.key=c.key; const img=document.createElement("img"); img.src=c.img; div.appendChild(img); div.addEventListener("dragstart",e=>{try{e.dataTransfer.setData("text/plain",c.key);}catch{}}); return div; }
+/* ===== SCORE DISPLAY ===== */
+function updateScoreDisplay(){
+  scoreDisplay.textContent = `Level ${currentLevel} - Question ${roundInLevel+1}/${QUESTIONS_PER_LEVEL}`;
+}
 
-/* ===== CHECK VISIBILITY & SCORE ===== */
-function updateCheckVisibility(){ DOM.checkBtn.style.display=Array.from(DOM.answerArea.querySelectorAll(".dropzone")).every(d=>d.dataset.filled)?"inline-block":"none"; }
-function updateScoreDisplay(){ DOM.scoreDisplay.textContent=`Level ${currentLevel} - Question ${roundInLevel+1}/${QUESTIONS_PER_LEVEL}`; }
-
-/* ===== INITIAL LOAD ===== */
-window.addEventListener("load",()=>{
+/* ===== INITIALISATION ===== */
+window.addEventListener("load", () => {
   const saved = loadProgress();
-  if(saved) showResumeModal(saved);
-  else { setTimeElapsed(0); startTime=Date.now(); buildQuestion(); }
+  if(saved){
+    // Show resume modal if needed (similar logic as before)
+    restoreProgress(saved);
+  } else {
+    setTimeElapsed(0);
+    startTime = Date.now();
+    buildQuestion();
+  }
 });
