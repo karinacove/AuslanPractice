@@ -173,12 +173,30 @@ function populateDraggables(level) {
 
 /* ===== DISPLAY QUESTION ===== */
 function displayQuestion() {
-  if (!levels[currentLevel]) return;
   const level = levels[currentLevel];
-  let text = "Match the following: ";
-  if (level.qItems) text += level.qItems.join(", ");
-  questionDisplay.textContent = text;
+  if (!level) return;
+
+  // Clear all rows first
+  for (let i = 1; i <= 3; i++) {
+    const row = document.getElementById(`sentenceRow${i}`);
+    row.innerHTML = "";
+  }
+
+  // For each line in this level, populate a sentence row with topics and helpers
+  for (let i = 0; i < level.lineCount; i++) {
+    const row = document.getElementById(`sentenceRow${i + 1}`);
+    let text = "";
+
+    if (level.qItems[i]) {
+      // Split multiple topics joined with '+'
+      const topics = level.qItems[i].split("+");
+      text = "Match: " + topics.join(" & ");
+    }
+
+    row.textContent = text;
+  }
 }
+
 
 /* ===== DRAG / DROP ===== */
 let dragItem=null, dragClone=null, isTouch=false;
