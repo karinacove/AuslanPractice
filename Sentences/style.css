@@ -314,5 +314,30 @@ button.controlButton:focus { outline: none; }
   z-index: 10002;
 }
 
+/* Ensure modal buttons are always 120px */
+.modal-buttons button,
+button.controlButton {
+  width: 120px;
+  height: 120px;
+  min-width: 120px;
+  min-height: 120px;
+  max-width: 120px;
+  max-height: 120px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+}
+
+.modal-buttons img,
+button.controlButton img,
+#checkBtn {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+
 /* Resume Modal Specific */
 #resumeModal img:hover { transform: scale(1.1); }
