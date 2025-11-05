@@ -462,7 +462,25 @@ function buildQuestion(){
     }
     return shuffled[0] || null;
   }
+/* ===== Drag-and-drop helpers ===== */
+function handleDrop(e) {
+  e.preventDefault();
+  const key = e.dataTransfer?.getData("text/plain");
+  if (!key) return;
 
+  const dz = e.currentTarget;
+  if (dz.childElementCount === 0) {
+    const div = document.querySelector(`.draggable[data-key="${key}"]`);
+    if (div) {
+      const clone = div.cloneNode(true);
+      clone.classList.remove("draggable");
+      dz.appendChild(clone);
+      dz.dataset.filled = key;
+      dz.classList.add("filled");
+      updateCheckVisibility();
+    }
+  }
+}
   // --- function to create a dropzone element with optional placeholder text ---
 function createDropzone(placeholderText = "", expectedKey = "") {
   const dz = document.createElement("div");
