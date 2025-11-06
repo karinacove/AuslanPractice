@@ -301,6 +301,18 @@ document.addEventListener('mousedown', startDrag); document.addEventListener('to
 /* ===== Double-tap removal (mobile) & double-click on desktop ===== */
 let lastTap = 0; if(answerArea){ answerArea.addEventListener('click', (ev)=>{ const dz = ev.target.closest('.dropzone'); if(!dz) return; const now = Date.now(); if(now - lastTap < 350){ if(dz.dataset.filled){ const filledKey = dz.dataset.filled; dz.innerHTML = ''; const ph = document.createElement('div'); ph.className='placeholder faint'; ph.textContent = ''; dz.appendChild(ph); dz.dataset.filled = ''; dz.classList.remove('filled','incorrect','correct'); restoreDraggableToSide(filledKey); updateCheckVisibility(); } } lastTap = now; }); }
 
+function updateScoreDisplay() {
+  const scoreEl = document.getElementById("scoreDisplay");
+  if (!scoreEl) return;
+
+  // If you’re tracking a score variable globally:
+  const score = typeof totalScore !== "undefined" ? totalScore : 0;
+
+  // Optional: show correct count or level info if available
+  const levelName = levels && levels[currentLevel] ? levels[currentLevel].name || `Level ${currentLevel + 1}` : "";
+  scoreEl.textContent = `Score: ${score}${levelName ? " | " + levelName : ""}`;
+}
+
 /* ===== Build question (single correct implementation) ===== */
 function buildQuestion(){
   if(!sentenceRow1||!sentenceRow2||!sentenceRow3||!answerArea) return;
