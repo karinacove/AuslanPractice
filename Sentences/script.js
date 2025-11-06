@@ -279,12 +279,10 @@ function populateDraggablesForLevel(level, questionItems, questionType, verbList
   }
 }
 function updateCheckVisibility() {
-  const dropzones = document.querySelectorAll(".dropzone");
-  const allFilled = Array.from(dropzones).every(z => z.classList.contains("filled"));
+  const allDropzones = document.querySelectorAll(".dropzone");
+  const allFilled = Array.from(allDropzones).every(z => z.classList.contains("filled"));
   const checkBtn = document.getElementById("checkBtn");
-  if (checkBtn) {
-    checkBtn.style.display = allFilled ? "block" : "none";
-  }
+  if (checkBtn) checkBtn.style.display = allFilled ? "block" : "none";
 }
 
 /* ===== Drag / Drop (clone) ===== */
@@ -300,7 +298,29 @@ function startDrag(e){
 }
 function moveDrag(e){ if(!dragClone) return; let clientX,clientY; if(isTouch && e.touches && e.touches.length>0){ clientX=e.touches[0].clientX; clientY=e.touches[0].clientY; } else { clientX=e.clientX; clientY=e.clientY; } dragClone.style.left = clientX + 'px'; dragClone.style.top = clientY + 'px'; }
 
-function handleDropClone(dz, draggedKey){ if(!dz || !draggedKey) return; if(dz.dataset.filled) return; const srcDom = document.querySelector(`.draggable[data-key="${draggedKey}"]`); let clone; if(srcDom) clone = srcDom.cloneNode(true); else { clone = document.createElement('div'); clone.className='draggable fallback'; clone.textContent = draggedKey; } clone.classList.remove('draggable'); dz.appendChild(clone); dz.dataset.filled = draggedKey; dz.classList.add('filled'); updateCheckVisibility(); }
+function handleDrop(e) {
+  e.preventDefault();
+  const dropzone = e.currentTarget;
+  const draggedId = e.dataTransfer ? e.dataTransfer.getData("text") : dragItem?.dataset?.key;
+  if (!draggedId) return;
+
+  const dragged = document.querySelector(`[data-key='${draggedId}']`);
+  if (!dragged || dropzone.classList.contains("filled")) return;
+
+  // clone the dragged image inside the dropzone
+  const clone = dragged.cloneNode(true);
+  clone.classList.remove("dragging");
+  clone.style.position = "static";
+  clone.style.opacity = "1";
+
+  dropzone.innerHTML = "";
+  dropzone.appendChild(clone);
+  dropzone.classList.add("filled");
+  dropzone.dataset.filledKey = draggedId;
+
+  // check visibility for the "check" button
+  updateCheckVisibility();
+}
 
 function endDrag(e) {
   if (!dragItem || !dragClone) return;
@@ -482,6 +502,64 @@ function buildQuestion(){
 
   // hook: ensure check button hidden until all filled
   updateCheckVisibility();
+}
+
+function checkAnswers() {
+  const allDropzones = document.querySelectorAll(".dropzone");
+  let allCorrect = true;
+
+  allDropzones.forEach(zone => {
+    const key = zone.dataset.filledKey;
+    const correctKey = zone.dataset.answer;
+
+    // clear previous markers
+    const existingFeedback = zone.querySelector(".result-icon");
+    if (existingFeedback) existingFeedback.remove();
+
+    const icon = document.createElement("img");
+    icon.className = "result-icon";
+    icon.style.position = "absolute";
+    icon.style.width = "90px";
+    icon.style.height = "90px";
+    icon.style.pointerEvents = "none";
+    icon.style.zIndex = "20";
+    icon.style.top = "50%";
+    icon.style.left = "50%";
+    icon.style.transform = "translate(-50%, -50%)";
+
+    if (key === correctKey) {
+      icon.src = "assets/correct.png";
+      zone.classList.add("correct");
+      zone.classList.remove("incorrect");
+    } else {
+      icon.src = "assets/wrong.png";
+      zone.classList.add("incorrect");
+      zone.classList.remove("correct");
+      allCorrect = false;
+    }
+
+    zone.appendChild(icon);
+  });
+
+  if (allCorrect) {
+    setTimeout(() => {
+      document.querySelectorAll(".result-icon").forEach(i => i.remove());
+      nextQuestion(); // your existing function to load the next question
+    }, 1000);
+  } else {
+    // remove incorrect answers after 2 seconds
+    setTimeout(() => {
+      allDropzones.forEach(zone => {
+        if (zone.classList.contains("incorrect")) {
+          zone.innerHTML = "";
+          zone.classList.remove("filled", "incorrect");
+          delete zone.dataset.filledKey;
+        }
+      });
+      document.querySelectorAll(".result-icon").forEach(i => i.remove());
+      updateCheckVisibility();
+    }, 2000);
+  }
 }
 
 /* ===== Check / Submit logic (single place) ===== */
