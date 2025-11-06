@@ -281,7 +281,6 @@ function populateDraggablesForLevel(level, questionItems, questionType, verbList
 function updateCheckVisibility() {
   const allDropzones = document.querySelectorAll(".dropzone");
   const allFilled = Array.from(allDropzones).every(z => z.classList.contains("filled"));
-  const checkBtn = document.getElementById("checkBtn");
   if (checkBtn) checkBtn.style.display = allFilled ? "block" : "none";
 }
 
