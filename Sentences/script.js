@@ -282,67 +282,88 @@ function placeDraggedIntoDropzoneByKey(dropzone, draggedKey){
   updateCheckVisibility();
 }
 
-/* ===== Populate draggables for a level (ensures correct items are included) ===== */
-function populateDraggablesForLevel(level, questionItems, questionType, verbList){
-  if(!leftDraggables || !rightDraggables || !bottomVerbs) return;
+/* ===== Populate draggables for a level (ensures correct items are included exactly once) ===== */
+function populateDraggablesForLevel(level, questionItems, questionType, verbList) {
+  if (!leftDraggables || !rightDraggables || !bottomVerbs) return;
   leftDraggables.innerHTML = '';
   rightDraggables.innerHTML = '';
   bottomVerbs.innerHTML = '';
-  const sideCount = (level <= 6) ? 6 : 9;
 
-  // build pool for decoys
+  // number of items each side
+  const sideCount = (level <= 6) ? 6 : 9;
+  const totalCount = sideCount * 2; // 12 for L1–6, 18 for L7–12
+
+  // Build pool for potential decoys
   const pool = [];
-  levels[level].qItems.forEach(q=>{
-    q.split('+').forEach(p=>{
-      if(p==='animals') candidatePool.animals.forEach(x=>pool.push(Object.assign({topic:'animals'}, x)));
-      if(p==='food') candidatePool.food.forEach(x=>pool.push(Object.assign({topic:'food'}, x)));
-      if(p==='emotions') candidatePool.emotions.forEach(x=>pool.push(Object.assign({topic:'emotions'}, x)));
-      if(p==='numbers') candidatePool.animals.forEach(x=>pool.push(Object.assign({topic:'animals'}, x)));
-      if(p==='colours') candidatePool.food.forEach(x=>pool.push(Object.assign({topic:'food'}, x)));
-      if(p==='zones') candidatePool.emotions.forEach(x=>pool.push(Object.assign({topic:'emotions'}, x)));
+  levels[level].qItems.forEach(q => {
+    q.split('+').forEach(p => {
+      if (p === 'animals') candidatePool.animals.forEach(x => pool.push({ ...x, topic: 'animals' }));
+      if (p === 'food') candidatePool.food.forEach(x => pool.push({ ...x, topic: 'food' }));
+      if (p === 'emotions') candidatePool.emotions.forEach(x => pool.push({ ...x, topic: 'emotions' }));
+      if (p === 'numbers') candidatePool.animals.forEach(x => pool.push({ ...x, topic: 'animals' }));
+      if (p === 'colours') candidatePool.food.forEach(x => pool.push({ ...x, topic: 'food' }));
+      if (p === 'zones') candidatePool.emotions.forEach(x => pool.push({ ...x, topic: 'emotions' }));
     });
   });
 
-  // filter out usedDraggables (already permanently used)
-  let shuffled = shuffleArray(pool).filter(c => !usedDraggables.has(c.key));
-  // ensure each expected answer (questionItems) is present in shuffled pool
+  // Filter out any already permanently used
+  let availablePool = shuffleArray(pool).filter(c => !usedDraggables.has(c.key));
+
+  // Ensure each expected answer (questionItems) is in the pool
   const requiredKeys = (questionItems || []).map(qi => qi.key).filter(Boolean);
   requiredKeys.forEach(k => {
-    if(!shuffled.some(x=>x.key===k)){
-      // attempt to locate the candidate in full candidate lists and insert at front
-      const parts = k.split('::'); const topic = parts[0];
+    if (!availablePool.some(x => x.key === k)) {
+      const parts = k.split('::');
+      const topic = parts[0];
       let found = null;
-      if(topic === 'animals') found = candidatePool.animals.find(x => x.key === k);
-      if(topic === 'food') found = candidatePool.food.find(x => x.key === k);
-      if(topic === 'emotions') found = candidatePool.emotions.find(x => x.key === k);
-      if(found) shuffled.unshift(found);
+      if (topic === 'animals') found = candidatePool.animals.find(x => x.key === k);
+      if (topic === 'food') found = candidatePool.food.find(x => x.key === k);
+      if (topic === 'emotions') found = candidatePool.emotions.find(x => x.key === k);
+      if (found) availablePool.unshift(found);
       else {
-        // if not found, fabricate minimal object (will show fallback if image missing)
-        shuffled.unshift({ key:k, img:`assets/images/${topic}/${parts[1]}${parts[2] ? '-'+parts[2] : ''}.png`, parts:{} });
+        availablePool.unshift({
+          key: k,
+          img: `assets/images/${topic}/${parts[1]}${parts[2] ? '-' + parts[2] : ''}.png`
+        });
       }
     }
   });
 
-  const leftSelection = shuffled.slice(0, sideCount);
-  const rightSelection = shuffled.slice(sideCount, sideCount*2);
+  // Always guarantee the correct answer(s) exist once
+  const correctAnswers = questionItems.map(qi => qi);
+  const correctKeys = correctAnswers.map(a => a.key);
+  // Remove any duplicates of the correct items from pool
+  availablePool = availablePool.filter(p => !correctKeys.includes(p.key));
+  // Take only enough decoys to fill remaining slots
+  const decoyCount = Math.max(0, totalCount - correctAnswers.length);
+  const decoys = shuffleArray(availablePool).slice(0, decoyCount);
+
+  // Combine + shuffle so correct answers aren’t always first
+  let finalSet = shuffleArray([...correctAnswers, ...decoys]);
+
+  // Split into sides
+  const leftSelection = finalSet.slice(0, sideCount);
+  const rightSelection = finalSet.slice(sideCount, sideCount * 2);
 
   // Convert to DOM nodes and append
-  if(questionType === 'image'){
-    leftSelection.forEach(c => leftDraggables.appendChild(createDraggableNodeFromCandidate(c,true)));
-    rightSelection.forEach(c => rightDraggables.appendChild(createDraggableNodeFromCandidate(c,true)));
+  if (questionType === 'image') {
+    leftSelection.forEach(c => leftDraggables.appendChild(createDraggableNodeFromCandidate(c, true)));
+    rightSelection.forEach(c => rightDraggables.appendChild(createDraggableNodeFromCandidate(c, true)));
   } else {
-    const verbIs = (verbList && verbList.length>0) ? verbList[0] : null;
-    leftSelection.forEach(c => leftDraggables.appendChild(createDraggableNodeFromCandidate(c,false, verbIs && c.topic === 'food' ? verbIs : null)));
-    rightSelection.forEach(c => rightDraggables.appendChild(createDraggableNodeFromCandidate(c,false, verbIs && c.topic === 'food' ? verbIs : null)));
+    const verbIs = (verbList && verbList.length > 0) ? verbList[0] : null;
+    leftSelection.forEach(c => leftDraggables.appendChild(createDraggableNodeFromCandidate(c, false, verbIs && c.topic === 'food' ? verbIs : null)));
+    rightSelection.forEach(c => rightDraggables.appendChild(createDraggableNodeFromCandidate(c, false, verbIs && c.topic === 'food' ? verbIs : null)));
   }
 
-  // verbs bottom
-  if(Array.isArray(verbList) && verbList.length){
-    verbList.forEach(v=>{
+  // Bottom verbs (if any)
+  if (Array.isArray(verbList) && verbList.length) {
+    verbList.forEach(v => {
       const path = signPathFor(v) || `assets/signs/verbs/${v}-sign.png`;
       bottomVerbs.appendChild(createDraggableNodeFromSign(`verb::${v}`, path));
     });
   }
+
+  enableDragAndDrop();
 }
 
 /* ===== Check button visibility helper ===== */
