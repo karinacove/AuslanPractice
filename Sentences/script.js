@@ -1,5 +1,3 @@
-/* ===== script.js - Full rebuilt version ===== */
-
 /* ===== CONFIG / FORM MAPPING ===== */
 const FORM_FIELD_MAP = {
   name: "entry.1040637824",
@@ -145,19 +143,40 @@ const candidatePool = { animals: [], food: [], emotions: [] };
 })();
 
 /* ===== Render sentence rows ===== */
-function renderSentenceRows(items) {
+function renderSentenceRows(items, level) {
   if (!sentenceRow1 || !sentenceRow2 || !sentenceRow3) return;
-  
   [sentenceRow1, sentenceRow2, sentenceRow3].forEach(r => r.innerHTML = "");
+
   if (!Array.isArray(items) || items.length === 0) return;
 
-  // Simple distribution: first item row1, second item row2, rest row3
-  if(items[0]) appendItem(sentenceRow1, items[0]);
-  if(items[1]) appendItem(sentenceRow2, items[1]);
-  for(let i=2;i<items.length;i++) appendItem(sentenceRow3, items[i]);
+  // --- Level 1-6: everything on one row ---
+  if (level <= 6) {
+    items.forEach(item => appendItem(sentenceRow1, item));
+    return;
+  }
 
+  // --- Level 7+: helper in row1, others distributed ---
+  const helper = items.find(it => it.isHelper);
+  if (helper) appendItem(sentenceRow1, helper);
+
+  const nonHelpers = items.filter(it => !it.isHelper);
+  const total = nonHelpers.length;
+
+  if (total <= 5) {
+    nonHelpers.forEach(it => appendItem(sentenceRow2, it));
+  } else if (total <= 8) {
+    nonHelpers.slice(0, 3).forEach(it => appendItem(sentenceRow2, it));
+    nonHelpers.slice(3).forEach(it => appendItem(sentenceRow3, it));
+  } else {
+    nonHelpers.slice(0, 3).forEach(it => appendItem(sentenceRow2, it));
+    nonHelpers.slice(3, 8).forEach(it => appendItem(sentenceRow3, it));
+    nonHelpers.slice(8).forEach(it => appendItem(sentenceRow3, it)); // overflow
+  }
+
+  // --- Helper function ---
   function appendItem(container, item) {
     if (!item) return;
+
     if (item.isVideo) {
       const v = document.createElement("video");
       v.src = item.src;
@@ -171,15 +190,13 @@ function renderSentenceRows(items) {
       const img = document.createElement("img");
       img.src = item.src;
       img.alt = item.key || "";
-      img.className = "sign-img";
+      img.className = item.isHelper ? "helper-img" : "sign-img";
       img.onerror = () => {
         img.style.display = "none";
-        if (!container.querySelector(".fallback")) {
-          const f = document.createElement("div");
-          f.className = "fallback";
-          f.textContent = item.fallbackText || item.key || "";
-          container.appendChild(f);
-        }
+        const f = document.createElement("div");
+        f.className = "fallback";
+        f.textContent = item.fallbackText || item.key || "";
+        container.appendChild(f);
       };
       container.appendChild(img);
     }
