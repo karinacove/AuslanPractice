@@ -1,4 +1,4 @@
-/* ===== script.js - Cleaned, single-version (keeps form logic + fixes) ===== */
+/* ===== script.js - Full working version with fixes ===== */
 
 /* ===== CONFIG / FORM MAPPING ===== */
 const FORM_FIELD_MAP = {
@@ -21,7 +21,7 @@ const FORM_FIELD_MAP = {
   level12:{ correct: "entry.1570476410", incorrect: "entry.1307112644" }
 };
 
-/* ===== DOM ELEMENTS (match HTML) ===== */
+/* ===== DOM ELEMENTS ===== */
 const studentNameSpan = document.getElementById("studentName");
 const studentClassSpan = document.getElementById("studentClass");
 const leftDraggables = document.getElementById("draggablesLeft");
@@ -51,25 +51,25 @@ const stopFinish = document.getElementById("finishBtnStop");
 
 /* ===== GAME STATE ===== */
 const SAVE_KEY = "sentencesGameSave_v2";
-let currentLevel = 1;        // 1..12
-let roundInLevel = 0;        // 0..9
+let currentLevel = 1;
+let roundInLevel = 0;
 const QUESTIONS_PER_LEVEL = 10;
 const TOTAL_LEVELS = 12;
 
 let correctCount = 0;
 let incorrectCount = 0;
 
-let levelCorrect = {};       // per-level counters
+let levelCorrect = {};
 let levelIncorrect = {};
 for(let i=1;i<=TOTAL_LEVELS;i++){ levelCorrect[i]=0; levelIncorrect[i]=0; }
 
-let answersHistory = [];     // {level,round,correctKeys,incorrectKeys}
+let answersHistory = [];
 
 let startTime = null;
-let savedTimeElapsed = 0;     // seconds accumulated before pause
+let savedTimeElapsed = 0;
 
-let usedDraggables = new Set(); // permanently removed / used items
-let usedCombos = new Set();     // combos answered correctly first-try (prevent as future questions)
+let usedDraggables = new Set();
+let usedCombos = new Set();
 
 let formSubmittedFlag = localStorage.getItem("sentencesGame_submitted") === "1";
 
@@ -94,7 +94,7 @@ function timeNowSeconds(){ return Math.round(Date.now()/1000); }
 function getTimeElapsed(){ return savedTimeElapsed + (startTime ? Math.round((Date.now()-startTime)/1000) : 0); }
 function setTimeElapsed(seconds){ savedTimeElapsed = seconds || 0; startTime = Date.now(); }
 
-/* ===== Sign path helper (matches your assets structure) ===== */
+/* ===== Sign path helper ===== */
 function signPathFor(word){
   if (!word) return "";
   if (VOCAB.topics.animals.includes(word)) return `assets/signs/animals/${word}-sign.png`;
@@ -144,7 +144,7 @@ const candidatePool = { animals: [], food: [], emotions: [] };
   });
 })();
 
-/* ===== expected answers holder (per question) ===== */
+/* ===== expected answers holder ===== */
 let expectedAnswers = [];
 
 /* ===== Render sentence rows ===== */
@@ -153,7 +153,6 @@ function renderSentenceRows(items, level) {
   [sentenceRow1, sentenceRow2, sentenceRow3].forEach(r => r.innerHTML = "");
   if (!Array.isArray(items) || items.length === 0) return;
 
-  // helper to append a single visual item
   function appendItem(container, item){
     if (!item) return;
     if (item.isVideo) {
@@ -164,33 +163,29 @@ function renderSentenceRows(items, level) {
     }
     const img = document.createElement('img');
     img.src = item.src; img.alt = item.key || ''; img.className = item.isHelper ? 'helper-img' : 'sign-img';
-    img.onerror = () => { img.style.display = 'none'; if(!container.querySelector('.fallback')){ const f=document.createElement('div'); f.className='fallback'; /* show nothing - matching your request */ f.textContent = ''; container.appendChild(f);} };
+    img.onerror = () => { img.style.display = 'none'; if(!container.querySelector('.fallback')){ const f=document.createElement('div'); f.className='fallback'; f.textContent = ''; container.appendChild(f);} };
     container.appendChild(img);
   }
 
-  // For levels 1-6: show everything on row1
   if ((level || currentLevel) <= 6) {
     items.forEach(it => appendItem(sentenceRow1, it));
     return;
   }
 
-  // Levels 7+: show helpers on row1, distribute the rest
   const helpers = items.filter(it => it.isHelper);
   helpers.forEach(h => appendItem(sentenceRow1, h));
 
   const nonHelpers = items.filter(it => !it.isHelper);
   if(nonHelpers.length <= 5){ nonHelpers.forEach(n=>appendItem(sentenceRow2,n)); return; }
-  // else distribute: first 3 to row2, rest to row3 (keeps WHY on row3 if present)
   nonHelpers.slice(0,3).forEach(n=>appendItem(sentenceRow2,n));
   nonHelpers.slice(3).forEach(n=>appendItem(sentenceRow3,n));
 }
 
-/* ===== Create draggable nodes (image or sign/video) ===== */
+/* ===== Create draggable nodes ===== */
 function createDraggableNodeFromCandidate(c, asSign=false, overlay=null){
   const div = document.createElement('div'); div.className='draggable'; div.draggable=true; div.dataset.key = c.key; div.dataset.img = c.img || '';
 
   if(asSign){
-    // show sign for the main token (use token from key)
     const parts = (c.key||'').split('::');
     const token = parts[1] || '';
     const path = signPathFor(token) || c.img || '';
@@ -205,7 +200,7 @@ function createDraggableNodeFromCandidate(c, asSign=false, overlay=null){
   return div;
 }
 
-/* ===== Create draggable simple sign (verbs/helpers) ===== */
+/* ===== Create draggable simple sign ===== */
 function createDraggableNodeFromSign(key, path){
   const div=document.createElement('div'); div.className='draggable'; div.draggable=true; div.dataset.key = key;
   if(path && path.endsWith('.mp4')){
@@ -217,14 +212,14 @@ function createDraggableNodeFromSign(key, path){
   return div;
 }
 
-/* ===== Create dropzone (answer area) ===== */
+/* ===== Create dropzone ===== */
 function createDropzone(placeholderText = "", expectedKey = ""){
   const dz = document.createElement('div'); dz.className='dropzone'; dz.dataset.expected = expectedKey || ''; dz.dataset.filled = '';
   const ph = document.createElement('div'); ph.className='placeholder faint'; ph.textContent = placeholderText || '';
   dz.appendChild(ph); answerArea.appendChild(dz); return dz;
 }
 
-/* ===== Restore draggable to side if removed (rebuild from key) ===== */
+/* ===== Restore draggable to side ===== */
 function restoreDraggableToSide(key){
   if(!key) return; if(document.querySelector(`.draggable[data-key="${key}"]`)) return; if(usedDraggables.has(key)) return;
   const parts = key.split('::'); if(parts.length<2) return; const topic=parts[0], a=parts[1], b=parts[2]||'';
@@ -244,7 +239,6 @@ function populateDraggablesForLevel(level, questionItems, questionType, verbList
   bottomVerbs.innerHTML = '';
   const sideCount = (level <= 6) ? 6 : 9;
 
-  // build pool for decoys (same approach used elsewhere)
   const pool = [];
   levels[level].qItems.forEach(q=>{
     q.split('+').forEach(p=>{
@@ -262,410 +256,129 @@ function populateDraggablesForLevel(level, questionItems, questionType, verbList
   const rightSelection = shuffled.slice(sideCount, sideCount*2);
 
   if(questionType === 'image'){
+    leftSelection.forEach(c=> leftDraggables.appendChild(createDraggableNodeFromCandidate(c,false)));
+    rightSelection.forEach(c=> rightDraggables.appendChild(createDraggableNodeFromCandidate(c,false)));
+  } else {
     leftSelection.forEach(c=> leftDraggables.appendChild(createDraggableNodeFromCandidate(c,true)));
     rightSelection.forEach(c=> rightDraggables.appendChild(createDraggableNodeFromCandidate(c,true)));
-  } else {
-    const verbIs = (verbList && verbList.length>0) ? verbList[0] : null;
-    leftSelection.forEach(c=> leftDraggables.appendChild(createDraggableNodeFromCandidate(c,false, verbIs && c.topic==='food' ? verbIs : null)));
-    rightSelection.forEach(c=> rightDraggables.appendChild(createDraggableNodeFromCandidate(c,false, verbIs && c.topic==='food' ? verbIs : null)));
   }
 
-  // verbs bottom
-  if(Array.isArray(verbList) && verbList.length){
+  if(Array.isArray(verbList)){
     verbList.forEach(v=>{
-      const path = signPathFor(v) || `assets/signs/verbs/${v}-sign.png`;
-      bottomVerbs.appendChild(createDraggableNodeFromSign(`verb::${v}`, path));
+      const path = signPathFor(v);
+      bottomVerbs.appendChild(createDraggableNodeFromSign(v,path));
     });
   }
 }
-function updateCheckVisibility() {
-  const allDropzones = document.querySelectorAll(".dropzone");
-  const allFilled = Array.from(allDropzones).every(z => z.classList.contains("filled"));
-  const checkBtn = document.getElementById("checkBtn");
-  if (checkBtn) checkBtn.style.display = allFilled ? "block" : "none";
-}
 
-/* ===== Drag / Drop (clone) ===== */
-let dragItem=null, dragClone=null, isTouch=false;
-function startDrag(e){
-  const tgt = e.target.closest('.draggable'); if(!tgt) return;
-  dragItem = tgt; isTouch = e.type.startsWith('touch');
-  const rect = tgt.getBoundingClientRect(); dragClone = tgt.cloneNode(true); dragClone.classList.add('drag-clone');
-  Object.assign(dragClone.style, { position:'fixed', left:rect.left+'px', top:rect.top+'px', width:rect.width+'px', height:rect.height+'px', opacity:'0.75', pointerEvents:'none', zIndex:10000, transform:'translate(-50%,-50%)' });
-  document.body.appendChild(dragClone); e.preventDefault();
-  if(isTouch){ document.addEventListener('touchmove', moveDrag, {passive:false}); document.addEventListener('touchend', endDrag); }
-  else { document.addEventListener('mousemove', moveDrag); document.addEventListener('mouseup', endDrag); }
-}
-function moveDrag(e){ if(!dragClone) return; let clientX,clientY; if(isTouch && e.touches && e.touches.length>0){ clientX=e.touches[0].clientX; clientY=e.touches[0].clientY; } else { clientX=e.clientX; clientY=e.clientY; } dragClone.style.left = clientX + 'px'; dragClone.style.top = clientY + 'px'; }
+/* ===== DRAG & DROP EVENTS ===== */
+answerArea.addEventListener('dragover', e => e.preventDefault());
+answerArea.addEventListener('drop', e=>{
+  e.preventDefault(); const dz = e.target.closest('.dropzone'); if(!dz) return;
+  const key = e.dataTransfer.getData('text/plain'); if(!key) return;
+  const draggedEl = document.querySelector(`.draggable[data-key="${key}"]`);
+  if(!draggedEl) return;
 
-function handleDrop(e) {
-  e.preventDefault();
-  const dropzone = e.currentTarget;
-  const draggedId = e.dataTransfer ? e.dataTransfer.getData("text") : dragItem?.dataset?.key;
-  if (!draggedId) return;
+  if(dz.dataset.filled){ restoreDraggableToSide(dz.dataset.filled); dz.dataset.filled=''; dz.innerHTML=''; dz.appendChild(createDropPlaceholder()); }
 
-  const dragged = document.querySelector(`[data-key='${draggedId}']`);
-  if (!dragged || dropzone.classList.contains("filled")) return;
-
-  // clone the dragged image inside the dropzone
-  const clone = dragged.cloneNode(true);
-  clone.classList.remove("dragging");
-  clone.style.position = "static";
-  clone.style.opacity = "1";
-
-  dropzone.innerHTML = "";
-  dropzone.appendChild(clone);
-  dropzone.classList.add("filled");
-  dropzone.dataset.filledKey = draggedId;
-
-  // check visibility for the "check" button
-  updateCheckVisibility();
-}
-
-function endDrag(e) {
-  if (!dragItem || !dragClone) return;
-
-  let clientX, clientY;
-  if (isTouch && e.changedTouches && e.changedTouches.length > 0) {
-    clientX = e.changedTouches[0].clientX;
-    clientY = e.changedTouches[0].clientY;
-  } else {
-    clientX = e.clientX;
-    clientY = e.clientY;
-  }
-
-  const dropzones = document.querySelectorAll(".dropzone");
-  let dropped = false;
-
-  dropzones.forEach(zone => {
-    const rect = zone.getBoundingClientRect();
-    if (
-      clientX >= rect.left &&
-      clientX <= rect.right &&
-      clientY >= rect.top &&
-      clientY <= rect.bottom
-    ) {
-      if (!zone.classList.contains("filled")) {
-        dropped = true;
-        zone.classList.add("filled");
-        const img = dragItem.cloneNode(true);
-        img.style.position = "static";
-        img.classList.remove("drag-clone");
-        zone.innerHTML = "";
-        zone.appendChild(img);
-      }
-    }
-  });
-
-  // remove clone and reset variables
-  if (dragClone && dragClone.parentNode) dragClone.parentNode.removeChild(dragClone);
-  dragClone = null;
-  dragItem = null;
-
-  if (dropped) {
-    updateCheckVisibility();
-  }
-}
-
-document.addEventListener('mousedown', startDrag); document.addEventListener('touchstart', startDrag, {passive:false});
-
-/* ===== Double-tap removal (mobile) & double-click on desktop ===== */
-let lastTap = 0;
-if (answerArea) {
-  answerArea.addEventListener('click', (ev) => {
-    const dz = ev.target.closest('.dropzone');
-    if (!dz) return;
-
-    const now = Date.now();
-    const doubleClick = now - lastTap < 350;
-    lastTap = now;
-
-    if (doubleClick && dz.dataset.filled) {
-      const filledKey = dz.dataset.filled;
-      dz.innerHTML = '';
-      const ph = document.createElement('div');
-      ph.className = 'placeholder faint';
-      ph.textContent = '';
-      dz.appendChild(ph);
-      dz.dataset.filled = '';
-      dz.classList.remove('filled', 'incorrect', 'correct');
-      restoreDraggableToSide(filledKey);
-      updateCheckVisibility();
-    }
-  });
-}
-
-function updateScoreDisplay() {
-  const scoreEl = document.getElementById("scoreDisplay");
-  if (!scoreEl) return;
-
-  // If you’re tracking a score variable globally:
-  const score = typeof totalScore !== "undefined" ? totalScore : 0;
-
-  // Optional: show correct count or level info if available
-  const levelName = levels && levels[currentLevel] ? levels[currentLevel].name || `Level ${currentLevel + 1}` : "";
-  scoreEl.textContent = `Score: ${score}${levelName ? " | " + levelName : ""}`;
-}
-
-/* ===== Build question (single correct implementation) ===== */
-function buildQuestion(){
-  if(!sentenceRow1||!sentenceRow2||!sentenceRow3||!answerArea) return;
-  // clear
-  answerArea.innerHTML=''; [sentenceRow1,sentenceRow2,sentenceRow3].forEach(r=>r.innerHTML=''); if(feedbackDiv) feedbackDiv.innerHTML=''; if(checkBtn) checkBtn.style.display='none'; if(againBtn) againBtn.style.display='none'; updateScoreDisplay();
-
-  const lvl = levels[currentLevel]; if(!lvl) return;
-
-  // helpers (always shown first)
-  const helperVerb = lvl.starter || (lvl.verb && lvl.verb[0]) || 'see';
-  const helperItems = [
-    { src: signPathFor('i'), isVideo: false, isHelper:true },
-    { src: signPathFor(helperVerb), isVideo: (helperVerb && helperVerb.endsWith('.mp4')), isHelper:true },
-    { src: signPathFor('what'), isVideo:false, isHelper:true }
-  ];
-
-  // build pool and choose questionItems
-  const pool = [];
-  lvl.qItems.forEach(q=> q.split('+').forEach(topic=>{ if(topic==='animals') candidatePool.animals.forEach(x=>pool.push(Object.assign({topic:'animals'}, x))); if(topic==='food') candidatePool.food.forEach(x=>pool.push(Object.assign({topic:'food'}, x))); if(topic==='emotions') candidatePool.emotions.forEach(x=>pool.push(Object.assign({topic:'emotions'}, x))); }));
-
-  const filtered = shuffleArray(pool).filter(c=>!usedCombos.has(c.key) && !usedDraggables.has(c.key));
-  // desiredCount used for dropzones count (keeps existing mapping)
-  const desiredCount = typeof lvl.dropCount === 'number' ? lvl.dropCount : 1;
-
-  // build questionItems (special-case animals+numbers: use combined candidate but sentence shows two signs)
-  let questionItems = [];
-  // if level asks animals+numbers as a single combo, pick one combined candidate
-  if(lvl.qItems.length === 1 && lvl.qItems[0] === 'animals+numbers'){
-    const pick = randomItem(candidatePool.animals.filter(c=>!usedCombos.has(c.key) && !usedDraggables.has(c.key)));
-    if(pick) questionItems.push(pick);
-  } else {
-    questionItems = filtered.slice(0, Math.max(1, Math.min(desiredCount, filtered.length)));
-  }
-
-  // sentenceSources: helpers then question visual(s)
-  const sentenceSources = [];
-  helperItems.forEach(h=> sentenceSources.push(Object.assign({}, h)));
-
-  questionItems.forEach(qi=>{
-    // if qi.key includes animals::animal::number and we want sign-type representation of both parts
-    if(qi.key && qi.key.startsWith('animals::')){
-      const parts = qi.key.split('::'); // animals::dog::two
-      const animal = parts[1]; const number = parts[2];
-      // if level.type is 'sign' show animal sign THEN number sign (two items)
-      if(lvl.type === 'sign'){
-        sentenceSources.push({ src: signPathFor(animal), isVideo: false, key: qi.key, fallbackText: animal });
-        sentenceSources.push({ src: signPathFor(number), isVideo: false, key: qi.key, fallbackText: number });
-      } else {
-        // image question shows combined image
-        sentenceSources.push({ src: qi.img, isVideo:false, key: qi.key, fallbackText: (qi.parts && qi.parts.animal) || '' });
-      }
-      return;
-    }
-
-    // default behavior: images for image-type; signs for sign-type
-    if(lvl.type === 'image'){
-      sentenceSources.push({ src: qi.img, isVideo:false, key: qi.key, fallbackText: (qi.parts && (qi.parts.food||qi.parts.emotion||qi.parts.animal))||'' });
-    } else {
-      const token = (qi.key||'').split('::')[1] || '';
-      const path = signPathFor(token) || qi.img || '';
-      sentenceSources.push({ src: path, isVideo: path.endsWith('.mp4'), key: qi.key, fallbackText: token });
-    }
-  });
-
-  // prefill WHY for level11/12 (ensure it's a helper so render will place it appropriately)
-  if(lvl.prefillWhy){ sentenceSources.push({ src: signPathFor('why'), isVideo:false, isHelper:true, fallbackText:'why' }); }
-
-  // render sentence visuals
-  renderSentenceRows(sentenceSources, currentLevel);
-
-  // build dropzones (expected answers set from questionItems)
-  answerArea.innerHTML = '';
-  expectedAnswers = [];
-  // map expected keys to dropzones: for levels where we used combined animals candidate (one dropzone expected), expectedAnswers[0]=qi.key
-  if(questionItems.length){
-    // if there is only one expected answer (e.g. animals+numbers combo)
-    if(questionItems.length === 1 && desiredCount === 1){ expectedAnswers.push(questionItems[0].key); createDropzone('', questionItems[0].key); }
-    else {
-      // assign first N questionItems to dropzones (if more dropzones than items, remaining dropzones accept anything)
-      for(let i=0;i<desiredCount;i++){
-        const expected = (questionItems[i] && questionItems[i].key) ? questionItems[i].key : '';
-        expectedAnswers.push(expected);
-        createDropzone('', expected);
-      }
-    }
-  } else {
-    // no specific questionItems chosen: create generic dropzones
-    for(let i=0;i<desiredCount;i++){ expectedAnswers.push(''); createDropzone('', ''); }
-  }
-
-  // populate draggables opposite to question type (decoys + correct items)
-  populateDraggablesForLevel(currentLevel, questionItems, lvl.type, lvl.verb || []);
-
-  // hook: ensure check button hidden until all filled
-  updateCheckVisibility();
-}
-
-function checkAnswers() {
-  const allDropzones = document.querySelectorAll(".dropzone");
-  let allCorrect = true;
-
-  allDropzones.forEach(zone => {
-    const key = zone.dataset.filledKey;
-    const correctKey = zone.dataset.answer;
-
-    // clear previous markers
-    const existingFeedback = zone.querySelector(".result-icon");
-    if (existingFeedback) existingFeedback.remove();
-
-    const icon = document.createElement("img");
-    icon.className = "result-icon";
-    icon.style.position = "absolute";
-    icon.style.width = "90px";
-    icon.style.height = "90px";
-    icon.style.pointerEvents = "none";
-    icon.style.zIndex = "20";
-    icon.style.top = "50%";
-    icon.style.left = "50%";
-    icon.style.transform = "translate(-50%, -50%)";
-
-    if (key === correctKey) {
-      icon.src = "assets/correct.png";
-      zone.classList.add("correct");
-      zone.classList.remove("incorrect");
-    } else {
-      icon.src = "assets/wrong.png";
-      zone.classList.add("incorrect");
-      zone.classList.remove("correct");
-      allCorrect = false;
-    }
-
-    zone.appendChild(icon);
-  });
-
-  if (allCorrect) {
-    setTimeout(() => {
-      document.querySelectorAll(".result-icon").forEach(i => i.remove());
-      nextQuestion(); // your existing function to load the next question
-    }, 1000);
-  } else {
-    // remove incorrect answers after 2 seconds
-    setTimeout(() => {
-      allDropzones.forEach(zone => {
-        if (zone.classList.contains("incorrect")) {
-          zone.innerHTML = "";
-          zone.classList.remove("filled", "incorrect");
-          delete zone.dataset.filledKey;
-        }
-      });
-      document.querySelectorAll(".result-icon").forEach(i => i.remove());
-      updateCheckVisibility();
-    }, 2000);
-  }
-}
-
-/* ===== Check / Submit logic (single place) ===== */
-if(checkBtn){
-  checkBtn.addEventListener('click', async ()=>{
-    checkBtn.style.display = 'none';
-    const dzs = Array.from(answerArea.querySelectorAll('.dropzone'));
-    let allCorrect = true; 
-    const thisRoundCorrect = []; 
-    const thisRoundIncorrect = [];
-
-    dzs.forEach((dz, i)=>{
-      const filled = dz.dataset.filled || '';
-      const expected = dz.dataset.expected || '';
-      if(!filled){ 
-        dz.classList.add('incorrect'); 
-        allCorrect=false; 
-        thisRoundIncorrect.push(null); 
-      } else {
-        if(expected){ 
-          if(filled === expected){ 
-            dz.classList.add('correct'); 
-            thisRoundCorrect.push(filled); 
-          } else { 
-            dz.classList.add('incorrect'); 
-            thisRoundIncorrect.push(filled); 
-            allCorrect=false; 
-          } 
-        } else { 
-          thisRoundCorrect.push(filled); 
-        }
-      }
-    });
-
-    // === NEW RESET LOGIC HERE ===
-    if (!allCorrect) {
-      dzs.forEach(dz => {
-        if (dz.classList.contains("incorrect") && dz.dataset.filled) {
-          const wrongKey = dz.dataset.filled;
-          restoreDraggableToSide(wrongKey);
-          dz.innerHTML = '';
-          const ph = document.createElement('div');
-          ph.className = 'placeholder faint';
-          ph.textContent = '';
-          dz.appendChild(ph);
-          dz.dataset.filled = '';
-          dz.classList.remove('filled', 'incorrect', 'correct');
-        }
-      });
-      // Hide check button until filled again
-      updateCheckVisibility();
-      return; // stop further correct-handling logic
-    }
-
-    if(allCorrect){ levelCorrect[currentLevel] = (levelCorrect[currentLevel]||0) + dzs.length; correctCount += dzs.length; dzs.forEach(d=>{ if(d.dataset.filled) usedDraggables.add(d.dataset.filled); }); thisRoundCorrect.forEach(k=>{ if(k) usedCombos.add(k); }); }
-    else {
-      thisRoundIncorrect.forEach(k=>{ if(k){ levelIncorrect[currentLevel] = (levelIncorrect[currentLevel]||0) + 1; incorrectCount++; usedDraggables.add(k); const dom = document.querySelector(`.draggable[data-key="${k}"]`); if(dom && dom.parentElement) dom.parentElement.removeChild(dom); } });
-      thisRoundCorrect.forEach(k=>{ if(k) usedDraggables.add(k); });
-    }
-
-    if(feedbackDiv){ feedbackDiv.innerHTML=''; const fb=document.createElement('img'); fb.src = allCorrect ? 'assets/correct.png' : 'assets/wrong.png'; fb.alt = allCorrect ? 'Correct' : 'Wrong'; feedbackDiv.appendChild(fb); }
-
-    answersHistory.push({ level: currentLevel, round: roundInLevel, correct: thisRoundCorrect.slice(), incorrect: thisRoundIncorrect.slice() });
-    saveProgress();
-
-    setTimeout(async ()=>{
-      if(feedbackDiv) feedbackDiv.innerHTML = '';
-      if(allCorrect){ if(roundInLevel + 1 >= QUESTIONS_PER_LEVEL){ if(currentLevel < TOTAL_LEVELS){ currentLevel++; roundInLevel=0; buildQuestion(); } else { await finalSubmitThenEnd(); } } else { roundInLevel++; buildQuestion(); } }
-      else { if(againBtn) againBtn.style.display='inline-block'; updateCheckVisibility(); }
-    }, 900);
-  });
-}
-
-/* ===== Again button behavior ===== */
-if(againBtn){ againBtn.addEventListener('click', ()=>{ document.querySelectorAll('.dropzone').forEach(dz=>{ dz.innerHTML=''; const ph=document.createElement('div'); ph.className='placeholder faint'; ph.textContent=''; dz.appendChild(ph); dz.dataset.filled=''; dz.classList.remove('filled','incorrect','correct'); }); againBtn.style.display='none'; updateCheckVisibility(); }); }
-
-/* ===== Save / Load / Clear progress ===== */
-function saveProgress(){ const payload={ studentName: studentNameSpan?studentNameSpan.textContent:'', studentClass: studentClassSpan?studentClassSpan.textContent:'', currentLevel, roundInLevel, correctCount, incorrectCount, levelCorrect, levelIncorrect, answersHistory, savedTimeElapsed: getTimeElapsed(), usedDraggables: Array.from(usedDraggables), usedCombos: Array.from(usedCombos) }; try{ localStorage.setItem(SAVE_KEY, JSON.stringify(payload)); }catch(e){ console.warn('save failed', e); } }
-function loadProgress(){ try{ const raw = localStorage.getItem(SAVE_KEY); if(!raw) return null; return JSON.parse(raw); }catch(e){ return null; } }
-function clearProgress(){ try{ localStorage.removeItem(SAVE_KEY); localStorage.removeItem('sentencesGame_submitted'); }catch(e){} }
-
-/* ===== Restore progress ===== */
-function restoreProgress(saved){ if(!saved) return; currentLevel = Number(saved.currentLevel) || 1; roundInLevel = Number(saved.roundInLevel) || 0; correctCount = Number(saved.correctCount) || 0; incorrectCount = Number(saved.incorrectCount) || 0; levelCorrect = saved.levelCorrect || levelCorrect; levelIncorrect = saved.levelIncorrect || levelIncorrect; answersHistory = saved.answersHistory || []; savedTimeElapsed = Number(saved.savedTimeElapsed) || 0; usedDraggables = new Set(saved.usedDraggables || []); usedCombos = new Set(saved.usedCombos || []); setTimeElapsed(saved.savedTimeElapsed || 0); }
-
-/* ===== Google Form submit, final modal, resume/stop logic ===== */
-async function submitToGoogleForm(silent=true){ if(!googleForm) return false; const timeTaken = getTimeElapsed(); const totalCorrect = Object.values(levelCorrect).reduce((a,b)=>a+b,0); const totalIncorrect = Object.values(levelIncorrect).reduce((a,b)=>a+b,0); const totalAttempts = totalCorrect + totalIncorrect; const percent = totalAttempts > 0 ? Math.round((totalCorrect/totalAttempts)*100) : 0; if(totalCorrect < 1) return false; const fd = new FormData(); fd.append(FORM_FIELD_MAP.name, studentNameSpan?studentNameSpan.textContent:''); fd.append(FORM_FIELD_MAP.class, studentClassSpan?studentClassSpan.textContent:''); fd.append(FORM_FIELD_MAP.subject,'Sentences'); fd.append(FORM_FIELD_MAP.timeTaken, timeTaken); fd.append(FORM_FIELD_MAP.percent, percent); for(let lvl=1; lvl<=TOTAL_LEVELS; lvl++){ fd.append(FORM_FIELD_MAP[`level${lvl}`].correct, levelCorrect[lvl] || 0); fd.append(FORM_FIELD_MAP[`level${lvl}`].incorrect, levelIncorrect[lvl] || 0); } try{ await fetch(googleForm.action, { method:'POST', body:fd, mode:'no-cors' }); formSubmittedFlag = true; localStorage.setItem('sentencesGame_submitted','1'); return true; }catch(e){ console.warn('Form submission failed:', e); return false; } }
-
-async function finalSubmitThenEnd(){ await submitToGoogleForm(true); clearProgress(); const finalTime = document.getElementById('finalTime'); const finalScore = document.getElementById('finalScore'); const finalPercent = document.getElementById('finalPercent'); const totalCorrect = Object.values(levelCorrect).reduce((a,b)=>a+b,0); const totalIncorrect = Object.values(levelIncorrect).reduce((a,b)=>a+b,0); const totalAttempts = totalCorrect + totalIncorrect; const percent = totalAttempts > 0 ? Math.round((totalCorrect/totalAttempts)*100) : 0; if(finalTime) finalTime.textContent = getTimeElapsed() + 's'; if(finalScore) finalScore.textContent = `${totalCorrect} / ${totalAttempts}`; if(finalPercent) finalPercent.textContent = `${percent}%`; if(endModal){ endModal.style.display = 'flex'; endModal.style.zIndex = 6000; } }
-
-function showResumeModalIfNeeded(){ const saved = loadProgress(); if(saved){ if(resumeModal){ resumeModal.style.display='flex'; resumeModal.style.zIndex=6000; if(resumeContinue){ resumeContinue.onclick = ()=>{ resumeModal.style.display='none'; restoreProgress(saved); buildQuestion(); startTime = Date.now(); }; } if(resumeAgain){ resumeAgain.onclick = ()=>{ resumeModal.style.display='none'; clearProgress(); usedDraggables.clear(); usedCombos.clear(); currentLevel=1; roundInLevel=0; buildQuestion(); setTimeElapsed(0); }; } return; } } setTimeElapsed(0); startTime = Date.now(); buildQuestion(); }
-
-if(stopBtn){ stopBtn.addEventListener('click', ()=>{ savedTimeElapsed = getTimeElapsed(); startTime = null; const totalCorrect = Object.values(levelCorrect).reduce((a,b)=>a+b,0); const totalIncorrect = Object.values(levelIncorrect).reduce((a,b)=>a+b,0); const total = totalCorrect + totalIncorrect; const percent = total > 0 ? Math.round((totalCorrect/total)*100) : 0; if(stopPercent) stopPercent.textContent = `Score so far: ${percent}% — Time: ${getTimeElapsed()}s`; if(stopModal){ stopModal.style.display='flex'; stopModal.style.zIndex = 6000; } }); }
-if(stopContinue) stopContinue && stopContinue.addEventListener('click', ()=>{ if(stopModal) stopModal.style.display='none'; setTimeElapsed(savedTimeElapsed); });
-if(stopAgain) stopAgain && stopAgain.addEventListener('click', async ()=>{ if(stopModal) stopModal.style.display='none'; await submitToGoogleForm(true); usedDraggables.clear(); usedCombos.clear(); for(let i=1;i<=TOTAL_LEVELS;i++){ levelCorrect[i]=0; levelIncorrect[i]=0; } correctCount=0; incorrectCount=0; answersHistory=[]; currentLevel=1; roundInLevel=0; setTimeElapsed(0); buildQuestion(); });
-if(stopFinish) stopFinish && stopFinish.addEventListener('click', async ()=>{ if(stopModal) stopModal.style.display='none'; await submitToGoogleForm(true); window.location.href = '../index.html'; });
-
-/* ===== Init on load ===== */
-window.addEventListener('load', ()=>{
-  let studentName = localStorage.getItem('studentName') || '';
-  let studentClass = localStorage.getItem('studentClass') || '';
-  if(!studentName || !studentClass){ alert('Please log in first.'); try{ window.location.href = '../index.html'; }catch(e){} return; }
-  if(studentNameSpan) studentNameSpan.textContent = studentName;
-  if(studentClassSpan) studentClassSpan.textContent = studentClass;
-  if(finishBtn) finishBtn.addEventListener('click', ()=>{ window.location.href = '../index.html'; });
-  showResumeModalIfNeeded();
+  dz.appendChild(draggedEl); dz.dataset.filled=key; checkBtn.style.display='inline-block';
 });
 
-/* ===== Expose small helpers for debugging (optional) ===== */
-window._sentences = { buildQuestion, levels, candidatePool, expectedAnswers };
+/* ===== Placeholder for dropzone ===== */
+function createDropPlaceholder(){
+  const ph = document.createElement('div'); ph.className='placeholder faint'; ph.textContent='Drop here'; return ph;
+}
+
+/* ===== Check answers ===== */
+checkBtn.addEventListener('click', ()=>{
+  const dzs = Array.from(answerArea.querySelectorAll('.dropzone'));
+  dzs.forEach(dz=>{
+    const filledKey = dz.dataset.filled;
+    const expectedKey = dz.dataset.expected;
+    if(!filledKey) return;
+    if(filledKey === expectedKey){
+      dz.classList.add('correct'); correctCount++; levelCorrect[currentLevel]++; answersHistory.push({level:currentLevel,key:filledKey,result:'correct'});
+      dz.querySelector('.draggable').style.pointerEvents='none';
+    } else {
+      dz.classList.add('incorrect'); incorrectCount++; levelIncorrect[currentLevel]++; answersHistory.push({level:currentLevel,key:filledKey,result:'incorrect'});
+      restoreDraggableToSide(filledKey);
+      dz.dataset.filled=''; dz.innerHTML=''; dz.appendChild(createDropPlaceholder());
+    }
+  });
+  checkBtn.style.display='none';
+  scoreDisplay.textContent=`Correct: ${correctCount} | Incorrect: ${incorrectCount}`;
+});
+
+/* ===== Next question / Level logic ===== */
+function nextRoundOrLevel(){
+  roundInLevel++;
+  if(roundInLevel>=QUESTIONS_PER_LEVEL){
+    roundInLevel=0; currentLevel++;
+    if(currentLevel>TOTAL_LEVELS){
+      endGame(); return;
+    }
+  }
+  setupRound();
+}
+
+/* ===== Setup a round ===== */
+function setupRound(){
+  expectedAnswers=[]; answerArea.innerHTML=''; feedbackDiv.innerHTML=''; checkBtn.style.display='none';
+  const levelData = levels[currentLevel];
+  const itemsForRow = [];
+  levelData.qItems.forEach(q=>{
+    const parts = q.split('+'); const chosenTopic = parts[0];
+    const candidateArr = candidatePool[chosenTopic];
+    if(candidateArr && candidateArr.length) itemsForRow.push(candidateArr[Math.floor(Math.random()*candidateArr.length)]);
+  });
+  itemsForRow.forEach(it=>{ it.src = it.img; });
+  renderSentenceRows(itemsForRow,currentLevel);
+  populateDraggablesForLevel(currentLevel, itemsForRow, levelData.type, levelData.verb);
+  itemsForRow.forEach(it=>{ const dz = createDropzone(it.parts.animal||it.parts.food||it.parts.emotion, it.key); answerArea.appendChild(dz); expectedAnswers.push(it.key); });
+}
+
+/* ===== End game ===== */
+function endGame(){
+  stopModal.style.display='none'; endModal.style.display='block';
+  const percent = Math.round((correctCount/(correctCount+incorrectCount))*100);
+  document.getElementById("endPercent").textContent = percent + '%';
+  sendToGoogleForms();
+}
+
+/* ===== Google Forms Submission ===== */
+function sendToGoogleForms(){
+  if(formSubmittedFlag) return;
+  const url = "https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse";
+  const data = new FormData();
+  data.append(FORM_FIELD_MAP.name, studentNameSpan.textContent);
+  data.append(FORM_FIELD_MAP.class, studentClassSpan.textContent);
+  data.append(FORM_FIELD_MAP.subject, "Sentences");
+  data.append(FORM_FIELD_MAP.timeTaken, getTimeElapsed());
+  data.append(FORM_FIELD_MAP.percent, Math.round((correctCount/(correctCount+incorrectCount))*100));
+  for(let i=1;i<=TOTAL_LEVELS;i++){
+    data.append(FORM_FIELD_MAP[`level${i}`].correct, levelCorrect[i]);
+    data.append(FORM_FIELD_MAP[`level${i}`].incorrect, levelIncorrect[i]);
+  }
+  fetch(url, { method:"POST", body:data, mode:"no-cors" }).then(()=>{ localStorage.setItem("sentencesGame_submitted","1"); formSubmittedFlag=true; });
+}
+
+/* ===== Initialize game ===== */
+function initGame(){
+  const saved = JSON.parse(localStorage.getItem(SAVE_KEY)||"{}");
+  if(saved && saved.currentLevel){
+    resumeModal.style.display='block';
+    resumeContinue.onclick=()=>{ resumeModal.style.display='none'; currentLevel=saved.currentLevel; roundInLevel=saved.round; correctCount=saved.correct; incorrectCount=saved.incorrect; setupRound(); };
+    resumeAgain.onclick=()=>{ resumeModal.style.display='none'; localStorage.removeItem(SAVE_KEY); currentLevel=1; roundInLevel=0; correctCount=0; incorrectCount=0; setupRound(); };
+  } else { currentLevel=1; roundInLevel=0; setupRound(); }
+}
+
+/* ===== Auto-save state ===== */
+setInterval(()=>{
+  localStorage.setItem(SAVE_KEY, JSON.stringify({ currentLevel, round:roundInLevel, correct:correctCount, incorrect:incorrectCount }));
+}, 5000);
+
+/* ===== Start ===== */
+window.addEventListener('load', ()=>{
+  startTime = Date.now();
+  initGame();
+});
