@@ -278,6 +278,14 @@ function populateDraggablesForLevel(level, questionItems, questionType, verbList
     });
   }
 }
+function updateCheckVisibility() {
+  const dropzones = document.querySelectorAll(".dropzone");
+  const allFilled = Array.from(dropzones).every(z => z.classList.contains("filled"));
+  const checkBtn = document.getElementById("checkBtn");
+  if (checkBtn) {
+    checkBtn.style.display = allFilled ? "block" : "none";
+  }
+}
 
 /* ===== Drag / Drop (clone) ===== */
 let dragItem=null, dragClone=null, isTouch=false;
