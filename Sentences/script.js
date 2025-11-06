@@ -350,7 +350,30 @@ function endDrag(e) {
 document.addEventListener('mousedown', startDrag); document.addEventListener('touchstart', startDrag, {passive:false});
 
 /* ===== Double-tap removal (mobile) & double-click on desktop ===== */
-let lastTap = 0; if(answerArea){ answerArea.addEventListener('click', (ev)=>{ const dz = ev.target.closest('.dropzone'); if(!dz) return; const now = Date.now(); if(now - lastTap < 350){ if(dz.dataset.filled){ const filledKey = dz.dataset.filled; dz.innerHTML = ''; const ph = document.createElement('div'); ph.className='placeholder faint'; ph.textContent = ''; dz.appendChild(ph); dz.dataset.filled = ''; dz.classList.remove('filled','incorrect','correct'); restoreDraggableToSide(filledKey); updateCheckVisibility(); } } lastTap = now; }); }
+let lastTap = 0;
+if (answerArea) {
+  answerArea.addEventListener('click', (ev) => {
+    const dz = ev.target.closest('.dropzone');
+    if (!dz) return;
+
+    const now = Date.now();
+    const doubleClick = now - lastTap < 350;
+    lastTap = now;
+
+    if (doubleClick && dz.dataset.filled) {
+      const filledKey = dz.dataset.filled;
+      dz.innerHTML = '';
+      const ph = document.createElement('div');
+      ph.className = 'placeholder faint';
+      ph.textContent = '';
+      dz.appendChild(ph);
+      dz.dataset.filled = '';
+      dz.classList.remove('filled', 'incorrect', 'correct');
+      restoreDraggableToSide(filledKey);
+      updateCheckVisibility();
+    }
+  });
+}
 
 function updateScoreDisplay() {
   const scoreEl = document.getElementById("scoreDisplay");
