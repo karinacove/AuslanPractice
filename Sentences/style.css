@@ -54,16 +54,16 @@ body {
   right: 20px;
   top: 20px;
   z-index: 10;
+  width: 100px;
+  height: 100px;
 }
 
-#stopBtn img { width: 80px; height: 80px; }
-
+#stopBtn img
 #checkBtn {
   display: none; /* hidden initially */
   position: fixed; /* optional: place wherever you want later */
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
   z-index: 10001; /* above modal backdrop but below modal content */
   height: 120px;
   width: 120px;
