@@ -1,4 +1,4 @@
-/* ===== script.js - Cleaned, single-version (keeps form logic + fixes) ===== */
+/* ===== script.js - Full rewrite (all features) ===== */
 
 /* ===== CONFIG / FORM MAPPING ===== */
 const FORM_FIELD_MAP = {
@@ -73,7 +73,7 @@ let usedCombos = new Set();     // combos answered correctly first-try (prevent 
 
 let formSubmittedFlag = localStorage.getItem("sentencesGame_submitted") === "1";
 
-/* ===== VOCAB ===== */
+/* ===== VOCAB (DO NOT CHANGE) ===== */
 const VOCAB = {
   topics: {
     animals: ["dog","cat","mouse","rabbit","fish","bird"],
@@ -124,7 +124,7 @@ const levels = {
   12:{lineCount:3, type:"image", qItems:["animals+numbers","emotions+zones","food+colours"], dropCount:9, verb:["feel","have","donthave"], prefillWhy:true}
 };
 
-/* ===== Candidate pools ===== */
+/* ===== Candidate pools (built from VOCAB) ===== */
 const candidatePool = { animals: [], food: [], emotions: [] };
 (function buildCandidatePools(){
   VOCAB.topics.animals.forEach(a=>{
@@ -145,15 +145,14 @@ const candidatePool = { animals: [], food: [], emotions: [] };
 })();
 
 /* ===== expected answers holder (per question) ===== */
-let expectedAnswers = [];
+let expectedAnswers = []; // length == number of dropzones; expectedAnswers[i] = key or '' (accept anything)
 
-/* ===== Render sentence rows ===== */
+/* ===== Render sentence rows (visuals above answer area) ===== */
 function renderSentenceRows(items, level) {
   if (!sentenceRow1 || !sentenceRow2 || !sentenceRow3) return;
   [sentenceRow1, sentenceRow2, sentenceRow3].forEach(r => r.innerHTML = "");
   if (!Array.isArray(items) || items.length === 0) return;
 
-  // helper to append a single visual item
   function appendItem(container, item){
     if (!item) return;
     if (item.isVideo) {
@@ -164,79 +163,126 @@ function renderSentenceRows(items, level) {
     }
     const img = document.createElement('img');
     img.src = item.src; img.alt = item.key || ''; img.className = item.isHelper ? 'helper-img' : 'sign-img';
-    img.onerror = () => { img.style.display = 'none'; if(!container.querySelector('.fallback')){ const f=document.createElement('div'); f.className='fallback'; /* show nothing - matching your request */ f.textContent = ''; container.appendChild(f);} };
+    img.onerror = () => { img.style.display = 'none'; };
     container.appendChild(img);
   }
 
-  // For levels 1-6: show everything on row1
+  // For levels 1-6: put everything on row1
   if ((level || currentLevel) <= 6) {
     items.forEach(it => appendItem(sentenceRow1, it));
     return;
   }
 
-  // Levels 7+: show helpers on row1, distribute the rest
+  // Levels 7+: helpers row1, rest distributed
   const helpers = items.filter(it => it.isHelper);
   helpers.forEach(h => appendItem(sentenceRow1, h));
-
   const nonHelpers = items.filter(it => !it.isHelper);
-  if(nonHelpers.length <= 5){ nonHelpers.forEach(n=>appendItem(sentenceRow2,n)); return; }
-  // else distribute: first 3 to row2, rest to row3 (keeps WHY on row3 if present)
+  if(nonHelpers.length <= 5){
+    nonHelpers.forEach(n=>appendItem(sentenceRow2,n));
+    return;
+  }
   nonHelpers.slice(0,3).forEach(n=>appendItem(sentenceRow2,n));
   nonHelpers.slice(3).forEach(n=>appendItem(sentenceRow3,n));
 }
 
-/* ===== Create draggable nodes (image or sign/video) ===== */
+/* ===== Create draggable DOM nodes for candidates / signs ===== */
 function createDraggableNodeFromCandidate(c, asSign=false, overlay=null){
-  const div = document.createElement('div'); div.className='draggable'; div.draggable=true; div.dataset.key = c.key; div.dataset.img = c.img || '';
+  const div = document.createElement('div');
+  div.className = 'draggable';
+  div.draggable = false; // we use custom drag (mousedown/touchstart)
+  div.dataset.key = c.key;
+  div.dataset.img = c.img || '';
 
   if(asSign){
-    // show sign for the main token (use token from key)
     const parts = (c.key||'').split('::');
     const token = parts[1] || '';
     const path = signPathFor(token) || c.img || '';
-    if(path.endsWith('.mp4')){ const v=document.createElement('video'); v.src=path; v.autoplay=true; v.loop=true; v.muted=true; v.playsInline=true; v.className='sign-video'; div.appendChild(v);} 
-    else { const img=document.createElement('img'); img.src=path; img.alt=c.key; img.onerror=()=>{ img.style.display='none'; if(!div.querySelector('.fallback')){ const f=document.createElement('div'); f.className='fallback'; f.textContent=(c.parts && (c.parts.animal||c.parts.food||c.parts.emotion))||token; div.appendChild(f);} }; div.appendChild(img); }
+    if(path.endsWith('.mp4')){
+      const v = document.createElement('video'); v.src = path; v.autoplay=true; v.loop=true; v.muted=true; v.playsInline=true; v.className='sign-video'; div.appendChild(v);
+    } else {
+      const img = document.createElement('img'); img.src = path; img.alt = c.key; div.appendChild(img);
+    }
   } else {
-    const img=document.createElement('img'); img.src=c.img; img.alt=c.key; img.onerror=()=>{ img.style.display='none'; if(!div.querySelector('.fallback')){ const f=document.createElement('div'); f.className='fallback'; f.textContent=(c.parts && (c.parts.animal||c.parts.food||c.parts.emotion)) + (c.parts && c.parts.number?`-${c.parts.number}`:''); div.appendChild(f);} }; div.appendChild(img);
-    if(overlay === 'have' || overlay === 'donthave'){ const ov=document.createElement('div'); ov.className='overlay ' + (overlay==='have'?'have':'donthave'); ov.textContent = overlay==='have'?'✓':'✕'; div.appendChild(ov);} 
+    const img = document.createElement('img'); img.src = c.img; img.alt = c.key; div.appendChild(img);
+    if(overlay === 'have' || overlay === 'donthave'){ const ov = document.createElement('div'); ov.className = 'overlay ' + (overlay==='have'?'have':'donthave'); ov.textContent = overlay==='have'?'✓':'✕'; div.appendChild(ov); }
   }
 
-  div.addEventListener('dragstart', e => { try{ e.dataTransfer.setData('text/plain', div.dataset.key); }catch{} });
+  // add small pointer cursor
+  div.style.cursor = 'grab';
+  // attach dataset for selection by CSS
   return div;
 }
-
-/* ===== Create draggable simple sign (verbs/helpers) ===== */
 function createDraggableNodeFromSign(key, path){
-  const div=document.createElement('div'); div.className='draggable'; div.draggable=true; div.dataset.key = key;
+  const div=document.createElement('div'); div.className='draggable'; div.draggable=false; div.dataset.key = key;
   if(path && path.endsWith('.mp4')){
     const v=document.createElement('video'); v.src=path; v.autoplay=true; v.loop=true; v.muted=true; v.playsInline=true; v.className='sign-video'; div.appendChild(v);
   } else {
-    const img=document.createElement('img'); img.src=path||''; img.alt=key; img.onerror=()=>{ img.style.display='none'; if(!div.querySelector('.fallback')){ const f=document.createElement('div'); f.className='fallback'; f.textContent=key; div.appendChild(f);} }; div.appendChild(img);
+    const img=document.createElement('img'); img.src=path||''; img.alt=key; div.appendChild(img);
   }
-  div.addEventListener('dragstart', e=>{ try{ e.dataTransfer.setData('text/plain', div.dataset.key); }catch{} });
+  div.style.cursor='grab';
   return div;
 }
 
-/* ===== Create dropzone (answer area) ===== */
-function createDropzone(placeholderText = "", expectedKey = ""){
-  const dz = document.createElement('div'); dz.className='dropzone'; dz.dataset.expected = expectedKey || ''; dz.dataset.filled = '';
-  const ph = document.createElement('div'); ph.className='placeholder faint'; ph.textContent = placeholderText || '';
-  dz.appendChild(ph); answerArea.appendChild(dz); return dz;
+/* ===== Create dropzone and attach handlers ===== */
+function createDropzone(expectedKey = "") {
+  const dz = document.createElement('div');
+  dz.className = 'dropzone';
+  dz.dataset.expected = expectedKey || '';
+  dz.dataset.filled = ''; // store dropped key here
+  const ph = document.createElement('div'); ph.className='placeholder faint'; ph.textContent = '';
+  dz.appendChild(ph);
+  // attach dragover/drop handlers for pointer-based drags using DataTransfer (desktop native drag)
+  dz.addEventListener('dragover', (e)=>{ e.preventDefault(); });
+  dz.addEventListener('drop', (e)=>{
+    e.preventDefault();
+    const draggedId = e.dataTransfer ? e.dataTransfer.getData('text/plain') : null;
+    if(draggedId) {
+      placeDraggedIntoDropzoneByKey(dz, draggedId);
+    }
+  });
+  // for our custom clone drag end we rely on endDrag's collision detection (no extra hook needed)
+  answerArea.appendChild(dz);
+  return dz;
 }
 
 /* ===== Restore draggable to side if removed (rebuild from key) ===== */
 function restoreDraggableToSide(key){
-  if(!key) return; if(document.querySelector(`.draggable[data-key="${key}"]`)) return; if(usedDraggables.has(key)) return;
-  const parts = key.split('::'); if(parts.length<2) return; const topic=parts[0], a=parts[1], b=parts[2]||'';
-  const c = { key, parts:{}, img:`assets/images/${topic}/${a}${b?'-'+b:''}.png` };
-  if(topic==='animals'){ c.parts.animal=a; c.parts.number=b; }
-  if(topic==='food'){ c.parts.food=a; c.parts.colour=b; }
-  if(topic==='emotions'){ c.parts.emotion=a; c.parts.zone=b; }
+  if(!key) return;
+  // if there's already a draggable with that key, do nothing
+  if(document.querySelector(`.draggable[data-key="${key}"]`)) return;
+  if(usedDraggables.has(key)) return;
+  const parts = key.split('::'); if(parts.length < 2) return;
+  const topic = parts[0], a = parts[1], b = parts[2] || '';
+  const c = { key, parts: {}, img: `assets/images/${topic}/${a}${b?'-'+b:''}.png` };
+  if(topic === 'animals'){ c.parts.animal = a; c.parts.number = b; }
+  if(topic === 'food'){ c.parts.food = a; c.parts.colour = b; }
+  if(topic === 'emotions'){ c.parts.emotion = a; c.parts.zone = b; }
+  // add back to the shorter side for balance
   const container = (leftDraggables && rightDraggables && leftDraggables.childElementCount <= rightDraggables.childElementCount) ? leftDraggables : rightDraggables;
-  if(container) container.appendChild(createDraggableNodeFromCandidate(c,false));
+  if(container) {
+    container.appendChild(createDraggableNodeFromCandidate(c,false));
+  }
 }
 
-/* ===== Populate draggables for a level ===== */
+/* ===== Place dragged item into a dropzone by key (used by native drop & programmatic restore) ===== */
+function placeDraggedIntoDropzoneByKey(dropzone, draggedKey){
+  if(!dropzone || dropzone.classList.contains('filled')) return;
+  // find the original draggable element if present
+  const original = document.querySelector(`.draggable[data-key="${draggedKey}"]`);
+  // clone the node to put into dropzone (we don't remove the original yet; original provides source)
+  const node = (original && original.cloneNode(true)) || (function(){ const d=document.createElement('div'); d.textContent='?'; return d; })();
+  node.style.position = 'static';
+  node.classList.remove('drag-clone');
+  dropzone.innerHTML = '';
+  dropzone.appendChild(node);
+  dropzone.classList.add('filled');
+  dropzone.dataset.filled = draggedKey;
+  // if original exists, remove it from sides so students can't drag duplicate same thing simultaneously
+  if(original && original.parentElement && !original.closest('.dropzone')) original.parentElement.removeChild(original);
+  updateCheckVisibility();
+}
+
+/* ===== Populate draggables for a level (ensures correct items are included) ===== */
 function populateDraggablesForLevel(level, questionItems, questionType, verbList){
   if(!leftDraggables || !rightDraggables || !bottomVerbs) return;
   leftDraggables.innerHTML = '';
@@ -244,7 +290,7 @@ function populateDraggablesForLevel(level, questionItems, questionType, verbList
   bottomVerbs.innerHTML = '';
   const sideCount = (level <= 6) ? 6 : 9;
 
-  // build pool for decoys (same approach used elsewhere)
+  // build pool for decoys
   const pool = [];
   levels[level].qItems.forEach(q=>{
     q.split('+').forEach(p=>{
@@ -257,17 +303,37 @@ function populateDraggablesForLevel(level, questionItems, questionType, verbList
     });
   });
 
-  const shuffled = shuffleArray(pool).filter(c=>!usedDraggables.has(c.key));
+  // filter out usedDraggables (already permanently used)
+  let shuffled = shuffleArray(pool).filter(c => !usedDraggables.has(c.key));
+  // ensure each expected answer (questionItems) is present in shuffled pool
+  const requiredKeys = (questionItems || []).map(qi => qi.key).filter(Boolean);
+  requiredKeys.forEach(k => {
+    if(!shuffled.some(x=>x.key===k)){
+      // attempt to locate the candidate in full candidate lists and insert at front
+      const parts = k.split('::'); const topic = parts[0];
+      let found = null;
+      if(topic === 'animals') found = candidatePool.animals.find(x => x.key === k);
+      if(topic === 'food') found = candidatePool.food.find(x => x.key === k);
+      if(topic === 'emotions') found = candidatePool.emotions.find(x => x.key === k);
+      if(found) shuffled.unshift(found);
+      else {
+        // if not found, fabricate minimal object (will show fallback if image missing)
+        shuffled.unshift({ key:k, img:`assets/images/${topic}/${parts[1]}${parts[2] ? '-'+parts[2] : ''}.png`, parts:{} });
+      }
+    }
+  });
+
   const leftSelection = shuffled.slice(0, sideCount);
   const rightSelection = shuffled.slice(sideCount, sideCount*2);
 
+  // Convert to DOM nodes and append
   if(questionType === 'image'){
-    leftSelection.forEach(c=> leftDraggables.appendChild(createDraggableNodeFromCandidate(c,true)));
-    rightSelection.forEach(c=> rightDraggables.appendChild(createDraggableNodeFromCandidate(c,true)));
+    leftSelection.forEach(c => leftDraggables.appendChild(createDraggableNodeFromCandidate(c,true)));
+    rightSelection.forEach(c => rightDraggables.appendChild(createDraggableNodeFromCandidate(c,true)));
   } else {
     const verbIs = (verbList && verbList.length>0) ? verbList[0] : null;
-    leftSelection.forEach(c=> leftDraggables.appendChild(createDraggableNodeFromCandidate(c,false, verbIs && c.topic==='food' ? verbIs : null)));
-    rightSelection.forEach(c=> rightDraggables.appendChild(createDraggableNodeFromCandidate(c,false, verbIs && c.topic==='food' ? verbIs : null)));
+    leftSelection.forEach(c => leftDraggables.appendChild(createDraggableNodeFromCandidate(c,false, verbIs && c.topic === 'food' ? verbIs : null)));
+    rightSelection.forEach(c => rightDraggables.appendChild(createDraggableNodeFromCandidate(c,false, verbIs && c.topic === 'food' ? verbIs : null)));
   }
 
   // verbs bottom
@@ -278,95 +344,116 @@ function populateDraggablesForLevel(level, questionItems, questionType, verbList
     });
   }
 }
+
+/* ===== Check button visibility helper ===== */
 function updateCheckVisibility() {
-  const allDropzones = document.querySelectorAll(".dropzone");
-  const allFilled = Array.from(allDropzones).every(z => z.classList.contains("filled"));
+  const allDropzones = Array.from(document.querySelectorAll(".dropzone"));
+  const allFilled = allDropzones.length > 0 && allDropzones.every(z => z.classList.contains("filled"));
   if (checkBtn) checkBtn.style.display = allFilled ? "block" : "none";
 }
 
-/* ===== Drag / Drop (clone) ===== */
-let dragItem=null, dragClone=null, isTouch=false;
+/* ===== Custom drag (clone) ===== */
+let dragItem = null, dragClone = null, isTouch = false;
+
 function startDrag(e){
-  const tgt = e.target.closest('.draggable'); if(!tgt) return;
-  dragItem = tgt; isTouch = e.type.startsWith('touch');
-  const rect = tgt.getBoundingClientRect(); dragClone = tgt.cloneNode(true); dragClone.classList.add('drag-clone');
-  Object.assign(dragClone.style, { position:'fixed', left:rect.left+'px', top:rect.top+'px', width:rect.width+'px', height:rect.height+'px', opacity:'0.75', pointerEvents:'none', zIndex:10000, transform:'translate(-50%,-50%)' });
-  document.body.appendChild(dragClone); e.preventDefault();
-  if(isTouch){ document.addEventListener('touchmove', moveDrag, {passive:false}); document.addEventListener('touchend', endDrag); }
-  else { document.addEventListener('mousemove', moveDrag); document.addEventListener('mouseup', endDrag); }
-}
-function moveDrag(e){ if(!dragClone) return; let clientX,clientY; if(isTouch && e.touches && e.touches.length>0){ clientX=e.touches[0].clientX; clientY=e.touches[0].clientY; } else { clientX=e.clientX; clientY=e.clientY; } dragClone.style.left = clientX + 'px'; dragClone.style.top = clientY + 'px'; }
+  const tgt = e.target.closest('.draggable');
+  if(!tgt) return;
+  dragItem = tgt;
+  isTouch = e.type.startsWith('touch');
 
-function handleDrop(e) {
+  // create clone for pointer following
+  const rect = tgt.getBoundingClientRect();
+  dragClone = tgt.cloneNode(true);
+  dragClone.classList.add('drag-clone');
+  Object.assign(dragClone.style, {
+    position:'fixed',
+    left: (rect.left + rect.width/2) + 'px',
+    top: (rect.top + rect.height/2) + 'px',
+    width: rect.width + 'px',
+    height: rect.height + 'px',
+    transform: 'translate(-50%,-50%)',
+    opacity: '0.85',
+    pointerEvents: 'none',
+    zIndex: 10000,
+    cursor: 'grabbing'
+  });
+  document.body.appendChild(dragClone);
   e.preventDefault();
-  const dropzone = e.currentTarget;
-  const draggedId = e.dataTransfer ? e.dataTransfer.getData("text") : dragItem?.dataset?.key;
-  if (!draggedId) return;
 
-  const dragged = document.querySelector(`[data-key='${draggedId}']`);
-  if (!dragged || dropzone.classList.contains("filled")) return;
-
-  // clone the dragged image inside the dropzone
-  const clone = dragged.cloneNode(true);
-  clone.classList.remove("dragging");
-  clone.style.position = "static";
-  clone.style.opacity = "1";
-
-  dropzone.innerHTML = "";
-  dropzone.appendChild(clone);
-  dropzone.classList.add("filled");
-  dropzone.dataset.filledKey = draggedId;
-
-  // check visibility for the "check" button
-  updateCheckVisibility();
+  if(isTouch){
+    document.addEventListener('touchmove', moveDrag, {passive:false});
+    document.addEventListener('touchend', endDrag);
+  } else {
+    document.addEventListener('mousemove', moveDrag);
+    document.addEventListener('mouseup', endDrag);
+  }
 }
 
-function endDrag(e) {
-  if (!dragItem || !dragClone) return;
+function moveDrag(e){
+  if(!dragClone) return;
+  let clientX, clientY;
+  if(isTouch && e.touches && e.touches.length>0){
+    clientX = e.touches[0].clientX; clientY = e.touches[0].clientY;
+    e.preventDefault();
+  } else {
+    clientX = e.clientX; clientY = e.clientY;
+  }
+  dragClone.style.left = clientX + 'px';
+  dragClone.style.top = clientY + 'px';
+
+  // visual overlay for dropzones (optional: highlight)
+  document.querySelectorAll('.dropzone').forEach(z=>{
+    const rect = z.getBoundingClientRect();
+    if(clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom){
+      z.classList.add('drop-target');
+    } else z.classList.remove('drop-target');
+  });
+}
+
+function endDrag(e){
+  if(!dragItem || !dragClone) { cleanupDrag(); return; }
 
   let clientX, clientY;
   if (isTouch && e.changedTouches && e.changedTouches.length > 0) {
-    clientX = e.changedTouches[0].clientX;
-    clientY = e.changedTouches[0].clientY;
+    clientX = e.changedTouches[0].clientX; clientY = e.changedTouches[0].clientY;
   } else {
-    clientX = e.clientX;
-    clientY = e.clientY;
+    clientX = e.clientX; clientY = e.clientY;
   }
 
-  const dropzones = document.querySelectorAll(".dropzone");
-  let dropped = false;
-
-  dropzones.forEach(zone => {
-    const rect = zone.getBoundingClientRect();
-    if (
-      clientX >= rect.left &&
-      clientX <= rect.right &&
-      clientY >= rect.top &&
-      clientY <= rect.bottom
-    ) {
-      if (!zone.classList.contains("filled")) {
-        dropped = true;
-        zone.classList.add("filled");
-        const img = dragItem.cloneNode(true);
-        img.style.position = "static";
-        img.classList.remove("drag-clone");
-        zone.innerHTML = "";
-        zone.appendChild(img);
+  // detect dropzone collision
+  const dropzones = Array.from(document.querySelectorAll('.dropzone'));
+  let placed = false;
+  for(const z of dropzones){
+    const rect = z.getBoundingClientRect();
+    if(clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom){
+      // if dropzone is already filled, ignore
+      if(!z.classList.contains('filled')){
+        const draggedKey = dragItem.dataset.key;
+        placeDraggedIntoDropzoneByKey(z, draggedKey);
+        placed = true;
+        break;
       }
     }
-  });
-
-  // remove clone and reset variables
-  if (dragClone && dragClone.parentNode) dragClone.parentNode.removeChild(dragClone);
-  dragClone = null;
-  dragItem = null;
-
-  if (dropped) {
-    updateCheckVisibility();
   }
+
+  cleanupDrag();
+  if(placed) updateCheckVisibility();
 }
 
-document.addEventListener('mousedown', startDrag); document.addEventListener('touchstart', startDrag, {passive:false});
+function cleanupDrag(){
+  if(dragClone && dragClone.parentNode) dragClone.parentNode.removeChild(dragClone);
+  dragClone = null;
+  dragItem = null;
+  document.removeEventListener('mousemove', moveDrag);
+  document.removeEventListener('mouseup', endDrag);
+  document.removeEventListener('touchmove', moveDrag);
+  document.removeEventListener('touchend', endDrag);
+  document.querySelectorAll('.dropzone').forEach(z=>z.classList.remove('drop-target'));
+}
+
+// bind pointer start to draggables container (event delegation)
+document.addEventListener('mousedown', startDrag);
+document.addEventListener('touchstart', startDrag, {passive:false});
 
 /* ===== Double-tap removal (mobile) & double-click on desktop ===== */
 let lastTap = 0;
@@ -374,47 +461,40 @@ if (answerArea) {
   answerArea.addEventListener('click', (ev) => {
     const dz = ev.target.closest('.dropzone');
     if (!dz) return;
-
     const now = Date.now();
     const doubleClick = now - lastTap < 350;
     lastTap = now;
-
     if (doubleClick && dz.dataset.filled) {
       const filledKey = dz.dataset.filled;
       dz.innerHTML = '';
-      const ph = document.createElement('div');
-      ph.className = 'placeholder faint';
-      ph.textContent = '';
-      dz.appendChild(ph);
+      const ph = document.createElement('div'); ph.className='placeholder faint'; ph.textContent=''; dz.appendChild(ph);
       dz.dataset.filled = '';
-      dz.classList.remove('filled', 'incorrect', 'correct');
+      dz.classList.remove('filled','incorrect','correct');
+      // restore draggable to side
       restoreDraggableToSide(filledKey);
       updateCheckVisibility();
     }
   });
 }
 
+/* ===== UI helpers ===== */
 function updateScoreDisplay() {
-  const scoreEl = document.getElementById("scoreDisplay");
-  if (!scoreEl) return;
-
-  // If you’re tracking a score variable globally:
-  const score = typeof totalScore !== "undefined" ? totalScore : 0;
-
-  // Optional: show correct count or level info if available
-  const levelName = levels && levels[currentLevel] ? levels[currentLevel].name || `Level ${currentLevel + 1}` : "";
-  scoreEl.textContent = `Score: ${score}${levelName ? " | " + levelName : ""}`;
+  if (!scoreDisplay) return;
+  const totalAttempts = correctCount + incorrectCount;
+  scoreDisplay.textContent = `Level ${currentLevel} • Round ${roundInLevel+1} • ${correctCount}✓ ${incorrectCount}✕`;
 }
 
-/* ===== Build question (single correct implementation) ===== */
+/* ===== Build question (core) ===== */
 function buildQuestion(){
   if(!sentenceRow1||!sentenceRow2||!sentenceRow3||!answerArea) return;
-  // clear
-  answerArea.innerHTML=''; [sentenceRow1,sentenceRow2,sentenceRow3].forEach(r=>r.innerHTML=''); if(feedbackDiv) feedbackDiv.innerHTML=''; if(checkBtn) checkBtn.style.display='none'; if(againBtn) againBtn.style.display='none'; updateScoreDisplay();
+  // clear visuals and answer area
+  answerArea.innerHTML=''; [sentenceRow1,sentenceRow2,sentenceRow3].forEach(r=>r.innerHTML=''); if(feedbackDiv) feedbackDiv.innerHTML=''; if(checkBtn) checkBtn.style.display='none'; if(againBtn) againBtn.style.display='none';
+  updateScoreDisplay();
 
-  const lvl = levels[currentLevel]; if(!lvl) return;
+  const lvl = levels[currentLevel];
+  if(!lvl) return;
 
-  // helpers (always shown first)
+  // helper visuals
   const helperVerb = lvl.starter || (lvl.verb && lvl.verb[0]) || 'see';
   const helperItems = [
     { src: signPathFor('i'), isVideo: false, isHelper:true },
@@ -424,15 +504,20 @@ function buildQuestion(){
 
   // build pool and choose questionItems
   const pool = [];
-  lvl.qItems.forEach(q=> q.split('+').forEach(topic=>{ if(topic==='animals') candidatePool.animals.forEach(x=>pool.push(Object.assign({topic:'animals'}, x))); if(topic==='food') candidatePool.food.forEach(x=>pool.push(Object.assign({topic:'food'}, x))); if(topic==='emotions') candidatePool.emotions.forEach(x=>pool.push(Object.assign({topic:'emotions'}, x))); }));
+  lvl.qItems.forEach(q=> q.split('+').forEach(topic=>{
+    if(topic==='animals') candidatePool.animals.forEach(x=>pool.push(Object.assign({topic:'animals'}, x)));
+    if(topic==='food') candidatePool.food.forEach(x=>pool.push(Object.assign({topic:'food'}, x)));
+    if(topic==='emotions') candidatePool.emotions.forEach(x=>pool.push(Object.assign({topic:'emotions'}, x)));
+    if(topic==='numbers') candidatePool.animals.forEach(x=>pool.push(Object.assign({topic:'animals'}, x)));
+    if(topic==='colours') candidatePool.food.forEach(x=>pool.push(Object.assign({topic:'food'}, x)));
+    if(topic==='zones') candidatePool.emotions.forEach(x=>pool.push(Object.assign({topic:'emotions'}, x)));
+  }));
 
-  const filtered = shuffleArray(pool).filter(c=>!usedCombos.has(c.key) && !usedDraggables.has(c.key));
-  // desiredCount used for dropzones count (keeps existing mapping)
+  const filtered = shuffleArray(pool).filter(c => !usedCombos.has(c.key) && !usedDraggables.has(c.key));
   const desiredCount = typeof lvl.dropCount === 'number' ? lvl.dropCount : 1;
 
-  // build questionItems (special-case animals+numbers: use combined candidate but sentence shows two signs)
+  // choose questionItems
   let questionItems = [];
-  // if level asks animals+numbers as a single combo, pick one combined candidate
   if(lvl.qItems.length === 1 && lvl.qItems[0] === 'animals+numbers'){
     const pick = randomItem(candidatePool.animals.filter(c=>!usedCombos.has(c.key) && !usedDraggables.has(c.key)));
     if(pick) questionItems.push(pick);
@@ -440,243 +525,325 @@ function buildQuestion(){
     questionItems = filtered.slice(0, Math.max(1, Math.min(desiredCount, filtered.length)));
   }
 
-  // sentenceSources: helpers then question visual(s)
+  // build sentence visuals
   const sentenceSources = [];
-  helperItems.forEach(h=> sentenceSources.push(Object.assign({}, h)));
+  helperItems.forEach(h => sentenceSources.push(Object.assign({}, h)));
 
-  questionItems.forEach(qi=>{
-    // if qi.key includes animals::animal::number and we want sign-type representation of both parts
+  questionItems.forEach(qi => {
     if(qi.key && qi.key.startsWith('animals::')){
-      const parts = qi.key.split('::'); // animals::dog::two
+      const parts = qi.key.split('::');
       const animal = parts[1]; const number = parts[2];
-      // if level.type is 'sign' show animal sign THEN number sign (two items)
       if(lvl.type === 'sign'){
-        sentenceSources.push({ src: signPathFor(animal), isVideo: false, key: qi.key, fallbackText: animal });
-        sentenceSources.push({ src: signPathFor(number), isVideo: false, key: qi.key, fallbackText: number });
+        sentenceSources.push({ src: signPathFor(animal), isVideo:false, key: qi.key });
+        sentenceSources.push({ src: signPathFor(number), isVideo:false, key: qi.key });
       } else {
-        // image question shows combined image
-        sentenceSources.push({ src: qi.img, isVideo:false, key: qi.key, fallbackText: (qi.parts && qi.parts.animal) || '' });
+        sentenceSources.push({ src: qi.img, isVideo:false, key: qi.key });
       }
       return;
     }
-
-    // default behavior: images for image-type; signs for sign-type
     if(lvl.type === 'image'){
-      sentenceSources.push({ src: qi.img, isVideo:false, key: qi.key, fallbackText: (qi.parts && (qi.parts.food||qi.parts.emotion||qi.parts.animal))||'' });
+      sentenceSources.push({ src: qi.img, isVideo:false, key: qi.key });
     } else {
       const token = (qi.key||'').split('::')[1] || '';
-      const path = signPathFor(token) || qi.img || '';
-      sentenceSources.push({ src: path, isVideo: path.endsWith('.mp4'), key: qi.key, fallbackText: token });
+      sentenceSources.push({ src: signPathFor(token) || qi.img, isVideo: (signPathFor(token) || qi.img).endsWith('.mp4'), key: qi.key });
     }
   });
 
-  // prefill WHY for level11/12 (ensure it's a helper so render will place it appropriately)
-  if(lvl.prefillWhy){ sentenceSources.push({ src: signPathFor('why'), isVideo:false, isHelper:true, fallbackText:'why' }); }
+  if(lvl.prefillWhy) sentenceSources.push({ src: signPathFor('why'), isVideo:false, isHelper:true });
 
-  // render sentence visuals
   renderSentenceRows(sentenceSources, currentLevel);
 
-  // build dropzones (expected answers set from questionItems)
+  // build dropzones and expectedAnswers
   answerArea.innerHTML = '';
   expectedAnswers = [];
-  // map expected keys to dropzones: for levels where we used combined animals candidate (one dropzone expected), expectedAnswers[0]=qi.key
   if(questionItems.length){
-    // if there is only one expected answer (e.g. animals+numbers combo)
-    if(questionItems.length === 1 && desiredCount === 1){ expectedAnswers.push(questionItems[0].key); createDropzone('', questionItems[0].key); }
-    else {
-      // assign first N questionItems to dropzones (if more dropzones than items, remaining dropzones accept anything)
+    if(questionItems.length === 1 && desiredCount === 1){
+      expectedAnswers.push(questionItems[0].key);
+      createDropzone(questionItems[0].key);
+    } else {
       for(let i=0;i<desiredCount;i++){
         const expected = (questionItems[i] && questionItems[i].key) ? questionItems[i].key : '';
         expectedAnswers.push(expected);
-        createDropzone('', expected);
+        createDropzone(expected);
       }
     }
   } else {
-    // no specific questionItems chosen: create generic dropzones
-    for(let i=0;i<desiredCount;i++){ expectedAnswers.push(''); createDropzone('', ''); }
+    for(let i=0;i<desiredCount;i++){
+      expectedAnswers.push('');
+      createDropzone('');
+    }
   }
 
-  // populate draggables opposite to question type (decoys + correct items)
+  // populate draggables opposite to question type
   populateDraggablesForLevel(currentLevel, questionItems, lvl.type, lvl.verb || []);
+  // attach dataTransfer support to left/right children for native dragging (optional)
+  attachNativeDragHandlers();
 
-  // hook: ensure check button hidden until all filled
+  // hide check until all dropzones filled
   updateCheckVisibility();
 }
 
-const checkButton = document.getElementById('check-btn');
-checkButton.addEventListener('click', () => {
-    const droppedItem = document.querySelector('#dropzone .draggable');
-    if (!droppedItem) return;
-
-    if (droppedItem.textContent === correctAnswer) {
-        alert('Correct!');
-        // Optionally disable check button or dropzone
-        checkButton.style.display = 'none';
-    } else {
-        alert('Incorrect, try again.');
-        // Reset draggable back to draggable area
-        document.getElementById('draggable-area').appendChild(droppedItem);
-        // Reset position if needed (CSS)
-        droppedItem.style.position = 'static';
-        droppedItem.style.top = '';
-        droppedItem.style.left = '';
-        // Reset check button if you want
-        checkButton.style.display = 'inline';
-    }
-});
-
-
-function checkAnswers() {
-  const allDropzones = document.querySelectorAll(".dropzone");
-  let allCorrect = true;
-
-  allDropzones.forEach(zone => {
-    const key = zone.dataset.filledKey;
-    const correctKey = zone.dataset.answer;
-
-    // clear previous markers
-    const existingFeedback = zone.querySelector(".result-icon");
-    if (existingFeedback) existingFeedback.remove();
-
-    const icon = document.createElement("img");
-    icon.className = "result-icon";
-    icon.style.position = "absolute";
-    icon.style.width = "90px";
-    icon.style.height = "90px";
-    icon.style.pointerEvents = "none";
-    icon.style.zIndex = "20";
-    icon.style.top = "50%";
-    icon.style.left = "50%";
-    icon.style.transform = "translate(-50%, -50%)";
-
-    if (key === correctKey) {
-      icon.src = "assets/correct.png";
-      zone.classList.add("correct");
-      zone.classList.remove("incorrect");
-    } else {
-      icon.src = "assets/wrong.png";
-      zone.classList.add("incorrect");
-      zone.classList.remove("correct");
-      allCorrect = false;
-    }
-
-    zone.appendChild(icon);
+/* ===== Attach native dragstart on side draggables so drag & drop (desktop) works too ===== */
+function attachNativeDragHandlers(){
+  // set draggable true for native drag for those devices
+  document.querySelectorAll('.draggable').forEach(d=>{
+    d.setAttribute('draggable','true');
+    d.addEventListener('dragstart', (ev)=>{
+      try{ ev.dataTransfer.setData('text/plain', d.dataset.key); }
+      catch(e){}
+    });
   });
-
-  if (allCorrect) {
-    setTimeout(() => {
-      document.querySelectorAll(".result-icon").forEach(i => i.remove());
-      nextQuestion(); // your existing function to load the next question
-    }, 1000);
-  } else {
-    // remove incorrect answers after 2 seconds
-    setTimeout(() => {
-      allDropzones.forEach(zone => {
-        if (zone.classList.contains("incorrect")) {
-          zone.innerHTML = "";
-          zone.classList.remove("filled", "incorrect");
-          delete zone.dataset.filledKey;
-        }
-      });
-      document.querySelectorAll(".result-icon").forEach(i => i.remove());
-      updateCheckVisibility();
-    }, 2000);
-  }
 }
 
-/* ===== Check / Submit logic (single place) ===== */
+/* ===== Check function (single place) ===== */
 if(checkBtn){
   checkBtn.addEventListener('click', async ()=>{
+    // disable to avoid double clicks
     checkBtn.style.display = 'none';
     const dzs = Array.from(answerArea.querySelectorAll('.dropzone'));
-    let allCorrect = true; 
-    const thisRoundCorrect = []; 
+    let allCorrect = true;
+    const thisRoundCorrect = [];
     const thisRoundIncorrect = [];
 
-    dzs.forEach((dz, i)=>{
-      const filled = dz.dataset.filled || '';
+    dzs.forEach((dz, i) => {
+      const filledKey = dz.dataset.filled || '';
       const expected = dz.dataset.expected || '';
-      if(!filled){ 
-        dz.classList.add('incorrect'); 
-        allCorrect=false; 
-        thisRoundIncorrect.push(null); 
+      // clear previous markers
+      dz.classList.remove('correct','incorrect');
+      if(!filledKey){
+        dz.classList.add('incorrect');
+        thisRoundIncorrect.push(null);
+        allCorrect = false;
       } else {
-        if(expected){ 
-          if(filled === expected){ 
-            dz.classList.add('correct'); 
-            thisRoundCorrect.push(filled); 
-          } else { 
-            dz.classList.add('incorrect'); 
-            thisRoundIncorrect.push(filled); 
-            allCorrect=false; 
-          } 
-        } else { 
-          thisRoundCorrect.push(filled); 
+        if(expected){
+          if(filledKey === expected){
+            dz.classList.add('correct');
+            thisRoundCorrect.push(filledKey);
+          } else {
+            dz.classList.add('incorrect');
+            thisRoundIncorrect.push(filledKey);
+            allCorrect = false;
+          }
+        } else {
+          // no expected key => accept as correct
+          dz.classList.add('correct');
+          thisRoundCorrect.push(filledKey);
         }
       }
     });
 
-    // === NEW RESET LOGIC HERE ===
-    if (!allCorrect) {
-      dzs.forEach(dz => {
-        if (dz.classList.contains("incorrect") && dz.dataset.filled) {
-          const wrongKey = dz.dataset.filled;
-          restoreDraggableToSide(wrongKey);
-          dz.innerHTML = '';
-          const ph = document.createElement('div');
-          ph.className = 'placeholder faint';
-          ph.textContent = '';
-          dz.appendChild(ph);
-          dz.dataset.filled = '';
-          dz.classList.remove('filled', 'incorrect', 'correct');
-        }
-      });
-      // Hide check button until filled again
-      updateCheckVisibility();
-      return; // stop further correct-handling logic
+    // If any incorrect: restore them back to side and reset those dropzones
+    if(!allCorrect){
+      // show wrong icon feedback quickly
+      if(feedbackDiv){ feedbackDiv.innerHTML=''; const fb=document.createElement('img'); fb.src='assets/wrong.png'; fb.alt='Wrong'; fb.style.maxWidth='120px'; feedbackDiv.appendChild(fb); }
+      // restore incorrect after a short delay so students see mark
+      setTimeout(()=>{
+        dzs.forEach(dz=>{
+          if(dz.classList.contains('incorrect') && dz.dataset.filled){
+            const wrongKey = dz.dataset.filled;
+            // put draggable back into a side pool
+            restoreDraggableToSide(wrongKey);
+            // reset dropzone
+            dz.innerHTML = ''; const ph=document.createElement('div'); ph.className='placeholder faint'; ph.textContent=''; dz.appendChild(ph);
+            dz.dataset.filled = '';
+            dz.classList.remove('filled','incorrect','correct');
+          }
+        });
+        if(feedbackDiv) feedbackDiv.innerHTML = '';
+        updateCheckVisibility();
+      }, 600);
+      // also record incorrect keys for stats (but don't mark them permanently used)
+      thisRoundIncorrect.forEach(k => { if(k){ levelIncorrect[currentLevel] = (levelIncorrect[currentLevel]||0) + 1; incorrectCount++; } });
+      answersHistory.push({ level: currentLevel, round: roundInLevel, correct: thisRoundCorrect.slice(), incorrect: thisRoundIncorrect.slice() });
+      saveProgress();
+      return;
     }
 
-    if(allCorrect){ levelCorrect[currentLevel] = (levelCorrect[currentLevel]||0) + dzs.length; correctCount += dzs.length; dzs.forEach(d=>{ if(d.dataset.filled) usedDraggables.add(d.dataset.filled); }); thisRoundCorrect.forEach(k=>{ if(k) usedCombos.add(k); }); }
-    else {
-      thisRoundIncorrect.forEach(k=>{ if(k){ levelIncorrect[currentLevel] = (levelIncorrect[currentLevel]||0) + 1; incorrectCount++; usedDraggables.add(k); const dom = document.querySelector(`.draggable[data-key="${k}"]`); if(dom && dom.parentElement) dom.parentElement.removeChild(dom); } });
-      thisRoundCorrect.forEach(k=>{ if(k) usedDraggables.add(k); });
-    }
+    // All correct branch: commit the used draggables
+    dzs.forEach(dz => {
+      if(dz.dataset.filled){
+        usedDraggables.add(dz.dataset.filled);
+      }
+    });
+    thisRoundCorrect.forEach(k => { if(k) usedCombos.add(k); });
 
-    if(feedbackDiv){ feedbackDiv.innerHTML=''; const fb=document.createElement('img'); fb.src = allCorrect ? 'assets/correct.png' : 'assets/wrong.png'; fb.alt = allCorrect ? 'Correct' : 'Wrong'; feedbackDiv.appendChild(fb); }
+    // increment stats
+    levelCorrect[currentLevel] = (levelCorrect[currentLevel]||0) + dzs.length;
+    correctCount += dzs.length;
 
-    answersHistory.push({ level: currentLevel, round: roundInLevel, correct: thisRoundCorrect.slice(), incorrect: thisRoundIncorrect.slice() });
+    // feedback
+    if(feedbackDiv){ feedbackDiv.innerHTML=''; const fb=document.createElement('img'); fb.src='assets/correct.png'; fb.alt='Correct'; fb.style.maxWidth='120px'; feedbackDiv.appendChild(fb); }
+
+    answersHistory.push({ level: currentLevel, round: roundInLevel, correct: thisRoundCorrect.slice(), incorrect: [] });
     saveProgress();
 
+    // progress to next question after tiny delay
     setTimeout(async ()=>{
       if(feedbackDiv) feedbackDiv.innerHTML = '';
-      if(allCorrect){ if(roundInLevel + 1 >= QUESTIONS_PER_LEVEL){ if(currentLevel < TOTAL_LEVELS){ currentLevel++; roundInLevel=0; buildQuestion(); } else { await finalSubmitThenEnd(); } } else { roundInLevel++; buildQuestion(); } }
-      else { if(againBtn) againBtn.style.display='inline-block'; updateCheckVisibility(); }
-    }, 900);
+      // if finished level
+      if(roundInLevel + 1 >= QUESTIONS_PER_LEVEL){
+        if(currentLevel < TOTAL_LEVELS){
+          currentLevel++; roundInLevel = 0;
+          buildQuestion();
+        } else {
+          await finalSubmitThenEnd();
+        }
+      } else {
+        roundInLevel++;
+        buildQuestion();
+      }
+    }, 750);
   });
 }
 
-/* ===== Again button behavior ===== */
-if(againBtn){ againBtn.addEventListener('click', ()=>{ document.querySelectorAll('.dropzone').forEach(dz=>{ dz.innerHTML=''; const ph=document.createElement('div'); ph.className='placeholder faint'; ph.textContent=''; dz.appendChild(ph); dz.dataset.filled=''; dz.classList.remove('filled','incorrect','correct'); }); againBtn.style.display='none'; updateCheckVisibility(); }); }
+/* ===== Again button ===== */
+if(againBtn){
+  againBtn.addEventListener('click', ()=>{
+    document.querySelectorAll('.dropzone').forEach(dz=>{
+      dz.innerHTML = ''; const ph=document.createElement('div'); ph.className='placeholder faint'; ph.textContent=''; dz.appendChild(ph);
+      dz.dataset.filled = ''; dz.classList.remove('filled','incorrect','correct');
+    });
+    againBtn.style.display = 'none';
+    updateCheckVisibility();
+  });
+}
 
 /* ===== Save / Load / Clear progress ===== */
-function saveProgress(){ const payload={ studentName: studentNameSpan?studentNameSpan.textContent:'', studentClass: studentClassSpan?studentClassSpan.textContent:'', currentLevel, roundInLevel, correctCount, incorrectCount, levelCorrect, levelIncorrect, answersHistory, savedTimeElapsed: getTimeElapsed(), usedDraggables: Array.from(usedDraggables), usedCombos: Array.from(usedCombos) }; try{ localStorage.setItem(SAVE_KEY, JSON.stringify(payload)); }catch(e){ console.warn('save failed', e); } }
-function loadProgress(){ try{ const raw = localStorage.getItem(SAVE_KEY); if(!raw) return null; return JSON.parse(raw); }catch(e){ return null; } }
+function saveProgress(){
+  const payload = {
+    studentName: studentNameSpan ? studentNameSpan.textContent : '',
+    studentClass: studentClassSpan ? studentClassSpan.textContent : '',
+    currentLevel, roundInLevel, correctCount, incorrectCount, levelCorrect, levelIncorrect, answersHistory,
+    savedTimeElapsed: getTimeElapsed(),
+    usedDraggables: Array.from(usedDraggables),
+    usedCombos: Array.from(usedCombos)
+  };
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(payload)); }catch(e){ console.warn('save failed', e); }
+}
+function loadProgress(){
+  try{ const raw = localStorage.getItem(SAVE_KEY); if(!raw) return null; return JSON.parse(raw); }catch(e){ return null; }
+}
 function clearProgress(){ try{ localStorage.removeItem(SAVE_KEY); localStorage.removeItem('sentencesGame_submitted'); }catch(e){} }
 
 /* ===== Restore progress ===== */
-function restoreProgress(saved){ if(!saved) return; currentLevel = Number(saved.currentLevel) || 1; roundInLevel = Number(saved.roundInLevel) || 0; correctCount = Number(saved.correctCount) || 0; incorrectCount = Number(saved.incorrectCount) || 0; levelCorrect = saved.levelCorrect || levelCorrect; levelIncorrect = saved.levelIncorrect || levelIncorrect; answersHistory = saved.answersHistory || []; savedTimeElapsed = Number(saved.savedTimeElapsed) || 0; usedDraggables = new Set(saved.usedDraggables || []); usedCombos = new Set(saved.usedCombos || []); setTimeElapsed(saved.savedTimeElapsed || 0); }
+function restoreProgress(saved){
+  if(!saved) return;
+  currentLevel = Number(saved.currentLevel) || 1;
+  roundInLevel = Number(saved.roundInLevel) || 0;
+  correctCount = Number(saved.correctCount) || 0;
+  incorrectCount = Number(saved.incorrectCount) || 0;
+  levelCorrect = saved.levelCorrect || levelCorrect;
+  levelIncorrect = saved.levelIncorrect || levelIncorrect;
+  answersHistory = saved.answersHistory || [];
+  savedTimeElapsed = Number(saved.savedTimeElapsed) || 0;
+  usedDraggables = new Set(saved.usedDraggables || []);
+  usedCombos = new Set(saved.usedCombos || []);
+  setTimeElapsed(saved.savedTimeElapsed || 0);
+}
 
 /* ===== Google Form submit, final modal, resume/stop logic ===== */
-async function submitToGoogleForm(silent=true){ if(!googleForm) return false; const timeTaken = getTimeElapsed(); const totalCorrect = Object.values(levelCorrect).reduce((a,b)=>a+b,0); const totalIncorrect = Object.values(levelIncorrect).reduce((a,b)=>a+b,0); const totalAttempts = totalCorrect + totalIncorrect; const percent = totalAttempts > 0 ? Math.round((totalCorrect/totalAttempts)*100) : 0; if(totalCorrect < 1) return false; const fd = new FormData(); fd.append(FORM_FIELD_MAP.name, studentNameSpan?studentNameSpan.textContent:''); fd.append(FORM_FIELD_MAP.class, studentClassSpan?studentClassSpan.textContent:''); fd.append(FORM_FIELD_MAP.subject,'Sentences'); fd.append(FORM_FIELD_MAP.timeTaken, timeTaken); fd.append(FORM_FIELD_MAP.percent, percent); for(let lvl=1; lvl<=TOTAL_LEVELS; lvl++){ fd.append(FORM_FIELD_MAP[`level${lvl}`].correct, levelCorrect[lvl] || 0); fd.append(FORM_FIELD_MAP[`level${lvl}`].incorrect, levelIncorrect[lvl] || 0); } try{ await fetch(googleForm.action, { method:'POST', body:fd, mode:'no-cors' }); formSubmittedFlag = true; localStorage.setItem('sentencesGame_submitted','1'); return true; }catch(e){ console.warn('Form submission failed:', e); return false; } }
+async function submitToGoogleForm(silent=true){
+  if(!googleForm) return false;
+  const timeTaken = getTimeElapsed();
+  const totalCorrect = Object.values(levelCorrect).reduce((a,b)=>a+b,0);
+  const totalIncorrect = Object.values(levelIncorrect).reduce((a,b)=>a+b,0);
+  const totalAttempts = totalCorrect + totalIncorrect;
+  const percent = totalAttempts > 0 ? Math.round((totalCorrect/totalAttempts)*100) : 0;
+  if(totalCorrect < 1) return false;
+  const fd = new FormData();
+  fd.append(FORM_FIELD_MAP.name, studentNameSpan ? studentNameSpan.textContent : '');
+  fd.append(FORM_FIELD_MAP.class, studentClassSpan ? studentClassSpan.textContent : '');
+  fd.append(FORM_FIELD_MAP.subject, 'Sentences');
+  fd.append(FORM_FIELD_MAP.timeTaken, timeTaken);
+  fd.append(FORM_FIELD_MAP.percent, percent);
+  for(let lvl=1; lvl<=TOTAL_LEVELS; lvl++){
+    fd.append(FORM_FIELD_MAP[`level${lvl}`].correct, levelCorrect[lvl] || 0);
+    fd.append(FORM_FIELD_MAP[`level${lvl}`].incorrect, levelIncorrect[lvl] || 0);
+  }
+  try{
+    await fetch(googleForm.action, { method:'POST', body:fd, mode:'no-cors' });
+    formSubmittedFlag = true;
+    localStorage.setItem('sentencesGame_submitted','1');
+    return true;
+  }catch(e){
+    console.warn('Form submission failed:', e);
+    return false;
+  }
+}
 
-async function finalSubmitThenEnd(){ await submitToGoogleForm(true); clearProgress(); const finalTime = document.getElementById('finalTime'); const finalScore = document.getElementById('finalScore'); const finalPercent = document.getElementById('finalPercent'); const totalCorrect = Object.values(levelCorrect).reduce((a,b)=>a+b,0); const totalIncorrect = Object.values(levelIncorrect).reduce((a,b)=>a+b,0); const totalAttempts = totalCorrect + totalIncorrect; const percent = totalAttempts > 0 ? Math.round((totalCorrect/totalAttempts)*100) : 0; if(finalTime) finalTime.textContent = getTimeElapsed() + 's'; if(finalScore) finalScore.textContent = `${totalCorrect} / ${totalAttempts}`; if(finalPercent) finalPercent.textContent = `${percent}%`; if(endModal){ endModal.style.display = 'flex'; endModal.style.zIndex = 6000; } }
+async function finalSubmitThenEnd(){
+  await submitToGoogleForm(true);
+  clearProgress();
+  const finalTime = document.getElementById('finalTime');
+  const finalScore = document.getElementById('finalScore');
+  const finalPercent = document.getElementById('finalPercent');
+  const totalCorrect = Object.values(levelCorrect).reduce((a,b)=>a+b,0);
+  const totalIncorrect = Object.values(levelIncorrect).reduce((a,b)=>a+b,0);
+  const totalAttempts = totalCorrect + totalIncorrect;
+  const percent = totalAttempts > 0 ? Math.round((totalCorrect/totalAttempts)*100) : 0;
+  if(finalTime) finalTime.textContent = getTimeElapsed() + 's';
+  if(finalScore) finalScore.textContent = `${totalCorrect} / ${totalAttempts}`;
+  if(finalPercent) finalPercent.textContent = `${percent}%`;
+  if(endModal){ endModal.style.display = 'flex'; endModal.style.zIndex = 6000; }
+}
 
-function showResumeModalIfNeeded(){ const saved = loadProgress(); if(saved){ if(resumeModal){ resumeModal.style.display='flex'; resumeModal.style.zIndex=6000; if(resumeContinue){ resumeContinue.onclick = ()=>{ resumeModal.style.display='none'; restoreProgress(saved); buildQuestion(); startTime = Date.now(); }; } if(resumeAgain){ resumeAgain.onclick = ()=>{ resumeModal.style.display='none'; clearProgress(); usedDraggables.clear(); usedCombos.clear(); currentLevel=1; roundInLevel=0; buildQuestion(); setTimeElapsed(0); }; } return; } } setTimeElapsed(0); startTime = Date.now(); buildQuestion(); }
+/* ===== Resume modal logic ===== */
+function showResumeModalIfNeeded(){
+  const saved = loadProgress();
+  if(saved){
+    if(resumeModal){
+      resumeModal.style.display='flex'; resumeModal.style.zIndex=6000;
+      if(resumeContinue){
+        resumeContinue.onclick = ()=>{
+          resumeModal.style.display='none';
+          restoreProgress(saved);
+          buildQuestion();
+          startTime = Date.now();
+        };
+      }
+      if(resumeAgain){
+        resumeAgain.onclick = ()=>{
+          resumeModal.style.display='none';
+          clearProgress();
+          usedDraggables.clear(); usedCombos.clear();
+          currentLevel = 1; roundInLevel = 0;
+          buildQuestion(); setTimeElapsed(0);
+        };
+      }
+      return;
+    }
+  }
+  setTimeElapsed(0); startTime = Date.now(); buildQuestion();
+}
 
-if(stopBtn){ stopBtn.addEventListener('click', ()=>{ savedTimeElapsed = getTimeElapsed(); startTime = null; const totalCorrect = Object.values(levelCorrect).reduce((a,b)=>a+b,0); const totalIncorrect = Object.values(levelIncorrect).reduce((a,b)=>a+b,0); const total = totalCorrect + totalIncorrect; const percent = total > 0 ? Math.round((totalCorrect/total)*100) : 0; if(stopPercent) stopPercent.textContent = `Score so far: ${percent}% — Time: ${getTimeElapsed()}s`; if(stopModal){ stopModal.style.display='flex'; stopModal.style.zIndex = 6000; } }); }
+/* ===== STOP modal logic ===== */
+if(stopBtn){
+  stopBtn.addEventListener('click', ()=>{
+    savedTimeElapsed = getTimeElapsed();
+    startTime = null;
+    const totalCorrect = Object.values(levelCorrect).reduce((a,b)=>a+b,0);
+    const totalIncorrect = Object.values(levelIncorrect).reduce((a,b)=>a+b,0);
+    const total = totalCorrect + totalIncorrect;
+    const percent = total > 0 ? Math.round((totalCorrect/total)*100) : 0;
+    if(stopPercent) stopPercent.textContent = `Score so far: ${percent}% — Time: ${getTimeElapsed()}s`;
+    if(stopModal){ stopModal.style.display='flex'; stopModal.style.zIndex = 6000; }
+  });
+}
 if(stopContinue) stopContinue && stopContinue.addEventListener('click', ()=>{ if(stopModal) stopModal.style.display='none'; setTimeElapsed(savedTimeElapsed); });
-if(stopAgain) stopAgain && stopAgain.addEventListener('click', async ()=>{ if(stopModal) stopModal.style.display='none'; await submitToGoogleForm(true); usedDraggables.clear(); usedCombos.clear(); for(let i=1;i<=TOTAL_LEVELS;i++){ levelCorrect[i]=0; levelIncorrect[i]=0; } correctCount=0; incorrectCount=0; answersHistory=[]; currentLevel=1; roundInLevel=0; setTimeElapsed(0); buildQuestion(); });
-if(stopFinish) stopFinish && stopFinish.addEventListener('click', async ()=>{ if(stopModal) stopModal.style.display='none'; await submitToGoogleForm(true); window.location.href = '../index.html'; });
+if(stopAgain) stopAgain && stopAgain.addEventListener('click', async ()=>{
+  if(stopModal) stopModal.style.display='none';
+  await submitToGoogleForm(true);
+  usedDraggables.clear(); usedCombos.clear();
+  for(let i=1;i<=TOTAL_LEVELS;i++){ levelCorrect[i]=0; levelIncorrect[i]=0; }
+  correctCount=0; incorrectCount=0; answersHistory=[];
+  currentLevel=1; roundInLevel=0; setTimeElapsed(0);
+  buildQuestion();
+});
+if(stopFinish) stopFinish && stopFinish.addEventListener('click', async ()=>{
+  if(stopModal) stopModal.style.display='none';
+  await submitToGoogleForm(true);
+  window.location.href = '../index.html';
+});
 
 /* ===== Init on load ===== */
 window.addEventListener('load', ()=>{
@@ -690,24 +857,6 @@ window.addEventListener('load', ()=>{
 });
 
 /* ===== Expose small helpers for debugging (optional) ===== */
-window._sentences = { buildQuestion, levels, candidatePool, expectedAnswers };const checkButton = document.getElementById('check-btn');
-checkButton.addEventListener('click', () => {
-    const droppedItem = document.querySelector('#dropzone .draggable');
-    if (!droppedItem) return;
+window._sentences = { buildQuestion, levels, candidatePool, expectedAnswers, saveProgress, loadProgress };
 
-    if (droppedItem.textContent === correctAnswer) {
-        alert('Correct!');
-        // Optionally disable check button or dropzone
-        checkButton.style.display = 'none';
-    } else {
-        alert('Incorrect, try again.');
-        // Reset draggable back to draggable area
-        document.getElementById('draggable-area').appendChild(droppedItem);
-        // Reset position if needed (CSS)
-        droppedItem.style.position = 'static';
-        droppedItem.style.top = '';
-        droppedItem.style.left = '';
-        // Reset check button if you want
-        checkButton.style.display = 'inline';
-    }
-});
+/* ===== End of script.js ===== */
