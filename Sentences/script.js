@@ -294,7 +294,50 @@ function moveDrag(e){ if(!dragClone) return; let clientX,clientY; if(isTouch && 
 
 function handleDropClone(dz, draggedKey){ if(!dz || !draggedKey) return; if(dz.dataset.filled) return; const srcDom = document.querySelector(`.draggable[data-key="${draggedKey}"]`); let clone; if(srcDom) clone = srcDom.cloneNode(true); else { clone = document.createElement('div'); clone.className='draggable fallback'; clone.textContent = draggedKey; } clone.classList.remove('draggable'); dz.appendChild(clone); dz.dataset.filled = draggedKey; dz.classList.add('filled'); updateCheckVisibility(); }
 
-function endDrag(e){ if(!dragItem || !dragClone) return; let clientX = isTouch && e.changedTouches && e.changedTouches.length>0 ? e.changedTouches[0].clientX : e.clientX; let clientY = isTouch && e.changedTouches && e.changedTouches.length>0 ? e.changedTouches[0].clientY : e.clientY; let dropped=false; document.querySelectorAll('.dropzone').forEach(dz=>{ const rect = dz.getBoundingClientRect(); if(clientX>=rect.left && clientX<=rect.right && clientY>=rect.top && clientY<=rect.bottom && !dz.dataset.filled){ handleDropClone(dz, dragItem.dataset.key); dropped=true; } }); dragClone.remove(); dragClone=null; if(isTouch){ document.removeEventListener('touchmove', moveDrag, {passive:false}); document.removeEventListener('touchend', endDrag); } else { document.removeEventListener('mousemove', moveDrag); document.removeEventListener('mouseup', endDrag); } dragItem=null; if(dropped && againBtn) againBtn.style.display = 'inline-block'; }
+function endDrag(e) {
+  if (!dragItem || !dragClone) return;
+
+  let clientX, clientY;
+  if (isTouch && e.changedTouches && e.changedTouches.length > 0) {
+    clientX = e.changedTouches[0].clientX;
+    clientY = e.changedTouches[0].clientY;
+  } else {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }
+
+  const dropzones = document.querySelectorAll(".dropzone");
+  let dropped = false;
+
+  dropzones.forEach(zone => {
+    const rect = zone.getBoundingClientRect();
+    if (
+      clientX >= rect.left &&
+      clientX <= rect.right &&
+      clientY >= rect.top &&
+      clientY <= rect.bottom
+    ) {
+      if (!zone.classList.contains("filled")) {
+        dropped = true;
+        zone.classList.add("filled");
+        const img = dragItem.cloneNode(true);
+        img.style.position = "static";
+        img.classList.remove("drag-clone");
+        zone.innerHTML = "";
+        zone.appendChild(img);
+      }
+    }
+  });
+
+  // remove clone and reset variables
+  if (dragClone && dragClone.parentNode) dragClone.parentNode.removeChild(dragClone);
+  dragClone = null;
+  dragItem = null;
+
+  if (dropped) {
+    updateCheckVisibility();
+  }
+}
 
 document.addEventListener('mousedown', startDrag); document.addEventListener('touchstart', startDrag, {passive:false});
 
