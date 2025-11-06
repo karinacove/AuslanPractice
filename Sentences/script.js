@@ -489,17 +489,52 @@ if(checkBtn){
   checkBtn.addEventListener('click', async ()=>{
     checkBtn.style.display = 'none';
     const dzs = Array.from(answerArea.querySelectorAll('.dropzone'));
-    let allCorrect = true; const thisRoundCorrect = []; const thisRoundIncorrect = [];
+    let allCorrect = true; 
+    const thisRoundCorrect = []; 
+    const thisRoundIncorrect = [];
 
     dzs.forEach((dz, i)=>{
       const filled = dz.dataset.filled || '';
       const expected = dz.dataset.expected || '';
-      if(!filled){ dz.classList.add('incorrect'); allCorrect=false; thisRoundIncorrect.push(null); }
-      else {
-        if(expected){ if(filled === expected){ dz.classList.add('correct'); thisRoundCorrect.push(filled); } else { dz.classList.add('incorrect'); thisRoundIncorrect.push(filled); allCorrect=false; } }
-        else { dz.classList.add('correct'); thisRoundCorrect.push(filled); }
+      if(!filled){ 
+        dz.classList.add('incorrect'); 
+        allCorrect=false; 
+        thisRoundIncorrect.push(null); 
+      } else {
+        if(expected){ 
+          if(filled === expected){ 
+            dz.classList.add('correct'); 
+            thisRoundCorrect.push(filled); 
+          } else { 
+            dz.classList.add('incorrect'); 
+            thisRoundIncorrect.push(filled); 
+            allCorrect=false; 
+          } 
+        } else { 
+          thisRoundCorrect.push(filled); 
+        }
       }
     });
+
+    // === NEW RESET LOGIC HERE ===
+    if (!allCorrect) {
+      dzs.forEach(dz => {
+        if (dz.classList.contains("incorrect") && dz.dataset.filled) {
+          const wrongKey = dz.dataset.filled;
+          restoreDraggableToSide(wrongKey);
+          dz.innerHTML = '';
+          const ph = document.createElement('div');
+          ph.className = 'placeholder faint';
+          ph.textContent = '';
+          dz.appendChild(ph);
+          dz.dataset.filled = '';
+          dz.classList.remove('filled', 'incorrect', 'correct');
+        }
+      });
+      // Hide check button until filled again
+      updateCheckVisibility();
+      return; // stop further correct-handling logic
+    }
 
     if(allCorrect){ levelCorrect[currentLevel] = (levelCorrect[currentLevel]||0) + dzs.length; correctCount += dzs.length; dzs.forEach(d=>{ if(d.dataset.filled) usedDraggables.add(d.dataset.filled); }); thisRoundCorrect.forEach(k=>{ if(k) usedCombos.add(k); }); }
     else {
