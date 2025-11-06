@@ -54,19 +54,24 @@ body {
   right: 20px;
   top: 20px;
   z-index: 10;
-  width: 100px;
-  height: 100px;
 }
 
-#stopBtn img
+#stopBtn img {
+   height: 100px;
+   width: 100px;
+}
+
 #checkBtn {
-  display: none; /* hidden initially */
-  position: fixed; /* optional: place wherever you want later */
+  display: none;
+  position: fixed;
   top: 50%;
   left: 50%;
-  z-index: 10001; /* above modal backdrop but below modal content */
-  height: 120px;
-  width: 120px;
+  z-index: 10001; 
+}
+
+#checkBtn img {
+   height: 120px;
+   width: 120px;
 }
 
 /* ===========================
