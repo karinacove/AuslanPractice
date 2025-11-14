@@ -562,6 +562,62 @@ function buildQuestion(){
       }
       return;
     }
+    // FOOD + COLOURS (Level 2, Level 5)
+    if(qi.key && qi.key.startsWith('food::')) {
+        const parts = qi.key.split('::');
+        const food = parts[1];
+        const colour = parts[2];
+        if (lvl.type === 'sign') {
+        // show TWO SIGNS:   FOOD SIGN   +   COLOUR SIGN
+            sentenceSources.push({
+                src: signPathFor(food),
+                isVideo: false,
+                key: qi.key
+            });
+            sentenceSources.push({
+                src: signPathFor(colour),
+                isVideo: false,
+                key: qi.key
+            });
+        } else {
+            // image mode: composite image
+            sentenceSources.push({
+                src: qi.img,
+                isVideo: false,
+                key: qi.key
+            });
+        }
+        return;
+    }
+        // EMOTIONS + ZONES (Levels 3,6,8,10,11,12)
+    if (qi.key && qi.key.startsWith('emotions::')) {
+        const parts = qi.key.split('::');
+        const emotion = parts[1];
+        const zone = parts[2];
+        if (lvl.type === 'sign') {
+            // emotion is ALWAYS a video (mp4)
+            sentenceSources.push({
+                src: signPathFor(emotion),
+                isVideo: true,
+                key: qi.key
+            });
+            // zone is ALWAYS a PNG sign
+            sentenceSources.push({
+                src: signPathFor(zone),
+                isVideo: false,
+                key: qi.key
+            });
+            } else {
+            // IMAGE MODE → use composite image
+            sentenceSources.push({
+                src: qi.img,
+                isVideo: false,
+                key: qi.key
+            });
+        }
+        return;
+    }
+
     if(lvl.type === 'image'){
       sentenceSources.push({ src: qi.img, isVideo:false, key: qi.key });
     } else {
