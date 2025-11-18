@@ -272,13 +272,11 @@ button.controlButton:active { transform: scale(0.95); }
 button.controlButton:focus { outline: none; }
 
 .modal-buttons {
+  width: 100%;
   display: flex;
-  width: 120px;
-  height: 120px;
-  gap: 15px;
-  justify-content: center;
+  justify-content: space-evenly;
+  align-items: center;
   margin-top: 20px;
-  z-index: 10002;
 }
 
 .modal-buttons img:hover { transform: scale(1.1); }
