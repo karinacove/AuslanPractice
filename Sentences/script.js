@@ -1,5 +1,3 @@
-/* ===== script.js - Full rewrite (all features) ===== */
-
 /* ===== CONFIG / FORM MAPPING ===== */
 const FORM_FIELD_MAP = {
   name: "entry.1040637824",
