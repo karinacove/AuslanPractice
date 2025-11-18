@@ -277,6 +277,8 @@ button.controlButton:focus { outline: none; }
   justify-content: space-evenly;
   align-items: center;
   margin-top: 20px;
+  border: none;
+  background: none;
 }
 
 .modal-buttons img:hover { transform: scale(1.1); }
@@ -329,6 +331,8 @@ button.controlButton {
   justify-content: center;
   align-items: center;
   cursor: pointer;
+  border: none;
+  background: none;
 }
 
 .modal-buttons img,
