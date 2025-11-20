@@ -360,8 +360,6 @@ function populateDraggablesForLevel(level, questionItems, questionType, verbList
       bottomVerbs.appendChild(createDraggableNodeFromSign(`verb::${v}`, path));
     });
   }
-
-  enableDragAndDrop();
 }
 
 /* ===== Check button visibility helper ===== */
