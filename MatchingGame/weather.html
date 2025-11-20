@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather & Clothing Game</title>
+
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- ========== TOP BAR ========== -->
+  <div id="topBar">
+    <div id="studentInfo">
+      <span id="studentName"></span> | <span id="studentClass"></span>
+    </div>
+
+    <div id="scoreDisplay"></div>
+
+    <button id="stopBtn" class="iconButton">
+      <img src="assets/stop.png" alt="Stop">
+    </button>
+  </div>
+
+  <!-- ========== MAIN GAME AREA ========== -->
+  <div id="gameArea">
+
+    <!-- Draggables Left -->
+    <div id="draggablesLeft" class="draggables"></div>
+
+    <!-- Center Area -->
+    <div id="centerArea">
+
+      <!-- Question Area -->
+      <div id="questionArea">
+        <div id="sentenceRow1" class="sentence-row"></div>
+        <div id="sentenceRow2" class="sentence-row"></div>
+        <div id="sentenceRow3" class="sentence-row"></div>
+      </div>
+
+      <!-- Answer dropzones -->
+      <div id="answerArea"></div>
+
+      <!-- Feedback -->
+      <div id="feedback"></div>
+
+      <!-- Check Button -->
+      <button id="checkBtn" class="controlButton">
+        <img src="assets/check.png" alt="Check">
+      </button>
+
+    </div>
+
+    <!-- Draggables Right -->
+    <div id="draggablesRight" class="draggables"></div>
+
+  </div>
+
+  <!-- Optional bottom verbs -->
+  <div id="verbDraggables" class="draggables-bottom"></div>
+
+  <!-- ========== END MODAL ========== -->
+  <div id="endModal" class="modal">
+    <div class="modal-content">
+      <img id="endGif" src="" alt="Finish GIF">
+
+      <p>Time: <span id="finalTime"></span></p>
+      <p>Score: <span id="finalScore"></span></p>
+      <p>Percentage: <span id="finalPercent"></span></p>
+
+      <div class="modal-buttons">
+        <button id="finishBtn" class="modalButton">
+          <img src="assets/finish.png" alt="Finish">
+        </button>
+
+        <button id="againBtnEnd" class="modalButton">
+          <img src="assets/again.png" alt="Play Again">
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== STOP MODAL ========== -->
+  <div id="stopModal" class="modal">
+    <div class="modal-content">
+      <h2 id="stopPercent">Score so far: 0%</h2>
+
+      <div class="modal-buttons">
+        <button id="continueBtn" class="modalButton">
+          <img src="assets/continue.png" alt="Continue">
+        </button>
+
+        <button id="againBtnStop" class="modalButton">
+          <img src="assets/again.png" alt="Again">
+        </button>
+
+        <button id="finishBtnStop" class="modalButton">
+          <img src="assets/finish.png" alt="Finish">
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== RESUME MODAL ========== -->
+  <div id="resumeModal" class="modal">
+    <div class="modal-content">
+      <p id="resumeMessage"></p>
+
+      <div class="modal-buttons">
+        <button id="resumeContinue" class="modalButton">
+          <img src="assets/continue.png" alt="Continue" />
+        </button>
+
+        <button id="resumeAgain" class="modalButton">
+          <img src="assets/again.png" alt="Start Over" />
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== GOOGLE FORM (HIDDEN) ========== -->
+  <form id="googleForm"
+        action="https://docs.google.com/forms/d/e/1FAIpQLSeDjoRouuIIrum-BbkNWt7Rz-ALVAnupFI4RIWbuQulNH9NGw/formResponse"
+        method="POST"
+        target="hidden_iframe"
+        style="display:none;">
+  </form>
+
+  <iframe name="hidden_iframe" style="display:none;"></iframe>
+
+  <!-- ========== GAME SCRIPT ========== -->
+  <script defer src="weather.js"></script>
+
+</body>
+</html>
