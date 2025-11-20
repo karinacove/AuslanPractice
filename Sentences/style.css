@@ -69,6 +69,7 @@ body {
   cursor: pointer;
   top: 75%;
   left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 10001; 
 }
 
@@ -102,6 +103,7 @@ body {
   width: 115px;
   height: 115px;
   object-fit: contain;
+  transform: translate(-50%, -50%);
   cursor: grab;
 }
 
@@ -109,6 +111,7 @@ body {
   width: 115px;
   height: 115px;
   cursor: grab;
+  transform: translate(-50%, -50%);
   touch-action: none;
 }
 
