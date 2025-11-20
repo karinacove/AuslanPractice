@@ -87,7 +87,7 @@ body {
 =========================== */
 .draggables {
   position: absolute;
-  top: 100px;
+  top: 140px;
   min-width: 200px;
   max-width: 23vw;
   display: grid;
