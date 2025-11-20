@@ -208,7 +208,6 @@ body {
   font-size: 0.8rem;
   position: relative;
   overflow: hidden;
-  transform: translate(-50%, -50%);
 }
 
 .dropzone::before,
