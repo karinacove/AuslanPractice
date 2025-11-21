@@ -28,7 +28,7 @@
       <img src="assets/topics/food.png" alt="Food">
     </div>
     <div class="topic-item" data-topic="transport">
-      <img src="assets/topics/transport.png" alt="Transport">
+      <img src="assets/topics/weather.png" alt="Weather">
     </div>
     <div class="topic-item" data-topic="numbers">
       <img src="assets/topics/numbers.png" alt="Numbers">
@@ -56,6 +56,9 @@
         const topic = item.dataset.topic;
 
         switch (topic) {
+          case 'animal':
+            window.location.href = 'animal.html';
+            break;          
           case 'alphabet':
             window.location.href = 'alphabet.html';
             break;
@@ -66,7 +69,7 @@
             window.location.href = 'numbers.html';
             break;
           case 'transport':
-            window.location.href = 'transport.html';
+            window.location.href = 'weather.html';
             break;
           case 'food':
             window.location.href = 'food.html';
