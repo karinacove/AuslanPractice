@@ -1,134 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Weather & Clothing Game</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather & Clothing Match Game</title>
 
-  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-  <!-- ========== TOP BAR ========== -->
-<body>
-  <div id="header">
-  <div id="student-info"></div>
-  <div id="score-display"></div>
-  <h1 id="levelTitle">Level 1</h1>
-  </div>
-  
-  <img id="stop-btn" src="assets/stop.png" alt="Stop Game" />
-  
-  <!-- ========== MAIN GAME AREA ========== -->
-  <div id="gameArea">
+    <div id="gameContainer">
 
-    <!-- Draggables Left -->
-    <div id="draggablesLeft" class="draggables"></div>
+        <!-- Title (optional: remove if using graphical title inside HTML) -->
+        <h1 id="gameTitle">Weather & Clothing Match</h1>
 
-    <!-- Center Area -->
-    <div id="centerArea">
+        <!-- Level Display -->
+        <div id="levelInfo">
+            <span id="levelText">Level 1</span>
+        </div>
 
-      <!-- Question Area -->
-      <div id="questionArea">
-        <div id="sentenceRow1" class="sentence-row"></div>
-        <div id="sentenceRow2" class="sentence-row"></div>
-        <div id="sentenceRow3" class="sentence-row"></div>
-      </div>
+        <!-- MAIN GAME AREA -->
+        <div id="gameArea">
 
-      <!-- Answer dropzones -->
-      <div id="answerArea"></div>
+            <!-- LEFT COLUMN (source items) -->
+            <div id="leftColumn" class="column">
+                <h2 class="columnTitle" id="leftTitle"></h2>
+                <div id="leftItems" class="itemContainer"></div>
+            </div>
 
-      <!-- Feedback -->
-      <div id="feedback"></div>
+            <!-- RIGHT COLUMN (targets) -->
+            <div id="rightColumn" class="column">
+                <h2 class="columnTitle" id="rightTitle"></h2>
+                <div id="rightItems" class="itemContainer"></div>
+            </div>
 
-      <!-- Check Button -->
-      <button id="checkBtn" class="controlButton">
-        <img src="assets/check.png" alt="Check">
-      </button>
+        </div>
+
+        <!-- FEEDBACK TEXT -->
+        <div id="feedback"></div>
+
+        <!-- CONTROL BUTTONS -->
+        <div id="controls">
+            <button id="checkBtn" class="controlButton">Check</button>
+            <button id="nextBtn" class="controlButton" style="display:none;">Next</button>
+        </div>
 
     </div>
 
-    <!-- Draggables Right -->
-    <div id="draggablesRight" class="draggables"></div>
-
-  </div>
-
-  <!-- Optional bottom verbs -->
-  <div id="verbDraggables" class="draggables-bottom"></div>
-
-  <!-- ========== END MODAL ========== -->
-  <div id="endModal" class="modal">
-    <div class="modal-content">
-      <img id="endGif" src="" alt="Finish GIF">
-
-      <p>Time: <span id="finalTime"></span></p>
-      <p>Score: <span id="finalScore"></span></p>
-      <p>Percentage: <span id="finalPercent"></span></p>
-
-      <div class="modal-buttons">
-        <button id="finishBtn" class="modalButton">
-          <img src="assets/finish.png" alt="Finish">
-        </button>
-
-        <button id="againBtnEnd" class="modalButton">
-          <img src="assets/again.png" alt="Play Again">
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========== STOP MODAL ========== -->
-  <div id="stopModal" class="modal">
-    <div class="modal-content">
-      <h2 id="stopPercent">Score so far: 0%</h2>
-
-      <div class="modal-buttons">
-        <button id="continueBtn" class="modalButton">
-          <img src="assets/continue.png" alt="Continue">
-        </button>
-
-        <button id="againBtnStop" class="modalButton">
-          <img src="assets/again.png" alt="Again">
-        </button>
-
-        <button id="finishBtnStop" class="modalButton">
-          <img src="assets/finish.png" alt="Finish">
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========== RESUME MODAL ========== -->
-  <div id="resumeModal" class="modal">
-    <div class="modal-content">
-      <p id="resumeMessage"></p>
-
-      <div class="modal-buttons">
-        <button id="resumeContinue" class="modalButton">
-          <img src="assets/continue.png" alt="Continue" />
-        </button>
-
-        <button id="resumeAgain" class="modalButton">
-          <img src="assets/again.png" alt="Start Over" />
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========== GOOGLE FORM (HIDDEN) ========== -->
-  <form id="googleForm"
-        action="https://docs.google.com/forms/d/e/1FAIpQLSeDjoRouuIIrum-BbkNWt7Rz-ALVAnupFI4RIWbuQulNH9NGw/formResponse"
-        method="POST"
-        target="hidden_iframe"
-        style="display:none;">
-  </form>
-
-  <iframe name="hidden_iframe" style="display:none;"></iframe>
-
-  <!-- ========== GAME SCRIPT ========== -->
-  <script defer src="js/weather.js"></script>
-
+    <script src="weather.js"></script>
 </body>
 </html>
