@@ -9,7 +9,7 @@
 */
 
 document.addEventListener("DOMContentLoaded", function () {
-  // ===== STUDENT INFO =====
+  // ====== STUDENT INFO ======
   const studentName = localStorage.getItem("studentName") || "";
   const studentClass = localStorage.getItem("studentClass") || "";
   if (!studentName || !studentClass) {
