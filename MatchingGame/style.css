@@ -437,6 +437,16 @@ input, select, button {
   z-index: 3000;
 }
 
+#stopBtn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 100px;  
+  height: 100px;
+  cursor: pointer;
+  z-index: 3000;
+}
+
 /* Modal Buttons - all 120px */
 #end-modal-content img {
   width: 100px !important;
