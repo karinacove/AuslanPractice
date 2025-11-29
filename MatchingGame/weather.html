@@ -1,52 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather & Clothing Match Game</title>
-
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auslan Weather Matching Game</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="js/weather.js" defer></script>
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
 </head>
 <body>
+  <div id="header">
+  <div id="student-info"></div>
+  <div id="score-display"></div>
+  <h1 id="levelTitle">Level 1</h1>
+  </div>
+  
+  <img id="stop-btn" src="assets/stop.png" alt="Stop Game" />
+  
+  <div class="layout">
+    <div class="left-signs" id="leftSigns"></div>
+    <div id="gameBoard"></div>
+    <div class="right-signs" id="rightSigns"></div>
+  </div>
 
-    <div id="gameContainer">
+<!-- Modal popup -->
+<div id="end-modal">
+  <div id="end-modal-content">
+    <p id="score-display-modal">Score: 0</p>
+    <img id="continue-btn" src="assets/continue.png" alt="Continue" />
+    <img id="finish-btn" src="assets/finish.png" alt="Finish" />
+    <img id="again-btn" src="assets/again.png" alt="Play Again" />
+  </div>
+</div>
 
-        <!-- Title (optional: remove if using graphical title inside HTML) -->
-        <h1 id="gameTitle">Weather & Clothing Match</h1>
-
-        <!-- Level Display -->
-        <div id="levelInfo">
-            <span id="levelText">Level 1</span>
-        </div>
-
-        <!-- MAIN GAME AREA -->
-        <div id="gameArea">
-
-            <!-- LEFT COLUMN (source items) -->
-            <div id="leftColumn" class="column">
-                <h2 class="columnTitle" id="leftTitle"></h2>
-                <div id="leftItems" class="itemContainer"></div>
-            </div>
-
-            <!-- RIGHT COLUMN (targets) -->
-            <div id="rightColumn" class="column">
-                <h2 class="columnTitle" id="rightTitle"></h2>
-                <div id="rightItems" class="itemContainer"></div>
-            </div>
-
-        </div>
-
-        <!-- FEEDBACK TEXT -->
-        <div id="feedback"></div>
-
-        <!-- CONTROL BUTTONS -->
-        <div id="controls">
-            <button id="checkBtn" class="controlButton">Check</button>
-            <button id="nextBtn" class="controlButton" style="display:none;">Next</button>
-        </div>
-
-    </div>
-
-    <script src="weather.js"></script>
 </body>
 </html>
