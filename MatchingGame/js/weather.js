@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", function () {
     { key:"windy", obviousClothing:["jumper","socks","shoes","pants","jacket"], clipart:"assets/weather/clipart/windy.png", sign:"assets/weather/signs/windy.png" },
     { key:"snowy", obviousClothing:["gloves","scarf","beanie","socks","shoes","jumper","jacket"], clipart:"assets/weather/clipart/snowy.png", sign:"assets/weather/signs/snowy.png" },
     { key:"cold", obviousClothing:["gloves","scarf","beanie","socks","shoes","jumper","jacket"], clipart:"assets/weather/clipart/snowy.png", sign:"assets/weather/signs/cold.png" },
-    { key:"hot", obviousClothing:["hat","shirt","shorts","thongs","bathers","skirt","dress"], clipart:"assets/weather/clipart/sunny.png", sign:"assets/weather/signs/hot.png" }
+    { key:"hot", obviousClothing:["hat","shirt","shorts","thongs","bathers","skirt","dress"], clipart:"assets/weather/clipart/sunny.png", sign:"assets/weather/signs/hot.png" },
     { key:"earthquake", obviousClothing:["clothes"], clipart:"assets/weather/clipart/earthquake.png", sign:"assets/weather/signs/earthquake.png" },
     { key:"weather", obviousClothing:["clothes"], clipart:"assets/weather/clipart/weather.png", sign:"assets/weather/signs/weather.png" },
     { key:"cyclone", obviousClothing:["clothes"], clipart:"assets/weather/clipart/cyclone.png", sign:"assets/weather/signs/cyclone.png" },
@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", function () {
     { key:"umbrella", clipart:"assets/clothing/clipart/umbrella.png", sign:"assets/clothing/signs/umbrella.png", primaryWeather:"rainy" },
     { key:"gloves", clipart:"assets/clothing/clipart/gloves.png", sign:"assets/clothing/signs/gloves.png", primaryWeather:"snowy" },
     { key:"scarf", clipart:"assets/clothing/clipart/scarf.png", sign:"assets/clothing/signs/scarf.png", primaryWeather:"snowy" },
-    { key:"beanie", clipart:"assets/clothing/clipart/beanie.png", sign:"assets/clothing/signs/beanie.png", primaryWeather:"snowy" }
+    { key:"beanie", clipart:"assets/clothing/clipart/beanie.png", sign:"assets/clothing/signs/beanie.png", primaryWeather:"snowy" },
     { key:"clothes", clipart:"assets/clothing/clipart/clothes.png", signs:"assets/clothing/signs/clothes.png", primaryWeather: "rainbow","cyclone","weather", "earthquake" }
   ];
 
