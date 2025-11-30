@@ -153,42 +153,55 @@ document.addEventListener("DOMContentLoaded", function () {
   // ----------------------------
   // Match checking logic
   // ----------------------------
-  // draggedKey = key of the dragged item (from leftPool)
-  // slotKey = key of the target slot (rightPool)
-  function checkMatch(slotKey, draggedKey){
-    const lvl = currentLevel;
+function checkMatch(slotKey, draggedKey) {
+  const lvl = currentLevel;
 
-    // levels 0 & 1: weather <-> weather (exact)
-    if(lvl === 0 || lvl === 1){
-      return slotKey === draggedKey;
-    }
-
-    // levels 2 & 3: clothing <-> clothing (exact)
-    if(lvl === 2 || lvl === 3){
-      return slotKey === draggedKey;
-    }
-
-    // level 4: weather (draggable) -> clothing (slot). OK if weather.allowedClothing includes slotKey
-    if(lvl === 4){
-      const weather = W[draggedKey];
-      if(!weather) return false;
-      return weather.allowedClothing.includes(slotKey);
-    }
-
-    // level 5: clothing (draggable) -> weather (slot). OK if weather.allowedClothing includes draggedKey
-    if(lvl === 5){
-      const weather = W[slotKey];
-      if(!weather) return false;
-      return weather.allowedClothing.includes(draggedKey);
-    }
-    // Level 6: Clothing → Weather
-    if (lvl === 6) {
-      const clothing = C[draggedKey];
-      if (!clothing) return false;
-      return clothing.primaryWeather === slotKey;
-    }
-    return false;
+  // ----------------------------
+  // Levels 0 & 1: Weather ↔ Weather (exact match)
+  // ----------------------------
+  if (lvl === 0 || lvl === 1) {
+    return slotKey === draggedKey;
   }
+
+  // ----------------------------
+  // Levels 2 & 3: Clothing ↔ Clothing (exact match)
+  // ----------------------------
+  if (lvl === 2 || lvl === 3) {
+    return slotKey === draggedKey;
+  }
+
+  // ----------------------------
+  // Level 4: Weather (draggable) → Clothing (slot)
+  // Match if the slotKey is allowed for this weather
+  // ----------------------------
+  if (lvl === 4) {
+    const weather = W[draggedKey];
+    if (!weather || !Array.isArray(weather.allowedClothing)) return false;
+    return weather.allowedClothing.includes(slotKey);
+  }
+
+  // ----------------------------
+  // Level 5: Clothing (draggable) → Weather (slot)
+  // Match if the weather (slot) allows this clothing
+  // ----------------------------
+  if (lvl === 5) {
+    const weather = W[slotKey];
+    if (!weather || !Array.isArray(weather.allowedClothing)) return false;
+    return weather.allowedClothing.includes(draggedKey);
+  }
+
+  // ----------------------------
+  // Level 6: Clothing → Weather (advanced)
+  // Match only if dragged clothing's primaryWeather equals slotKey
+  // ----------------------------
+  if (lvl === 6) {
+    const clothing = C[draggedKey];
+    if (!clothing || !clothing.primaryWeather) return false;
+    return clothing.primaryWeather === slotKey;
+  }
+
+  return false; // fallback
+}
 
   // ----------------------------
   // Drag & Drop + Touch support
@@ -314,128 +327,136 @@ document.addEventListener("DOMContentLoaded", function () {
   // ----------------------------
   // Page / Level generation
   // ----------------------------
-  function loadPage(){
-    const info = levels[currentLevel];
-    levelTitleEl.innerText = `Level ${currentLevel+1}: ${info.name}`;
-    leftSigns.innerHTML = "";
-    rightSigns.innerHTML = "";
-    gameBoard.innerHTML = "";
+function loadPage() {
+  const info = levels[currentLevel];
+  levelTitleEl.innerText = `Level ${currentLevel + 1}: ${info.name}`;
+  leftSigns.innerHTML = "";
+  rightSigns.innerHTML = "";
+  gameBoard.innerHTML = "";
 
-  // select up to 9 left items and build slots based on them
-const leftPool = shuffle(info.leftPool).slice(0, Math.min(9, info.leftPool.length));
+  // ----------------------------
+  // Select left items
+  // ----------------------------
+  const leftPool = shuffle(info.leftPool).slice(0, Math.min(9, info.leftPool.length));
 
-// choose right targets based on left items and level semantics
-const slots = leftPool.map(leftKey => {
-  let rightKey = null;
+  // ----------------------------
+  // Generate slots (right targets)
+  // ----------------------------
+  const slots = leftPool.map(leftKey => {
+    let rightKey = null;
 
-  // Levels 0–3: simple 1:1 same-topic matching
-  if (currentLevel === 0 || currentLevel === 1) rightKey = leftKey;
-  else if (currentLevel === 2 || currentLevel === 3) rightKey = leftKey;
-   // level 4
-   else if (currentLevel === 4) {
-     const w = W[leftKey];
-
-     if (w) {
-       if (w.obviousClothing) {
-         rightKey = w.obviousClothing;
-       } else if (Array.isArray(w.allowedClothing) && w.allowedClothing.length > 0) {
-         rightKey = w.allowedClothing[0];
-       } else {
-         // safe fallback
-         rightKey = shuffle(allClothing)[0];
-       }
-     } else {
-       // leftKey wasn't a weather key (bad data), safe fallback
-       rightKey = shuffle(allClothing)[0];
-     }
-   }
-
-  // Level 5: Clothing → Weather (using primaryWeather)
-  else if (currentLevel === 5) {
-    const c = C[leftKey];
-    rightKey =
-      (c && c.primaryWeather) ? c.primaryWeather :
-      shuffle(allWeather)[0];
-  }
-
-  // Level 6 DOES NOT GO HERE — matching logic only, not slot generation
-
-  return { leftKey, rightKey };
-});
-
-    // Build slots in center for right items (these are the drop targets)
-    slots.forEach(s => {
-      const slot = document.createElement("div");
-      slot.style.width = "";
-      // dataset key must be the rightKey (target)
-      let keyForTarget = s.rightKey;
-      if(!keyForTarget){
-        // fallback: random from rightPool
-        keyForTarget = shuffle(info.rightPool)[0];
+    if (currentLevel >= 0 && currentLevel <= 3) {
+      // Levels 0–3: same-topic exact match
+      rightKey = leftKey;
+    } else if (currentLevel === 4) {
+      // Level 4: Weather (left) → Clothing (slot)
+      const w = W[leftKey];
+      if (w) {
+        if (w.obviousClothing) rightKey = w.obviousClothing;
+        else if (Array.isArray(w.allowedClothing) && w.allowedClothing.length > 0) rightKey = w.allowedClothing[0];
       }
-      slot.dataset.key = keyForTarget;
-      // background per rightMode
-      const isWeather = !!W[keyForTarget];
-      const itemObj = isWeather ? W[keyForTarget] : C[keyForTarget];
-      const bg = (info.rightMode === "clipart") ? itemObj.clipart : itemObj.sign;
-      slot.style.backgroundImage = `url('${bg}')`;
-      slot.style.backgroundSize = "contain";
-      slot.style.backgroundPosition = "center";
-      slot.style.backgroundRepeat = "no-repeat";
-      slot.style.width = "120px";
-      slot.style.height = "120px";
-      slot.style.margin = "10px";
-      slot.style.border = "none";
-      slot.style.boxSizing = "border-box";
-      // add proper classes to be styled by your CSS
-      slot.className = "slot";
-      makeSlotDroppable(slot);
-      gameBoard.appendChild(slot);
-    });
+      // fallback to random clothing
+      if (!rightKey) rightKey = shuffle(allClothing).find(k => C[k]) || allClothing[0];
+    } else if (currentLevel === 5) {
+      // Level 5: Clothing (left) → Weather (slot)
+      const c = C[leftKey];
+      if (c && c.primaryWeather) rightKey = c.primaryWeather;
+      else rightKey = shuffle(allWeather).find(k => W[k]) || allWeather[0];
+    }
 
-    // Draggables: present the left keys (leftPool) as draggable images
-    // plus some decoys from left pool to reach up to 9 draggables total
-    let draggableKeys = leftPool.slice();
-    // add decoys if needed (from leftPool universe)
-    const needed = Math.max(0, 9 - draggableKeys.length);
-    const candidates = shuffle(info.leftPool).filter(k=>!draggableKeys.includes(k));
-    for(let i=0;i<needed && i<candidates.length;i++) draggableKeys.push(candidates[i]);
+    // Ensure rightKey is valid in pool
+    if (!rightKey || !(W[rightKey] || C[rightKey])) {
+      rightKey = shuffle(info.rightPool).find(k => W[k] || C[k]) || info.rightPool[0];
+    }
 
-    draggableKeys = shuffle(Array.from(new Set(draggableKeys))).slice(0,9);
+    return { leftKey, rightKey };
+  });
 
-    // create draggable nodes and put half in leftSigns and half in rightSigns
-    const half = Math.ceil(draggableKeys.length / 2);
-    draggableKeys.forEach((key, idx) => {
-      const wrapper = document.createElement("div");
-      wrapper.className = "drag-wrapper";
-      wrapper.style.width = "120px";
-      wrapper.style.height = "120px";
-      wrapper.style.display = "flex";
-      wrapper.style.justifyContent = "center";
-      wrapper.style.alignItems = "center";
-      wrapper.style.margin = "8px";
+  // ----------------------------
+  // Build slots in gameBoard
+  // ----------------------------
+  slots.forEach(s => {
+    const slot = document.createElement("div");
+    slot.style.width = "";
+    slot.style.height = "120px";
+    slot.style.margin = "10px";
+    slot.style.border = "none";
+    slot.style.boxSizing = "border-box";
+    slot.style.display = "inline-block";
+    slot.style.verticalAlign = "top";
 
-      const img = document.createElement("img");
-      img.style.width = "100%";
-      img.style.height = "100%";
-      img.style.objectFit = "contain";
+    const keyForTarget = s.rightKey;
+    slot.dataset.key = keyForTarget;
 
-      const isWeather = !!W[key];
-      const obj = isWeather ? W[key] : C[key];
-      const src = (info.leftMode === "clipart") ? obj.clipart : obj.sign;
-      img.src = src;
-      makeDraggable(img, key);
+    const isWeather = !!W[keyForTarget];
+    const itemObj = isWeather ? W[keyForTarget] : C[keyForTarget];
 
-      wrapper.appendChild(img);
-      if(idx < half) leftSigns.appendChild(wrapper);
-      else rightSigns.appendChild(wrapper);
-    });
+    if (!itemObj) {
+      console.warn("Missing data for slotKey:", keyForTarget);
+      return; // skip invalid slot
+    }
 
-    // reset counters
-    correctMatches = 0;
-    updateScore();
-    saveProgress();
-  }
+    const bg = (info.rightMode === "clipart") ? itemObj.clipart : itemObj.sign;
+    slot.style.backgroundImage = `url('${bg}')`;
+    slot.style.backgroundSize = "contain";
+    slot.style.backgroundPosition = "center";
+    slot.style.backgroundRepeat = "no-repeat";
+
+    slot.className = "slot";
+    makeSlotDroppable(slot);
+    gameBoard.appendChild(slot);
+  });
+
+  // ----------------------------
+  // Draggables (left items + decoys)
+  // ----------------------------
+  let draggableKeys = leftPool.slice();
+  const needed = Math.max(0, 9 - draggableKeys.length);
+  const candidates = shuffle(info.leftPool).filter(k => !draggableKeys.includes(k));
+  for (let i = 0; i < needed && i < candidates.length; i++) draggableKeys.push(candidates[i]);
+
+  draggableKeys = shuffle(Array.from(new Set(draggableKeys))).slice(0, 9);
+
+  const half = Math.ceil(draggableKeys.length / 2);
+  draggableKeys.forEach((key, idx) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "drag-wrapper";
+    wrapper.style.width = "120px";
+    wrapper.style.height = "120px";
+    wrapper.style.display = "flex";
+    wrapper.style.justifyContent = "center";
+    wrapper.style.alignItems = "center";
+    wrapper.style.margin = "8px";
+
+    const img = document.createElement("img");
+    img.style.width = "100%";
+    img.style.height = "100%";
+    img.style.objectFit = "contain";
+
+    const isWeather = !!W[key];
+    const obj = isWeather ? W[key] : C[key];
+
+    // safe check
+    if (!obj) {
+      console.warn("Missing data for draggable key:", key);
+      return;
+    }
+
+    img.src = (info.leftMode === "clipart") ? obj.clipart : obj.sign;
+    makeDraggable(img, key);
+
+    wrapper.appendChild(img);
+    if (idx < half) leftSigns.appendChild(wrapper);
+    else rightSigns.appendChild(wrapper);
+  });
+
+  // ----------------------------
+  // Reset counters
+  // ----------------------------
+  correctMatches = 0;
+  updateScore();
+  saveProgress();
+}
 
   // ----------------------------
   // Modal / Buttons behaviour
