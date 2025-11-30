@@ -174,6 +174,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ====== DRAG & DROP ======
   const drop = e => {
+    if (paused) return;
     e.preventDefault();
     const letter = e.dataTransfer.getData("text/plain");
     const src = e.dataTransfer.getData("src");
@@ -206,6 +207,7 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   const touchStart = e => {
+    if (paused) return;
     const target = e.target, letter = target.dataset.letter, src = target.src;
     const clone = target.cloneNode(true);
     clone.style.position = "absolute"; clone.style.pointerEvents = "none";
