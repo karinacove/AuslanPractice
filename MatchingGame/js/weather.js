@@ -345,14 +345,24 @@ const slots = leftPool.map(leftKey => {
   // Levels 0–3: simple 1:1 same-topic matching
   if (currentLevel === 0 || currentLevel === 1) rightKey = leftKey;
   else if (currentLevel === 2 || currentLevel === 3) rightKey = leftKey;
+   // level 4
+   else if (currentLevel === 4) {
+     const w = W[leftKey];
 
-  // Level 4: Weather → Clothing (obvious clothing only)
-  else if (currentLevel === 4) {
-    const w = W[leftKey];
-    rightKey =
-      (w && w.obviousClothing) ? w.obviousClothing :
-      (w ? w.allowedClothing[0] : null);
-  }
+     if (w) {
+       if (w.obviousClothing) {
+         rightKey = w.obviousClothing;
+       } else if (Array.isArray(w.allowedClothing) && w.allowedClothing.length > 0) {
+         rightKey = w.allowedClothing[0];
+       } else {
+         // safe fallback
+         rightKey = shuffle(allClothing)[0];
+       }
+     } else {
+       // leftKey wasn't a weather key (bad data), safe fallback
+       rightKey = shuffle(allClothing)[0];
+     }
+   }
 
   // Level 5: Clothing → Weather (using primaryWeather)
   else if (currentLevel === 5) {
