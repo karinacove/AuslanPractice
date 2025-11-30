@@ -8,30 +8,37 @@
   <script src="js/weather.js" defer></script>
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
 </head>
+
 <body>
   <div id="header">
-  <div id="student-info"></div>
-  <div id="score-display"></div>
-  <h1 id="levelTitle">Level 1</h1>
+    <div id="student-info"></div>
+    <div id="score-display"></div>
+    <h1 id="levelTitle">Level 1</h1>
   </div>
-  
+
   <img id="stop-btn" src="assets/stop.png" alt="Stop Game" />
-  
+
+  <!-- NEW: 3-column layout container -->
   <div class="layout">
+    <!-- Left column: weather -->
     <div class="left-signs" id="leftSigns"></div>
-    <div id="gameBoard"></div>
+
+    <!-- Middle column: blank answer slots -->
+    <div class="middle-slots" id="middleSlots"></div>
+
+    <!-- Right column: clothing items -->
     <div class="right-signs" id="rightSigns"></div>
   </div>
 
-<!-- Modal popup -->
-<div id="end-modal">
-  <div id="end-modal-content">
-    <p id="score-display-modal">Score: 0</p>
-    <img id="continue-btn" src="assets/continue.png" alt="Continue" />
-    <img id="finish-btn" src="assets/finish.png" alt="Finish" />
-    <img id="again-btn" src="assets/again.png" alt="Play Again" />
+  <!-- Modal popup -->
+  <div id="end-modal">
+    <div id="end-modal-content">
+      <p id="score-display-modal">Score: 0</p>
+      <img id="continue-btn" src="assets/continue.png" alt="Continue" />
+      <img id="finish-btn" src="assets/finish.png" alt="Finish" />
+      <img id="again-btn" src="assets/again.png" alt="Play Again" />
+    </div>
   </div>
-</div>
 
 </body>
 </html>
