@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
     { key:"gloves", clipart:"assets/clothing/clipart/gloves.png", sign:"assets/clothing/signs/gloves.png", primaryWeather:"snowy" },
     { key:"scarf", clipart:"assets/clothing/clipart/scarf.png", sign:"assets/clothing/signs/scarf.png", primaryWeather:"snowy" },
     { key:"beanie", clipart:"assets/clothing/clipart/beanie.png", sign:"assets/clothing/signs/beanie.png", primaryWeather:"snowy" },
-    { key:"clothes", clipart:"assets/clothing/clipart/clothes.png", signs:"assets/clothing/signs/clothes.png", primaryWeather: "rainbow","cyclone","weather", "earthquake" }
+    { key:"clothes", clipart:"assets/clothing/clipart/clothes.png", signs:"assets/clothing/signs/clothes.png", primaryWeather: "weather" }
   ];
 
   // Quick lookups
