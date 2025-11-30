@@ -101,8 +101,8 @@ document.addEventListener("DOMContentLoaded", function () {
     { name: "Clothing Signs → Clothing Images", leftPool: allClothing, rightPool: allClothing, leftMode: "sign", rightMode: "clipart" },
     { name: "Clothing Images → Clothing Signs", leftPool: allClothing, rightPool: allClothing, leftMode: "clipart", rightMode: "sign" },
     { name: "Weather Signs → Clothing Images", leftPool: allWeather, rightPool: allClothing, leftMode: "sign", rightMode: "clipart" },
-    { name: "Clothing Signs → Weather Images", leftPool: allClothing, rightPool: allWeather, leftMode: "sign", rightMode: "clipart" }
-  ];
+   { name: "Clothing Signs → Weather Images", leftPool: allClothing, rightPool: allWeather, leftMode: "sign", rightMode: "clipart" }
+ ];
 
   // feedback image element (correct/wrong)
   const feedbackImage = document.createElement("img");
@@ -195,7 +195,12 @@ document.addEventListener("DOMContentLoaded", function () {
       if(!weather) return false;
       return weather.allowedClothing.includes(draggedKey);
     }
-
+    // Level 6: Clothing → Weather
+    if (lvl === 6) {
+      const clothing = C[draggedKey];
+      if (!clothing) return false;
+      return clothing.primaryWeather === slotKey;
+    }
     return false;
   }
 
@@ -330,24 +335,37 @@ document.addEventListener("DOMContentLoaded", function () {
     rightSigns.innerHTML = "";
     gameBoard.innerHTML = "";
 
-    // select up to 9 left items and build slots based on them
-    const leftPool = shuffle(info.leftPool).slice(0, Math.min(9, info.leftPool.length));
-    // choose right targets based on left items and level semantics
-    const slots = leftPool.map(leftKey => {
-      let rightKey = null;
-      if(currentLevel === 0 || currentLevel === 1) rightKey = leftKey;
-      else if(currentLevel === 2 || currentLevel === 3) rightKey = leftKey;
-      else if(currentLevel === 4){
-        // left is weather, right should be obvious clothing (ensure a valid clothing target)
-        const w = W[leftKey];
-        rightKey = w && w.obviousClothing ? w.obviousClothing : (w? w.allowedClothing[0] : null);
-      } else if(currentLevel === 5){
-        // left is clothing, right should be clothing.primaryWeather (a weather key)
-        const c = C[leftKey];
-        rightKey = c && c.primaryWeather ? c.primaryWeather : (allWeather[0]);
-      }
-      return { leftKey, rightKey };
-    });
+  // select up to 9 left items and build slots based on them
+const leftPool = shuffle(info.leftPool).slice(0, Math.min(9, info.leftPool.length));
+
+// choose right targets based on left items and level semantics
+const slots = leftPool.map(leftKey => {
+  let rightKey = null;
+
+  // Levels 0–3: simple 1:1 same-topic matching
+  if (currentLevel === 0 || currentLevel === 1) rightKey = leftKey;
+  else if (currentLevel === 2 || currentLevel === 3) rightKey = leftKey;
+
+  // Level 4: Weather → Clothing (obvious clothing only)
+  else if (currentLevel === 4) {
+    const w = W[leftKey];
+    rightKey =
+      (w && w.obviousClothing) ? w.obviousClothing :
+      (w ? w.allowedClothing[0] : null);
+  }
+
+  // Level 5: Clothing → Weather (using primaryWeather)
+  else if (currentLevel === 5) {
+    const c = C[leftKey];
+    rightKey =
+      (c && c.primaryWeather) ? c.primaryWeather :
+      shuffle(allWeather)[0];
+  }
+
+  // Level 6 DOES NOT GO HERE — matching logic only, not slot generation
+
+  return { leftKey, rightKey };
+});
 
     // Build slots in center for right items (these are the drop targets)
     slots.forEach(s => {
