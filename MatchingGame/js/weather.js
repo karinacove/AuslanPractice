@@ -1,19 +1,5 @@
-/* weather.js — Full merged, production-ready
-   - Uses localStorage studentName & studentClass gating (must be set earlier)
-   - 6 levels:
-     0: Weather Signs -> Weather Images
-     1: Weather Images -> Weather Signs
-     2: Clothing Signs -> Clothing Images
-     3: Clothing Images -> Clothing Signs
-     4: Weather Signs -> Clothing Images (any allowed clothing counts)
-     5: Clothing Signs -> Weather Images (primary / allowed mapping used)
-   - Google Form mapping included at bottom
-*/
-
 document.addEventListener("DOMContentLoaded", function () {
-  // ----------------------------
-  // Student gating (must be set earlier)
-  // ----------------------------
+
   const studentName = localStorage.getItem("studentName") || "";
   const studentClass = localStorage.getItem("studentClass") || "";
 
