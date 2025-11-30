@@ -1,16 +1,18 @@
 document.addEventListener("DOMContentLoaded", function () {
 
+  // ----------------------------
+  // Student gating (must be set earlier)
+  // ----------------------------
   const studentName = localStorage.getItem("studentName") || "";
   const studentClass = localStorage.getItem("studentClass") || "";
 
   if (!studentName || !studentClass) {
-    // redirect to entry page if missing
     window.location.href = "../index.html";
     return;
   }
 
   // ----------------------------
-  // DOM
+  // DOM refs
   // ----------------------------
   const studentInfoEl = document.getElementById("student-info");
   const scoreDisplayEl = document.getElementById("score-display");
@@ -36,11 +38,12 @@ document.addEventListener("DOMContentLoaded", function () {
   const startTime = Date.now();
   const saveKey = "weatherClothingSave";
 
-  // track per-level attempts
+  // track per-level attempts (6 levels: indices 0..5)
   const levelAttempts = Array(6).fill(null).map(()=>({ correct: new Set(), incorrect: [] }));
 
   // ----------------------------
   // Data - weather & clothing items
+  // (Edit these assets/keys if you add/remove images)
   // ----------------------------
   const weatherItems = [
     { key:"sunny",  obviousClothing:"thongs", allowedClothing:["hat","shirt","shorts","thongs","bathers","skirt","dress"], clipart:"assets/weather/clipart/sunny.png", sign:"assets/weather/signs/sunny.png" },
@@ -49,6 +52,9 @@ document.addEventListener("DOMContentLoaded", function () {
     { key:"stormy", obviousClothing:"boots", allowedClothing:["jacket","socks","shoes","pants"], clipart:"assets/weather/clipart/stormy.png", sign:"assets/weather/signs/stormy.png" },
     { key:"windy",  obviousClothing:"jacket", allowedClothing:["jumper","socks","shoes","pants","jacket"], clipart:"assets/weather/clipart/windy.png", sign:"assets/weather/signs/windy.png" },
     { key:"snowy",  obviousClothing:"gloves", allowedClothing:["gloves","scarf","beanie","socks","shoes","jumper","jacket"], clipart:"assets/weather/clipart/snowy.png", sign:"assets/weather/signs/snowy.png" },
+    { key:"cold",  obviousClothing:"scarf", allowedClothing:["gloves","scarf","beanie","socks","shoes","jumper","jacket"], clipart:"assets/weather/clipart/snowy.png", sign:"assets/weather/signs/cold.png" },
+    { key:"hot",  obviousClothing:"hat", allowedClothing:["hat","shirt","shorts","thongs","bathers","skirt","dress"], clipart:"assets/weather/clipart/sunny.png", sign:"assets/weather/signs/hot.png" },
+    // these do not have clothing matches and should not be used for cross-topic levels
     { key:"earthquake", clipart:"assets/weather/clipart/earthquake.png", sign:"assets/weather/signs/earthquake.png" },
     { key:"weather", clipart:"assets/weather/clipart/weather.png", sign:"assets/weather/signs/weather.png" },
     { key:"cyclone", clipart:"assets/weather/clipart/cyclone.png", sign:"assets/weather/signs/cyclone.png" },
@@ -74,23 +80,29 @@ document.addEventListener("DOMContentLoaded", function () {
     { key:"beanie", clipart:"assets/clothing/clipart/beanie.png", sign:"assets/clothing/signs/beanie.png", primaryWeather:"snowy" }
   ];
 
-  // quick lookup
+  // quick lookup maps
   const W = Object.fromEntries(weatherItems.map(w=>[w.key,w]));
   const C = Object.fromEntries(clothingItems.map(c=>[c.key,c]));
   const allWeather = weatherItems.map(w=>w.key);
+  const matchableWeather = weatherItems.filter(w => Array.isArray(w.allowedClothing) && w.allowedClothing.length>0).map(w=>w.key);
   const allClothing = clothingItems.map(c=>c.key);
 
-  // level definitions
+  // ----------------------------
+  // Levels
+  // - use matchableWeather for cross-topic levels
+  // ----------------------------
   const levels = [
     { name: "Weather Signs → Weather Images", leftPool: allWeather, rightPool: allWeather, leftMode: "sign", rightMode: "clipart" },
     { name: "Weather Images → Weather Signs", leftPool: allWeather, rightPool: allWeather, leftMode: "clipart", rightMode: "sign" },
     { name: "Clothing Signs → Clothing Images", leftPool: allClothing, rightPool: allClothing, leftMode: "sign", rightMode: "clipart" },
     { name: "Clothing Images → Clothing Signs", leftPool: allClothing, rightPool: allClothing, leftMode: "clipart", rightMode: "sign" },
-    { name: "Weather Signs → Clothing Images", leftPool: allWeather, rightPool: allClothing, leftMode: "sign", rightMode: "clipart" },
-   { name: "Clothing Signs → Weather Images", leftPool: allClothing, rightPool: allWeather, leftMode: "sign", rightMode: "clipart" }
- ];
+    { name: "Weather Signs → Clothing Images", leftPool: matchableWeather, rightPool: allClothing, leftMode: "sign", rightMode: "clipart" },
+    { name: "Clothing Signs → Weather Images", leftPool: allClothing, rightPool: matchableWeather, leftMode: "sign", rightMode: "clipart" }
+  ];
 
-  // feedback image element (correct/wrong)
+  // ----------------------------
+  // UI feedback element (correct/wrong)
+  // ----------------------------
   const feedbackImage = document.createElement("img");
   feedbackImage.id = "feedbackImage";
   Object.assign(feedbackImage.style, {
@@ -107,13 +119,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // utilities
   function shuffle(arr){ return arr.slice().sort(()=>Math.random()-0.5); }
-
   function showFeedback(correct){
     feedbackImage.src = correct ? "assets/correct.png" : "assets/wrong.png";
     feedbackImage.style.display = "block";
     setTimeout(()=>feedbackImage.style.display="none", 700);
   }
-
   function updateScore(){
     const totalCorrect = levelAttempts.reduce((s,l)=>s+l.correct.size,0);
     const totalIncorrect = levelAttempts.reduce((s,l)=>s+l.incorrect.length,0);
@@ -122,7 +132,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return percent;
   }
 
-  // save/restore
+  // safe save/restore helpers (used later)
   function saveProgress(){
     try{
       localStorage.setItem(saveKey, JSON.stringify({
@@ -130,7 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
         levelAttempts: levelAttempts.map(l=>({ correct:Array.from(l.correct), incorrect:l.incorrect })),
         timestamp: Date.now()
       }));
-    }catch(e){ console.warn("Save failed", e); }
+    }catch(e){ console.warn("saveProgress failed", e); }
   }
 
   function restoreProgress(){
@@ -147,82 +157,167 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       }
       return true;
-    }catch(e){ return false; }
+    }catch(e){
+      console.warn("restoreProgress failed", e);
+      return false;
+    }
   }
 
   // ----------------------------
-  // Match checking logic
+  // Main level/page builder — bulletproof safe
   // ----------------------------
-function checkMatch(slotKey, draggedKey) {
-  const lvl = currentLevel;
+  function loadPage(){
+    const info = levels[currentLevel];
+    levelTitleEl.innerText = `Level ${currentLevel+1}: ${info.name}`;
+    leftSigns.innerHTML = "";
+    rightSigns.innerHTML = "";
+    gameBoard.innerHTML = "";
 
-  // ----------------------------
-  // Levels 0 & 1: Weather ↔ Weather (exact match)
-  // ----------------------------
-  if (lvl === 0 || lvl === 1) {
-    return slotKey === draggedKey;
+    // select up to 9 left items
+    const leftPool = shuffle(info.leftPool).slice(0, Math.min(9, info.leftPool.length));
+
+    // build slot mapping
+    const slots = leftPool.map(leftKey => {
+      let rightKey = null;
+
+      // 0-3 same-topic exact mapping (leftKey is the same)
+      if (currentLevel >= 0 && currentLevel <= 3) {
+        rightKey = leftKey;
+      }
+      // Level 4: Weather (left) -> Clothing (right)
+      else if (currentLevel === 4) {
+        const w = W[leftKey];
+        if (w && w.obviousClothing && C[w.obviousClothing]) {
+          rightKey = w.obviousClothing;
+        } else if (w && Array.isArray(w.allowedClothing)) {
+          // Pick first allowed clothing that exists in C
+          rightKey = w.allowedClothing.find(k => C[k]) || null;
+        }
+        if (!rightKey) rightKey = shuffle(allClothing).find(k=>C[k]) || allClothing[0];
+      }
+      // Level 5: Clothing (left) -> Weather (right)
+      else if (currentLevel === 5) {
+        const c = C[leftKey];
+        if (c && c.primaryWeather && matchableWeather.includes(c.primaryWeather)) {
+          rightKey = c.primaryWeather;
+        } else {
+          rightKey = shuffle(matchableWeather).find(k => W[k]) || matchableWeather[0];
+        }
+      }
+
+      // final safety: rightKey must be in the rightPool and exist in maps
+      if (!rightKey || !(W[rightKey] || C[rightKey]) || !info.rightPool.includes(rightKey)) {
+        // try to choose a valid one from info.rightPool
+        rightKey = shuffle(info.rightPool).find(k => W[k] || C[k]) || info.rightPool[0];
+      }
+
+      return { leftKey, rightKey };
+    });
+
+    // create visual slots (targets) for each rightKey
+    slots.forEach(s => {
+      const slot = document.createElement("div");
+      slot.style.display = "inline-block";
+      slot.style.width = "120px";
+      slot.style.height = "120px";
+      slot.style.margin = "10px";
+      slot.style.boxSizing = "border-box";
+
+      const keyForTarget = s.rightKey;
+      slot.dataset.key = keyForTarget;
+
+      // choose item object safely
+      const isWeather = keyForTarget in W;
+      let itemObj = isWeather ? W[keyForTarget] : C[keyForTarget];
+
+      if (!itemObj) {
+        // try fallback from rightPool
+        const fallback = shuffle(info.rightPool).find(k => W[k] || C[k]);
+        if (fallback) itemObj = (fallback in W) ? W[fallback] : C[fallback];
+        if (!itemObj) {
+          console.warn("No valid itemObj for slot:", s);
+          return; // skip this slot
+        }
+      }
+
+      const bg = (info.rightMode === "clipart") ? itemObj.clipart : itemObj.sign;
+      slot.style.backgroundImage = `url('${bg}')`;
+      slot.style.backgroundSize = "contain";
+      slot.style.backgroundPosition = "center";
+      slot.style.backgroundRepeat = "no-repeat";
+
+      slot.className = "slot";
+      makeSlotDroppable(slot);
+      gameBoard.appendChild(slot);
+    });
+
+    // build draggable keys (left items + decoys if needed)
+    let draggableKeys = leftPool.slice();
+    const needed = Math.max(0, 9 - draggableKeys.length);
+    const candidates = shuffle(info.leftPool).filter(k => !draggableKeys.includes(k));
+    for (let i=0;i<needed && i<candidates.length;i++) draggableKeys.push(candidates[i]);
+
+    draggableKeys = shuffle(Array.from(new Set(draggableKeys))).slice(0,9);
+
+    // render draggables into leftSigns and rightSigns
+    const half = Math.ceil(draggableKeys.length / 2);
+    draggableKeys.forEach((key, idx) => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "drag-wrapper";
+      wrapper.style.width = "120px";
+      wrapper.style.height = "120px";
+      wrapper.style.display = "flex";
+      wrapper.style.justifyContent = "center";
+      wrapper.style.alignItems = "center";
+      wrapper.style.margin = "8px";
+
+      const img = document.createElement("img");
+      img.style.width = "100%";
+      img.style.height = "100%";
+      img.style.objectFit = "contain";
+
+      const isWeather = key in W;
+      let obj = isWeather ? W[key] : C[key];
+      if (!obj) {
+        console.warn("Missing data for draggable key:", key);
+        return;
+      }
+
+      img.src = (info.leftMode === "clipart") ? obj.clipart : obj.sign;
+      makeDraggable(img, key);
+
+      wrapper.appendChild(img);
+      if (idx < half) leftSigns.appendChild(wrapper);
+      else rightSigns.appendChild(wrapper);
+    });
+
+    // reset counters & save
+    correctMatches = 0;
+    updateScore();
+    saveProgress();
   }
 
   // ----------------------------
-  // Levels 2 & 3: Clothing ↔ Clothing (exact match)
-  // ----------------------------
-  if (lvl === 2 || lvl === 3) {
-    return slotKey === draggedKey;
-  }
-
-  // ----------------------------
-  // Level 4: Weather (draggable) → Clothing (slot)
-  // Match if the slotKey is allowed for this weather
-  // ----------------------------
-  if (lvl === 4) {
-    const weather = W[draggedKey];
-    if (!weather || !Array.isArray(weather.allowedClothing)) return false;
-    return weather.allowedClothing.includes(slotKey);
-  }
-
-  // ----------------------------
-  // Level 5: Clothing (draggable) → Weather (slot)
-  // Match if the weather (slot) allows this clothing
-  // ----------------------------
-  if (lvl === 5) {
-    const weather = W[slotKey];
-    if (!weather || !Array.isArray(weather.allowedClothing)) return false;
-    return weather.allowedClothing.includes(draggedKey);
-  }
-
-  // ----------------------------
-  // Level 6: Clothing → Weather (advanced)
-  // Match only if dragged clothing's primaryWeather equals slotKey
-  // ----------------------------
-  if (lvl === 6) {
-    const clothing = C[draggedKey];
-    if (!clothing || !clothing.primaryWeather) return false;
-    return clothing.primaryWeather === slotKey;
-  }
-
-  return false; // fallback
-}
-
-  // ----------------------------
-  // Drag & Drop + Touch support
+  // Draggables + touch handling
   // ----------------------------
   function makeDraggable(img, key){
     img.classList.add("draggable");
     img.draggable = true;
     img.dataset.key = key;
+
     img.addEventListener("dragstart", e=>{
       e.dataTransfer.setData("text/plain", key);
       e.dataTransfer.setData("src", img.src || "");
-      // small mime to detect type if needed
-      e.dataTransfer.setData("kind", W[key] ? "weather" : "clothing");
+      e.dataTransfer.setData("kind", (key in W) ? "weather" : "clothing");
     });
-    // touch support
+
+    // touch support (clone + simulate drop)
     img.addEventListener("touchstart", function touchStart(ev){
       ev.preventDefault();
       const clone = img.cloneNode(true);
       clone.style.position = "absolute";
       clone.style.pointerEvents = "none";
-      clone.style.opacity = "0.85";
+      clone.style.opacity = "0.9";
       clone.style.zIndex = "10000";
       document.body.appendChild(clone);
 
@@ -232,20 +327,16 @@ function checkMatch(slotKey, draggedKey) {
       };
       move(ev.touches[0]);
 
-      function onMove(evm){
-        evm.preventDefault();
-        move(evm.touches[0]);
-      }
+      function onMove(evm){ evm.preventDefault(); move(evm.touches[0]); }
       function onEnd(evm){
         const touch = evm.changedTouches[0];
         const el = document.elementFromPoint(touch.clientX, touch.clientY);
         if(el && el.classList.contains("slot")){
-          // simulate drop
           const fakeEvent = {
             preventDefault: ()=>{},
             currentTarget: el,
             dataTransfer: {
-              getData: (k)=> k === "text/plain" ? key : (k === "src" ? img.src : "")
+              getData: k => (k==="text/plain" ? key : (k==="src" ? img.src : ""))
             }
           };
           handleDrop(fakeEvent);
@@ -259,10 +350,20 @@ function checkMatch(slotKey, draggedKey) {
     }, { passive:false });
   }
 
+  // attach drop listeners to slot
+  function makeSlotDroppable(slot){
+    slot.classList.add("slot");
+    slot.addEventListener("dragover", e => e.preventDefault());
+    slot.addEventListener("drop", handleDrop);
+  }
+
+  // ----------------------------
+  // Drop handler
+  // ----------------------------
   function handleDrop(e){
     e.preventDefault?.();
     const slot = e.currentTarget;
-    const slotKey = slot.dataset.key; // target (rightPool)
+    const slotKey = slot.dataset.key;
     const draggedKey = e.dataTransfer.getData("text/plain");
     const src = e.dataTransfer.getData("src");
 
@@ -271,34 +372,27 @@ function checkMatch(slotKey, draggedKey) {
     const isCorrect = checkMatch(slotKey, draggedKey);
 
     if(isCorrect){
-      // mark correct in attempts
       const lvlObj = levelAttempts[currentLevel];
-      if(!lvlObj.correct.has(`${draggedKey}->${slotKey}`)){
-        lvlObj.correct.add(`${draggedKey}->${slotKey}`);
-      }
+      const pair = `${draggedKey}->${slotKey}`;
+      if(!lvlObj.correct.has(pair)) lvlObj.correct.add(pair);
 
-      // show overlay: append an img (use provided src where possible)
       slot.innerHTML = "";
       const overlay = document.createElement("img");
       overlay.className = "overlay";
-      overlay.src = src || (W[draggedKey] ? (levels[currentLevel].leftMode==="clipart"? W[draggedKey].clipart : W[draggedKey].sign) : (C[draggedKey]? (levels[currentLevel].leftMode==="clipart"? C[draggedKey].clipart : C[draggedKey].sign) : ""));
+      overlay.src = src || ((draggedKey in W) ? W[draggedKey].clipart || W[draggedKey].sign : (C[draggedKey].clipart || C[draggedKey].sign));
       slot.appendChild(overlay);
 
-      // remove all draggables with same key (they should go away)
       document.querySelectorAll(`img.draggable[data-key='${draggedKey}']`).forEach(el=>el.remove());
 
       correctMatches++;
       showFeedback(true);
       updateScore();
 
-      // if all slots filled, move to next level or show modal if final
       const totalSlots = document.querySelectorAll(".slot").length;
       if(correctMatches >= totalSlots){
         correctMatches = 0;
         currentLevel++;
         if(currentLevel >= levels.length){
-          // finished game
-          // show modal & submit
           modal.style.display = "flex";
           endGame();
         } else {
@@ -306,163 +400,49 @@ function checkMatch(slotKey, draggedKey) {
         }
       }
     } else {
-      // incorrect
       levelAttempts[currentLevel].incorrect.push(`${draggedKey}->${slotKey}`);
       showFeedback(false);
-      // small shake animation
       slot.classList.add("shake");
       setTimeout(()=>slot.classList.remove("shake"), 450);
     }
     saveProgress();
   }
 
-  // attach drop handlers to a slot element
-  function makeSlotDroppable(slot){
-    slot.classList.add("slot");
-    slot.addEventListener("dragover", e => e.preventDefault());
-    slot.addEventListener("drop", handleDrop);
-    // touch drop handled by touchstart simulation on draggables
+  // ----------------------------
+  // Matching logic (safe)
+  // Levels:
+  // 0/1 weather<->weather exact
+  // 2/3 clothing<->clothing exact
+  // 4 weather->clothing (slot is clothing)
+  // 5 clothing->weather (slot is weather)
+  // ----------------------------
+  function checkMatch(slotKey, draggedKey){
+    const lvl = currentLevel;
+
+    if(lvl === 0 || lvl === 1) return slotKey === draggedKey;
+    if(lvl === 2 || lvl === 3) return slotKey === draggedKey;
+
+    if(lvl === 4){
+      // draggedKey should be weather; slotKey clothing
+      const weather = W[draggedKey];
+      if(!weather || !Array.isArray(weather.allowedClothing)) return false;
+      return weather.allowedClothing.includes(slotKey);
+    }
+
+    if(lvl === 5){
+      // draggedKey clothing -> slotKey weather
+      const weather = W[slotKey];
+      if(!weather || !Array.isArray(weather.allowedClothing)) return false;
+      return weather.allowedClothing.includes(draggedKey);
+    }
+
+    return false;
   }
-
-  // ----------------------------
-  // Page / Level generation
-  // ----------------------------
-function loadPage() {
-  const info = levels[currentLevel];
-  levelTitleEl.innerText = `Level ${currentLevel + 1}: ${info.name}`;
-  leftSigns.innerHTML = "";
-  rightSigns.innerHTML = "";
-  gameBoard.innerHTML = "";
-
-  // ----------------------------
-  // Select left items
-  // ----------------------------
-  const leftPool = shuffle(info.leftPool).slice(0, Math.min(9, info.leftPool.length));
-
-  // ----------------------------
-  // Generate slots (right targets)
-  // ----------------------------
-  const slots = leftPool.map(leftKey => {
-    let rightKey = null;
-
-    if (currentLevel >= 0 && currentLevel <= 3) {
-      // Levels 0–3: same-topic exact match
-      rightKey = leftKey;
-    } else if (currentLevel === 4) {
-      // Level 4: Weather (left) → Clothing (slot)
-      const w = W[leftKey];
-      if (w) {
-        if (w.obviousClothing) rightKey = w.obviousClothing;
-        else if (Array.isArray(w.allowedClothing) && w.allowedClothing.length > 0) rightKey = w.allowedClothing[0];
-      }
-      // fallback to random clothing
-      if (!rightKey) rightKey = shuffle(allClothing).find(k => C[k]) || allClothing[0];
-    } else if (currentLevel === 5) {
-      // Level 5: Clothing (left) → Weather (slot)
-      const c = C[leftKey];
-      if (c && c.primaryWeather) rightKey = c.primaryWeather;
-      else rightKey = shuffle(allWeather).find(k => W[k]) || allWeather[0];
-    }
-
-    // Ensure rightKey is valid in pool
-    if (!rightKey || !(W[rightKey] || C[rightKey])) {
-      rightKey = shuffle(info.rightPool).find(k => W[k] || C[k]) || info.rightPool[0];
-    }
-
-    return { leftKey, rightKey };
-  });
-
-  // ----------------------------
-  // Build slots in gameBoard
-  // ----------------------------
-  slots.forEach(s => {
-    const slot = document.createElement("div");
-    slot.style.width = "";
-    slot.style.height = "120px";
-    slot.style.margin = "10px";
-    slot.style.border = "none";
-    slot.style.boxSizing = "border-box";
-    slot.style.display = "inline-block";
-    slot.style.verticalAlign = "top";
-
-    const keyForTarget = s.rightKey;
-    slot.dataset.key = keyForTarget;
-
-    const isWeather = !!W[keyForTarget];
-    const itemObj = isWeather ? W[keyForTarget] : C[keyForTarget];
-
-    if (!itemObj) {
-      console.warn("Missing data for slotKey:", keyForTarget);
-      return; // skip invalid slot
-    }
-
-    const bg = (info.rightMode === "clipart") ? itemObj.clipart : itemObj.sign;
-    slot.style.backgroundImage = `url('${bg}')`;
-    slot.style.backgroundSize = "contain";
-    slot.style.backgroundPosition = "center";
-    slot.style.backgroundRepeat = "no-repeat";
-
-    slot.className = "slot";
-    makeSlotDroppable(slot);
-    gameBoard.appendChild(slot);
-  });
-
-  // ----------------------------
-  // Draggables (left items + decoys)
-  // ----------------------------
-  let draggableKeys = leftPool.slice();
-  const needed = Math.max(0, 9 - draggableKeys.length);
-  const candidates = shuffle(info.leftPool).filter(k => !draggableKeys.includes(k));
-  for (let i = 0; i < needed && i < candidates.length; i++) draggableKeys.push(candidates[i]);
-
-  draggableKeys = shuffle(Array.from(new Set(draggableKeys))).slice(0, 9);
-
-  const half = Math.ceil(draggableKeys.length / 2);
-  draggableKeys.forEach((key, idx) => {
-    const wrapper = document.createElement("div");
-    wrapper.className = "drag-wrapper";
-    wrapper.style.width = "120px";
-    wrapper.style.height = "120px";
-    wrapper.style.display = "flex";
-    wrapper.style.justifyContent = "center";
-    wrapper.style.alignItems = "center";
-    wrapper.style.margin = "8px";
-
-    const img = document.createElement("img");
-    img.style.width = "100%";
-    img.style.height = "100%";
-    img.style.objectFit = "contain";
-
-    const isWeather = !!W[key];
-    const obj = isWeather ? W[key] : C[key];
-
-    // safe check
-    if (!obj) {
-      console.warn("Missing data for draggable key:", key);
-      return;
-    }
-
-    img.src = (info.leftMode === "clipart") ? obj.clipart : obj.sign;
-    makeDraggable(img, key);
-
-    wrapper.appendChild(img);
-    if (idx < half) leftSigns.appendChild(wrapper);
-    else rightSigns.appendChild(wrapper);
-  });
-
-  // ----------------------------
-  // Reset counters
-  // ----------------------------
-  correctMatches = 0;
-  updateScore();
-  saveProgress();
-}
 
   // ----------------------------
   // Modal / Buttons behaviour
   // ----------------------------
   stopBtn.addEventListener("click", ()=> {
-    // compute score and time
     const percent = updateScore();
     const elapsed = Math.round((Date.now() - startTime) / 1000);
     const mins = Math.floor(elapsed/60);
@@ -475,7 +455,6 @@ function loadPage() {
     modal.style.display = "none";
     gameEnded = false;
     const restored = restoreProgress();
-    // load page either from restored state or fresh
     loadPage();
   });
 
@@ -487,14 +466,10 @@ function loadPage() {
   finishBtn.addEventListener("click", ()=> {
     if(!gameEnded) endGame();
     setTimeout(()=> {
-      // go back to hub (same as your other pages)
       window.location.href = "../MatchingGame/hub.html";
-    }, 1400);
+    }, 1200);
   });
 
-  // ----------------------------
-  // End game & Google Form submission
-  // ----------------------------
   // ----------------------------
   // Google Form mapping (your values)
   // ----------------------------
@@ -525,6 +500,9 @@ function loadPage() {
 
   const subject = "Weather";
 
+  // ----------------------------
+  // End game & Google Form submission
+  // ----------------------------
   function endGame(){
     if(gameEnded) return;
     gameEnded = true;
@@ -534,7 +512,6 @@ function loadPage() {
     const timeString = `${Math.floor(elapsedSec/60)} mins ${elapsedSec%60} sec`;
     const percent = updateScore();
 
-    // build submission payload
     const totalCorrect = levelAttempts.reduce((s,l)=>s+l.correct.size,0);
     const totalIncorrect = levelAttempts.reduce((s,l)=>s+l.incorrect.length,0);
 
@@ -546,16 +523,15 @@ function loadPage() {
     entries[formEntries.percentage] = `${percent}%`;
     entries[formEntries.currentLevel] = `${Math.min(currentLevel+1, levels.length)}`;
 
-    // per-level fields
+    // per-level fields (levels 1..6)
     for(let i=0;i<6;i++){
       entries[formEntries[`level${i+1}Correct`]] = Array.from(levelAttempts[i].correct).join(",");
       entries[formEntries[`level${i+1}Incorrect`]] = (levelAttempts[i].incorrect || []).join(",");
     }
     entries[formEntries.totalCorrect] = `${totalCorrect}`;
     entries[formEntries.totalIncorrect] = `${totalIncorrect}`;
-    entries[formEntries.errorsReviewed] = ""; // optional
+    entries[formEntries.errorsReviewed] = "";
 
-    // create form element and submit to hidden iframe to avoid navigation
     const form = document.createElement("form");
     form.action = formURL;
     form.method = "POST";
@@ -580,7 +556,6 @@ function loadPage() {
     document.body.appendChild(form);
     form.submit();
 
-    // show modal with results
     scoreModalText.innerHTML = `Score: ${percent}%<br>Time: ${timeString}<br><img src="assets/auslan-clap.gif" width="150">`;
     modal.style.display = "flex";
   }
@@ -589,6 +564,8 @@ function loadPage() {
   // Init: restore or start fresh
   // ----------------------------
   const resumed = restoreProgress();
-  // If resumed, load that level, otherwise start at currentLevel(0)
   loadPage();
-});
+
+}); // end DOMContentLoaded
+
+                          
