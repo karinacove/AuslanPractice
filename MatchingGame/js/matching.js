@@ -279,14 +279,9 @@ stopBtn.addEventListener("click", () => {
     localStorage.removeItem("numbersGameSave"); location.reload();
   };
 
-finishBtn.onclick = () => {
-  if (!gameEnded) {
-    endGame(); // submit results
-  }
-  setTimeout(() => {
-    window.location.href = "../MatchingGame/hub.html";
-  }, 1500); // give form ~1.5s to submit
-};
+  finishBtn.onclick=()=>{
+    if(!gameEnded){ modal.style.display="flex"; endGame(); }
+  };
 
   const resumed=restoreProgress(); if(resumed) loadPage(); else loadPage();
 });
