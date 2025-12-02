@@ -541,26 +541,33 @@ document.addEventListener("DOMContentLoaded", function () {
     updateScoreDisplay();
   }
 
-  function submitGoogleForm(){
+async function submitGoogleForm() {
+
+  return new Promise((resolve) => {
+
+    // ----- 1. Ensure iframe exists BEFORE creating form -----
+    let iframe = document.querySelector("iframe[name='hidden_iframe']");
+    if (!iframe) {
+      iframe = document.createElement("iframe");
+      iframe.name = "hidden_iframe";
+      iframe.style.display = "none";
+      document.body.appendChild(iframe);
+    }
+
+    // ----- 2. Build form -----
     const form = document.createElement("form");
     form.method = "POST";
     form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
     form.target = "hidden_iframe";
     form.style.display = "none";
 
-    if (!document.querySelector("iframe[name='hidden_iframe']")) {
-      const f = document.createElement("iframe");
-      f.name = "hidden_iframe";
-      f.style.display = "none";
-      document.body.appendChild(f);
-    }
-
-    // calculate score + percent
+    // ----- 3. Score + time calculations -----
     let totalCorrect = 0, totalAttempts = 0;
-    for (let i=0; i<levels.length; i++) {
+    for (let i = 0; i < levels.length; i++) {
       totalCorrect += levelAttempts[i].correct.size;
       totalAttempts += levelAttempts[i].correct.size + levelAttempts[i].incorrect.length;
     }
+
     const percent = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
 
     const timeTaken = Math.round((Date.now() - startTime) / 1000);
@@ -569,21 +576,23 @@ document.addEventListener("DOMContentLoaded", function () {
     const formattedTime = `${minutes} mins ${seconds} sec`;
 
     let highestLevel = 0;
-    for (let i=0; i<levels.length; i++) {
+    for (let i = 0; i < levels.length; i++) {
       if (levelAttempts[i].correct.size > 0 || levelAttempts[i].incorrect.length > 0) {
         highestLevel = i + 1;
       }
     }
 
+    // ----- 4. Base entries -----
     const entries = {
       "entry.1387461004": studentName,
       "entry.1309291707": studentClass,
-      "entry.477642881": "Colours",
+      "entry.477642881": "Food",
       "entry.1996137354": `${percent}%`,
       "entry.1374858042": formattedTime,
       "entry.750436458": highestLevel
     };
 
+    // ----- 5. Per-level -----
     const formEntryIDs = {
       correct: [
         "entry.1897227570","entry.1116300030","entry.187975538",
@@ -595,14 +604,12 @@ document.addEventListener("DOMContentLoaded", function () {
       ]
     };
 
-    for (let i=0; i<levels.length && i<6; i++) {
+    for (let i = 0; i < 6; i++) {
       entries[formEntryIDs.correct[i]] = Array.from(levelAttempts[i].correct).sort().join(", ");
-      entries[formEntryIDs.incorrect[i]] = levelAttempts[i].incorrect
-        .sort()
-        .map(c => `*${c}*`)
-        .join(", ");
+      entries[formEntryIDs.incorrect[i]] = levelAttempts[i].incorrect.sort().map(w => `*${w}*`).join(", ");
     }
 
+    // ----- 6. Build inputs -----
     for (const key in entries) {
       const input = document.createElement("input");
       input.type = "hidden";
@@ -612,8 +619,15 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     document.body.appendChild(form);
-    form.submit();
-  }
+
+    // ----- 7. Delay ensures stable submission -----
+    setTimeout(() => {
+      form.submit();
+      resolve();   // Always resolve so game continues normally
+    }, 50);
+
+  });
+}
 
   // ----------------------------
   // End game / show modal with clap and buttons
