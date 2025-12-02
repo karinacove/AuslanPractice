@@ -45,11 +45,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const levelDefinitions = [
     { words: wordBanks[1], pages: 3, name: "Weather" },
-    { words: wordBanks[2], pages: 3, name: "Weather" },
-    { words: wordBanks[3], pages: 3, name: "Clothing" },
-    { words: wordBanks[4], pages: 3, name: "Clothing" },
-    { words: wordBanks[5], pages: 3, name: "Mixed" },
-    { words: wordBanks[6], pages: 3, name: "Mixed" }
+    { words: wordBanks[2], pages: 3, name: "Clothing" },
+    { words: wordBanks[3], pages: 3, name: "Mixed" }
   ];
 
   // Game state:
