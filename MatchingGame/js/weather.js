@@ -38,9 +38,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const SAVE_KEY = "weatherGameSave_v1";
 
   const wordBanks = {
-    1: ["sunny","windy","weather","cyclone","earthquake","hot","cold","snowy","rainy","stormy","rainbow","cloudy"],
-    2: ["hat","shirt","shorts","thongs","bathers","skirt","jumper","pants","shoes","socks","jacket","umbrella","scarf","beanie","gloves","clothes"],
-    3: ["sunny","windy","weather","cyclone","earthquake","hot","cold","snowy","rainy","stormy","rainbow","cloudy","hat","shirt","shorts","thongs","bathers","skirt","jumper","pants","shoes","socks","jacket","umbrella","scarf","beanie","gloves","clothes"]
+    1: ["sunny","windy","weather","cyclone","earthquake","hot","cold","snowy","rain","lightning","rainbow","cloudy"],
+    2: ["hat","shirt","short","thong","bathers","skirt","jumper","pants","shoes","socks","jacket","umbrella","scarf","beanie","gloves","clothes","dress"],
+    3: ["sunny","windy","weather","cyclone","earthquake","hot","cold","snowy","rain","lightning","rainbow","cloudy","hat","shirt","short","thong","bathers","dress","skirt","jumper","pants","shoes","socks","jacket","umbrella","scarf","beanie","gloves","clothes"]
   };
 
   const levelDefinitions = [
