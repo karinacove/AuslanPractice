@@ -39,11 +39,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const wordBanks = {
     1: ["sunny","windy","weather","cyclone","earthquake","hot","cold","snowy","rainy","stormy","rainbow","cloudy"],
-    2: ["sunny","windy","weather","cyclone","earthquake","hot","cold","snowy","rainy","stormy","rainbow","cloudy"],
-    3: ["hat","shirt","shorts","thongs","bathers","skirt","jumper","thongs","pants","shoes","socks","jacket","umbrella","scarf","beanie","gloves","clothes"],
-    4: ["hat","shirt","shorts","thongs","bathers","skirt","jumper","thongs","pants","shoes","socks","jacket","umbrella","scarf","beanie","gloves","clothes"],
-    5: ["sunny","windy","weather","cyclone","earthquake","hot","cold","snowy","rainy","stormy","rainbow","cloudy","hat","shirt","shorts","thongs","bathers","skirt","jumper","thongs","pants","shoes","socks","jacket","umbrella","scarf","beanie","gloves","clothes"],
-    6: ["sunny","windy","weather","cyclone","earthquake","hot","cold","snowy","rainy","stormy","rainbow","cloudy","hat","shirt","shorts","thongs","bathers","skirt","jumper","thongs","pants","shoes","socks","jacket","umbrella","scarf","beanie","gloves","clothes"]
+    2: ["hat","shirt","shorts","thongs","bathers","skirt","jumper","thongs","pants","shoes","socks","jacket","umbrella","scarf","beanie","gloves","clothes"],
+    3: ["sunny","windy","weather","cyclone","earthquake","hot","cold","snowy","rainy","stormy","rainbow","cloudy","hat","shirt","shorts","thongs","bathers","skirt","jumper","thongs","pants","shoes","socks","jacket","umbrella","scarf","beanie","gloves","clothes"]
   };
 
   const levelDefinitions = [
