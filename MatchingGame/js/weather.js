@@ -145,90 +145,84 @@ document.addEventListener("DOMContentLoaded", () => {
     saveProgress();
   }
 
-  function buildGameBoardUI(info){
-    // Left grid of draggables
-    const pool = info.leftPool.slice();
-    const chosen = shuffle(pool).slice(0,12);
-    chosen.forEach((key, idx)=>{
-      const obj = W[key] || C[key];
-      const src = (info.leftMode==="clipart") ? obj.clipart : obj.sign;
-      const img = createDraggableImage(src, key);
-      const wrapper = document.createElement("div");
-      wrapper.style.width="100px"; wrapper.style.height="100px"; wrapper.style.margin="4px"; wrapper.style.display="inline-flex"; wrapper.style.alignItems="center"; wrapper.style.justifyContent="center";
-      wrapper.appendChild(img);
-      leftSigns.appendChild(wrapper);
-    });
-
-    // Right targets
-    chosen.forEach(key=>{
-      const obj = W[key] || C[key];
-      const src = (info.rightMode==="clipart") ? obj.clipart : obj.sign;
-      const slot = document.createElement("div");
-      slot.dataset.key = key;
-      slot.style.width="100px"; slot.style.height="100px"; slot.style.border="2px dashed #ccc"; slot.style.borderRadius="8px"; slot.style.margin="4px"; slot.style.background="white";
-      makeSlotDroppable(slot);
-      rightSigns.appendChild(slot);
-    });
-  }
-
   // ----------------------------
   // Paged UI for mixed levels
   // ----------------------------
   let requiredMap = {};
   let pageWeatherKeys = [];
 
-function buildPagedUI(info){
-  leftSigns.innerHTML=""; middleSlots.innerHTML=""; rightSigns.innerHTML="";
-  const pool = info.leftPool.slice();
-  pageWeatherKeys = shuffle(pool).slice(pageIndex*3, pageIndex*3+3);
+function buildPagedUI(info) {
+  leftSigns.innerHTML = "";
+  middleSlots.innerHTML = "";
+  rightSigns.innerHTML = "";
+
+  // Pick 9 items for middle slots
+  const pageKeys = shuffle(info.leftPool).slice(0, 9);
   requiredMap = {};
 
-  pageWeatherKeys.forEach(wKey=>{
-    const wObj = W[wKey] || C[wKey];
-    const required = shuffle((wObj.obviousClothing || []).slice()).slice(0,3); // required items
-    requiredMap[wKey] = { required: required.slice(), filled: new Set() };
+  // Build middle slots (3x3)
+  const grid = document.createElement("div");
+  grid.style.display = "grid";
+  grid.style.gridTemplateColumns = "repeat(3, 120px)";
+  grid.style.gridGap = "8px";
+  grid.style.margin = "8px";
 
-    // left sign/clipart
-    const leftDiv = document.createElement("div");
-    leftDiv.style.width="120px"; leftDiv.style.height="120px"; leftDiv.style.margin="4px";
-    const img = document.createElement("img");
-    img.src = (info.leftMode==="clipart") ? wObj.clipart : wObj.sign;
-    img.style.width="100%"; img.style.height="100%";
-    leftDiv.appendChild(img); leftSigns.appendChild(leftDiv);
+  pageKeys.forEach(key => {
+    const obj = W[key] || C[key];
+    const required = obj.obviousClothing || [];
+    requiredMap[key] = { required: required.slice(), filled: new Set() };
 
-    // middle slots
-    const midRow = document.createElement("div");
-    midRow.style.display="flex"; midRow.style.gap="8px"; midRow.style.margin="4px";
-    required.forEach(cKey=>{
-      const slot = document.createElement("div");
-      slot.className="slot";
-      slot.dataset.weather = wKey;
-      slot.dataset.expected = cKey;
-      slot.style.width="100px"; slot.style.height="100px";
-      slot.style.border="2px dashed #ccc";
-      slot.style.borderRadius="8px"; slot.style.background="white";
-      makeSlotDroppable(slot);
-      midRow.appendChild(slot);
-    });
-    middleSlots.appendChild(midRow);
+    const slot = document.createElement("div");
+    slot.className = "slot";
+    slot.dataset.weather = key;
+    slot.dataset.expected = key;
+    slot.style.width = "120px";
+    slot.style.height = "120px";
+    slot.style.border = "2px dashed #ccc";
+    slot.style.borderRadius = "8px";
+    slot.style.background = "white";
+    slot.style.display = "inline-flex";
+    slot.style.alignItems = "center";
+    slot.style.justifyContent = "center";
+    makeSlotDroppable(slot);
+    grid.appendChild(slot);
   });
 
-  // Right panel: candidates (required + decoys to total 12)
-  let candidates = [];
-  Object.values(requiredMap).forEach(r=>candidates=candidates.concat(r.required));
-  candidates = Array.from(new Set(candidates)); // unique
+  middleSlots.appendChild(grid);
 
-  // Add decoys if less than 12
-  const decoys = shuffle(allClothing.concat(allWeather).filter(k => !candidates.includes(k))).slice(0, 12 - candidates.length);
-  const finalList = shuffle(candidates.concat(decoys));
+  // Prepare 12 draggable items (6 left + 6 right)
+  const requiredItems = pageKeys.slice(0, 9);
+  const decoys = shuffle(allClothing.concat(allWeather).filter(k => !requiredItems.includes(k)));
+  const draggableItems = shuffle(requiredItems.concat(decoys.slice(0, 3))); // 9 required + 3 decoys = 12
+  const leftItems = draggableItems.slice(0, 6);
+  const rightItems = draggableItems.slice(6, 12);
 
-  finalList.forEach(cKey=>{
+  // Build left panel
+  leftItems.forEach(cKey => {
     const obj = W[cKey] || C[cKey];
     const wrapper = document.createElement("div");
-    wrapper.style.width="100px"; wrapper.style.height="100px";
-    wrapper.style.margin="4px"; wrapper.style.display="inline-flex";
-    wrapper.style.alignItems="center"; wrapper.style.justifyContent="center";
-    const img = createDraggableImage((info.rightMode==="clipart") ? obj.clipart : obj.sign, cKey);
+    wrapper.style.width = "120px";
+    wrapper.style.height = "120px";
+    wrapper.style.margin = "4px";
+    wrapper.style.display = "inline-flex";
+    wrapper.style.alignItems = "center";
+    wrapper.style.justifyContent = "center";
+    const img = createDraggableImage((info.leftMode === "clipart") ? obj.clipart : obj.sign, cKey);
+    wrapper.appendChild(img);
+    leftSigns.appendChild(wrapper);
+  });
+
+  // Build right panel
+  rightItems.forEach(cKey => {
+    const obj = W[cKey] || C[cKey];
+    const wrapper = document.createElement("div");
+    wrapper.style.width = "120px";
+    wrapper.style.height = "120px";
+    wrapper.style.margin = "4px";
+    wrapper.style.display = "inline-flex";
+    wrapper.style.alignItems = "center";
+    wrapper.style.justifyContent = "center";
+    const img = createDraggableImage((info.rightMode === "clipart") ? obj.clipart : obj.sign, cKey);
     wrapper.appendChild(img);
     rightSigns.appendChild(wrapper);
   });
