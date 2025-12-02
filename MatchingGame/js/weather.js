@@ -885,7 +885,6 @@ buttons.appendChild(finishImg);
     // append buttons — per your request include continue & again and exclude the separate menu button
     buttons.appendChild(contImg);
     buttons.appendChild(againImg);
-    buttons.appendChild(finishImg);
 
     container.appendChild(clapImg);
     container.appendChild(title);
