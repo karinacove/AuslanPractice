@@ -655,6 +655,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const totalCorrect = levelAttempts.reduce((s, l) => s + l.correct.size, 0);
     const totalIncorrect = levelAttempts.reduce((s, l) => s + l.incorrect.length, 0);
 
+    // --- FIX 1: ensure iframe exists ---
+    if (!document.querySelector("iframe[name='hidden_iframe']")) {
+        const iframe = document.createElement("iframe");
+        iframe.name = "hidden_iframe";
+        iframe.style.display = "none";
+        document.body.appendChild(iframe);
+    }
+
     const entries = {};
     entries[formEntries.studentName] = studentName;
     entries[formEntries.studentClass] = studentClass;
@@ -663,20 +671,18 @@ document.addEventListener("DOMContentLoaded", () => {
     entries[formEntries.percentage] = `${percent}%`;
     entries[formEntries.currentLevel] = `${Math.min(currentLevel + 1, levels.length)}`;
 
-    // Fixed loop — no duplication, correct newline formatting
     for (let i = 0; i < 6; i++) {
         entries[formEntries[`level${i+1}Correct`]] =
-            Array.from(levelAttempts[i].correct).join("\n");
-
+            Array.from(levelAttempts[i].correct).join(",");
         entries[formEntries[`level${i+1}Incorrect`]] =
-            (levelAttempts[i].incorrect || []).join("\n");
+            (levelAttempts[i].incorrect || []).join(",");
     }
 
     entries[formEntries.totalCorrect] = `${totalCorrect}`;
     entries[formEntries.totalIncorrect] = `${totalIncorrect}`;
     entries[formEntries.errorsReviewed] = "";
 
-    // Build and submit the Google Form POST
+    // --- FORM CREATION ---
     const form = document.createElement("form");
     form.action = formURL;
     form.method = "POST";
@@ -694,11 +700,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.appendChild(form);
     form.submit();
 
-    submitted = true; // triggers iframe onload redirect
-
-    // Show score modal
+    // --- show modal ---
     scoreModalText.innerHTML =
-        `Score: ${percent}%<br>Time: ${timeString}<br><img src="assets/auslan-clap.gif" width="150">`;
+      `Score: ${percent}%<br>Time: ${timeString}<br><img src="assets/auslan-clap.gif" width="150">`;
 
     modal.style.display = "flex";
 }
