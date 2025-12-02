@@ -36,6 +36,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Game configuration and state
   // ----------------------------
   const SAVE_KEY = "weatherGameSave_v1";
+  const GAME_TOPIC = "Weather";
 
   const wordBanks = {
     1: ["sunny","windy","weather","cyclone","earthquake","hot","cold","snowy","rain","lightning","rainbow","cloudy"],
