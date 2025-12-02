@@ -151,78 +151,50 @@ document.addEventListener("DOMContentLoaded", () => {
   let requiredMap = {};
   let pageWeatherKeys = [];
 
-function buildPagedUI(info) {
+function buildGameBoardUI(info) {
   leftSigns.innerHTML = "";
   middleSlots.innerHTML = "";
   rightSigns.innerHTML = "";
 
-  // Pick 9 items for middle slots
-  const pageKeys = shuffle(info.leftPool).slice(0, 9);
+  const keys = info.leftPool.slice(0, 9); // pick 9 for middle slots
   requiredMap = {};
 
-  // Build middle slots (3x3)
-  const grid = document.createElement("div");
-  grid.style.display = "grid";
-  grid.style.gridTemplateColumns = "repeat(3, 120px)";
-  grid.style.gridGap = "8px";
-  grid.style.margin = "8px";
-
-  pageKeys.forEach(key => {
+  keys.forEach(key => {
     const obj = W[key] || C[key];
-    const required = obj.obviousClothing || [];
-    requiredMap[key] = { required: required.slice(), filled: new Set() };
-
     const slot = document.createElement("div");
     slot.className = "slot";
-    slot.dataset.weather = key;
-    slot.dataset.expected = key;
+    slot.dataset.key = key;
     slot.style.width = "120px";
     slot.style.height = "120px";
     slot.style.border = "2px dashed #ccc";
     slot.style.borderRadius = "8px";
-    slot.style.background = "white";
     slot.style.display = "inline-flex";
     slot.style.alignItems = "center";
     slot.style.justifyContent = "center";
     makeSlotDroppable(slot);
-    grid.appendChild(slot);
+    middleSlots.appendChild(slot);
   });
 
-  middleSlots.appendChild(grid);
-
-  // Prepare 12 draggable items (6 left + 6 right)
-  const requiredItems = pageKeys.slice(0, 9);
-  const decoys = shuffle(allClothing.concat(allWeather).filter(k => !requiredItems.includes(k)));
-  const draggableItems = shuffle(requiredItems.concat(decoys.slice(0, 3))); // 9 required + 3 decoys = 12
-  const leftItems = draggableItems.slice(0, 6);
-  const rightItems = draggableItems.slice(6, 12);
-
-  // Build left panel
-  leftItems.forEach(cKey => {
-    const obj = W[cKey] || C[cKey];
+  // Left panel
+  info.leftPool.slice(0, 6).forEach(k => {
+    const obj = W[k] || C[k];
+    const img = createDraggableImage(info.leftMode === "clipart" ? obj.clipart : obj.sign, k);
     const wrapper = document.createElement("div");
-    wrapper.style.width = "120px";
-    wrapper.style.height = "120px";
-    wrapper.style.margin = "4px";
-    wrapper.style.display = "inline-flex";
-    wrapper.style.alignItems = "center";
-    wrapper.style.justifyContent = "center";
-    const img = createDraggableImage((info.leftMode === "clipart") ? obj.clipart : obj.sign, cKey);
+    wrapper.style.width = "120px"; wrapper.style.height = "120px";
+    wrapper.style.margin = "4px"; wrapper.style.display = "inline-flex";
+    wrapper.style.alignItems = "center"; wrapper.style.justifyContent = "center";
     wrapper.appendChild(img);
     leftSigns.appendChild(wrapper);
   });
 
-  // Build right panel
-  rightItems.forEach(cKey => {
-    const obj = W[cKey] || C[cKey];
+  // Right panel
+  info.rightPool.slice(0, 6).forEach(k => {
+    const obj = W[k] || C[k];
+    const img = createDraggableImage(info.rightMode === "clipart" ? obj.clipart : obj.sign, k);
     const wrapper = document.createElement("div");
-    wrapper.style.width = "120px";
-    wrapper.style.height = "120px";
-    wrapper.style.margin = "4px";
-    wrapper.style.display = "inline-flex";
-    wrapper.style.alignItems = "center";
-    wrapper.style.justifyContent = "center";
-    const img = createDraggableImage((info.rightMode === "clipart") ? obj.clipart : obj.sign, cKey);
+    wrapper.style.width = "120px"; wrapper.style.height = "120px";
+    wrapper.style.margin = "4px"; wrapper.style.display = "inline-flex";
+    wrapper.style.alignItems = "center"; wrapper.style.justifyContent = "center";
     wrapper.appendChild(img);
     rightSigns.appendChild(wrapper);
   });
