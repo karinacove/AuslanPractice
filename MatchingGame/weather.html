@@ -1,53 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Auslan Weather Matching Game</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="js/weather.js" defer></script>
-  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auslan Matching Game - Weather</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="js/food.js" defer></script>
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
 </head>
 <body>
-
-  <!-- Header -->
-  <header id="header">
+  <div id="header">
     <div id="student-info"></div>
     <div id="score-display"></div>
     <h1 id="levelTitle">Level 1</h1>
-  </header>
-
-  <!-- Stop Button -->
-  <img id="stop-btn" src="assets/stop.png" alt="Stop Game" class="control-btn">
-
-  <!-- Game Layout -->
-  <main class="layout">
-    <div class="left-signs" id="leftSigns"></div>
-
-    <div class="middle-slots" id="middleSlots"></div>
-
-    <div class="right-signs" id="rightSigns"></div>
-  </main>
-
-  <!-- Modal Popup -->
-  <div id="end-modal">
-    <div id="end-modal-content">
-      <p id="score-display-modal">Score: 0</p>
-      <div class="modal-buttons">
-        <img id="continue-btn" src="assets/continue.png" alt="Continue" class="control-btn">
-        <img id="finish-btn" src="assets/finish.png" alt="Finish" class="control-btn">
-        <img id="again-btn" src="assets/again.png" alt="Play Again" class="control-btn">
-      </div>
-    </div>
   </div>
 
-  <!-- Hidden iframe for silent Google Form submission -->
-  <iframe 
-    name="hidden_iframe" 
-    id="hidden_iframe" 
-    style="display:none;" 
-    onload="if(window.submitted){ window.location.href='../MatchingGame/hub.html'; }">
-  </iframe>
+  <img id="stop-btn" src="assets/stop.png" alt="Stop Game" />
 
+  <div class="layout">
+    <div class="left-signs" id="leftSigns"></div>
+    <div id="gameBoard"></div>
+    <div class="right-signs" id="rightSigns"></div>
+  </div>
+
+  <!-- Modal popup -->
+  <div id="end-modal">
+    <div id="end-modal-content">
+      <p id="final-score">Score: 0</p>
+      <img id="continue-btn" src="assets/continue.png" alt="Continue" />
+      <img id="again-btn" src="assets/again.png" alt="Play Again" />
+      <img id="finish-btn" src="assets/finish.png" alt="Finish Game" />
+    </div>
+  </div>
 </body>
 </html>
