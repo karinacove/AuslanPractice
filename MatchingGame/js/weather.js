@@ -77,34 +77,6 @@ document.addEventListener("DOMContentLoaded", function () {
   document.body.appendChild(feedbackImage);
 
   // ----------------------------
-  // Google Form mapping (your values)
-  // ----------------------------
-  const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfP71M2M1SmaIzHVnsOSx4390iYgSxQy7Yo3NAPpbsR_Q7JaA/formResponse";
-  const formEntries = {
-    studentName: "entry.649726739",
-    studentClass: "entry.2105926443",
-    subject: "entry.1916287201",
-    timeTaken: "entry.1743763592",
-    percentage: "entry.393464832",
-    currentLevel: "entry.1202549392",
-    level1Correct: "entry.1933213595",
-    level1Incorrect: "entry.2087978837",
-    level2Correct: "entry.1160438650",
-    level2Incorrect: "entry.2081595072",
-    level3Correct: "entry.883075031",
-    level3Incorrect: "entry.2093517837",
-    level4Correct: "entry.498801806",
-    level4Incorrect: "entry.754032840",
-    level5Correct: "entry.1065703343",
-    level5Incorrect: "entry.880100066",
-    level6Correct: "entry.1360743630",
-    level6Incorrect: "entry.112387671",
-    totalCorrect: "entry.395384696",
-    totalIncorrect: "entry.1357567724",
-    errorsReviewed: "entry.11799771"
-  };
-
-  // ----------------------------
   // Utilities
   // ----------------------------
   function shuffle(arr) { return arr.slice().sort(() => Math.random() - 0.5); }
@@ -660,71 +632,78 @@ function loadPage() {
   updateScoreDisplay && updateScoreDisplay();
 }
 
-  // ----------------------------
-  // Google Form submit helpers
-  // ----------------------------
-  async function submitCurrentProgressToForm(levelIdx) {
-    if (typeof levelIdx !== "number" || levelIdx < 0 || levelIdx >= levelAttempts.length) return;
-    const lvlAttempt = levelAttempts[levelIdx];
-    const totalCorrect = lvlAttempt.correct.size;
-    const totalIncorrect = lvlAttempt.incorrect.length;
-    const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
+  function submitGoogleForm(){
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+    form.target = "hidden_iframe";
+    form.style.display = "none";
 
-    const levelNum = levelIdx + 1;
-    const pageNum = currentPage + 1;
-    const levelPageString = `L${levelNum}P${pageNum}`;
-
-    const fd = new FormData();
-    fd.append(formEntries.studentName, studentName);
-    fd.append(formEntries.studentClass, studentClass);
-    fd.append(formEntries.subject, "Food");
-    fd.append(formEntries.currentLevel, levelPageString);
-
-    const correctKey = formEntries[`level${levelNum}Correct`];
-    const incorrectKey = formEntries[`level${levelNum}Incorrect`];
-    if (correctKey) fd.append(correctKey, Array.from(lvlAttempt.correct).join(","));
-    if (incorrectKey) fd.append(incorrectKey, lvlAttempt.incorrect.join(","));
-
-    fd.append(formEntries.timeTaken, Math.round((Date.now() - startTime) / 1000));
-    fd.append(formEntries.percentage, percent);
-
-    try {
-      await fetch(formURL, { method: "POST", body: fd, mode: "no-cors" });
-    } catch (err) {
-      console.warn("Form submit (level) error:", err);
-    }
-  }
-
-  async function submitFinalResultsToForm() {
-    const totalCorrect = levelAttempts.reduce((s, l) => s + l.correct.size, 0);
-    const totalIncorrect = levelAttempts.reduce((s, l) => s + l.incorrect.length, 0);
-    const percent = totalCorrect + totalIncorrect > 0 ? Math.round((totalCorrect / (totalCorrect + totalIncorrect)) * 100) : 0;
-
-    const fd = new FormData();
-    fd.append(formEntries.studentName, studentName);
-    fd.append(formEntries.studentClass, studentClass);
-    fd.append(formEntries.subject, "Weather");
-    fd.append(formEntries.currentLevel, "Finished");
-    fd.append(formEntries.totalCorrect, totalCorrect);
-    fd.append(formEntries.totalIncorrect, totalIncorrect);
-    fd.append(formEntries.percentage, percent);
-    fd.append(formEntries.timeTaken, Math.round((Date.now() - startTime) / 1000));
-
-    for (let i = 0; i < levelAttempts.length; i++) {
-      const lvl = levelAttempts[i];
-      const keyC = formEntries[`level${i + 1}Correct`];
-      const keyI = formEntries[`level${i + 1}Incorrect`];
-      if (keyC) fd.append(keyC, Array.from(lvl.correct).join(","));
-      if (keyI) fd.append(keyI, lvl.incorrect.join(","));
+    if (!document.querySelector("iframe[name='hidden_iframe']")) {
+      const f = document.createElement("iframe");
+      f.name = "hidden_iframe";
+      f.style.display = "none";
+      document.body.appendChild(f);
     }
 
-    fd.append(formEntries.errorsReviewed, "N/A");
-
-    try {
-      await fetch(formURL, { method: "POST", body: fd, mode: "no-cors" });
-    } catch (err) {
-      console.warn("Final form submit failed:", err);
+    // calculate score + percent
+    let totalCorrect = 0, totalAttempts = 0;
+    for (let i=0; i<levels.length; i++) {
+      totalCorrect += levelAttempts[i].correct.size;
+      totalAttempts += levelAttempts[i].correct.size + levelAttempts[i].incorrect.length;
     }
+    const percent = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
+
+    const timeTaken = Math.round((Date.now() - startTime) / 1000);
+    const minutes = Math.floor(timeTaken / 60);
+    const seconds = timeTaken % 60;
+    const formattedTime = `${minutes} mins ${seconds} sec`;
+
+    let highestLevel = 0;
+    for (let i=0; i<levels.length; i++) {
+      if (levelAttempts[i].correct.size > 0 || levelAttempts[i].incorrect.length > 0) {
+        highestLevel = i + 1;
+      }
+    }
+
+    const entries = {
+      "entry.1387461004": studentName,
+      "entry.1309291707": studentClass,
+      "entry.477642881": "Colours",
+      "entry.1996137354": `${percent}%`,
+      "entry.1374858042": formattedTime,
+      "entry.750436458": highestLevel
+    };
+
+    const formEntryIDs = {
+      correct: [
+        "entry.1897227570","entry.1116300030","entry.187975538",
+        "entry.1880514176","entry.497882042","entry.1591755601"
+      ],
+      incorrect: [
+        "entry.1249394203","entry.1551220511","entry.903633326",
+        "entry.856597282","entry.552536101","entry.922308538"
+      ]
+    };
+
+    for (let i=0; i<levels.length && i<6; i++) {
+      entries[formEntryIDs.correct[i]] = Array.from(levelAttempts[i].correct).sort().join(", ");
+      entries[formEntryIDs.incorrect[i]] = levelAttempts[i].incorrect
+        .sort()
+        .map(c => `*${c}*`)
+        .join(", ");
+    }
+
+    for (const key in entries) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = entries[key];
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
   }
 
   // ----------------------------
@@ -747,7 +726,7 @@ function loadPage() {
     pauseTimer();
     saveProgress();
     try {
-      await submitFinalResultsToForm();
+      await submitGoogleForm();
     } catch (err) {
       console.warn("Final submit failed:", err);
     }
@@ -825,7 +804,7 @@ function loadPage() {
     againImg.style.cursor = "pointer";
     againImg.addEventListener("click", async () => {
       // submit current results, then clear save and restart
-      try { await submitFinalResultsToForm(); } catch (err) { console.warn("Submit failed:", err); }
+      try { await submitGoogleForm(); } catch (err) { console.warn("Submit failed:", err); }
       clearProgress(false); // remove save, keep student info
       // reset attempts
       for (let i = 0; i < levelAttempts.length; i++) levelAttempts[i] = { correct: new Set(), incorrect: [] };
@@ -846,7 +825,7 @@ finishImg.style.height = "120px";
 finishImg.style.cursor = "pointer";
 finishImg.addEventListener("click", async () => {
   try {
-    await submitFinalResultsToForm();
+    await submitGoogleForm();
   } catch (err) {
     console.warn("Submit failed:", err);
   }
@@ -906,7 +885,7 @@ buttons.appendChild(finishImg);
   if (againBtn) {
     againBtn.addEventListener("click", async () => {
       // Submit results, clear save (but keep student info), restart game
-      try { await submitFinalResultsToForm(); } catch (err) { console.warn("Submit failed:", err); }
+      try { await submitGoogleForm(); } catch (err) { console.warn("Submit failed:", err); }
       clearProgress(false);
       // reset attempts
       for (let i = 0; i < levelAttempts.length; i++) levelAttempts[i] = { correct: new Set(), incorrect: [] };
@@ -921,7 +900,7 @@ buttons.appendChild(finishImg);
   if (finishBtn) {
     finishBtn.addEventListener("click", async () => {
       // Submit final, clear save (keeping student info), show clap and go to hub
-      try { await submitFinalResultsToForm(); } catch (err) { console.warn("Submit failed:", err); }
+      try { await submitGoogleForm(); } catch (err) { console.warn("Submit failed:", err); }
       clearProgress(false);
       // show clap GIF briefly
       const big = document.createElement("img");
