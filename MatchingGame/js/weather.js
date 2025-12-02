@@ -665,9 +665,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const form = document.createElement("form");
     form.action = formURL; form.method = "POST"; form.target = "hidden_iframe"; form.style.display = "none";
-    if(!document.querySelector("iframe[name='hidden_iframe']")){
-      const iframe = document.createElement("iframe"); iframe.name = "hidden_iframe"; iframe.style.display = "none"; document.body.appendChild(iframe);
-    }
+
     for(const k in entries){
       const input = document.createElement("input"); input.type="hidden"; input.name=k; input.value=entries[k];
       form.appendChild(input);
