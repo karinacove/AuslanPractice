@@ -49,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let gameEnded = false;
   const startTime = Date.now();
   const saveKey = "weatherClothingSave_v2";
+  let submitted = false;
 
   // Per-level attempts (6 levels)
   const levelAttempts = Array(6).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
@@ -621,7 +622,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   continueBtn.addEventListener("click", ()=>{ modal.style.display = "none"; loadPage(); });
   againBtn.addEventListener("click", ()=>{ localStorage.removeItem(saveKey); location.reload(); });
-  finishBtn.addEventListener("click", ()=>{ if(!gameEnded) endGame(); setTimeout(()=>window.location.href="../MatchingGame/hub.html",1200); });
+ finishBtn.addEventListener("click", () => {  
+    if (!gameEnded) endGame();
+
+    // Google Form redirect now handled by iframe onload
+    submitted = true;
+});
 
   // ----------------------------
   // Google Form mapping & endGame
@@ -638,15 +644,16 @@ document.addEventListener("DOMContentLoaded", () => {
     totalCorrect:"entry.395384696", totalIncorrect:"entry.1357567724", errorsReviewed:"entry.11799771"
   };
 
-  function endGame(){
-    if(gameEnded) return;
+ function endGame() {
+    if (gameEnded) return;
     gameEnded = true;
+
     const end = Date.now();
-    const elapsedSec = Math.round((end - startTime)/1000);
-    const timeString = `${Math.floor(elapsedSec/60)} mins ${elapsedSec%60} sec`;
+    const elapsedSec = Math.round((end - startTime) / 1000);
+    const timeString = `${Math.floor(elapsedSec / 60)} mins ${elapsedSec % 60} sec`;
     const percent = updateScore();
-    const totalCorrect = levelAttempts.reduce((s,l)=>s+l.correct.size,0);
-    const totalIncorrect = levelAttempts.reduce((s,l)=>s+l.incorrect.length,0);
+    const totalCorrect = levelAttempts.reduce((s, l) => s + l.correct.size, 0);
+    const totalIncorrect = levelAttempts.reduce((s, l) => s + l.incorrect.length, 0);
 
     const entries = {};
     entries[formEntries.studentName] = studentName;
@@ -654,27 +661,47 @@ document.addEventListener("DOMContentLoaded", () => {
     entries[formEntries.subject] = "Weather";
     entries[formEntries.timeTaken] = timeString;
     entries[formEntries.percentage] = `${percent}%`;
-    entries[formEntries.currentLevel] = `${Math.min(currentLevel+1, levels.length)}`;
-    for(let i=0;i<6;i++){
-      entries[formEntries[`level${i+1}Correct`]] = Array.from(levelAttempts[i].correct).join(",");
-      entries[formEntries[`level${i+1}Incorrect`]] = (levelAttempts[i].incorrect || []).join(",");
+    entries[formEntries.currentLevel] = `${Math.min(currentLevel + 1, levels.length)}`;
+
+    // Fixed loop — no duplication, correct newline formatting
+    for (let i = 0; i < 6; i++) {
+        entries[formEntries[`level${i+1}Correct`]] =
+            Array.from(levelAttempts[i].correct).join("\n");
+
+        entries[formEntries[`level${i+1}Incorrect`]] =
+            (levelAttempts[i].incorrect || []).join("\n");
     }
+
     entries[formEntries.totalCorrect] = `${totalCorrect}`;
     entries[formEntries.totalIncorrect] = `${totalIncorrect}`;
     entries[formEntries.errorsReviewed] = "";
 
+    // Build and submit the Google Form POST
     const form = document.createElement("form");
-    form.action = formURL; form.method = "POST"; form.target = "hidden_iframe"; form.style.display = "none";
+    form.action = formURL;
+    form.method = "POST";
+    form.target = "hidden_iframe";
+    form.style.display = "none";
 
-    for(const k in entries){
-      const input = document.createElement("input"); input.type="hidden"; input.name=k; input.value=entries[k];
-      form.appendChild(input);
+    for (const k in entries) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = k;
+        input.value = entries[k];
+        form.appendChild(input);
     }
-    document.body.appendChild(form); form.submit();
 
-    scoreModalText.innerHTML = `Score: ${percent}%<br>Time: ${timeString}<br><img src="assets/auslan-clap.gif" width="150">`;
+    document.body.appendChild(form);
+    form.submit();
+
+    submitted = true; // triggers iframe onload redirect
+
+    // Show score modal
+    scoreModalText.innerHTML =
+        `Score: ${percent}%<br>Time: ${timeString}<br><img src="assets/auslan-clap.gif" width="150">`;
+
     modal.style.display = "flex";
-  }
+}
 
   // ----------------------------
   // Init
