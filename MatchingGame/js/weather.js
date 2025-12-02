@@ -447,7 +447,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (gridType === "mixed") slotType = Math.random() < 0.5 ? "clipart" : "sign";
       slot.dataset.gridType = slotType;
 
-      const url = `assets/weather/${slotType === "sign" ? "signs" : "clipart"}/${word}${slotType === "sign" ? "-sign" : ""}.png`;
+      const url = `assets/weather/${slotType === "sign" ? "signs" : "clipart"}/${word}${slotType === "sign" ? "" : ""}.png`;
       slot.style.backgroundImage = `url('${url}')`;
       slot.style.backgroundSize = "contain";
       slot.style.backgroundPosition = "center";
@@ -523,7 +523,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     const draggableIsSign = gridTypeForWord === "clipart";
-    img.src = `assets/weather/${draggableIsSign ? "signs" : "clipart"}/${word}${draggableIsSign ? "-sign" : ""}.png`;
+    img.src = `assets/weather/${draggableIsSign ? "signs" : "clipart"}/${word}${draggableIsSign ? "" : ""}.png`;
 
     img.addEventListener("dragstart", e => {
       e.dataTransfer.setData("text/plain", word);
