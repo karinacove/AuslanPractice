@@ -100,14 +100,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const matchableWeather = weatherItems.filter(w => Array.isArray(w.obviousClothing) && w.obviousClothing.length>0).map(w=>w.key);
   const allClothing = clothingItems.map(c=>c.key);
 
-  const levels = [
-    { name: "Weather Signs → Weather Images", leftPool: allWeather, rightPool: allWeather, leftMode: "sign", rightMode: "clipart" },
-    { name: "Weather Images → Weather Signs", leftPool: allWeather, rightPool: allWeather, leftMode: "clipart", rightMode: "sign" },
-    { name: "Clothing Signs → Clothing Images", leftPool: allClothing, rightPool: allClothing, leftMode: "sign", rightMode: "clipart" },
-    { name: "Clothing Images → Clothing Signs", leftPool: allClothing, rightPool: allClothing, leftMode: "clipart", rightMode: "sign" },
-    { name: "Weather Signs → Clothing Images (paged)", leftPool: matchableWeather, rightPool: allClothing, leftMode: "sign", rightMode: "clipart", paged: true },
-    { name: "Weather Images → Clothing Signs (paged)", leftPool: matchableWeather, rightPool: allClothing, leftMode: "clipart", rightMode: "sign", paged: true }
-  ];
+const levels = [
+  { name: "Weather Signs → Weather Images", leftPool: allWeather, rightPool: allWeather, leftMode: "sign", rightMode: "clipart" },
+  { name: "Weather Images → Weather Signs", leftPool: allWeather, rightPool: allWeather, leftMode: "clipart", rightMode: "sign" },
+  { name: "Clothing Signs → Clothing Images", leftPool: allClothing, rightPool: allClothing, leftMode: "sign", rightMode: "clipart" },
+  { name: "Clothing Images → Clothing Signs", leftPool: allClothing, rightPool: allClothing, leftMode: "clipart", rightMode: "sign" },
+  { name: "Mixed Weather → Mixed Clothing", leftPool: shuffle(allWeather.concat(allClothing)), rightPool: shuffle(allClothing.concat(allWeather)), leftMode: "sign", rightMode: "clipart" },
+  { name: "Mixed Clothing → Mixed Weather", leftPool: shuffle(allClothing.concat(allWeather)), rightPool: shuffle(allWeather.concat(allClothing)), leftMode: "clipart", rightMode: "sign" }
+];
 
   // ----------------------------
   // Utilities
@@ -385,7 +385,16 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   continueBtn.addEventListener("click", ()=>{ modal.style.display="none"; loadPage(); });
   againBtn.addEventListener("click", ()=>{ localStorage.removeItem(saveKey); location.reload(); });
-  finishBtn.addEventListener("click", ()=>{ if(!gameEnded) endGame(); submitted=true; });
+if(finishBtn){
+  finishBtn.addEventListener("click", ()=>{
+    if(!gameEnded){
+      endGame();
+      submitted = true;
+    }
+  });
+} else {
+  console.warn("Finish button not found in DOM!");
+}
 
   // ----------------------------
   // Google Form
