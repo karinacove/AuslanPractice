@@ -52,7 +52,7 @@
   // ----------------------------
   // Data
   // ----------------------------
-  
+  const shuffle = arr => arr.slice().sort(() => Math.random() - 0.5);
   const weatherItems = [
     { key:"sunny", obviousClothing:["hat","shirt","shorts","thongs","bathers","skirt","dress"], clipart:"assets/weather/clipart/sunny.png", sign:"assets/weather/signs/sunny.png" },
     { key:"cloudy", obviousClothing:["shirt","jumper","shorts","pants","shoes","socks","skirt","dress"], clipart:"assets/weather/clipart/cloudy.png", sign:"assets/weather/signs/cloudy.png" },
@@ -108,7 +108,6 @@
   // ----------------------------
   // Utilities
   // ----------------------------
-  const shuffle = arr => arr.slice().sort(() => Math.random() - 0.5);
 
   function createDraggableImage(src, key) {
     const img = document.createElement("img");
