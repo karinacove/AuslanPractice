@@ -177,47 +177,62 @@ document.addEventListener("DOMContentLoaded", () => {
   let requiredMap = {};
   let pageWeatherKeys = [];
 
-  function buildPagedUI(info){
-    leftSigns.innerHTML=""; middleSlots.innerHTML=""; rightSigns.innerHTML="";
-    const pool = info.leftPool.slice();
-    pageWeatherKeys = shuffle(pool).slice(pageIndex*3, pageIndex*3+3);
-    requiredMap = {};
+function buildPagedUI(info){
+  leftSigns.innerHTML=""; middleSlots.innerHTML=""; rightSigns.innerHTML="";
+  const pool = info.leftPool.slice();
+  pageWeatherKeys = shuffle(pool).slice(pageIndex*3, pageIndex*3+3);
+  requiredMap = {};
 
-    pageWeatherKeys.forEach(wKey=>{
-      const wObj = W[wKey] || C[wKey];
-      const required = shuffle((wObj.obviousClothing || []).slice()).slice(0,3);
-      requiredMap[wKey]={ required: required.slice(), filled: new Set() };
+  pageWeatherKeys.forEach(wKey=>{
+    const wObj = W[wKey] || C[wKey];
+    const required = shuffle((wObj.obviousClothing || []).slice()).slice(0,3); // required items
+    requiredMap[wKey] = { required: required.slice(), filled: new Set() };
 
-      // left sign/clipart
-      const leftDiv = document.createElement("div"); leftDiv.style.width="120px"; leftDiv.style.height="120px"; leftDiv.style.margin="4px";
-      const img = document.createElement("img"); img.src = (info.leftMode==="clipart")? wObj.clipart : wObj.sign; img.style.width="100%"; img.style.height="100%";
-      leftDiv.appendChild(img); leftSigns.appendChild(leftDiv);
+    // left sign/clipart
+    const leftDiv = document.createElement("div");
+    leftDiv.style.width="120px"; leftDiv.style.height="120px"; leftDiv.style.margin="4px";
+    const img = document.createElement("img");
+    img.src = (info.leftMode==="clipart") ? wObj.clipart : wObj.sign;
+    img.style.width="100%"; img.style.height="100%";
+    leftDiv.appendChild(img); leftSigns.appendChild(leftDiv);
 
-      // middle slots
-      const midRow = document.createElement("div"); midRow.style.display="flex"; midRow.style.gap="8px"; midRow.style.margin="4px";
-      required.forEach(cKey=>{
-        const slot = document.createElement("div"); slot.className="slot"; slot.dataset.weather=wKey; slot.dataset.expected=cKey;
-        slot.style.width="100px"; slot.style.height="100px"; slot.style.border="2px dashed #ccc"; slot.style.borderRadius="8px"; slot.style.background="white";
-        makeSlotDroppable(slot);
-        midRow.appendChild(slot);
-      });
-      middleSlots.appendChild(midRow);
+    // middle slots
+    const midRow = document.createElement("div");
+    midRow.style.display="flex"; midRow.style.gap="8px"; midRow.style.margin="4px";
+    required.forEach(cKey=>{
+      const slot = document.createElement("div");
+      slot.className="slot";
+      slot.dataset.weather = wKey;
+      slot.dataset.expected = cKey;
+      slot.style.width="100px"; slot.style.height="100px";
+      slot.style.border="2px dashed #ccc";
+      slot.style.borderRadius="8px"; slot.style.background="white";
+      makeSlotDroppable(slot);
+      midRow.appendChild(slot);
     });
+    middleSlots.appendChild(midRow);
+  });
 
-    // right panel: candidates
-    let candidates=[]; Object.values(requiredMap).forEach(r=>candidates=candidates.concat(r.required));
-    let uniqueCandidates = Array.from(new Set(candidates));
-    let decoys = shuffle(allClothing.concat(allWeather).filter(k=>!uniqueCandidates.includes(k))).slice(0,12-uniqueCandidates.length);
-    let finalList = shuffle(uniqueCandidates.concat(decoys));
+  // Right panel: candidates (required + decoys to total 12)
+  let candidates = [];
+  Object.values(requiredMap).forEach(r=>candidates=candidates.concat(r.required));
+  candidates = Array.from(new Set(candidates)); // unique
 
-    finalList.forEach(cKey=>{
-      const obj = W[cKey] || C[cKey];
-      const wrapper = document.createElement("div"); wrapper.style.width="100px"; wrapper.style.height="100px"; wrapper.style.margin="4px"; wrapper.style.display="inline-flex"; wrapper.style.alignItems="center"; wrapper.style.justifyContent="center";
-      const img = createDraggableImage((info.rightMode==="clipart")?obj.clipart:obj.sign, cKey);
-      wrapper.appendChild(img);
-      rightSigns.appendChild(wrapper);
-    });
-  }
+  // Add decoys if less than 12
+  const decoys = shuffle(allClothing.concat(allWeather).filter(k => !candidates.includes(k))).slice(0, 12 - candidates.length);
+  const finalList = shuffle(candidates.concat(decoys));
+
+  finalList.forEach(cKey=>{
+    const obj = W[cKey] || C[cKey];
+    const wrapper = document.createElement("div");
+    wrapper.style.width="100px"; wrapper.style.height="100px";
+    wrapper.style.margin="4px"; wrapper.style.display="inline-flex";
+    wrapper.style.alignItems="center"; wrapper.style.justifyContent="center";
+    const img = createDraggableImage((info.rightMode==="clipart") ? obj.clipart : obj.sign, cKey);
+    wrapper.appendChild(img);
+    rightSigns.appendChild(wrapper);
+  });
+}
 
   // ----------------------------
   // Drag & drop handler
