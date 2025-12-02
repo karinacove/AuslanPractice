@@ -677,7 +677,7 @@ async function submitGoogleForm() {
     const entries = {
       "entry.1387461004": studentName,
       "entry.1309291707": studentClass,
-      "entry.477642881": "Colours",
+      "entry.477642881": "Weather",
       "entry.1996137354": `${percent}%`,
       "entry.1374858042": formattedTime,
       "entry.750436458": highestLevel
