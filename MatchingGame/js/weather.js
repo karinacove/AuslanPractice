@@ -61,6 +61,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const levelAttempts = Array(levelDefinitions.length).fill(null).map(() => ({ correct: new Set(), incorrect: [] }));
 
+  // =======================
+// GOOGLE FORM FIELD MAP
+// =======================
+const FORM_FIELDS = {
+  name: "entry.1387461004",
+  class: "entry.1309291707",
+  topic: "entry.477642881",
+  percentage: "entry.1996137354",
+  time: "entry.1374858042",
+  highestLevel: "entry.750436458",
+
+  level1Correct: "entry.1897227570",
+  level1Incorrect: "entry.1249394203",
+
+  level2Correct: "entry.1116300030",
+  level2Incorrect: "entry.1551220511",
+
+  level3Correct: "entry.187975538",
+  level3Incorrect: "entry.903633326",
+
+  level4Correct: "entry.1880514176",
+  level4Incorrect: "entry.856597282",
+
+  level5Correct: "entry.497882042",
+  level5Incorrect: "entry.552536101",
+
+  level6Correct: "entry.1591755601",
+  level6Incorrect: "entry.922308538"
+};
+  
   // Feedback image element (correct/wrong)
   const feedbackImage = document.createElement("img");
   feedbackImage.id = "feedbackImage";
@@ -636,7 +666,7 @@ async function submitGoogleForm() {
 
   return new Promise((resolve) => {
 
-    // ----- 1. Ensure iframe exists BEFORE creating form -----
+    // Ensure hidden iframe exists
     let iframe = document.querySelector("iframe[name='hidden_iframe']");
     if (!iframe) {
       iframe = document.createElement("iframe");
@@ -645,21 +675,28 @@ async function submitGoogleForm() {
       document.body.appendChild(iframe);
     }
 
-    // ----- 2. Build form -----
+    // Create form
     const form = document.createElement("form");
     form.method = "POST";
     form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
     form.target = "hidden_iframe";
     form.style.display = "none";
 
-    // ----- 3. Score + time calculations -----
+    // ---- Collect values ----
+    const studentName = localStorage.getItem("studentName") || "";
+    const studentClass = localStorage.getItem("studentClass") || "";
+    const topic = GAME_TOPIC; // must be defined at top: const GAME_TOPIC = "Weather";
+
+    // Score calculations
     let totalCorrect = 0, totalAttempts = 0;
-    for (let i = 0; i < levels.length; i++) {
+    for (let i = 0; i < levelAttempts.length; i++) {
       totalCorrect += levelAttempts[i].correct.size;
       totalAttempts += levelAttempts[i].correct.size + levelAttempts[i].incorrect.length;
     }
 
-    const percent = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
+    const percent = totalAttempts > 0
+      ? Math.round((totalCorrect / totalAttempts) * 100)
+      : 0;
 
     const timeTaken = Math.round((Date.now() - startTime) / 1000);
     const minutes = Math.floor(timeTaken / 60);
@@ -667,54 +704,48 @@ async function submitGoogleForm() {
     const formattedTime = `${minutes} mins ${seconds} sec`;
 
     let highestLevel = 0;
-    for (let i = 0; i < levels.length; i++) {
+    for (let i = 0; i < levelAttempts.length; i++) {
       if (levelAttempts[i].correct.size > 0 || levelAttempts[i].incorrect.length > 0) {
         highestLevel = i + 1;
       }
     }
 
-    // ----- 4. Base entries -----
-    const entries = {
-      "entry.1387461004": studentName,
-      "entry.1309291707": studentClass,
-      "entry.477642881": "Weather",
-      "entry.1996137354": `${percent}%`,
-      "entry.1374858042": formattedTime,
-      "entry.750436458": highestLevel
-    };
+    // ---- Build form data with FIELD MAP ----
+    const entries = {};
 
-    // ----- 5. Per-level -----
-    const formEntryIDs = {
-      correct: [
-        "entry.1897227570","entry.1116300030","entry.187975538",
-        "entry.1880514176","entry.497882042","entry.1591755601"
-      ],
-      incorrect: [
-        "entry.1249394203","entry.1551220511","entry.903633326",
-        "entry.856597282","entry.552536101","entry.922308538"
-      ]
-    };
+    entries[FORM_FIELDS.name]          = studentName;
+    entries[FORM_FIELDS.class]         = studentClass;
+    entries[FORM_FIELDS.topic]         = topic;
+    entries[FORM_FIELDS.percentage]    = percent + "%";
+    entries[FORM_FIELDS.time]          = formattedTime;
+    entries[FORM_FIELDS.highestLevel]  = highestLevel;
 
+    // Per-level entries
     for (let i = 0; i < 6; i++) {
-      entries[formEntryIDs.correct[i]] = Array.from(levelAttempts[i].correct).sort().join(", ");
-      entries[formEntryIDs.incorrect[i]] = levelAttempts[i].incorrect.sort().map(w => `*${w}*`).join(", ");
+      const lvl = levelAttempts[i];
+
+      entries[FORM_FIELDS[`level${i+1}Correct`]] =
+        Array.from(lvl.correct).sort().join(", ");
+
+      entries[FORM_FIELDS[`level${i+1}Incorrect`]] =
+        lvl.incorrect.sort().join(", ");
     }
 
-    // ----- 6. Build inputs -----
-    for (const key in entries) {
+    // ---- Append inputs ----
+    for (const fieldID in entries) {
       const input = document.createElement("input");
       input.type = "hidden";
-      input.name = key;
-      input.value = entries[key];
+      input.name = fieldID;
+      input.value = entries[fieldID];
       form.appendChild(input);
     }
 
     document.body.appendChild(form);
 
-    // ----- 7. Delay ensures stable submission -----
+    // ---- Submit ----
     setTimeout(() => {
       form.submit();
-      resolve();   // Always resolve so game continues normally
+      resolve();
     }, 50);
 
   });
