@@ -457,10 +457,10 @@ document.addEventListener("DOMContentLoaded", function () {
     return gridType;
   }
 
-  // ----------------------------
-  // Build draggables for page
-  // ----------------------------
- function buildDraggablesForPage(info, pageWords, gridType) {
+ // ----------------------------
+// Build draggables for page
+// ----------------------------
+function buildDraggablesForPage(info, pageWords, gridType) {
   leftSigns.innerHTML = "";
   rightSigns.innerHTML = "";
 
@@ -469,7 +469,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const uniqueWords = Array.from(new Set(info.words));
 
-  // gather priority incorrects (levels 4+)
+  // --- Collect priority incorrects (levels 3+) ---
   let priority = [];
   if (currentLevel >= 3) {
     for (let li = 0; li < currentLevel; li++) {
@@ -480,55 +480,82 @@ document.addEventListener("DOMContentLoaded", function () {
     priority = Array.from(new Set(priority)).filter(w => uniqueWords.includes(w));
   }
 
-  // Build pool in order of priority → current page → rest
+  // --- Build base pool: priority → page → all words ---
   let pool = [];
   priority.forEach(w => { if (!pool.includes(w)) pool.push(w); });
   pageWords.forEach(w => { if (!pool.includes(w)) pool.push(w); });
   uniqueWords.forEach(w => { if (!pool.includes(w)) pool.push(w); });
 
-  // Fill with extra words if needed
+  // Fill if too short
   const notOnPage = uniqueWords.filter(w => !pool.includes(w));
   let safe = 0;
   while (pool.length < TARGET_TOTAL && safe < 5000) {
     if (notOnPage.length > 0) {
-      const pick = notOnPage.shift();
-      if (!pool.includes(pick)) pool.push(pick);
+      pool.push(notOnPage.shift());
     } else {
       const pick = uniqueWords[Math.floor(Math.random() * uniqueWords.length)];
-      if (!pool.includes(pick)) pool.push(pick);  // ✅ enforce uniqueness here
+      if (!pool.includes(pick)) pool.push(pick);
     }
     safe++;
   }
 
-  // Shuffle and take only the number needed
-  const finalList = shuffle(pool).slice(0, TARGET_TOTAL);
+  // --- Guarantee pageWords always included ---
+  pageWords.forEach(w => {
+    if (!pool.includes(w)) pool.push(w);
+  });
 
-  finalList.forEach((word, idx) => {
+  // --- Shuffle and trim (keeping pageWords) ---
+  const finalList = shuffle(pool);
+
+  const mustHave = new Set(pageWords);
+  const keep = [];
+
+  // keep required words
+  finalList.forEach(w => {
+    if (mustHave.has(w)) keep.push(w);
+  });
+
+  // fill the remaining slots
+  finalList.forEach(w => {
+    if (!mustHave.has(w) && keep.length < TARGET_TOTAL) keep.push(w);
+  });
+
+  const draggablesToUse = keep;
+
+  // ----------------------------
+  // Build draggable elements
+  // ----------------------------
+  draggablesToUse.forEach((word, idx) => {
     const img = document.createElement("img");
     img.className = "draggable";
     img.draggable = true;
-    img.dataset.word = word;
 
-    // choose draggable type opposite of slot's display type where possible
+    // Determine clipart/sign for draggable
     let gridTypeForWord = gridType;
     if (gridType === "mixed") {
       const slotEl = document.querySelector(`.slot[data-word='${word}']`);
-      gridTypeForWord = slotEl ? slotEl.dataset.gridType || "clipart" : (Math.random() < 0.5 ? "clipart" : "sign");
+      gridTypeForWord = slotEl
+        ? (slotEl.dataset.gridType || "clipart")
+        : (Math.random() < 0.5 ? "clipart" : "sign");
     }
 
-    const draggableIsSign = gridTypeForWord === "clipart";
-    img.src = `assets/weather/${draggableIsSign ? "signs" : "clipart"}/${word}${draggableIsSign ? "" : ""}.png`;
+    const draggableIsSign = (gridTypeForWord === "clipart");
+    const folder = draggableIsSign ? "signs" : "clipart";
+
+    img.src = `assets/weather/${folder}/${word}.png`;
 
     img.addEventListener("dragstart", e => {
       e.dataTransfer.setData("text/plain", word);
       e.dataTransfer.setData("src", img.src);
     });
+
     img.addEventListener("touchstart", touchStartHandler);
 
     const wrap = document.createElement("div");
     wrap.className = "drag-wrapper";
     wrap.appendChild(img);
 
+    // even index → left | odd index → right
     if (idx % 2 === 0) leftSigns.appendChild(wrap);
     else rightSigns.appendChild(wrap);
   });
