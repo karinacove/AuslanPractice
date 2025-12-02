@@ -1,50 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Auslan Weather Matching Game</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
   <script src="js/weather.js" defer></script>
-  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
 </head>
-
 <body>
-  <div id="header">
+
+  <!-- Header -->
+  <header id="header">
     <div id="student-info"></div>
     <div id="score-display"></div>
     <h1 id="levelTitle">Level 1</h1>
-  </div>
+  </header>
 
-  <img id="stop-btn" src="assets/stop.png" alt="Stop Game" />
+  <!-- Stop Button -->
+  <img id="stop-btn" src="assets/stop.png" alt="Stop Game" class="control-btn">
 
-<div class="layout">
-  <div class="left-signs" id="leftSigns"></div>
+  <!-- Game Layout -->
+  <main class="layout">
+    <div class="left-signs" id="leftSigns"></div>
 
-  <div class="middle-slots" id="middleSlots"></div>
+    <div class="middle-slots" id="middleSlots"></div>
 
-  <div id="gameBoard"></div> <!-- unused, but required if JS still references it -->
+    <div class="right-signs" id="rightSigns"></div>
+  </main>
 
-  <div class="right-signs" id="rightSigns"></div>
-</div>
-
-
-  <!-- Modal popup -->
+  <!-- Modal Popup -->
   <div id="end-modal">
     <div id="end-modal-content">
       <p id="score-display-modal">Score: 0</p>
-      <img id="continue-btn" src="assets/continue.png" alt="Continue" />
-      <img id="finish-btn" src="assets/finish.png" alt="Finish" />
-      <img id="again-btn" src="assets/again.png" alt="Play Again" />
+      <div class="modal-buttons">
+        <img id="continue-btn" src="assets/continue.png" alt="Continue" class="control-btn">
+        <img id="finish-btn" src="assets/finish.png" alt="Finish" class="control-btn">
+        <img id="again-btn" src="assets/again.png" alt="Play Again" class="control-btn">
+      </div>
     </div>
   </div>
-  
-<iframe 
+
+  <!-- Hidden iframe for silent Google Form submission -->
+  <iframe 
     name="hidden_iframe" 
     id="hidden_iframe" 
     style="display:none;" 
     onload="if(window.submitted){ window.location.href='../MatchingGame/hub.html'; }">
-</iframe>
+  </iframe>
 
 </body>
 </html>
