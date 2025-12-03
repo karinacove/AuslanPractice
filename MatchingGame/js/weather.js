@@ -624,4 +624,4 @@ finishBtn && finishBtn.addEventListener("click", async () => {
     showEndMenuModal(false);
 });
 againBtn && againBtn.addEventListener("click", () => { localStorage.removeItem(SAVE_KEY); window.location.reload(); });
-}
+})
