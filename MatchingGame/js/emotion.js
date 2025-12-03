@@ -913,9 +913,9 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   if (finishBtn) {
-finishImg.addEventListener("click", async () => {
-  try { await submitGoogleForm(); } catch (err) { console.warn("Submit failed:", err); }
-  clearProgress(false);
+    document.getElementById("finish-btn").addEventListener("click", async () => {
+      try { await submitGoogleForm(); } catch (err) { console.warn("Submit failed:", err); }
+      clearProgress(false);
 
   // Close modal
   modal.style.display = "none";
