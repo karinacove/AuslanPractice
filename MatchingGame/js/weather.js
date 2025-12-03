@@ -37,15 +37,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const GAME_TOPIC = "Weather";
 
   const wordBanks = {
-    1: ["sunny","windy","weather","cyclone","earthquake","hot","cold","snowy","rain","lightning","rainbow","cloudy"],
-    2: ["hat","shirt","short","thong","bathers","skirt","jumper","pants","shoes","socks","jacket","umbrella","scarf","beanie","gloves","clothes","dress"],
-    3: ["sunny","windy","weather","cyclone","earthquake","hot","cold","snowy","rain","lightning","rainbow","cloudy","hat","shirt","short","thong","bathers","dress","skirt","jumper","pants","shoes","socks","jacket","umbrella","scarf","beanie","gloves","clothes"]
+    1: ["sunny","windy","weather","cyclone","earthquake","hot","cold","snowy","rain","lightning","rainbow","cloudy"]
   };
 
   const levelDefinitions = [
-    { words: wordBanks[1], pages: 3, name: "Weather" },
-    { words: wordBanks[2], pages: 3, name: "Clothing" },
-    { words: wordBanks[3], pages: 3, name: "Mixed" }
+    { words: wordBanks[1], pages: 3, name: "Weather" }
   ];
 
   // Game state:
