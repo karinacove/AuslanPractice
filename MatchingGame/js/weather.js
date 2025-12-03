@@ -21,11 +21,12 @@ document.addEventListener("DOMContentLoaded", function () {
   const leftSigns = document.getElementById("leftSigns");
   const rightSigns = document.getElementById("rightSigns");
   const stopBtn = document.getElementById("stop-btn");
-  const continueBtn = document.getElementById("continue-btn"); // may exist in HTML but we also create buttons inside modal
+  const continueBtn = document.getElementById("continue-btn");
   const againBtn = document.getElementById("again-btn");
   const finishBtn = document.getElementById("finish-btn");
   const modal = document.getElementById("end-modal");
   const endModalContent = document.getElementById("end-modal-content");
+  const finalScoreText = document.getElementById("final-score");
 
   if (studentInfoEl) studentInfoEl.innerText = `${studentName} (${studentClass})`;
 
@@ -650,13 +651,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // ----------------------------
   // End modal
   // ----------------------------
-
-const modal = document.getElementById("end-modal");
-const finalScoreText = document.getElementById("final-score");
-
-const continueImg = document.getElementById("continue-btn");
-const againImg = document.getElementById("again-btn");
-const finishImg = document.getElementById("finish-btn");
 
   // showContinue - when true the Continue button is shown (Stop menu); when false (final modal) Continue is hidden
   function showEndMenuModal(showContinue = false) {
