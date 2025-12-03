@@ -33,6 +33,9 @@
     <div class="topic-item" data-topic="numbers">
       <img src="assets/topics/numbers.png" alt="Numbers">
     </div>
+    <div class="topic-item" data-topic="clothing">
+      <img src="assets/topics/clothing.png" alt="Clothing">
+    </div>
   </div>
 
   <script>
@@ -73,6 +76,9 @@
             break;
           case 'food':
             window.location.href = 'food.html';
+            break;
+          case 'clothing':
+            window.location.href = 'clothing.html';
             break;
           default:
             alert(`${topic.charAt(0).toUpperCase() + topic.slice(1)} is coming soon!`);
