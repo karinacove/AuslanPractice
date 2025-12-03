@@ -959,7 +959,7 @@ finishImg.addEventListener("click", async () => {
   // ----------------------------
   // Expose internals for debugging (optional)
   // ----------------------------
-  window._weatherGame = {
+  window._emotionGame = {
     saveProgress,
     restoreProgressFromData,
     getState: () => ({ currentLevel, currentPage, levelAttempts, elapsedTime }),
