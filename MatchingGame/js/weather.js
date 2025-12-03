@@ -531,7 +531,87 @@ document.addEventListener("DOMContentLoaded", function () {
   // ----------------------------
   // Stop / Resume / Finish buttons
   // ----------------------------
-  stopBtn && stopBtn.addEventListener("click", () => { pauseTimer(); });
+if (stopBtn) {
+    stopBtn.addEventListener("click", () => {
+        pauseTimer(); // pause the timer
+        // show modal
+        if (!modal) return;
+
+        modal.style.display = "flex"; 
+        if (!endModalContent) return;
+
+        // Clear previous content
+        endModalContent.innerHTML = "";
+
+        // Score display
+        const scoreP = document.createElement("p");
+        scoreP.style.fontSize = "18px";
+        scoreP.style.fontWeight = "bold";
+        scoreP.style.marginBottom = "16px";
+        scoreP.innerText = `Score: ${getTotalCorrect()} correct, ${getTotalIncorrect()} incorrect`;
+
+        // Buttons row
+        const buttons = document.createElement("div");
+        Object.assign(buttons.style, {
+            display: "flex",
+            justifyContent: "center",
+            gap: "12px",
+            flexWrap: "wrap"
+        });
+
+        // Continue button
+        const contImg = document.createElement("img");
+        contImg.src = "assets/continue.png";
+        contImg.alt = "Continue";
+        contImg.style.width = "120px";
+        contImg.style.height = "120px";
+        contImg.style.cursor = "pointer";
+        contImg.addEventListener("click", () => {
+            modal.style.display = "none";
+            resumeTimer();
+        });
+
+        // Again button
+        const againImg = document.createElement("img");
+        againImg.src = "assets/again.png";
+        againImg.alt = "Again";
+        againImg.style.width = "120px";
+        againImg.style.height = "120px";
+        againImg.style.cursor = "pointer";
+        againImg.addEventListener("click", async () => {
+            try { await submitGoogleForm(); } catch (err) { console.warn("Submit failed:", err); }
+            clearProgress(false);
+            for (let i = 0; i < levelAttempts.length; i++) levelAttempts[i] = { correct: new Set(), incorrect: [] };
+            currentLevel = 0; currentPage = 0; correctMatches = 0; gameEnded = false; startTime = Date.now(); elapsedTime = 0;
+            saveProgress();
+            modal.style.display = "none";
+            loadPage();
+            startTimer();
+        });
+
+        // Finish button
+        const finishImg = document.createElement("img");
+        finishImg.src = "assets/finish.png";
+        finishImg.alt = "Finish";
+        finishImg.style.width = "120px";
+        finishImg.style.height = "120px";
+        finishImg.style.cursor = "pointer";
+        finishImg.addEventListener("click", async () => {
+            try { await submitGoogleForm(); } catch (err) { console.warn("Submit failed:", err); }
+            clearProgress(false);
+            modal.style.display = "none";
+            showEndMenuModal();
+        });
+
+        buttons.appendChild(contImg);
+        buttons.appendChild(againImg);
+        buttons.appendChild(finishImg);
+
+        endModalContent.appendChild(scoreP);
+        endModalContent.appendChild(buttons);
+    });
+}
+
   continueBtn && continueBtn.addEventListener("click", () => { resumeTimer(); });
   finishBtn && finishBtn.addEventListener("click", async () => {
     gameEnded = true;
