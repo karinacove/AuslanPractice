@@ -317,7 +317,7 @@ document.addEventListener("DOMContentLoaded", function () {
       slot.innerHTML = "";
       const overlay = document.createElement("img");
       overlay.className = "overlay";
-      overlay.src = src || (slot.dataset.gridType === "sign" ? `assets/emotions/signs/${word}.png` : `assets/emotions/clipart/${word}.png`);
+      overlay.src = src || (slot.dataset.gridType === "sign" ? `assets/emotions/signs/${word}.mp4` : `assets/emotions/clipart/${word}.png`);
       overlay.style.width = "100%";
       overlay.style.height = "100%";
       overlay.style.objectFit = "contain";
