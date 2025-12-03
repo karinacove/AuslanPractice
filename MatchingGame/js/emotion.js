@@ -317,7 +317,7 @@ document.addEventListener("DOMContentLoaded", function () {
       slot.innerHTML = "";
       const overlay = document.createElement("img");
       overlay.className = "overlay";
-      overlay.src = src || (slot.dataset.gridType === "sign" ? `assets/weather/signs/${word}.png` : `assets/weather/clipart/${word}.png`);
+      overlay.src = src || (slot.dataset.gridType === "sign" ? `assets/emotions/signs/${word}.png` : `assets/emotions/clipart/${word}.png`);
       overlay.style.width = "100%";
       overlay.style.height = "100%";
       overlay.style.objectFit = "contain";
@@ -505,7 +505,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (gridType === "mixed") slotType = Math.random() < 0.5 ? "clipart" : "sign";
       slot.dataset.gridType = slotType;
 
-      const url = `assets/weather/${slotType === "sign" ? "signs" : "clipart"}/${word}.png`;
+      const url = `assets/emotions/${slotType === "sign" ? "signs" : "clipart"}/${word}.png`;
       slot.style.backgroundImage = `url('${url}')`;
       slot.style.backgroundSize = "contain";
       slot.style.backgroundPosition = "center";
@@ -600,7 +600,7 @@ document.addEventListener("DOMContentLoaded", function () {
       // show the opposite (draggableIsSign true means use signs folder when slots are clipart)
       const draggableIsSign = (gridTypeForWord === "clipart");
       const folder = draggableIsSign ? "signs" : "clipart";
-      img.src = `assets/weather/${folder}/${word}.png`;
+      img.src = `assets/emotions/${folder}/${word}.png`;
 
       // set accessible size style (so touch clone sizing works consistently)
       img.style.width = "100%";
