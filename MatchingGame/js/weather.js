@@ -907,13 +907,16 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   if (finishBtn) {
-    finishBtn.addEventListener("click", async () => {
-      gameEnded = true;
-      saveProgress();
-      try { await submitGoogleForm(); } catch (err) { console.warn("Submit failed:", err); }
-      showEndMenuModal(false);
-    });
-  }
+finishImg.addEventListener("click", async () => {
+  try { await submitGoogleForm(); } catch (err) { console.warn("Submit failed:", err); }
+  clearProgress(false);
+
+  // Close modal
+  modal.style.display = "none";
+
+  // ✅ Go back to index
+  window.location.href = "../index.html";
+});
 
   if (againBtn) {
     againBtn.addEventListener("click", () => {
