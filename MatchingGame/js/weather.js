@@ -736,7 +736,7 @@ document.addEventListener("DOMContentLoaded", function () {
       clearProgress(false);
       modal.style.display = "none";
       // Final "done" modal - show clap and no continue (already same content but ensure continue hidden)
-      showEndMenuModal(false);
+      window.location.href = "../index.html";
     });
 
     // Append buttons (Again + Finish always present)
