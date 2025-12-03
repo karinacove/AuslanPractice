@@ -240,6 +240,26 @@ h2#levelTitle {
   background: url('assets/correct.png') no-repeat center/contain;
   pointer-events: none;
 }
+#end-modal {
+  display: none;            /* hidden by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;           /* above ALL game elements */
+}
+
+#end-modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 20px;
+  text-align: center;
+  max-width: 90%;
+}
 
 /* Dragged Sign Container */
 .draggable-container {
