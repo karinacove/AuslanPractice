@@ -911,7 +911,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   if (finishBtn) {
-finishImg.addEventListener("click", async () => {
+finishBtn.addEventListener("click", async () => {
   try { await submitGoogleForm(); } catch (err) { console.warn("Submit failed:", err); }
   clearProgress(false);
 
