@@ -440,126 +440,40 @@ document.addEventListener("DOMContentLoaded", function () {
     levelTitleEl.innerText = info.name + ` - Page ${currentPage + 1} of ${info.pages}`;
   }
 
-  // ----------------------------
-  // End modal
-  // ----------------------------
-  function showEndMenuModal() {
+// ----------------------------
+// End modal
+// ----------------------------
+function showEndMenuModal(showContinue = false) {
     if (!endModalContent) return;
-    endModalContent.innerHTML = `<h2>Game Over!</h2><p>Well done, ${studentName}!</p><button id="restartBtn">Play Again</button>`;
-    const restartBtn = document.getElementById("restartBtn");
-    restartBtn && restartBtn.addEventListener("click", () => { localStorage.removeItem(SAVE_KEY); window.location.reload(); });
-    modal.style.display = "block";
-  }
 
-  // ----------------------------
-  // GOOGLE FORM SUBMISSION
-  // ----------------------------
-  async function submitGoogleForm() {
-    return new Promise((resolve, reject) => {
-      try {
-        let iframe = document.querySelector("iframe[name='hidden_iframe']");
-        if (!iframe) {
-          iframe = document.createElement("iframe");
-          iframe.name = "hidden_iframe";
-          iframe.style.display = "none";
-          document.body.appendChild(iframe);
-        }
-        let oldForm = document.getElementById("hiddenForm");
-        if (oldForm) oldForm.remove();
+    endModalContent.innerHTML = "";
 
-        const form = document.createElement("form");
-        form.id = "hiddenForm";
-        form.method = "POST";
-        form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
-        form.target = "hidden_iframe";
-        form.style.display = "none";
+    // Auslan clap GIF
+    const clapImg = document.createElement("img");
+    clapImg.src = "assets/auslan-clap.gif";
+    clapImg.style.width = "120px";
+    clapImg.style.height = "120px";
+    clapImg.style.display = "block";
+    clapImg.style.margin = "0 auto 16px";
 
-        const percent = calculatePercent();
-        const timeTaken = Math.round((Date.now() - startTime) / 1000);
-        const minutes = Math.floor(timeTaken / 60);
-        const seconds = timeTaken % 60;
-        const formattedTime = `${minutes} mins ${seconds} sec`;
+    // Score display
+    const scoreP = document.createElement("p");
+    scoreP.style.fontSize = "18px";
+    scoreP.style.fontWeight = "bold";
+    scoreP.style.marginBottom = "16px";
+    scoreP.innerText = `Score: ${getTotalCorrect()} correct, ${getTotalIncorrect()} incorrect`;
 
-        let highestLevel = 0;
-        for (let i = 0; i < levelAttempts.length; i++) {
-          if (levelAttempts[i].correct.size > 0 || levelAttempts[i].incorrect.length > 0) highestLevel = i + 1;
-        }
-
-        const entries = {};
-        entries[FORM_FIELDS.name] = studentName;
-        entries[FORM_FIELDS.class] = studentClass;
-        entries[FORM_FIELDS.topic] = GAME_TOPIC;
-        entries[FORM_FIELDS.percentage] = percent + "%";
-        entries[FORM_FIELDS.time] = formattedTime;
-        entries[FORM_FIELDS.highestLevel] = highestLevel;
-
-        for (let i = 0; i < 6; i++) {
-          const lvl = levelAttempts[i] || { correct: new Set(), incorrect: [] };
-          entries[FORM_FIELDS[`level${i + 1}Correct`]] = Array.from(lvl.correct).sort().join(", ");
-          entries[FORM_FIELDS[`level${i + 1}Incorrect`]] = (lvl.incorrect || []).sort().join(", ");
-        }
-
-        for (const fieldID in entries) {
-          const input = document.createElement("input");
-          input.type = "hidden";
-          input.name = fieldID;
-          input.value = entries[fieldID];
-          form.appendChild(input);
-        }
-
-        document.body.appendChild(form);
-        iframe.onload = () => resolve();
-        form.submit();
-      } catch (err) { console.warn("Form submit error:", err); reject(err); }
+    // Buttons row
+    const buttons = document.createElement("div");
+    Object.assign(buttons.style, {
+        display: "flex",
+        justifyContent: "center",
+        gap: "12px",
+        flexWrap: "wrap"
     });
-  }
 
-  // ----------------------------
-  // Initial load
-  // ----------------------------
-  const savedData = JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
-  restoreProgressFromData(savedData);
-  loadPage();
-  startTimer();
-  updateScoreDisplay();
-
-  // ----------------------------
-  // Save periodically
-  // ----------------------------
-  setInterval(saveProgress, 3000);
-
-  // ----------------------------
-  // Stop / Resume / Finish buttons
-  // ----------------------------
-if (stopBtn) {
-    stopBtn.addEventListener("click", () => {
-        pauseTimer(); // pause the timer
-        // show modal
-        if (!modal) return;
-
-        modal.style.display = "flex"; 
-        if (!endModalContent) return;
-
-        // Clear previous content
-        endModalContent.innerHTML = "";
-
-        // Score display
-        const scoreP = document.createElement("p");
-        scoreP.style.fontSize = "18px";
-        scoreP.style.fontWeight = "bold";
-        scoreP.style.marginBottom = "16px";
-        scoreP.innerText = `Score: ${getTotalCorrect()} correct, ${getTotalIncorrect()} incorrect`;
-
-        // Buttons row
-        const buttons = document.createElement("div");
-        Object.assign(buttons.style, {
-            display: "flex",
-            justifyContent: "center",
-            gap: "12px",
-            flexWrap: "wrap"
-        });
-
-        // Continue button
+    // Continue button (only if game not ended)
+    if (showContinue) {
         const contImg = document.createElement("img");
         contImg.src = "assets/continue.png";
         contImg.alt = "Continue";
@@ -570,54 +484,143 @@ if (stopBtn) {
             modal.style.display = "none";
             resumeTimer();
         });
-
-        // Again button
-        const againImg = document.createElement("img");
-        againImg.src = "assets/again.png";
-        againImg.alt = "Again";
-        againImg.style.width = "120px";
-        againImg.style.height = "120px";
-        againImg.style.cursor = "pointer";
-        againImg.addEventListener("click", async () => {
-            try { await submitGoogleForm(); } catch (err) { console.warn("Submit failed:", err); }
-            clearProgress(false);
-            for (let i = 0; i < levelAttempts.length; i++) levelAttempts[i] = { correct: new Set(), incorrect: [] };
-            currentLevel = 0; currentPage = 0; correctMatches = 0; gameEnded = false; startTime = Date.now(); elapsedTime = 0;
-            saveProgress();
-            modal.style.display = "none";
-            loadPage();
-            startTimer();
-        });
-
-        // Finish button
-        const finishImg = document.createElement("img");
-        finishImg.src = "assets/finish.png";
-        finishImg.alt = "Finish";
-        finishImg.style.width = "120px";
-        finishImg.style.height = "120px";
-        finishImg.style.cursor = "pointer";
-        finishImg.addEventListener("click", async () => {
-            try { await submitGoogleForm(); } catch (err) { console.warn("Submit failed:", err); }
-            clearProgress(false);
-            modal.style.display = "none";
-            showEndMenuModal();
-        });
-
         buttons.appendChild(contImg);
-        buttons.appendChild(againImg);
-        buttons.appendChild(finishImg);
+    }
 
-        endModalContent.appendChild(scoreP);
-        endModalContent.appendChild(buttons);
+    // Again button
+    const againImg = document.createElement("img");
+    againImg.src = "assets/again.png";
+    againImg.alt = "Again";
+    againImg.style.width = "120px";
+    againImg.style.height = "120px";
+    againImg.style.cursor = "pointer";
+    againImg.addEventListener("click", async () => {
+        try { await submitGoogleForm(); } catch (err) { console.warn("Submit failed:", err); }
+        clearProgress(false);
+        for (let i = 0; i < levelAttempts.length; i++) levelAttempts[i] = { correct: new Set(), incorrect: [] };
+        currentLevel = 0; currentPage = 0; correctMatches = 0; gameEnded = false; startTime = Date.now(); elapsedTime = 0;
+        saveProgress();
+        modal.style.display = "none";
+        loadPage();
+        startTimer();
+    });
+
+    // Finish button
+    const finishImg = document.createElement("img");
+    finishImg.src = "assets/finish.png";
+    finishImg.alt = "Finish";
+    finishImg.style.width = "120px";
+    finishImg.style.height = "120px";
+    finishImg.style.cursor = "pointer";
+    finishImg.addEventListener("click", async () => {
+        try { await submitGoogleForm(); } catch (err) { console.warn("Submit failed:", err); }
+        clearProgress(false);
+        modal.style.display = "none";
+        showEndMenuModal(false); // show final clap modal
+    });
+
+    buttons.appendChild(againImg);
+    buttons.appendChild(finishImg);
+
+    endModalContent.appendChild(clapImg);
+    endModalContent.appendChild(scoreP);
+    endModalContent.appendChild(buttons);
+
+    modal.style.display = "flex";
+}
+
+// ----------------------------
+// GOOGLE FORM SUBMISSION
+// ----------------------------
+async function submitGoogleForm() {
+    return new Promise((resolve, reject) => {
+        try {
+            let iframe = document.querySelector("iframe[name='hidden_iframe']");
+            if (!iframe) {
+                iframe = document.createElement("iframe");
+                iframe.name = "hidden_iframe";
+                iframe.style.display = "none";
+                document.body.appendChild(iframe);
+            }
+            let oldForm = document.getElementById("hiddenForm");
+            if (oldForm) oldForm.remove();
+
+            const form = document.createElement("form");
+            form.id = "hiddenForm";
+            form.method = "POST";
+            form.action = "https://docs.google.com/forms/d/e/1FAIpQLSelMV1jAUSR2aiKKvbOHj6st2_JWMH-6LA9D9FWiAdNVQd1wQ/formResponse";
+            form.target = "hidden_iframe";
+            form.style.display = "none";
+
+            const percent = calculatePercent();
+            const timeTaken = Math.round((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(timeTaken / 60);
+            const seconds = timeTaken % 60;
+            const formattedTime = `${minutes} mins ${seconds} sec`;
+
+            let highestLevel = 0;
+            for (let i = 0; i < levelAttempts.length; i++) {
+                if (levelAttempts[i].correct.size > 0 || levelAttempts[i].incorrect.length > 0) highestLevel = i + 1;
+            }
+
+            const entries = {};
+            entries[FORM_FIELDS.name] = studentName;
+            entries[FORM_FIELDS.class] = studentClass;
+            entries[FORM_FIELDS.topic] = GAME_TOPIC;
+            entries[FORM_FIELDS.percentage] = percent + "%";
+            entries[FORM_FIELDS.time] = formattedTime;
+            entries[FORM_FIELDS.highestLevel] = highestLevel;
+
+            for (let i = 0; i < 6; i++) {
+                const lvl = levelAttempts[i] || { correct: new Set(), incorrect: [] };
+                entries[FORM_FIELDS[`level${i + 1}Correct`]] = Array.from(lvl.correct).sort().join(", ");
+                entries[FORM_FIELDS[`level${i + 1}Incorrect`]] = (lvl.incorrect || []).sort().join(", ");
+            }
+
+            for (const fieldID in entries) {
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = fieldID;
+                input.value = entries[fieldID];
+                form.appendChild(input);
+            }
+
+            document.body.appendChild(form);
+            iframe.onload = () => resolve();
+            form.submit();
+        } catch (err) { console.warn("Form submit error:", err); reject(err); }
     });
 }
 
-  continueBtn && continueBtn.addEventListener("click", () => { resumeTimer(); });
-  finishBtn && finishBtn.addEventListener("click", async () => {
+// ----------------------------
+// Initial load
+// ----------------------------
+const savedData = JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
+restoreProgressFromData(savedData);
+loadPage();
+startTimer();
+updateScoreDisplay();
+
+// ----------------------------
+// Save periodically
+// ----------------------------
+setInterval(saveProgress, 3000);
+
+// ----------------------------
+// Stop / Resume / Finish buttons
+// ----------------------------
+if (stopBtn) {
+    stopBtn.addEventListener("click", () => {
+        pauseTimer(); // pause the timer
+        showEndMenuModal(!gameEnded);
+    });
+}
+
+continueBtn && continueBtn.addEventListener("click", () => { resumeTimer(); });
+finishBtn && finishBtn.addEventListener("click", async () => {
     gameEnded = true;
     saveProgress();
     try { await submitGoogleForm(); } catch (err) { console.warn("Submit failed:", err); }
-    showEndMenuModal();
-  });
-  againBtn && againBtn.addEventListener("click", () => { localStorage.removeItem(SAVE_KEY); window.location.reload(); });
+    showEndMenuModal(false);
 });
+againBtn && againBtn.addEventListener("click", () => { localStorage.removeItem(SAVE_KEY); window.location.reload(); });
