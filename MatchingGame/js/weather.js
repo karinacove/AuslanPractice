@@ -648,8 +648,16 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ----------------------------
-  // End modal (Option B)
+  // End modal
   // ----------------------------
+
+const modal = document.getElementById("end-modal");
+const finalScoreText = document.getElementById("final-score");
+
+const continueImg = document.getElementById("continue-btn");
+const againImg = document.getElementById("again-btn");
+const finishImg = document.getElementById("finish-btn");
+
   // showContinue - when true the Continue button is shown (Stop menu); when false (final modal) Continue is hidden
   function showEndMenuModal(showContinue = false) {
     if (!endModalContent || !modal) return;
