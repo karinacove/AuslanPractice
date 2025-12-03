@@ -917,6 +917,7 @@ finishImg.addEventListener("click", async () => {
   // ✅ Go back to index
   window.location.href = "../index.html";
 });
+  }
 
   if (againBtn) {
     againBtn.addEventListener("click", () => {
@@ -983,5 +984,4 @@ finishImg.addEventListener("click", async () => {
     }
     lastTap = currentTime;
   });
-
-});
+ });
