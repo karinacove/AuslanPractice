@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const wordBanks = {
     1: ["dog","cat","mouse","fish","bird","rabbit","horse","chicken","cow","pig","sheep","goat","duck"],
     2: ["elephant","giraffe","lion","tiger","hippo","butterfly","rhino","bear","monkey","zebra"],
-    3: ["kangaroo","koala","snake","crocodile","lizard","possum","emu","snake","echidna","platypus","wombat"],
+    3: ["cockatoo","kangaroo","koala","snake","crocodile","lizard","possum","emu","snake","echidna","platypus","wombat"],
     4: ["frog","dolphin","shark","octopus","jellyfish","crab","seal","turtle","penguin","whale"]
   };
 
