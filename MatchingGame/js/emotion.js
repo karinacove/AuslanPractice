@@ -428,8 +428,6 @@ function dropHandler(e) {
   }
 }
 
-
-
 // ======================================================
 // Touch Drag Simulation — supports video OR img
 // ======================================================
@@ -518,8 +516,6 @@ function touchStartHandler(ev) {
   document.addEventListener("touchmove", onMove, { passive: false });
   document.addEventListener("touchend", onEnd, { passive: false });
 }
-
-
 
 // ======================================================
 // Build Draggables — Video First, PNG fallback
@@ -661,6 +657,35 @@ function buildDraggablesForPage(info, pageWords, gridType) {
   });
 }
   
+  // ----------------------------
+// Build grid slots
+// ----------------------------
+function buildGridForPage(pageWords, pageIdx) {
+  gameBoard.innerHTML = "";
+
+  // Determine page grid type
+  const gridType = pageIdx === 0 ? "clipart" : pageIdx === 1 ? "sign" : "mixed";
+
+  pageWords.forEach(word => {
+    const slot = document.createElement("div");
+    slot.className = "slot";
+    slot.dataset.word = word;
+
+    // Determine slot type for this page
+    let slotType = gridType;
+    if (gridType === "mixed") slotType = Math.random() < 0.5 ? "clipart" : "sign";
+    slot.dataset.gridType = slotType;
+
+    // Drag & drop handlers
+    slot.addEventListener("dragover", e => e.preventDefault());
+    slot.addEventListener("drop", dropHandler);
+
+    gameBoard.appendChild(slot);
+  });
+
+  return gridType;
+}
+
 // ----------------------------
 // Helper: Get unique page words
 // ----------------------------
