@@ -660,6 +660,22 @@ function buildDraggablesForPage(info, pageWords, gridType) {
     else rightSigns.appendChild(wrap);
   });
 }
+  
+// ----------------------------
+// Helper: Get unique page words
+// ----------------------------
+function getUniquePageWords(words, n = 9) {
+  const picked = [];
+  const pool = shuffle(words); // shuffle must exist first
+  let i = 0;
+  while (picked.length < n) {
+    const candidate = pool[i % pool.length];
+    if (!picked.includes(candidate)) picked.push(candidate);
+    i++;
+    if (i > 9999) break;
+  }
+  return shuffle(picked);
+}
 
   // ----------------------------
   // Page loading logic
