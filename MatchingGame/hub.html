@@ -36,6 +36,9 @@
     <div class="topic-item" data-topic="clothing">
       <img src="assets/topics/clothing.png" alt="Clothing">
     </div>
+    <div class="topic-item" data-topic="emotions">
+      <img src="assets/topics/emotions.png" alt="Clothing">
+    </div>
   </div>
 
   <script>
@@ -60,7 +63,7 @@
 
         switch (topic) {
           case 'animal':
-            window.location.href = 'animal.html';
+            window.location.href = 'animals.html';
             break;          
           case 'alphabet':
             window.location.href = 'alphabet.html';
@@ -79,6 +82,9 @@
             break;
           case 'clothing':
             window.location.href = 'clothing.html';
+            break;
+          case 'emotions':
+            window.location.href = 'emotions.html';
             break;
           default:
             alert(`${topic.charAt(0).toUpperCase() + topic.slice(1)} is coming soon!`);
