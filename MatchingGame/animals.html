@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auslan Matching Game - Animals</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="js/animals.js" defer></script>
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+</head>
+<body>
+  <div id="header">
+    <div id="student-info"></div>
+    <div id="score-display"></div>
+    <h1 id="levelTitle">Level 1</h1>
+  </div>
+
+  <img id="stop-btn" src="assets/stop.png" alt="Stop Game" />
+
+  <div class="layout">
+    <div class="left-signs" id="leftSigns"></div>
+    <div id="gameBoard"></div>
+    <div class="right-signs" id="rightSigns"></div>
+  </div>
+
+  <!-- Modal popup -->
+  <div id="end-modal">
+    <div id="end-modal-content">
+      <p id="final-score">Score: 0</p>
+      <img id="continue-btn" src="assets/continue.png" alt="Continue" />
+      <img id="again-btn" src="assets/again.png" alt="Play Again" />
+      <img id="finish-btn" src="assets/finish.png" alt="Finish Game" />
+    </div>
+  </div>
+</body>
+</html>
