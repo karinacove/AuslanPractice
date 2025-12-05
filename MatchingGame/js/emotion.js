@@ -660,10 +660,12 @@ function buildDraggablesForPage(info, pageWords, gridType) {
   // ----------------------------
 // Build grid slots
 // ----------------------------
+// ----------------------------
+// Build grid slots with initial media
+// ----------------------------
 function buildGridForPage(pageWords, pageIdx) {
   gameBoard.innerHTML = "";
 
-  // Determine page grid type
   const gridType = pageIdx === 0 ? "clipart" : pageIdx === 1 ? "sign" : "mixed";
 
   pageWords.forEach(word => {
@@ -671,10 +673,24 @@ function buildGridForPage(pageWords, pageIdx) {
     slot.className = "slot";
     slot.dataset.word = word;
 
-    // Determine slot type for this page
+    // Determine slot type
     let slotType = gridType;
     if (gridType === "mixed") slotType = Math.random() < 0.5 ? "clipart" : "sign";
     slot.dataset.gridType = slotType;
+
+    // Populate the slot immediately
+    if (slotType === "sign") {
+      // Video with PNG fallback
+      createSignElement(word).then(el => slot.appendChild(el));
+    } else {
+      // Clipart slot
+      const img = document.createElement("img");
+      img.src = `assets/emotions/clipart/${word}.png`;
+      img.style.width = "100%";
+      img.style.height = "100%";
+      img.style.objectFit = "contain";
+      slot.appendChild(img);
+    }
 
     // Drag & drop handlers
     slot.addEventListener("dragover", e => e.preventDefault());
