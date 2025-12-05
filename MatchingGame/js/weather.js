@@ -40,9 +40,11 @@ document.addEventListener("DOMContentLoaded", function () {
     1: ["sunny","windy","weather","cyclone","earthquake","hot","cold","snowy","rain","lightning","rainbow","cloudy"]
   };
 
-  const levelDefinitions = [
-    { words: wordBanks[1], pages: 3, name: "Weather" }
-  ];
+ const levelDefinitions = [
+  { words: wordBanks[1], pages: 1, name: "Level 1" },
+  { words: wordBanks[1], pages: 1, name: "Level 2" },
+  { words: wordBanks[1], pages: 1, name: "Level 3" }
+];
 
   // Game state:
   let currentLevel = 0;          // 0..n-1
