@@ -296,342 +296,370 @@ const levelDefinitions = [
     document.body.appendChild(overlay);
   }
 
-  // ----------------------------
-  // Drag & Drop / Touch handlers
-  // ----------------------------
-  function dropHandler(e) {
-    e.preventDefault && e.preventDefault();
-    const dt = e.dataTransfer || (e.data && e.dataTransfer) || (e.dataTransfer === undefined ? e : null);
-    const getData = dt && typeof dt.getData === "function" ? k => dt.getData(k) : k => "";
+// ===============================================
+// Helper: create sign element (VIDEO with PNG fallback)
+// ===============================================
+async function createSignElement(word) {
+  const mp4 = `assets/emotions/signs/${word}.mp4`;
+  const png = `assets/emotions/signs/${word}.png`;
 
-    const word = getData("text/plain");
-    const src = getData("src") || "";
-    const slot = e.currentTarget;
-    const targetWord = slot && (slot.dataset.word || slot.dataset.expected || slot.dataset.weather);
-    if (!targetWord) return;
+  try {
+    const res = await fetch(mp4, { method: "HEAD" });
+    if (res.ok) {
+      const vid = document.createElement("video");
+      vid.src = mp4;
+      vid.autoplay = true;
+      vid.loop = true;
+      vid.muted = true;
+      vid.playsInline = true;
+      vid.className = "overlay";
+      vid.style.width = "100%";
+      vid.style.height = "100%";
+      vid.style.objectFit = "contain";
+      return vid;
+    }
+  } catch (err) {}
 
-    if (word === targetWord) {
-      if (!levelAttempts[currentLevel].correct.has(word)) levelAttempts[currentLevel].correct.add(word);
+  // Fallback PNG
+  const img = document.createElement("img");
+  img.src = png;
+  img.className = "overlay";
+  img.style.width = "100%";
+  img.style.height = "100%";
+  img.style.objectFit = "contain";
+  return img;
+}
 
-      // show overlay image on slot
-      slot.innerHTML = "";
+
+
+// ======================================================
+// Drag & Drop / Touch handlers
+// ======================================================
+function dropHandler(e) {
+  e.preventDefault && e.preventDefault();
+
+  const dt = e.dataTransfer || (e.data && e.dataTransfer) || (e.dataTransfer === undefined ? e : null);
+  const getData = dt && typeof dt.getData === "function" ? k => dt.getData(k) : k => "";
+
+  const word = getData("text/plain");
+  const slot = e.currentTarget;
+
+  const targetWord = slot && (slot.dataset.word || slot.dataset.expected || slot.dataset.weather);
+  if (!targetWord) return;
+
+  if (word === targetWord) {
+    if (!levelAttempts[currentLevel].correct.has(word))
+      levelAttempts[currentLevel].correct.add(word);
+
+    slot.innerHTML = "";
+    slot.dataset.filled = "true";
+
+    // ===== SIGN SLOT (VIDEO + PNG FALLBACK) =====
+    if (slot.dataset.gridType === "sign") {
+      createSignElement(word).then(el => {
+        slot.appendChild(el);
+      });
+    }
+
+    // ===== CLIPART SLOT (PNG ONLY) =====
+    else {
       const overlay = document.createElement("img");
       overlay.className = "overlay";
-      overlay.src = src || (slot.dataset.gridType === "sign" ? `assets/emotions/signs/${word}.mp4` : `assets/emotions/clipart/${word}.png`);
+      overlay.src = `assets/emotions/clipart/${word}.png`;
       overlay.style.width = "100%";
       overlay.style.height = "100%";
       overlay.style.objectFit = "contain";
       slot.appendChild(overlay);
-      slot.dataset.filled = "true";
-
-      // remove all draggable copies for that word (mouse or touch originals)
-      document.querySelectorAll(`img.draggable[data-word='${word}']`).forEach(el => el.remove());
-
-      correctMatches++;
-      showFeedback(true);
-      updateScoreDisplay();
-      saveProgress();
-
-      // check page completion
-      const slotsOnPage = document.querySelectorAll(".slot").length;
-      const filledCount = Array.from(document.querySelectorAll(".slot")).filter(s => s.dataset.filled === "true").length;
-      if (filledCount >= slotsOnPage) {
-        correctMatches = 0;
-        (async () => {
-          try { await submitGoogleForm(); } catch (err) { console.warn("Submit failed:", err); }
-          // advance page / level
-          currentPage++;
-          const info = levelDefinitions[currentLevel];
-          if (currentPage < (info && info.pages ? info.pages : 1)) {
-            saveProgress();
-            setTimeout(loadPage, 700);
-          } else {
-            // finished current level
-            currentLevel++;
-            currentPage = 0;
-            saveProgress();
-            if (currentLevel >= levelDefinitions.length) {
-              // done all levels
-              gameEnded = true;
-              saveProgress();
-              try { await submitGoogleForm(); } catch (err) { console.warn("Final submit failed:", err); }
-              showEndMenuModal(false); // final modal: don't show Continue
-            } else {
-              setTimeout(loadPage, 700);
-            }
-          }
-        })();
-      }
-    } else {
-      // incorrect
-      levelAttempts[currentLevel].incorrect.push(word);
-      showFeedback(false);
-      updateScoreDisplay();
-      saveProgress();
-      // animate original draggable if present
-      const wrong = document.querySelector(`img.draggable[data-word='${word}']`);
-      if (wrong) {
-        wrong.classList.add("shake");
-        setTimeout(() => wrong.classList.remove("shake"), 400);
-      }
-    }
-  }
-
-  // ----------------------------
-  // Touch-drag simulation
-  // ----------------------------
-  let _touchState = null;
-
-  function touchStartHandler(ev) {
-    if (!ev || !ev.touches || ev.touches.length === 0) return;
-    const target = ev.currentTarget || ev.target;
-    if (!target || !target.classList.contains("draggable")) return;
-
-    ev.preventDefault();
-
-    const word = target.dataset.word;
-    const src = target.src || "";
-
-    // Create clone that will follow finger
-    const clone = target.cloneNode(true);
-    Object.assign(clone.style, {
-      position: "fixed",
-      left: "0px",
-      top: "0px",
-      pointerEvents: "none",
-      opacity: "0.95",
-      zIndex: 10000,
-      transform: "translate(-50%,-50%)"
-    });
-    // size clone sensibly
-    const rect = target.getBoundingClientRect();
-    const cw = Math.min(rect.width || 100, 140);
-    clone.style.width = cw + "px";
-    clone.style.height = "auto";
-
-    document.body.appendChild(clone);
-
-    // move helper
-    function moveClone(touch) {
-      if (!touch) return;
-      clone.style.left = `${touch.clientX}px`;
-      clone.style.top = `${touch.clientY}px`;
     }
 
-    // initial position
-    moveClone(ev.touches[0]);
+    // remove all draggable copies of this word
+    document.querySelectorAll(`.drag-wrapper[data-word='${word}']`).forEach(el => el.remove());
 
-    _touchState = { word, src, clone, origin: target };
+    correctMatches++;
+    showFeedback(true);
+    updateScoreDisplay();
+    saveProgress();
 
-    // move and end handlers
-    const onMove = (mEv) => {
-      mEv.preventDefault && mEv.preventDefault();
-      const t = mEv.touches && mEv.touches[0];
-      moveClone(t);
-    };
+    // completion check
+    const slotsOnPage = document.querySelectorAll(".slot").length;
+    const filledCount = Array.from(document.querySelectorAll(".slot"))
+      .filter(s => s.dataset.filled === "true").length;
 
-    const onEnd = (endEv) => {
-      endEv.preventDefault && endEv.preventDefault();
-      const t = endEv.changedTouches && endEv.changedTouches[0];
-      if (t) {
-        // find element under finger
-        let el = document.elementFromPoint(t.clientX, t.clientY);
-        // climb until .slot found (in case child element)
-        while (el && !el.classList.contains("slot")) el = el.parentElement;
-        if (el && el.classList.contains("slot")) {
-          // build fake event with minimal dataTransfer API
-          const fake = {
-            preventDefault: () => {},
-            currentTarget: el,
-            dataTransfer: {
-              getData: (k) => {
-                if (k === "text/plain") return word;
-                if (k === "src") return src;
-                return "";
-              }
-            }
-          };
-          dropHandler(fake);
+    if (filledCount >= slotsOnPage) {
+      correctMatches = 0;
+      (async () => {
+        try { await submitGoogleForm(); } catch {}
+        currentPage++;
+        const info = levelDefinitions[currentLevel];
+
+        if (currentPage < (info?.pages ?? 1)) {
+          saveProgress();
+          setTimeout(loadPage, 700);
         } else {
-          // not dropped on a slot — give visual feedback by shaking original
-          const original = document.querySelector(`img.draggable[data-word='${word}']`);
-          if (original) {
-            original.classList.add("shake");
-            setTimeout(() => original.classList.remove("shake"), 400);
+          currentLevel++;
+          currentPage = 0;
+          saveProgress();
+
+          if (currentLevel >= levelDefinitions.length) {
+            gameEnded = true;
+            saveProgress();
+            try { await submitGoogleForm(); } catch {}
+            showEndMenuModal(false);
+          } else {
+            setTimeout(loadPage, 700);
           }
         }
-      }
-
-      // cleanup
-      document.removeEventListener("touchmove", onMove);
-      document.removeEventListener("touchend", onEnd);
-      if (_touchState && _touchState.clone) _touchState.clone.remove();
-      _touchState = null;
-    };
-
-    document.addEventListener("touchmove", onMove, { passive: false });
-    document.addEventListener("touchend", onEnd, { passive: false });
-  }
-
-  // ----------------------------
-  // Page helper: unique words
-  // ----------------------------
-  function getUniquePageWords(words, n = 9) {
-    const picked = [];
-    const pool = shuffle(words);
-    let i = 0;
-    while (picked.length < n) {
-      const candidate = pool[i % pool.length];
-      if (!picked.includes(candidate)) picked.push(candidate);
-      i++;
-      if (i > 9999) break;
+      })();
     }
-    return shuffle(picked);
   }
 
-  // ----------------------------
-  // Build grid slots
-  // ----------------------------
-  function buildGridForPage(pageWords, pageIdx) {
-    gameBoard.innerHTML = "";
-    const gridType = pageIdx === 0 ? "clipart" : pageIdx === 1 ? "sign" : "mixed";
+  // WRONG MATCH
+  else {
+    levelAttempts[currentLevel].incorrect.push(word);
+    showFeedback(false);
+    updateScoreDisplay();
+    saveProgress();
 
-    pageWords.forEach(word => {
-      const slot = document.createElement("div");
-      slot.className = "slot";
-      slot.dataset.word = word;
+    const wrong = document.querySelector(`.drag-wrapper[data-word='${word}']`);
+    if (wrong) {
+      wrong.classList.add("shake");
+      setTimeout(() => wrong.classList.remove("shake"), 400);
+    }
+  }
+}
 
-      let slotType = gridType;
-      if (gridType === "mixed") slotType = Math.random() < 0.5 ? "clipart" : "sign";
-      slot.dataset.gridType = slotType;
 
-      const url = `assets/emotions/${slotType === "sign" ? "signs" : "clipart"}/${word}.png`;
-      slot.style.backgroundImage = `url('${url}')`;
-      slot.style.backgroundSize = "contain";
-      slot.style.backgroundPosition = "center";
-      slot.style.backgroundRepeat = "no-repeat";
 
-      // attach drag/drop handlers
-      slot.addEventListener("dragover", e => e.preventDefault());
-      slot.addEventListener("drop", dropHandler);
+// ======================================================
+// Touch Drag Simulation — supports video OR img
+// ======================================================
+let _touchState = null;
 
-      gameBoard.appendChild(slot);
-    });
+function touchStartHandler(ev) {
+  if (!ev || !ev.touches || ev.touches.length === 0) return;
 
-    return gridType;
+  const wrapper = ev.currentTarget;      // drag-wrapper
+  const media = wrapper.querySelector("video, img");  // actual element
+  if (!media) return;
+
+  ev.preventDefault();
+
+  const word = wrapper.dataset.word;
+
+  // clone media
+  const clone = media.cloneNode(true);
+  clone.style.position = "fixed";
+  clone.style.left = "0px";
+  clone.style.top = "0px";
+  clone.style.pointerEvents = "none";
+  clone.style.opacity = "0.95";
+  clone.style.zIndex = 10000;
+  clone.style.transform = "translate(-50%,-50%)";
+
+  if (clone.tagName === "VIDEO") {
+    clone.muted = true;
+    clone.loop = true;
+    clone.autoplay = true;
+    clone.play();
   }
 
-  // ----------------------------
-  // Build draggables for page
-  // ----------------------------
-  function buildDraggablesForPage(info, pageWords, gridType) {
-    leftSigns.innerHTML = "";
-    rightSigns.innerHTML = "";
+  const rect = wrapper.getBoundingClientRect();
+  const cw = Math.min(rect.width || 100, 140);
+  clone.style.width = cw + "px";
 
-    const pairsPerSide = (currentLevel <= 2) ? 6 : 9;
-    const TARGET_TOTAL = pairsPerSide * 2;
+  document.body.appendChild(clone);
 
-    const uniqueWords = Array.from(new Set(info.words));
+  function moveClone(touch) {
+    if (!touch) return;
+    clone.style.left = `${touch.clientX}px`;
+    clone.style.top = `${touch.clientY}px`;
+  }
 
-    // --- priority incorrects (previous levels) ---
-    let priority = [];
-    if (currentLevel >= 3) {
-      for (let li = 0; li < currentLevel; li++) {
-        if (levelAttempts[li] && Array.isArray(levelAttempts[li].incorrect)) {
-          priority = priority.concat(levelAttempts[li].incorrect);
+  moveClone(ev.touches[0]);
+  _touchState = { word, clone };
+
+  const onMove = mEv => {
+    mEv.preventDefault();
+    const t = mEv.touches && mEv.touches[0];
+    moveClone(t);
+  };
+
+  const onEnd = endEv => {
+    endEv.preventDefault();
+
+    const t = endEv.changedTouches && endEv.changedTouches[0];
+    if (t) {
+      let el = document.elementFromPoint(t.clientX, t.clientY);
+      while (el && !el.classList.contains("slot")) el = el.parentElement;
+      if (el && el.classList.contains("slot")) {
+        const fake = {
+          preventDefault: () => {},
+          currentTarget: el,
+          dataTransfer: {
+            getData: k => (k === "text/plain" ? word : "")
+          }
+        };
+        dropHandler(fake);
+      } else {
+        const orig = document.querySelector(`.drag-wrapper[data-word='${word}']`);
+        if (orig) {
+          orig.classList.add("shake");
+          setTimeout(() => orig.classList.remove("shake"), 400);
         }
       }
-      priority = Array.from(new Set(priority)).filter(w => uniqueWords.includes(w));
     }
 
-    // --- build pool: priority -> pageWords -> all unique words ---
-    let pool = [];
-    priority.forEach(w => { if (!pool.includes(w)) pool.push(w); });
-    pageWords.forEach(w => { if (!pool.includes(w)) pool.push(w); });
-    uniqueWords.forEach(w => { if (!pool.includes(w)) pool.push(w); });
+    document.removeEventListener("touchmove", onMove);
+    document.removeEventListener("touchend", onEnd);
+    if (_touchState?.clone) _touchState.clone.remove();
+    _touchState = null;
+  };
 
-    // fill if too short (add other unique words)
-    const notOnPage = uniqueWords.filter(w => !pool.includes(w));
-    let safe = 0;
-    while (pool.length < TARGET_TOTAL && safe < 5000) {
-      if (notOnPage.length > 0) pool.push(notOnPage.shift());
-      else {
-        const pick = uniqueWords[Math.floor(Math.random() * uniqueWords.length)];
-        if (!pool.includes(pick)) pool.push(pick);
-      }
-      safe++;
+  document.addEventListener("touchmove", onMove, { passive: false });
+  document.addEventListener("touchend", onEnd, { passive: false });
+}
+
+
+
+// ======================================================
+// Build Draggables — Video First, PNG fallback
+// ======================================================
+function buildDraggablesForPage(info, pageWords, gridType) {
+  leftSigns.innerHTML = "";
+  rightSigns.innerHTML = "";
+
+  const pairsPerSide = (currentLevel <= 2) ? 6 : 9;
+  const TARGET_TOTAL = pairsPerSide * 2;
+
+  const uniqueWords = Array.from(new Set(info.words));
+
+  // priority incorrects
+  let priority = [];
+  if (currentLevel >= 3) {
+    for (let li = 0; li < currentLevel; li++) {
+      if (levelAttempts[li]?.incorrect)
+        priority.push(...levelAttempts[li].incorrect);
+    }
+    priority = Array.from(new Set(priority)).filter(w => uniqueWords.includes(w));
+  }
+
+  let pool = [];
+  priority.forEach(w => { if (!pool.includes(w)) pool.push(w); });
+  pageWords.forEach(w => { if (!pool.includes(w)) pool.push(w); });
+  uniqueWords.forEach(w => { if (!pool.includes(w)) pool.push(w); });
+
+  const notOnPage = uniqueWords.filter(w => !pool.includes(w));
+  let safe = 0;
+  while (pool.length < TARGET_TOTAL && safe < 5000) {
+    if (notOnPage.length > 0) pool.push(notOnPage.shift());
+    else {
+      const pick = uniqueWords[Math.floor(Math.random() * uniqueWords.length)];
+      if (!pool.includes(pick)) pool.push(pick);
+    }
+    safe++;
+  }
+
+  pageWords.forEach(w => { if (!pool.includes(w)) pool.push(w); });
+
+  const shuffled = shuffle(pool);
+  const mustHave = new Set(pageWords);
+  const keep = [];
+
+  shuffled.forEach(w => {
+    if (mustHave.has(w) && keep.length < TARGET_TOTAL) keep.push(w);
+  });
+  shuffled.forEach(w => {
+    if (!mustHave.has(w) && keep.length < TARGET_TOTAL) keep.push(w);
+  });
+
+  const draggables = keep.slice(0, TARGET_TOTAL);
+
+  draggables.forEach((word, idx) => {
+    const wrap = document.createElement("div");
+    wrap.className = "drag-wrapper";
+    wrap.dataset.word = word;
+    wrap.style.width = "120px";
+    wrap.style.height = "120px";
+    wrap.style.display = "inline-flex";
+    wrap.style.alignItems = "center";
+    wrap.style.justifyContent = "center";
+    wrap.style.margin = "6px";
+
+    // decide if this draggable is a SIGN (video/png) or CLIPART
+    let gridTypeForWord = gridType;
+    if (gridType === "mixed") {
+      const slotEl = document.querySelector(`.slot[data-word='${word}']`);
+      gridTypeForWord = slotEl ? (slotEl.dataset.gridType || "clipart") : (Math.random() < 0.5 ? "clipart" : "sign");
     }
 
-    // ensure pageWords are present
-    pageWords.forEach(w => { if (!pool.includes(w)) pool.push(w); });
+    const draggableIsSign = (gridTypeForWord === "clipart");
+    const folder = draggableIsSign ? "signs" : "clipart";
 
-    // shuffle and select while preserving pageWords
-    const shuffled = shuffle(pool);
-    const mustHave = new Set(pageWords);
-    const keep = [];
+    // ==========================
+    // Create media element
+    // ==========================
+    const mp4 = `assets/emotions/signs/${word}.mp4`;
 
-    // first add all must-haves in shuffled order
-    shuffled.forEach(w => {
-      if (mustHave.has(w) && keep.length < TARGET_TOTAL) keep.push(w);
-    });
+    if (draggableIsSign) {
+      // video with fallback
+      fetch(mp4, { method: "HEAD" })
+        .then(r => {
+          if (r.ok) {
+            const vid = document.createElement("video");
+            vid.src = mp4;
+            vid.autoplay = true;
+            vid.loop = true;
+            vid.muted = true;
+            vid.playsInline = true;
+            vid.style.width = "100%";
+            vid.style.height = "100%";
+            vid.style.objectFit = "contain";
+            wrap.appendChild(vid);
+          } else {
+            const img = document.createElement("img");
+            img.src = `assets/emotions/signs/${word}.png`;
+            img.style.width = "100%";
+            img.style.height = "100%";
+            img.style.objectFit = "contain";
+            wrap.appendChild(img);
+          }
+        })
+        .catch(() => {
+          const img = document.createElement("img");
+          img.src = `assets/emotions/signs/${word}.png`;
+          img.style.width = "100%";
+          img.style.height = "100%";
+          img.style.objectFit = "contain";
+          wrap.appendChild(img);
+        });
+    }
 
-    // then fill remaining slots from shuffled pool
-    shuffled.forEach(w => {
-      if (!mustHave.has(w) && keep.length < TARGET_TOTAL) keep.push(w);
-    });
-
-    // final draggables list (length <= TARGET_TOTAL)
-    const draggablesToUse = keep.slice(0, TARGET_TOTAL);
-
-    // create draggable elements (6 left, 6 right)
-    draggablesToUse.forEach((word, idx) => {
+    else {
       const img = document.createElement("img");
-      img.className = "draggable";
-      img.draggable = true;
-      img.dataset.word = word; // IMPORTANT — used by both mouse and touch drop paths
-
-      // decide whether draggable shows sign or clipart (we try to show the opposite of slot where possible)
-      let gridTypeForWord = gridType;
-      if (gridType === "mixed") {
-        const slotEl = document.querySelector(`.slot[data-word='${word}']`);
-        gridTypeForWord = slotEl ? (slotEl.dataset.gridType || "clipart") : (Math.random() < 0.5 ? "clipart" : "sign");
-      }
-
-      // show the opposite (draggableIsSign true means use signs folder when slots are clipart)
-      const draggableIsSign = (gridTypeForWord === "clipart");
-      const folder = draggableIsSign ? "signs" : "clipart";
-      img.src = `assets/emotions/${folder}/${word}.png`;
-
-      // set accessible size style (so touch clone sizing works consistently)
+      img.src = `assets/emotions/clipart/${word}.png`;
       img.style.width = "100%";
       img.style.height = "100%";
       img.style.objectFit = "contain";
-
-      // native dragstart
-      img.addEventListener("dragstart", e => {
-        e.dataTransfer.setData("text/plain", word);
-        e.dataTransfer.setData("src", img.src);
-        e.dataTransfer.effectAllowed = "copy";
-      });
-
-      // touch fallback
-      img.addEventListener("touchstart", touchStartHandler, { passive: false });
-
-      // wrapper
-      const wrap = document.createElement("div");
-      wrap.className = "drag-wrapper";
-      wrap.style.width = "120px";
-      wrap.style.height = "120px";
-      wrap.style.display = "inline-flex";
-      wrap.style.alignItems = "center";
-      wrap.style.justifyContent = "center";
-      wrap.style.margin = "6px";
       wrap.appendChild(img);
+    }
 
-      if (idx % 2 === 0) leftSigns.appendChild(wrap);
-      else rightSigns.appendChild(wrap);
+    // ==========================
+    // Events
+    // ==========================
+    wrap.draggable = true;
+
+    wrap.addEventListener("dragstart", e => {
+      e.dataTransfer.setData("text/plain", word);
+      e.dataTransfer.effectAllowed = "copy";
     });
-  }
+
+    wrap.addEventListener("touchstart", touchStartHandler, { passive: false });
+
+    // Add to left/right
+    if (idx % 2 === 0) leftSigns.appendChild(wrap);
+    else rightSigns.appendChild(wrap);
+  });
+}
 
   // ----------------------------
   // Page loading logic
