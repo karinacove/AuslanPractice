@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
     5: ["happy","calm","relaxed","focused","confident","loved","supported","thankful","proud","sad","disappointed","withdrawn","bored","sick","tired","exhausted","lonely","shy","silly","excited","shock","embarassed","annoyed","nervous","stressed","worried","confused","angry","furious","ashamed","teased","jealous","unsafe","scared","pain","frustrated"]
   };
 
-  const levelDefinitions = [
+const levelDefinitions = [
     { words: wordBanks[1], pages: 3, name: "Green Zone" },
     { words: wordBanks[2], pages: 3, name: "Blue Zone" },
     { words: wordBanks[3], pages: 3, name: "Yellow Zone" },
