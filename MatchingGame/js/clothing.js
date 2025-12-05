@@ -40,9 +40,11 @@ document.addEventListener("DOMContentLoaded", function () {
     1: ["hat","shirt","short","thong","bathers","skirt","jumper","pants","shoes","socks","jacket","umbrella","scarf","beanie","gloves","clothes","dress"]
   };
 
-  const levelDefinitions = [
-    { words: wordBanks[1], pages: 3, name: "Clothing" }
-  ];
+const levelDefinitions = [
+  { words: wordBanks[1], pages: 1, name: "Level 1" },
+  { words: wordBanks[1], pages: 1, name: "Level 2" },
+  { words: wordBanks[1], pages: 1, name: "Level 3" }
+];
 
   // Game state:
   let currentLevel = 0;          // 0..n-1
@@ -750,7 +752,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ----------------------------
-  // GOOGLE FORM SUBMISSION (Alphabet-style)
+  // GOOGLE FORM SUBMISSION
   // ----------------------------
   async function submitGoogleForm() {
     return new Promise((resolve) => {
