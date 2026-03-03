@@ -253,17 +253,22 @@
       floatBalloon(balloon);
     }
 
-    function moveToCollected(balloon) {
-      try { clearInterval(Number(balloon.dataset.floatInterval)); } catch(e){}
-      balloon.style.transition = "all 700ms ease";
-      const offsetX = 100 + (collectedCount % 10) * 30;
-      const offsetY = 400;
-      balloon.style.left = `calc(100% - ${offsetX}px)`;
-      balloon.style.bottom = `${offsetY}px`;
-      balloon.style.zIndex = 50;
-      collectedCount++;
-      saveState();
-    }
+function moveToCollected(balloon) {
+  try { clearInterval(Number(balloon.dataset.floatInterval)); } catch(e){}
+
+  balloon.dataset.collected = "true";   // <-- ADD THIS
+
+  balloon.style.transition = "all 700ms ease";
+  const offsetX = 100 + (collectedCount % 10) * 30;
+  const offsetY = 400;
+
+  balloon.style.left = `calc(100% - ${offsetX}px)`;
+  balloon.style.bottom = `${offsetY}px`;
+  balloon.style.zIndex = 50;
+
+  collectedCount++;
+  saveState();
+}
 
     function animateMsT() {
       if (!msT) return;
@@ -294,32 +299,36 @@
       createBalloon(targetColour, targetNumber, true);
     }
 
-    function pauseGame() {
-      gamePaused = true;
-      clearInterval(balloonInterval); clearInterval(correctBalloonInterval);
-      balloonInterval = null; correctBalloonInterval = null;
-      // stop floats
-      document.querySelectorAll(".balloon").forEach(b => {
-        try { clearInterval(Number(b.dataset.floatInterval)); } catch(e){}
-      });
-    }
+function pauseGame() {
+  gamePaused = true;
 
-    function resumeGame() {
-      if (!gamePaused) {
-        // if intervals not running, start them
-        if (!balloonInterval && !correctBalloonInterval && !gameCompleted) restartIntervals();
-        // restart floating for existing balloons
-        document.querySelectorAll(".balloon").forEach(b => {
-          // if no float currently, restart
-          floatBalloon(b);
-        });
-        return;
-      }
-      gamePaused = false;
-      // restart floating for existing balloons
-      document.querySelectorAll(".balloon").forEach(b => floatBalloon(b));
-      restartIntervals();
-    }
+  clearInterval(balloonInterval);
+  clearInterval(correctBalloonInterval);
+  balloonInterval = null;
+  correctBalloonInterval = null;
+
+  document.querySelectorAll(".balloon").forEach(b => {
+    try { clearInterval(Number(b.dataset.floatInterval)); } catch(e){}
+
+    // Lock current computed bottom value in pixels
+    const rect = b.getBoundingClientRect();
+    const bottom = window.innerHeight - rect.bottom;
+    b.style.bottom = `${bottom}px`;
+  });
+}
+
+function resumeGame() {
+  if (!gamePaused) return;
+
+  gamePaused = false;
+
+  document.querySelectorAll(".balloon").forEach(b => {
+    if (b.dataset.collected === "true") return; // <-- KEY FIX
+    floatBalloon(b);
+  });
+
+  restartIntervals();
+}
 
     // --- Careful warning ---
     function showCarefulWarning() {
