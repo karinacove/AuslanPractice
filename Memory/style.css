@@ -155,10 +155,10 @@ body {
 
 #game-board {
   display: grid;
-  gap: 12px;
+  gap: 6px;
   max-width: 1000px;
   width: 90vw;
-  margin: 20px auto 40px auto;
+  margin: 10px auto 20px auto;
 }
 
 /* ===============================
