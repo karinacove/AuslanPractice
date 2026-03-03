@@ -191,7 +191,7 @@ body {
   object-fit: contain;
   backface-visibility: hidden;
   border-radius: 12px;
-  background: white;
+  background: #641e29;
   padding: 6px;
   box-sizing: border-box;
 }
