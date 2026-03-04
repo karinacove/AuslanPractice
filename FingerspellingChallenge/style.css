@@ -284,6 +284,26 @@ body {
   animation: breathe 0.8s ease-in-out;
 }
 
+#leaderboards {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.board {
+  width: 45%;
+  background-color: #d4a017; /* mustard */
+  color: #641e29; /* maroon */
+  padding: 15px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.board h3 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
 @keyframes breathe {
   0% { transform: scale(1); }
   50% { transform: scale(1.2); }
