@@ -310,6 +310,30 @@ body {
   100% { transform: scale(1); }
 }
 
+.gold-glow {
+  animation: glow 1.5s infinite alternate;
+}
+
+@keyframes glow {
+  from { filter: drop-shadow(0 0 5px gold); }
+  to   { filter: drop-shadow(0 0 25px gold); }
+}
+
+.confetti {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  background: gold;
+  top: -10px;
+  animation: fall linear forwards;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh) rotate(720deg);
+  }
+}
+
 #keyboard-container {
   position: absolute;
   background: rgba(255, 255, 255, 0.95);
