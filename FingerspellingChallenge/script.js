@@ -247,14 +247,26 @@ function updateLeaderboard() {
 
 function submitPersonalBestToGoogle(scoreValue, timeValue) {
 
-  const url = `https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse?` +
-    `entry.NAME=${encodeURIComponent(studentName)}` +
-    `&entry.CLASS=${encodeURIComponent(studentClass)}` +
-    `&entry.MODE=${encodeURIComponent(gameMode)}` +
-    `&entry.SCORE=${scoreValue || ""}` +
-    `&entry.TIME=${timeValue || ""}`;
+  const correct = Array.from(guessedWords).join(", ");
+  const wrong = incorrectWords.join(", ");
 
-  fetch(url, { method: "POST", mode: "no-cors" });
+  const modeLabel = gameMode + " - NEW PERSONAL BEST";
+
+  const scoreToSend = gameMode === "timed"
+    ? scoreValue
+    : `${timeValue} seconds`;
+
+  const formURL =
+    `https://docs.google.com/forms/d/e/1FAIpQLSfOFWu8FcUR3bOwg0mo_3Kb2O7p4m0TLvfUpZjx0zdzqKac4Q/formResponse?` +
+    `entry.423692452=${encodeURIComponent(studentName)}` +
+    `&entry.1307864012=${encodeURIComponent(studentClass)}` +
+    `&entry.468778567=${encodeURIComponent(modeLabel)}` +
+    `&entry.1083699348=${encodeURIComponent(scoreToSend)}` +
+    `&entry.746947164=${encodeURIComponent(correct)}` +
+    `&entry.1534005804=${encodeURIComponent(wrong)}` +
+    `&entry.1974555000=${encodeURIComponent(speedSlider.value)}`;
+
+  fetch(formURL, { method: "POST", mode: "no-cors" });
 }
 
 
