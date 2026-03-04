@@ -1,3 +1,9 @@
+// =====================================================
+// FINGERSPELLING CHALLENGE – COMPLETE GAME SCRIPT
+// Leaderboards + Personal Best + Confetti + Glow
+// =====================================================
+
+
 // -------------------------
 // Initial Setup & User Info
 // -------------------------
@@ -8,6 +14,7 @@ if (!studentName || !studentClass) {
   alert("Please log in first.");
   window.location.href = "../index.html";
 }
+
 
 // -------------------------
 // DOM References
@@ -25,17 +32,15 @@ const endModalContent = document.getElementById("end-modal-content");
 const continueBtn = document.getElementById("continue-btn");
 const againButtonModal = document.getElementById("again-button-modal");
 const menuButton = document.getElementById("menu-button");
-const modeOptions = document.querySelectorAll(".mode-option");
 const lengthContainer = document.getElementById("length-container");
 const lengthOptions = document.querySelectorAll(".length-option");
 const modeTimed = document.getElementById("mode-timed");
 const modeLevel = document.getElementById("mode-levelup");
-const slowIcon = document.getElementById("slow-icon");
-const fastIcon = document.getElementById("fast-icon");
 const scoreImage = document.getElementById("score-image");
 const countdownVideo = document.getElementById("countdown-video");
 const scoreText = document.getElementById("score-text");
 const timeText = document.getElementById("time-text");
+
 
 // -------------------------
 // Game State
@@ -43,32 +48,48 @@ const timeText = document.getElementById("time-text");
 let timer;
 let timeLeft = 120;
 let score = 0;
-let currentWord = "";
-let currentLetterIndex = 0;
-let letterTimeouts = [];
-let speed = parseInt(speedSlider.value) || 150;
 let correctWords = 0;
-let gameMode = "";
+let currentWord = "";
 let wordLength = 3;
+let gameMode = "";
+let usedWords = new Set();
 let guessedWords = new Set();
 let incorrectWords = [];
 let wordBank = {};
 let isPaused = false;
-let usedWords = new Set();
-let startTimestamp = 0; 
+let startTimestamp = 0;
+let letterTimeouts = [];
+
+
+// -------------------------
+// Leaderboard Structure
+// -------------------------
+let leaderboard = JSON.parse(localStorage.getItem("fspLeaderboard")) || {
+  timed: {},       // per word length
+  levelup: {
+    top3: [],
+    personal: {}
+  }
+};
+
+function saveLeaderboard() {
+  localStorage.setItem("fspLeaderboard", JSON.stringify(leaderboard));
+}
 
 
 // -------------------------
 // Load Word Bank
 // -------------------------
 fetch("data/wordlist.json")
-  .then((response) => response.json())
-  .then((data) => (wordBank = data))
-  .catch((error) => console.error("Error loading word list:", error));
+  .then(res => res.json())
+  .then(data => wordBank = data)
+  .catch(err => console.error("Word list error:", err));
 
-// -------------------------
-// Utility Functions
-// -------------------------
+
+// =====================================================
+// GAME CORE
+// =====================================================
+
 function clearLetters() {
   letterTimeouts.forEach(clearTimeout);
   letterTimeouts = [];
@@ -77,36 +98,29 @@ function clearLetters() {
 
 function showLetterByLetter(word) {
   clearLetters();
-  currentLetterIndex = 0;
   const sliderValue = parseInt(speedSlider.value) || 100;
   const maxDelay = 1200;
   const minDelay = 80;
   const displayDuration = Math.max(minDelay, maxDelay - sliderValue * 5);
   const letterGap = Math.max(40, displayDuration / 3);
-  const delay = 300;
 
   word.split("").forEach((letter, index) => {
     const timeout = setTimeout(() => {
       if (!isPaused) {
         letterDisplay.textContent = letter.toLowerCase();
         setTimeout(() => {
-          if (!isPaused && letterDisplay.textContent === letter.toLowerCase()) {
-            letterDisplay.textContent = "";
-          }
+          if (!isPaused) letterDisplay.textContent = "";
         }, displayDuration);
       }
-    }, delay + index * (displayDuration + letterGap));
+    }, 300 + index * (displayDuration + letterGap));
     letterTimeouts.push(timeout);
   });
 }
 
 function updateScore() {
   if (scoreImage) {
-    const cappedScore = Math.min(score, 80);
-    scoreImage.src = `Assets/score/${cappedScore}.png`;
-  }
-  if (score >= 80 && gameMode === "levelup") {
-    endGame();
+    const capped = Math.min(score, 80);
+    scoreImage.src = `Assets/score/${capped}.png`;
   }
 }
 
@@ -129,7 +143,6 @@ function nextWord() {
   const pool = words.filter(w => !usedWords.has(w));
 
   if (pool.length === 0) {
-    // no more words to show – end the game
     endGame();
     return;
   }
@@ -138,61 +151,24 @@ function nextWord() {
   usedWords.add(currentWord);
   setTimeout(() => showLetterByLetter(currentWord), 200);
 }
-
-function nextWord() {
-  if (gameMode === "levelup" && correctWords > 0 && correctWords % 10 === 0 && wordLength < 10) {
-    wordLength++;
-  }
-
-  const words = wordBank[wordLength] || wordBank[3];
-  const pool = words.filter(w => !usedWords.has(w));
-
-  if (pool.length === 0) {
-    // no more words to show – end the game
-    endGame();
-    return;
-  }
-
-  currentWord = pool[Math.floor(Math.random() * pool.length)];
-  usedWords.add(currentWord);
-  setTimeout(() => showLetterByLetter(currentWord), 200);
-}
-
 
 function startGame() {
-  document.getElementById("signin-screen").style.display = "none";
-  gameScreen.style.display = "flex";
-
-  // reset run state, but keep gameMode & wordLength
   score = 0;
-  timeLeft = 120;
   correctWords = 0;
+  timeLeft = 120;
+  usedWords.clear();
   guessedWords.clear();
   incorrectWords = [];
-  usedWords.clear();
-  isPaused = false;
   wordInput.value = "";
-  wordInput.style.visibility = "visible";
-  wordInput.focus();
-  againButton.style.display = "block";
-  updateScore();
-  clearLetters();
-  clearInterval(timer);
+  wordLength = gameMode === "levelup" ? 3 : wordLength;
+
+  isPaused = false;
   startTimestamp = Date.now();
 
-  if (gameMode === "timed") {
-    if (countdownVideo) {
-      countdownVideo.currentTime = 0;
-      countdownVideo.play();
-      countdownVideo.style.display = "block";
-    }
-    startTimer();
-  } else {
-    if (countdownVideo) {
-      countdownVideo.pause();
-      countdownVideo.style.display = "none";
-    }
-  }
+  updateScore();
+  clearInterval(timer);
+
+  if (gameMode === "timed") startTimer();
 
   setTimeout(nextWord, 400);
 }
@@ -200,301 +176,187 @@ function startGame() {
 function endGame() {
   clearInterval(timer);
   clearLetters();
-  wordInput.style.visibility = "hidden";
-  if (countdownVideo) countdownVideo.pause();
-  submitResults();
-  showFinishModal(true);
-}
-
-
-function submitResults() {
-  const correct = Array.from(guessedWords).join(", ");
-  const wrong = incorrectWords.join(", ");
-  const formURL = `https://docs.google.com/forms/d/e/1FAIpQLSfOFWu8FcUR3bOwg0mo_3Kb2O7p4m0TLvfUpZjx0zdzqKac4Q/formResponse?entry.423692452=${encodeURIComponent(studentName)}&entry.1307864012=${encodeURIComponent(studentClass)}&entry.468778567=${encodeURIComponent(gameMode)}&entry.1083699348=${score}&entry.746947164=${encodeURIComponent(correct)}&entry.1534005804=${encodeURIComponent(wrong)}&entry.1974555000=${encodeURIComponent(speedSlider.value)}`;
-  fetch(formURL, { method: "POST", mode: "no-cors" });
-}
-
-function showFinishModal(isGameEnd = false) {
   isPaused = true;
-  clearInterval(timer);
-  if (gameMode === "timed" && countdownVideo && !countdownVideo.paused) {
-    countdownVideo.pause();
-  }
+  updateLeaderboard();
+  showFinishModal();
+}
 
-  endModal.style.display = "flex";
+
+// =====================================================
+// LEADERBOARD SYSTEM
+// =====================================================
+
+function updateLeaderboard() {
 
   const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
-  const minutes = Math.floor(elapsed / 60);
-  const seconds = elapsed % 60;
+  let isNewAllTime = false;
+  let isNewPersonal = false;
 
-  const totalAttempts = correctWords + incorrectWords.length;
-  const percentage = totalAttempts > 0 ? Math.round((correctWords / totalAttempts) * 100) : 100;
+  if (gameMode === "timed") {
 
-  endModalContent.querySelector("#score-percentage").textContent = `${percentage}% Correct`;
+    if (!leaderboard.timed[wordLength]) {
+      leaderboard.timed[wordLength] = { top3: [], personal: {} };
+    }
+
+    const board = leaderboard.timed[wordLength];
+
+    // PERSONAL BEST
+    if (!board.personal[studentName] || score > board.personal[studentName]) {
+      board.personal[studentName] = score;
+      isNewPersonal = true;
+      submitPersonalBestToGoogle(score, null);
+    }
+
+    // TOP 3
+    board.top3.push({ name: studentName, score });
+    board.top3.sort((a,b) => b.score - a.score);
+    board.top3 = board.top3.slice(0,3);
+
+    if (board.top3[0].name === studentName && board.top3[0].score === score) {
+      isNewAllTime = true;
+    }
+
+  } else {
+
+    const board = leaderboard.levelup;
+
+    if (!board.personal[studentName] || elapsed < board.personal[studentName]) {
+      board.personal[studentName] = elapsed;
+      isNewPersonal = true;
+      submitPersonalBestToGoogle(null, elapsed);
+    }
+
+    board.top3.push({ name: studentName, time: elapsed });
+    board.top3.sort((a,b) => a.time - b.time);
+    board.top3 = board.top3.slice(0,3);
+
+    if (board.top3[0].name === studentName && board.top3[0].time === elapsed) {
+      isNewAllTime = true;
+    }
+  }
+
+  saveLeaderboard();
+
+  showCelebration(isNewAllTime, isNewPersonal);
+}
+
+
+// =====================================================
+// GOOGLE SHEETS SUBMISSION
+// =====================================================
+
+function submitPersonalBestToGoogle(scoreValue, timeValue) {
+
+  const url = `https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse?` +
+    `entry.NAME=${encodeURIComponent(studentName)}` +
+    `&entry.CLASS=${encodeURIComponent(studentClass)}` +
+    `&entry.MODE=${encodeURIComponent(gameMode)}` +
+    `&entry.SCORE=${scoreValue || ""}` +
+    `&entry.TIME=${timeValue || ""}`;
+
+  fetch(url, { method: "POST", mode: "no-cors" });
+}
+
+
+// =====================================================
+// MODAL + CELEBRATION
+// =====================================================
+
+function showFinishModal() {
+
+  const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
+  const minutes = Math.floor(elapsed/60);
+  const seconds = elapsed%60;
+
   scoreText.textContent = `Score: ${score}`;
-  timeText.textContent = `Time: ${minutes} mins ${seconds} sec`;
+  timeText.textContent = `Time: ${minutes}m ${seconds}s`;
 
-  // clap only on true game end (time up / score 80 / no words left)
-  document.getElementById("clap-display").innerHTML = isGameEnd ? `<img src="Assets/auslan-clap.gif" alt="Clap" />` : "";
-
-  againButtonModal.style.display = "inline-block";
-  menuButton.style.display = "inline-block";
-  continueBtn.style.display = isGameEnd ? "none" : "inline-block";
+  endModal.style.display = "flex";
 }
 
+function showCelebration(newAllTime, newPersonal) {
 
-function hideFinishModal() {
-  isPaused = false;
-  endModal.style.display = "none";
-  wordInput.focus();
-  if (gameMode === "timed" && countdownVideo.paused) {
-    countdownVideo.play();
+  const badge = document.getElementById("winner-badge");
+
+  if (newAllTime) {
+    badge.innerHTML = `<img src="Assets/new.png" class="gold-glow">`;
+    launchConfetti();
+  } else if (newPersonal) {
+    badge.innerHTML = `<img src="Assets/personal.png" class="gold-glow">`;
+  } else {
+    badge.innerHTML = `<img src="Assets/current.png">`;
   }
 }
 
-function setupKeyboard() {
-  const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
-  keyboardContainer.innerHTML = "";
 
-  const header = document.createElement("div");
-  header.id = "keyboard-header";
-  header.style.height = "16px";
-  header.style.background = "#eee";
-  header.style.cursor = "move";
-  keyboardContainer.appendChild(header);
+// =====================================================
+// CONFETTI
+// =====================================================
 
-  layout.forEach((row, rowIndex) => {
-    const rowDiv = document.createElement("div");
-    rowDiv.className = "keyboard-row";
-
-    row.split("").forEach(letter => {
-      const key = document.createElement("div");
-      key.className = "keyboard-key";
-      key.textContent = letter;
-
-      key.addEventListener("click", () => {
-        wordInput.value += letter.toLowerCase();
-        wordInput.dispatchEvent(new Event("input"));
-        key.classList.add("pop");
-        setTimeout(() => key.classList.remove("pop"), 150);
-      });
-
-      rowDiv.appendChild(key);
-
-      if (rowIndex === 2 && letter === "M") {
-        const backspace = document.createElement("div");
-        backspace.textContent = "←";
-        backspace.className = "keyboard-key key wide";
-        backspace.onclick = () => {
-          wordInput.value = wordInput.value.slice(0, -1);
-          wordInput.dispatchEvent(new Event("input"));
-        };
-        rowDiv.appendChild(backspace);
-      }
-    });
-
-    keyboardContainer.appendChild(rowDiv);
-  });
-
-  const footer = document.createElement("div");
-  footer.id = "keyboard-footer";
-  footer.style.height = "16px";
-  footer.style.background = "#eee";
-  footer.style.cursor = "move";
-  keyboardContainer.appendChild(footer);
-
-  dragElement(keyboardContainer, ["#keyboard-header", "#keyboard-footer"]);
-}
-
-function dragElement(elmnt, handleSelectors = ["#keyboard-header"]) {
-  const handles = handleSelectors.map(sel => elmnt.querySelector(sel)).filter(Boolean);
-  let startX = 0, startY = 0, initialX = 0, initialY = 0, dragging = false;
-
-  handles.forEach(handle => {
-    handle.addEventListener("mousedown", (e) => {
-      e.preventDefault();
-      dragging = true;
-      startX = e.clientX;
-      startY = e.clientY;
-      initialX = elmnt.offsetLeft;
-      initialY = elmnt.offsetTop;
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", stopDrag);
-    });
-
-    handle.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      const touch = e.touches[0];
-      dragging = true;
-      startX = touch.clientX;
-      startY = touch.clientY;
-      initialX = elmnt.offsetLeft;
-      initialY = elmnt.offsetTop;
-      document.addEventListener("touchmove", onTouchMove, { passive: false });
-      document.addEventListener("touchend", stopDrag);
-    });
-  });
-
-  function onMouseMove(e) {
-    if (!dragging) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    elmnt.style.left = `${initialX + dx}px`;
-    elmnt.style.top = `${initialY + dy}px`;
-    elmnt.style.transform = "none";
-  }
-
-  function onTouchMove(e) {
-    if (!dragging) return;
-    const touch = e.touches[0];
-    const dx = touch.clientX - startX;
-    const dy = touch.clientY - startY;
-    elmnt.style.left = `${initialX + dx}px`;
-    elmnt.style.top = `${initialY + dy}px`;
-    elmnt.style.transform = "none";
-    e.preventDefault();
-  }
-
-  function stopDrag() {
-    dragging = false;
-    document.removeEventListener("mousemove", onMouseMove);
-    document.removeEventListener("mouseup", stopDrag);
-    document.removeEventListener("touchmove", onTouchMove);
-    document.removeEventListener("touchend", stopDrag);
+function launchConfetti() {
+  for (let i=0;i<120;i++) {
+    const confetti = document.createElement("div");
+    confetti.className = "confetti";
+    confetti.style.left = Math.random()*100 + "vw";
+    confetti.style.animationDuration = (Math.random()*2+2)+"s";
+    document.body.appendChild(confetti);
+    setTimeout(()=>confetti.remove(),4000);
   }
 }
 
-// -------------------------
-// Event Listeners
-// -------------------------
+
+// =====================================================
+// INPUT HANDLER
+// =====================================================
 
 wordInput.addEventListener("input", () => {
+
   if (isPaused) return;
   const typed = wordInput.value.toLowerCase();
+
   if (typed.length === currentWord.length) {
-    setTimeout(() => {
-      if (typed === currentWord) {
-        score++;
-        correctWords++;
-        guessedWords.add(currentWord);
-        updateScore();
-        wordInput.value = "";
-        setTimeout(nextWord, 400);
-      } else {
-        incorrectWords.push(typed);
-        wordInput.classList.add("breathe");
-        const againImg = document.querySelector("#again-button img");
-        if (againImg) {
-          againImg.classList.add("breathe");
-          setTimeout(() => againImg.classList.remove("breathe"), 800);
-        }
-        setTimeout(() => {
-          wordInput.value = "";
-          wordInput.classList.remove("breathe");
-          showLetterByLetter(currentWord);
-        }, 500);
-      }
-    }, 50);
+
+    if (typed === currentWord) {
+      score++;
+      correctWords++;
+      guessedWords.add(currentWord);
+      wordInput.value="";
+      updateScore();
+      setTimeout(nextWord,400);
+    } else {
+      incorrectWords.push(typed);
+      wordInput.value="";
+      showLetterByLetter(currentWord);
+    }
   }
 });
 
-modeTimed.addEventListener("click", () => {
-  gameMode = "timed";
-  modeTimed.classList.add("selected");
-  modeLevel.classList.remove("selected");
-  lengthContainer.style.display = "flex";
+
+// =====================================================
+// MODE SELECTION
+// =====================================================
+
+modeTimed.addEventListener("click", ()=>{
+  gameMode="timed";
+  lengthContainer.style.display="flex";
 });
 
-modeLevel.addEventListener("click", () => {
-  gameMode = "levelup";
-  modeLevel.classList.add("selected");
-  modeTimed.classList.remove("selected");
-  lengthContainer.style.display = "none";
-  wordLength = 3;
+modeLevel.addEventListener("click", ()=>{
+  gameMode="levelup";
+  lengthContainer.style.display="none";
   startGame();
 });
 
-lengthOptions.forEach(option => {
-  option.addEventListener("click", () => {
-    lengthOptions.forEach(o => o.classList.remove("selected"));
-    option.classList.add("selected");
-    wordLength = parseInt(option.dataset.length);
+lengthOptions.forEach(option=>{
+  option.addEventListener("click",()=>{
+    wordLength=parseInt(option.dataset.length);
     startGame();
   });
 });
 
-keyboardBtn.addEventListener("click", toggleKeyboard);
-keyboardBtn.addEventListener("touchstart", toggleKeyboard);
-
-function toggleKeyboard(e) {
-  e.preventDefault();
-  if (keyboardContainer.style.display === "none") {
-    keyboardContainer.style.display = "block";
-    keyboardContainer.style.top = "50%";
-    keyboardContainer.style.left = "50%";
-    keyboardContainer.style.transform = "translate(-50%, -50%)";
-  } else {
-    keyboardContainer.style.display = "none";
-  }
-}
-
-finishButton.addEventListener("click", () => {
-  isPaused = true;
-  if (gameMode === "timed" && countdownVideo && !countdownVideo.paused) {
-    countdownVideo.pause();
-  }
-  showFinishModal(false);
-});
-
-continueBtn.addEventListener("click", () => {
-  hideFinishModal();
-  isPaused = false;
-  if (gameMode === "timed") {
-    if (countdownVideo && countdownVideo.paused) countdownVideo.play();
-    startTimer(); // resume ticking
-  }
-  showLetterByLetter(currentWord); // keep going with same word
-});
-
-againButtonModal.addEventListener("click", () => {
-  isPaused = false;
-  score = 0;
-  correctWords = 0;
-  guessedWords.clear();
-  usedWords.clear();
-  currentWord = "";
-  wordInput.value = "";
-  wordInput.style.visibility = "visible";
-
-  updateScore(); // reset score image
-  if (gameMode === "timed") {
-    if (countdownVideo) {
-      countdownVideo.currentTime = 0;
-      countdownVideo.play();
-    }
-  }
-
-  endModal.style.display = "none";
+finishButton.addEventListener("click", endGame);
+againButtonModal.addEventListener("click", ()=>{
+  endModal.style.display="none";
   startGame();
 });
-
-menuButton.addEventListener("click", () => window.location.href = "../index.html");
-
-againButton.addEventListener("click", () => {
-  if (isPaused) return;
-  wordInput.value = "";
-  wordInput.style.visibility = "visible";
-  wordInput.focus();
-  showLetterByLetter(currentWord);
-});
-
-speedSlider.addEventListener("input", () => {
-  speed = parseInt(speedSlider.value);
-});
-
-// Auto-end game when video ends
-countdownVideo.addEventListener("ended", () => {
-  if (gameMode === "timed") endGame();
-});
-
-setupKeyboard();
+menuButton.addEventListener("click", ()=>window.location.href="../index.html");
