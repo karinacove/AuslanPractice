@@ -305,12 +305,12 @@ body {
 }
 
 /* LEFT leaderboard */
-.board.timed-leaderboard {
+.timedboard.board {
   left: 10px;
 }
 
 /* RIGHT leaderboard */
-.board.level-leaderboard {
+.levelboard.board {
   right: 10px;
 }
 
