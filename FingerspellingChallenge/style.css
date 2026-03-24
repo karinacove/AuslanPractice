@@ -285,19 +285,33 @@ body {
 }
 
 #leaderboards {
-  display: flex;
-  justify-content: space-between;
-  position: relative;
-  margin-top: 150px;
+  position: fixed;
+  top: 160px;
+  left: 0;
+  width: 100%;
+  pointer-events: none; /* allows clicks through container */
 }
 
 .board {
+  position: absolute;
   width: 20%;
+  max-width: 250px;
   background-color: #d4a017; /* mustard */
   color: #641e29; /* maroon */
   padding: 15px;
   border-radius: 12px;
   font-weight: bold;
+  pointer-events: auto; /* re-enable clicks */
+}
+
+/* LEFT leaderboard */
+.board.timed-board {
+  left: 10px;
+}
+
+/* RIGHT leaderboard */
+.board.level-board {
+  right: 10px;
 }
 
 .board h3 {
