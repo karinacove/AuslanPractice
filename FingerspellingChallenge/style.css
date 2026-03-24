@@ -287,7 +287,8 @@ body {
 #leaderboards {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px;
+  position: relative;
+  margin-top: 150px;
 }
 
 .board {
