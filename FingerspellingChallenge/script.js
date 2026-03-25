@@ -239,16 +239,24 @@ function updateLeaderboard() {
 
 function submitToGoogle(scoreValue, timeValue) {
 
+  const correctList = Array.from(guessedWords).join(", ");
+  const incorrectList = incorrectWords.join(", ");
+
   const scoreToSend = gameMode === "timed"
     ? scoreValue
     : `${timeValue}s`;
+
+  const modeLabel = `${gameMode} (${wordLength} letters)`;
 
   const formURL =
     `https://docs.google.com/forms/d/e/1FAIpQLSfOFWu8FcUR3bOwg0mo_3Kb2O7p4m0TLvfUpZjx0zdzqKac4Q/formResponse?` +
     `entry.423692452=${encodeURIComponent(studentName)}` +
     `&entry.1307864012=${encodeURIComponent(studentClass)}` +
-    `&entry.468778567=${encodeURIComponent(gameMode)}` +
-    `&entry.1083699348=${encodeURIComponent(scoreToSend)}`;
+    `&entry.468778567=${encodeURIComponent(modeLabel)}` +
+    `&entry.1083699348=${encodeURIComponent(scoreToSend)}` +
+    `&entry.746947164=${encodeURIComponent(correctList)}` +       // ✅ CORRECT WORDS
+    `&entry.1534005804=${encodeURIComponent(incorrectList)}` +   // ✅ INCORRECT WORDS
+    `&entry.1974555000=${encodeURIComponent(speedSlider.value)}`; // (optional speed)
 
   fetch(formURL, { method: "POST", mode: "no-cors" });
 }
