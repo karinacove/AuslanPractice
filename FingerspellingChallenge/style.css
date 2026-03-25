@@ -289,28 +289,28 @@ body {
   top: 160px;
   left: 0;
   width: 100%;
-  pointer-events: none; /* allows clicks through container */
+  pointer-events: none;
 }
 
 .board {
   position: absolute;
   width: 20%;
   max-width: 250px;
-  background-color: #d4a017; /* mustard */
-  color: #641e29; /* maroon */
+  background-color: #d4a017;
+  color: #641e29;
   padding: 15px;
   border-radius: 12px;
   font-weight: bold;
-  pointer-events: auto; /* re-enable clicks */
+  pointer-events: auto;
 }
 
 /* LEFT leaderboard */
-.timed-board.board {
+#timed-board {
   left: 10px;
 }
 
 /* RIGHT leaderboard */
-.level-board.board {
+#level-board {
   right: 10px;
 }
 
