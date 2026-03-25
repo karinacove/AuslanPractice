@@ -1,11 +1,10 @@
 // =====================================================
-// FINGERSPELLING CHALLENGE – COMPLETE GAME SCRIPT
-// Leaderboards + Personal Best + Confetti + Glow
+// FINGERSPELLING CHALLENGE – FINAL STABLE VERSION
+// Leaderboard + Google Forms + Top 10 + Personal Best
 // =====================================================
 
-
 // -------------------------
-// Initial Setup & User Info
+// USER INFO
 // -------------------------
 let studentName = localStorage.getItem("studentName") || "";
 let studentClass = localStorage.getItem("studentClass") || "";
@@ -15,21 +14,14 @@ if (!studentName || !studentClass) {
   window.location.href = "../index.html";
 }
 
-
 // -------------------------
-// DOM References
+// DOM
 // -------------------------
-const gameScreen = document.getElementById("game-screen");
 const wordInput = document.getElementById("word-input");
 const speedSlider = document.getElementById("speed-slider");
 const letterDisplay = document.getElementById("letter-display");
-const againButton = document.getElementById("again-button");
 const finishButton = document.getElementById("finishButton");
-const keyboardBtn = document.getElementById("keyboard-btn");
-const keyboardContainer = document.getElementById("keyboard-container");
 const endModal = document.getElementById("end-modal");
-const endModalContent = document.getElementById("end-modal-content");
-const continueBtn = document.getElementById("continue-btn");
 const againButtonModal = document.getElementById("again-button-modal");
 const menuButton = document.getElementById("menu-button");
 const lengthContainer = document.getElementById("length-container");
@@ -37,13 +29,11 @@ const lengthOptions = document.querySelectorAll(".length-option");
 const modeTimed = document.getElementById("mode-timed");
 const modeLevel = document.getElementById("mode-levelup");
 const scoreImage = document.getElementById("score-image");
-const countdownVideo = document.getElementById("countdown-video");
 const scoreText = document.getElementById("score-text");
 const timeText = document.getElementById("time-text");
 
-
 // -------------------------
-// Game State
+// GAME STATE
 // -------------------------
 let timer;
 let timeLeft = 120;
@@ -55,36 +45,34 @@ let gameMode = "";
 let usedWords = new Set();
 let guessedWords = new Set();
 let incorrectWords = [];
-let wordBank = {};
 let isPaused = false;
 let startTimestamp = 0;
 let letterTimeouts = [];
 
+// -------------------------
+// WORD BANK
+// -------------------------
+let wordBank = {};
+let wordBankLoaded = false;
+
+fetch("data/wordlist.json")
+  .then(res => res.json())
+  .then(data => {
+    wordBank = data;
+    wordBankLoaded = true;
+  });
 
 // -------------------------
-// Leaderboard Structure
+// LEADERBOARD
 // -------------------------
 let leaderboard = JSON.parse(localStorage.getItem("fspLeaderboard")) || {
-  timed: {},       // per word length
-  levelup: {
-    top3: [],
-    personal: {}
-  }
+  timed: {},
+  levelup: { top10: [], personal: {} }
 };
 
 function saveLeaderboard() {
   localStorage.setItem("fspLeaderboard", JSON.stringify(leaderboard));
 }
-
-
-// -------------------------
-// Load Word Bank
-// -------------------------
-fetch("data/wordlist.json")
-  .then(res => res.json())
-  .then(data => wordBank = data)
-  .catch(err => console.error("Word list error:", err));
-
 
 // =====================================================
 // GAME CORE
@@ -98,22 +86,21 @@ function clearLetters() {
 
 function showLetterByLetter(word) {
   clearLetters();
-  const sliderValue = parseInt(speedSlider.value) || 100;
-  const maxDelay = 1200;
-  const minDelay = 80;
-  const displayDuration = Math.max(minDelay, maxDelay - sliderValue * 5);
-  const letterGap = Math.max(40, displayDuration / 3);
 
-  word.split("").forEach((letter, index) => {
-    const timeout = setTimeout(() => {
+  const speed = parseInt(speedSlider.value) || 100;
+  const delay = Math.max(80, 1200 - speed * 5);
+
+  word.split("").forEach((letter, i) => {
+    const t = setTimeout(() => {
       if (!isPaused) {
-        letterDisplay.textContent = letter.toLowerCase();
+        letterDisplay.textContent = letter;
         setTimeout(() => {
           if (!isPaused) letterDisplay.textContent = "";
-        }, displayDuration);
+        }, delay);
       }
-    }, 300 + index * (displayDuration + letterGap));
-    letterTimeouts.push(timeout);
+    }, 300 + i * delay);
+
+    letterTimeouts.push(t);
   });
 }
 
@@ -135,24 +122,24 @@ function startTimer() {
 }
 
 function nextWord() {
-  if (gameMode === "levelup" && correctWords > 0 && correctWords % 10 === 0 && wordLength < 10) {
-    wordLength++;
-  }
-
   const words = wordBank[wordLength] || wordBank[3];
   const pool = words.filter(w => !usedWords.has(w));
 
-  if (pool.length === 0) {
-    endGame();
-    return;
-  }
+  if (pool.length === 0) return endGame();
 
   currentWord = pool[Math.floor(Math.random() * pool.length)];
   usedWords.add(currentWord);
+
   setTimeout(() => showLetterByLetter(currentWord), 200);
 }
 
 function startGame() {
+
+  if (!wordBankLoaded) {
+    alert("Loading words...");
+    return;
+  }
+
   score = 0;
   correctWords = 0;
   timeLeft = 120;
@@ -160,7 +147,8 @@ function startGame() {
   guessedWords.clear();
   incorrectWords = [];
   wordInput.value = "";
-  wordLength = gameMode === "levelup" ? 3 : wordLength;
+
+  if (gameMode === "levelup") wordLength = 3;
 
   isPaused = false;
   startTimestamp = Date.now();
@@ -177,25 +165,26 @@ function endGame() {
   clearInterval(timer);
   clearLetters();
   isPaused = true;
-  updateLeaderboard();
-  showFinishModal();
+
+  const result = updateLeaderboard();
+  showFinishModal(result);
 }
 
-
 // =====================================================
-// LEADERBOARD SYSTEM
+// LEADERBOARD LOGIC
 // =====================================================
 
 function updateLeaderboard() {
 
   const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
-  let isNewAllTime = false;
-  let isNewPersonal = false;
+
+  let newTop10 = false;
+  let newPersonal = false;
 
   if (gameMode === "timed") {
 
     if (!leaderboard.timed[wordLength]) {
-      leaderboard.timed[wordLength] = { top3: [], personal: {} };
+      leaderboard.timed[wordLength] = { top10: [], personal: {} };
     }
 
     const board = leaderboard.timed[wordLength];
@@ -203,17 +192,16 @@ function updateLeaderboard() {
     // PERSONAL BEST
     if (!board.personal[studentName] || score > board.personal[studentName]) {
       board.personal[studentName] = score;
-      isNewPersonal = true;
-      submitPersonalBestToGoogle(score, null);
+      newPersonal = true;
     }
 
-    // TOP 3
-    board.top3.push({ name: studentName, score });
-    board.top3.sort((a,b) => b.score - a.score);
-    board.top3 = board.top3.slice(0,3);
+    // TOP 10
+    board.top10.push({ name: studentName, score });
+    board.top10.sort((a,b)=>b.score-a.score);
+    board.top10 = board.top10.slice(0,10);
 
-    if (board.top3[0].name === studentName && board.top3[0].score === score) {
-      isNewAllTime = true;
+    if (board.top10.some(entry => entry.name === studentName && entry.score === score)) {
+      newTop10 = true;
     }
 
   } else {
@@ -222,108 +210,106 @@ function updateLeaderboard() {
 
     if (!board.personal[studentName] || elapsed < board.personal[studentName]) {
       board.personal[studentName] = elapsed;
-      isNewPersonal = true;
-      submitPersonalBestToGoogle(null, elapsed);
+      newPersonal = true;
     }
 
-    board.top3.push({ name: studentName, time: elapsed });
-    board.top3.sort((a,b) => a.time - b.time);
-    board.top3 = board.top3.slice(0,3);
+    board.top10.push({ name: studentName, time: elapsed });
+    board.top10.sort((a,b)=>a.time-b.time);
+    board.top10 = board.top10.slice(0,10);
 
-    if (board.top3[0].name === studentName && board.top3[0].time === elapsed) {
-      isNewAllTime = true;
+    if (board.top10.some(entry => entry.name === studentName && entry.time === elapsed)) {
+      newTop10 = true;
     }
   }
 
   saveLeaderboard();
 
-  showCelebration(isNewAllTime, isNewPersonal);
+  if (newTop10 || newPersonal) {
+    submitToGoogle(score, elapsed);
+  }
+
+  renderLeaderboards();
+
+  return { newTop10, newPersonal, elapsed };
 }
 
-
 // =====================================================
-// GOOGLE SHEETS SUBMISSION
+// GOOGLE FORM
 // =====================================================
 
-function submitPersonalBestToGoogle(scoreValue, timeValue) {
-
-  const correct = Array.from(guessedWords).join(", ");
-  const wrong = incorrectWords.join(", ");
-
-  const modeLabel = gameMode + " - NEW PERSONAL BEST";
+function submitToGoogle(scoreValue, timeValue) {
 
   const scoreToSend = gameMode === "timed"
     ? scoreValue
-    : `${timeValue} seconds`;
+    : `${timeValue}s`;
 
   const formURL =
     `https://docs.google.com/forms/d/e/1FAIpQLSfOFWu8FcUR3bOwg0mo_3Kb2O7p4m0TLvfUpZjx0zdzqKac4Q/formResponse?` +
     `entry.423692452=${encodeURIComponent(studentName)}` +
     `&entry.1307864012=${encodeURIComponent(studentClass)}` +
-    `&entry.468778567=${encodeURIComponent(modeLabel)}` +
-    `&entry.1083699348=${encodeURIComponent(scoreToSend)}` +
-    `&entry.746947164=${encodeURIComponent(correct)}` +
-    `&entry.1534005804=${encodeURIComponent(wrong)}` +
-    `&entry.1974555000=${encodeURIComponent(speedSlider.value)}`;
+    `&entry.468778567=${encodeURIComponent(gameMode)}` +
+    `&entry.1083699348=${encodeURIComponent(scoreToSend)}`;
 
   fetch(formURL, { method: "POST", mode: "no-cors" });
 }
 
+// =====================================================
+// DISPLAY LEADERBOARD (HOME SCREEN)
+// =====================================================
+
+function renderLeaderboards() {
+
+  const timedDiv = document.getElementById("timed-leaderboard");
+  const levelDiv = document.getElementById("level-leaderboard");
+
+  if (!timedDiv || !levelDiv) return;
+
+  // TIMED (show current length only for simplicity)
+  const board = leaderboard.timed[wordLength];
+  timedDiv.innerHTML = board
+    ? board.top10.map((e,i)=>`${i+1}. ${e.name} - ${e.score}`).join("<br>")
+    : "No scores yet";
+
+  // LEVEL
+  levelDiv.innerHTML = leaderboard.levelup.top10
+    .map((e,i)=>`${i+1}. ${e.name} - ${e.time}s`)
+    .join("<br>");
+}
 
 // =====================================================
-// MODAL + CELEBRATION
+// MODAL
 // =====================================================
 
-function showFinishModal() {
+function showFinishModal(result) {
 
-  const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
-  const minutes = Math.floor(elapsed/60);
-  const seconds = elapsed%60;
+  const { newTop10, newPersonal, elapsed } = result;
 
   scoreText.textContent = `Score: ${score}`;
-  timeText.textContent = `Time: ${minutes}m ${seconds}s`;
+  timeText.textContent = `Time: ${elapsed}s`;
+
+  let message = "";
+
+  if (newTop10) message += "🎉 NEW TOP 10!\n";
+  if (newPersonal) message += "⭐ NEW PERSONAL BEST!";
+
+  if (message) {
+    const msg = document.createElement("div");
+    msg.style.marginTop = "10px";
+    msg.innerText = message;
+    document.getElementById("end-modal-content").appendChild(msg);
+  }
 
   endModal.style.display = "flex";
 }
 
-function showCelebration(newAllTime, newPersonal) {
-
-  const badge = document.getElementById("winner-badge");
-
-  if (newAllTime) {
-    badge.innerHTML = `<img src="Assets/new.png" class="gold-glow">`;
-    launchConfetti();
-  } else if (newPersonal) {
-    badge.innerHTML = `<img src="Assets/personal.png" class="gold-glow">`;
-  } else {
-    badge.innerHTML = `<img src="Assets/current.png">`;
-  }
-}
-
-
 // =====================================================
-// CONFETTI
-// =====================================================
-
-function launchConfetti() {
-  for (let i=0;i<120;i++) {
-    const confetti = document.createElement("div");
-    confetti.className = "confetti";
-    confetti.style.left = Math.random()*100 + "vw";
-    confetti.style.animationDuration = (Math.random()*2+2)+"s";
-    document.body.appendChild(confetti);
-    setTimeout(()=>confetti.remove(),4000);
-  }
-}
-
-
-// =====================================================
-// INPUT HANDLER
+// INPUT
 // =====================================================
 
 wordInput.addEventListener("input", () => {
 
   if (isPaused) return;
+
   const typed = wordInput.value.toLowerCase();
 
   if (typed.length === currentWord.length) {
@@ -343,9 +329,8 @@ wordInput.addEventListener("input", () => {
   }
 });
 
-
 // =====================================================
-// MODE SELECTION
+// MODE SELECT
 // =====================================================
 
 modeTimed.addEventListener("click", ()=>{
@@ -366,9 +351,20 @@ lengthOptions.forEach(option=>{
   });
 });
 
+// =====================================================
+// BUTTONS
+// =====================================================
+
 finishButton.addEventListener("click", endGame);
+
 againButtonModal.addEventListener("click", ()=>{
   endModal.style.display="none";
   startGame();
 });
-menuButton.addEventListener("click", ()=>window.location.href="../index.html");
+
+menuButton.addEventListener("click", ()=>{
+  window.location.href="../index.html";
+});
+
+// Initial render
+renderLeaderboards();
