@@ -65,10 +65,12 @@ fetch("data/wordlist.json")
 // -------------------------
 // LEADERBOARD
 // -------------------------
-let leaderboard = JSON.parse(localStorage.getItem("fspLeaderboard")) || {
-  timed: {},
-  levelup: { top10: [], personal: {} }
-};
+let leaderboard = JSON.parse(localStorage.getItem("fspLeaderboard")) || {};
+
+if (!leaderboard.timed) leaderboard.timed = {};
+if (!leaderboard.levelup) leaderboard.levelup = {};
+if (!leaderboard.levelup.top10) leaderboard.levelup.top10 = [];
+if (!leaderboard.levelup.personal) leaderboard.levelup.personal = {};
 
 function saveLeaderboard() {
   localStorage.setItem("fspLeaderboard", JSON.stringify(leaderboard));
@@ -272,16 +274,36 @@ function renderLeaderboards() {
 
   if (!timedDiv || !levelDiv) return;
 
-  // TIMED (show current length only for simplicity)
-  const board = leaderboard.timed[wordLength];
-  timedDiv.innerHTML = board
-    ? board.top10.map((e,i)=>`${i+1}. ${e.name} - ${e.score}`).join("<br>")
-    : "No scores yet";
+  // 🔒 SAFETY (prevents crashes from old data)
+  if (!leaderboard.timed) leaderboard.timed = {};
+  if (!leaderboard.levelup) leaderboard.levelup = {};
+  if (!leaderboard.levelup.top10) leaderboard.levelup.top10 = [];
+  if (!leaderboard.levelup.personal) leaderboard.levelup.personal = {};
 
-  // LEVEL
-  levelDiv.innerHTML = leaderboard.levelup.top10
-    .map((e,i)=>`${i+1}. ${e.name} - ${e.time}s`)
-    .join("<br>");
+  const timedBoard = leaderboard.timed[wordLength];
+  const levelBoard = leaderboard.levelup.top10;
+
+  // ===============================
+  // TIMED LEADERBOARD
+  // ===============================
+  if (timedBoard && timedBoard.top10 && timedBoard.top10.length > 0) {
+    timedDiv.innerHTML = timedBoard.top10
+      .map((entry, i) => `${i + 1}. ${entry.name} - ${entry.score}`)
+      .join("<br>");
+  } else {
+    timedDiv.innerHTML = "No scores yet";
+  }
+
+  // ===============================
+  // LEVEL UP LEADERBOARD
+  // ===============================
+  if (levelBoard && levelBoard.length > 0) {
+    levelDiv.innerHTML = levelBoard
+      .map((entry, i) => `${i + 1}. ${entry.name} - ${entry.time}s`)
+      .join("<br>");
+  } else {
+    levelDiv.innerHTML = "No scores yet";
+  }
 }
 
 // =====================================================
