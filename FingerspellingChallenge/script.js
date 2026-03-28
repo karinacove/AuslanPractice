@@ -559,6 +559,8 @@ continueBtn.onclick = () => {
   showLetterByLetter(currentWord);
 };
 
+menuButton.addEventListener("click", () => window.location.href = "../index.html");
+
 againButton.addEventListener("click", () => {
   if (isPaused) return;
   wordInput.value = "";
