@@ -531,7 +531,9 @@ lengthOptions.forEach(opt =>
   }
 );
 
-stopButton.onclick = pauseGame;
+stopButton.addEventListener("click", () => {
+  pauseGame();
+};
 
 againButtonModal.onclick = () => {
   isPaused = false;
