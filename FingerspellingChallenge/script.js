@@ -258,14 +258,61 @@ function submitToGoogle(scoreValue, timeValue) {
     time: gameMode === "levelup" ? timeValue : ""
   };
 
-  fetch("YOUR_GOOGLE_URL", {
+  fetch("https://script.google.com/macros/s/AKfycbySClPLCY2JTATVc9R-SJdMa7W5cjlvBvO1Fm557-TO1nCC_9OT9FJgY0-O370A-POnYg/exec", {
     method: "POST",
     body: JSON.stringify(payload),
     headers: { "Content-Type": "application/json" }
   })
   .then(res => res.text()) // 👈 safer
-  .then(data => console.log("Saved:", data))
+  .then(data => {
+  console.log("Saved:", data);
+  setTimeout(loadLeaderboardFromGoogle, 1000);
+})
   .catch(err => console.error("Error:", err));
+}
+
+function renderLeaderboardFromData(data) {
+  const timedDiv = document.getElementById("timed-leaderboard");
+  const levelDiv = document.getElementById("level-leaderboard");
+
+  if (!timedDiv || !levelDiv) return;
+
+  // FILTER
+  const timed = data.filter(d => d.mode === "timed" && d.length == wordLength);
+  const level = data.filter(d => d.mode === "levelup");
+
+  // BEST PER PLAYER
+  const bestTimed = {};
+  timed.forEach(e => {
+    if (!bestTimed[e.name] || e.score > bestTimed[e.name].score) {
+      bestTimed[e.name] = e;
+    }
+  });
+
+  const bestLevel = {};
+  level.forEach(e => {
+    if (!bestLevel[e.name] || e.time < bestLevel[e.name].time) {
+      bestLevel[e.name] = e;
+    }
+  });
+
+  // SORT
+  const timedList = Object.values(bestTimed)
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,10);
+
+  const levelList = Object.values(bestLevel)
+    .sort((a,b)=>a.time-b.time)
+    .slice(0,10);
+
+  // DISPLAY
+  timedDiv.innerHTML = timedList.length
+    ? timedList.map((e,i)=>`${i+1}. ${e.name} - ${e.score}`).join("<br>")
+    : "No scores yet";
+
+  levelDiv.innerHTML = levelList.length
+    ? levelList.map((e,i)=>`${i+1}. ${e.name} - ${e.time}s`).join("<br>")
+    : "No scores yet";
 }
 
 // -------------------------
@@ -273,15 +320,23 @@ function submitToGoogle(scoreValue, timeValue) {
 // -------------------------
 async function loadLeaderboardFromGoogle() {
   try {
-    const res = await fetch("YOUR_GOOGLE_URL");
+    const res = await fetch("https://script.google.com/macros/s/AKfycbySClPLCY2JTATVc9R-SJdMa7W5cjlvBvO1Fm557-TO1nCC_9OT9FJgY0-O370A-POnYg/exec");
+
     const text = await res.text();
 
+    // 🔍 DEBUG (optional)
+    console.log("RAW RESPONSE:", text);
+
+    let data;
+
     try {
-      const data = JSON.parse(text);
-      console.log("Leaderboard:", data);
-    } catch {
-      console.warn("Not JSON:", text);
+      data = JSON.parse(text);
+    } catch (err) {
+      console.warn("❌ Not valid JSON — skipping update");
+      return;
     }
+
+    renderLeaderboardFromData(data);
 
   } catch (err) {
     console.error("Leaderboard load failed:", err);
@@ -366,4 +421,9 @@ againButtonModal.onclick = () => {
 // -------------------------
 // Init
 // -------------------------
-loadLeaderboardFromGoogle();
+loadLeaderboardFromGoogle(); // initial load
+setInterval(() => {
+  if (!document.hidden) {
+    loadLeaderboardFromGoogle();
+  }
+}, 5000);
