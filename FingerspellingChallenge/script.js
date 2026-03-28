@@ -17,6 +17,7 @@ const wordInput = document.getElementById("word-input");
 const speedSlider = document.getElementById("speed-slider");
 const letterDisplay = document.getElementById("letter-display");
 const againButton = document.getElementById("again-button");
+const stopButton = document.getElementById("stop-button");
 const finishButton = document.getElementById("finishButton");
 const keyboardBtn = document.getElementById("keyboard-btn");
 const keyboardContainer = document.getElementById("keyboard-container");
@@ -144,6 +145,7 @@ function startGame() {
   if (!wordBankLoaded) return setTimeout(startGame, 200);
 
   document.getElementById("signin-screen").style.display = "none";
+  document.getElementById("leaderboards").style.display = "none";
   gameScreen.style.display = "flex";
 
   score = 0;
@@ -164,13 +166,71 @@ function startGame() {
   startTimestamp = Date.now();
 
   if (gameMode === "timed") {
-    countdownVideo?.play();
+    if (countdownVideo) {
+      countdownVideo.currentTime = 0;
+      countdownVideo.style.display = "block"; // 🔥 REQUIRED
+      countdownVideo.play();
+    }
     startTimer();
   } else {
     countdownVideo?.pause();
   }
 
   setTimeout(nextWord, 400);
+}
+
+function pauseGame() {
+  if (isPaused) return;
+
+  isPaused = true;
+
+  clearInterval(timer);
+  clearLetters();
+  wordInput.style.visibility = "hidden";
+  countdownVideo?.pause();
+
+  const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
+
+  // calculate percentage
+  const totalAttempts = correctWords + incorrectWords.length;
+  const percentage = totalAttempts > 0
+    ? Math.round((correctWords / totalAttempts) * 100)
+    : 100;
+
+  // show modal (PAUSE MODE)
+  showPauseModal(elapsed, percentage);
+}
+
+function finishEarly() {
+  const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
+
+  const result = updateLeaderboard(elapsed);
+
+  // 🔥 mark early finish
+  submitToGoogle(score, elapsed, true);
+
+  showFinishModal(result, true);
+}
+
+function showPauseModal(elapsed, percentage) {
+  endModal.style.display = "flex";
+
+  document.getElementById("clap-display").innerHTML = "";
+
+  scoreText.textContent = `Score: ${score}`;
+  timeText.textContent = `Time: ${elapsed}s`;
+
+  document.getElementById("score-percentage").textContent =
+    `${percentage}% Correct`;
+
+  // clear old message
+  document.getElementById("leaderboard-message")?.remove();
+
+  // BUTTONS
+  continueBtn.style.display = "inline-block";   // ✅ resume
+  againButtonModal.style.display = "inline-block"; // ✅ restart
+  menuButton.style.display = "none"; // ❌ hide menu here
+  finishButton.style.display = "inline-block";
 }
 
 function endGame() {
@@ -248,7 +308,7 @@ function updateLeaderboard(elapsed) {
 // -------------------------
 // Google Submit (SAFE JSON)
 // -------------------------
-function submitToGoogle(scoreValue, timeValue) {
+function submitToGoogle(scoreValue, timeValue, finishedEarly = false) {
 
   const correctList = Array.from(guessedWords).sort().join(", ");
   const incorrectList = incorrectWords.sort().join(", ");
@@ -279,8 +339,8 @@ function submitToGoogle(scoreValue, timeValue) {
   params.append("name", studentName);
   params.append("class", studentClass);
   params.append("mode", gameMode === "timed"
-    ? `timed (${wordLength})`
-    : "level up"
+    ? `timed (${wordLength})${finishedEarly ? " - early finish" : ""}`
+    : `level up${finishedEarly ? " - early finish" : ""}`
   );
   params.append("score", scoreValue);
   params.append("time", timeValue);
@@ -377,10 +437,13 @@ async function loadLeaderboardFromGoogle() {
 // -------------------------
 // Modal
 // -------------------------
-function showFinishModal(result) {
+function showFinishModal(result, isGameEnd = true) {
   endModal.style.display = "flex";
 
-  document.getElementById("clap-display").innerHTML = isGameEnd ? `<img src="Assets/auslan-clap.gif" alt="Clap" />` : "";
+  // ✅ ALWAYS show clap at game end
+  document.getElementById("clap-display").innerHTML =
+    isGameEnd ? `<img src="Assets/auslan-clap.gif" alt="Clap" />` : "";
+
   const { newTop10, newPersonal, elapsed } = result;
 
   scoreText.textContent = `Score: ${score}`;
@@ -390,6 +453,21 @@ function showFinishModal(result) {
   if (newTop10) msg += "🏆 Top 10!\n";
   if (newPersonal) msg += "⭐ Personal Best!";
 
+  // 🏆 ADD RANK DISPLAY
+  let rankText = "";
+
+  if (gameMode === "timed") {
+    const board = leaderboard.timed[wordLength]?.top10 || [];
+    const pos = board.findIndex(e => e.name === studentName && e.score === score);
+    if (pos !== -1) rankText = `You placed #${pos + 1}!`;
+  } else {
+    const board = leaderboard.levelup.top10 || [];
+    const pos = board.findIndex(e => e.name === studentName && e.time === elapsed);
+    if (pos !== -1) rankText = `You placed #${pos + 1}!`;
+  }
+
+  msg += rankText ? `\n${rankText}` : "";
+
   document.getElementById("leaderboard-message")?.remove();
 
   const div = document.createElement("div");
@@ -397,9 +475,16 @@ function showFinishModal(result) {
   div.innerText = msg;
   endModalContent.appendChild(div);
 
+  // ✅ BUTTON LOGIC
   againButtonModal.style.display = "inline-block";
   menuButton.style.display = "inline-block";
+
+  // 🔥 IMPORTANT: hide continue on normal finish
+  finishButton.style.display = isGameEnd ? "none" : "inline-block";
   continueBtn.style.display = isGameEnd ? "none" : "inline-block";
+
+  // 🔥 SHOW leaderboard again when game ends
+  document.getElementById("leaderboards").style.display = "block";
 }
 
 // -------------------------
@@ -446,7 +531,7 @@ lengthOptions.forEach(opt =>
   }
 );
 
-finishButton.onclick = endGame;
+stopButton.onclick = pauseGame;
 
 againButtonModal.onclick = () => {
   isPaused = false;
@@ -454,6 +539,27 @@ againButtonModal.onclick = () => {
   startGame();
 };
 
+finishButton.onclick = () => {
+  finishEarly();
+  setTimeout(() => {
+    window.location.href = "../index.html";
+  }, 1500);
+};
+
+continueBtn.onclick = () => {
+  isPaused = false;
+  endModal.style.display = "none";
+
+  wordInput.style.visibility = "visible";
+  wordInput.focus();
+
+  if (gameMode === "timed") {
+    countdownVideo?.play();
+    startTimer();
+  }
+
+  showLetterByLetter(currentWord);
+};
 againButton.addEventListener("click", () => {
   if (isPaused) return;
   wordInput.value = "";
