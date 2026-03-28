@@ -256,18 +256,23 @@ function updateLeaderboard() {
 
     const board = leaderboard.timed[wordLength];
 
+    // ✅ PERSONAL BEST ONLY
     if (!board.personal[studentName] || score > board.personal[studentName]) {
       board.personal[studentName] = score;
       newPersonal = true;
     }
 
-    board.top10.push({ name: studentName, score });
-    board.top10.sort((a,b)=>b.score-a.score);
-    board.top10 = board.top10.slice(0,10);
+    // ✅ REBUILD TOP 10 FROM PERSONAL BESTS (NO DUPLICATES)
+    const allPlayers = Object.entries(board.personal).map(([name, score]) => ({
+      name,
+      score
+    }));
 
-    if (board.top10.some(entry => entry.name === studentName && entry.score === score)) {
-      newTop10 = true;
-    }
+    allPlayers.sort((a, b) => b.score - a.score);
+    board.top10 = allPlayers.slice(0, 10);
+
+    // ✅ CHECK IF THEY MADE TOP 10
+    newTop10 = board.top10.some(e => e.name === studentName);
 
   } else {
 
@@ -278,22 +283,24 @@ function updateLeaderboard() {
       newPersonal = true;
     }
 
-    board.top10.push({ name: studentName, time: elapsed });
-    board.top10.sort((a,b)=>a.time-b.time);
-    board.top10 = board.top10.slice(0,10);
+    const allPlayers = Object.entries(board.personal).map(([name, time]) => ({
+      name,
+      time
+    }));
 
-    if (board.top10.some(entry => entry.name === studentName && entry.time === elapsed)) {
-      newTop10 = true;
-    }
+    allPlayers.sort((a, b) => a.time - b.time);
+    board.top10 = allPlayers.slice(0, 10);
+
+    newTop10 = board.top10.some(e => e.name === studentName);
   }
 
   saveLeaderboard();
+  renderLeaderboards();
 
+  // Only submit if meaningful
   if (newTop10 || newPersonal) {
     submitToGoogle(score, elapsed);
   }
-
-  renderLeaderboards();
 
   return { newTop10, newPersonal, elapsed };
 }
@@ -302,22 +309,97 @@ function updateLeaderboard() {
 // GOOGLE FORM
 // -------------------------
 function submitToGoogle(scoreValue, timeValue) {
-  const correct = Array.from(guessedWords).join(", ");
-  const wrong = incorrectWords.join(", ");
 
-  const formURL =
-    `https://docs.google.com/forms/d/e/1FAIpQLSfOFWu8FcUR3bOwg0mo_3Kb2O7p4m0TLvfUpZjx0zdzqKac4Q/formResponse?` +
-    `entry.423692452=${encodeURIComponent(studentName)}` +
-    `&entry.1307864012=${encodeURIComponent(studentClass)}` +
-    `&entry.468778567=${encodeURIComponent(gameMode)}` +
-    `&entry.1083699348=${encodeURIComponent(scoreValue)}` +
-    `&entry.746947164=${encodeURIComponent(correct)}` +
-    `&entry.1534005804=${encodeURIComponent(wrong)}` +
-    `&entry.1974555000=${encodeURIComponent(speedSlider.value)}`;
+  const correctList = Array.from(guessedWords).sort().join(", ");
+  const incorrectList = incorrectWords.sort().join(", ");
 
-  fetch(formURL, { method: "POST", mode: "no-cors" });
+  const totalAttempts = correctWords + incorrectWords.length;
+  const percentage = totalAttempts > 0
+    ? Math.round((correctWords / totalAttempts) * 100)
+    : 100;
+
+  const payload = {
+    name: studentName,
+    class: studentClass,
+    mode: gameMode,
+    length: wordLength,
+    score: gameMode === "timed" ? scoreValue : "",
+    time: gameMode === "levelup" ? timeValue : "",
+    percentage: percentage,
+    correct: correctList,
+    incorrect: incorrectList
+  };
+
+  fetch("https://script.google.com/macros/s/AKfycbycpjm2edGCHqEeC3PztG_uU47oOmGI4-YS6cjKq5vUxRbqxNPUlAwN9vu7TwXY9b1qaA/exec", {
+    method: "POST",
+    body: JSON.stringify(payload),
+    headers: {
+      "Content-Type": "application/json"
+    }
+  })
+  .then(res => res.json())
+  .then(data => console.log("Saved:", data))
+  .catch(err => console.error("Error:", err));
 }
 
+async function loadLeaderboardFromGoogle() {
+
+  try {
+    const res = await fetch("https://script.google.com/macros/s/AKfycbycpjm2edGCHqEeC3PztG_uU47oOmGI4-YS6cjKq5vUxRbqxNPUlAwN9vu7TwXY9b1qaA/exec");
+    const data = await res.json();
+
+    console.log("Leaderboard data:", data);
+
+    renderLeaderboardFromData(data);
+
+  } catch (err) {
+    console.error("Leaderboard load failed:", err);
+  }
+}
+function renderLeaderboardFromData(data) {
+
+  const timedDiv = document.getElementById("timed-leaderboard");
+  const levelDiv = document.getElementById("level-leaderboard");
+
+  if (!timedDiv || !levelDiv) return;
+
+  // FILTER + GROUP
+  const timed = data.filter(d => d.mode === "timed" && d.length == wordLength);
+  const level = data.filter(d => d.mode === "levelup");
+
+  // BEST PER STUDENT (NO SPAM)
+  const bestTimed = {};
+  timed.forEach(entry => {
+    if (!bestTimed[entry.name] || entry.score > bestTimed[entry.name].score) {
+      bestTimed[entry.name] = entry;
+    }
+  });
+
+  const bestLevel = {};
+  level.forEach(entry => {
+    if (!bestLevel[entry.name] || entry.time < bestLevel[entry.name].time) {
+      bestLevel[entry.name] = entry;
+    }
+  });
+
+  // SORT
+  const timedList = Object.values(bestTimed)
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,10);
+
+  const levelList = Object.values(bestLevel)
+    .sort((a,b)=>a.time-b.time)
+    .slice(0,10);
+
+  // DISPLAY
+  timedDiv.innerHTML = timedList.length
+    ? timedList.map((e,i)=>`${i+1}. ${e.name} - ${e.score}`).join("<br>")
+    : "No scores yet";
+
+  levelDiv.innerHTML = levelList.length
+    ? levelList.map((e,i)=>`${i+1}. ${e.name} - ${e.time}s`).join("<br>")
+    : "No scores yet";
+}
 // -------------------------
 // MODAL
 // -------------------------
@@ -463,4 +545,4 @@ menuButton.addEventListener("click", () => window.location.href = "../index.html
 // -------------------------
 // INIT
 // -------------------------
-renderLeaderboards();
+loadLeaderboardFromGoogle();
