@@ -560,6 +560,7 @@ continueBtn.onclick = () => {
 
   showLetterByLetter(currentWord);
 };
+
 againButton.addEventListener("click", () => {
   if (isPaused) return;
   wordInput.value = "";
