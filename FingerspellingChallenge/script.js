@@ -119,6 +119,16 @@ function showLetterByLetter(word) {
   });
 }
 
+againButton.addEventListener("click", () => {
+  if (isPaused) return;
+
+  wordInput.value = "";
+  wordInput.style.visibility = "visible";
+  wordInput.focus();
+
+  showLetterByLetter(currentWord);
+});
+
 function updateScore() {
   if (scoreImage) {
     const cappedScore = Math.min(score, 80);
@@ -215,10 +225,16 @@ function endGame() {
   clearInterval(timer);
   clearLetters();
   wordInput.style.visibility = "hidden";
+  isPaused = true;
 
   if (countdownVideo) countdownVideo.pause();
 
+  // ALWAYS submit first
+  submitToGoogle(score, Math.floor((Date.now() - startTimestamp) / 1000));
+
+  // THEN update leaderboard + show modal
   const result = updateLeaderboard();
+
   showFinishModal(result, true);
 }
 
@@ -312,23 +328,76 @@ function showFinishModal(result, isGameEnd = false) {
 
   endModal.style.display = "flex";
 
-  const elapsed = result.elapsed;
+  const { newTop10, newPersonal, elapsed } = result;
+
   const minutes = Math.floor(elapsed / 60);
   const seconds = elapsed % 60;
 
+  // SCORE / TIME DISPLAY
+  if (gameMode === "timed") {
+    scoreText.textContent = `Score: ${score}`;
+    timeText.textContent = `Time: ${minutes} mins ${seconds} sec`;
+  } else {
+    scoreText.textContent = `Completed!`;
+    timeText.textContent = `Time: ${minutes} mins ${seconds} sec`;
+  }
+
+  // PERCENTAGE
   const totalAttempts = correctWords + incorrectWords.length;
-  const percentage = totalAttempts > 0 ? Math.round((correctWords / totalAttempts) * 100) : 100;
+  const percentage = totalAttempts > 0
+    ? Math.round((correctWords / totalAttempts) * 100)
+    : 100;
 
-  endModalContent.querySelector("#score-percentage").textContent = `${percentage}% Correct`;
-  scoreText.textContent = `Score: ${score}`;
-  timeText.textContent = `Time: ${minutes} mins ${seconds} sec`;
+  endModalContent.querySelector("#score-percentage").textContent =
+    `${percentage}% Correct`;
 
+  // LEADERBOARD MESSAGE
+  let message = "";
+
+  if (newTop10) message += "🏆 Top 10 Leaderboard!\n";
+  if (newPersonal) message += "⭐ New Personal Best!\n";
+
+  // FIND POSITION (TIMED)
+  if (gameMode === "timed") {
+    const board = leaderboard.timed[wordLength]?.top10 || [];
+    const position = board.findIndex(e => e.name === studentName && e.score === score);
+    if (position !== -1) {
+      message += `You placed #${position + 1}!`;
+    }
+  }
+
+  // FIND POSITION (LEVEL UP)
+  if (gameMode === "levelup") {
+    const board = leaderboard.levelup.top10 || [];
+    const position = board.findIndex(e => e.name === studentName && e.time === elapsed);
+    if (position !== -1) {
+      message += `You placed #${position + 1}!`;
+    }
+  }
+
+  // DISPLAY MESSAGE
+  let msgDiv = document.getElementById("leaderboard-message");
+  if (!msgDiv) {
+    msgDiv = document.createElement("div");
+    msgDiv.id = "leaderboard-message";
+    msgDiv.style.marginTop = "10px";
+    endModalContent.appendChild(msgDiv);
+  }
+  msgDiv.innerText = message;
+
+  // CLAP GIF
   document.getElementById("clap-display").innerHTML =
-    isGameEnd ? `<img src="Assets/auslan-clap.gif" />` : "";
+    isGameEnd ? `<img src="Assets/auslan-clap.gif" alt="Clap" />` : "";
 
-  continueBtn.style.display = isGameEnd ? "none" : "inline-block";
+  // BUTTONS
+  againButtonModal.style.display = "inline-block";
+  menuButton.style.display = "inline-block";
+
+  const finishHomeBtn = document.getElementById("finish-home-button");
+  if (finishHomeBtn) finishHomeBtn.style.display = "inline-block";
+
+  continueBtn.style.display = "none";
 }
-
 // -------------------------
 // INPUT
 // -------------------------
