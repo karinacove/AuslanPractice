@@ -249,25 +249,56 @@ function updateLeaderboard(elapsed) {
 // Google Submit (SAFE JSON)
 // -------------------------
 function submitToGoogle(scoreValue, timeValue) {
-  const payload = {
-    name: studentName,
-    class: studentClass,
-    mode: gameMode,
-    length: wordLength,
-    score: gameMode === "timed" ? scoreValue : "",
-    time: gameMode === "levelup" ? timeValue : ""
-  };
+
+  const correctList = Array.from(guessedWords).sort().join(", ");
+  const incorrectList = incorrectWords.sort().join(", ");
+
+  const totalAttempts = correctWords + incorrectWords.length;
+
+  const percentage = totalAttempts > 0
+    ? Math.round((correctWords / totalAttempts) * 100)
+    : 100;
+
+  const speedSetting = speedSlider.value;
+
+  // 🏆 rank (from local leaderboard)
+  let rank = "";
+
+  if (gameMode === "timed") {
+    const board = leaderboard.timed[wordLength]?.top10 || [];
+    const pos = board.findIndex(e => e.name === studentName && e.score === score);
+    if (pos !== -1) rank = pos + 1;
+  } else {
+    const board = leaderboard.levelup.top10 || [];
+    const pos = board.findIndex(e => e.name === studentName && e.time === timeValue);
+    if (pos !== -1) rank = pos + 1;
+  }
+
+  const params = new URLSearchParams();
+
+  params.append("name", studentName);
+  params.append("class", studentClass);
+  params.append("mode", gameMode === "timed"
+    ? `timed (${wordLength})`
+    : "level up"
+  );
+  params.append("score", scoreValue);
+  params.append("time", timeValue);
+  params.append("percentage", percentage);
+  params.append("correct", correctList);
+  params.append("incorrect", incorrectList);
+  params.append("speed", speedSetting);
+  params.append("rank", rank);
 
   fetch("https://script.google.com/macros/s/AKfycbySClPLCY2JTATVc9R-SJdMa7W5cjlvBvO1Fm557-TO1nCC_9OT9FJgY0-O370A-POnYg/exec", {
     method: "POST",
-    body: JSON.stringify(payload),
-    headers: { "Content-Type": "application/json" }
+    body: params
   })
-  .then(res => res.text()) // 👈 safer
+  .then(res => res.text())
   .then(data => {
-  console.log("Saved:", data);
-  setTimeout(loadLeaderboardFromGoogle, 1000);
-})
+    console.log("Saved:", data);
+    setTimeout(loadLeaderboardFromGoogle, 1000);
+  })
   .catch(err => console.error("Error:", err));
 }
 
@@ -349,6 +380,7 @@ async function loadLeaderboardFromGoogle() {
 function showFinishModal(result) {
   endModal.style.display = "flex";
 
+  document.getElementById("clap-display").innerHTML = isGameEnd ? `<img src="Assets/auslan-clap.gif" alt="Clap" />` : "";
   const { newTop10, newPersonal, elapsed } = result;
 
   scoreText.textContent = `Score: ${score}`;
@@ -364,6 +396,10 @@ function showFinishModal(result) {
   div.id = "leaderboard-message";
   div.innerText = msg;
   endModalContent.appendChild(div);
+
+  againButtonModal.style.display = "inline-block";
+  menuButton.style.display = "inline-block";
+  continueBtn.style.display = isGameEnd ? "none" : "inline-block";
 }
 
 // -------------------------
@@ -417,6 +453,14 @@ againButtonModal.onclick = () => {
   endModal.style.display = "none";
   startGame();
 };
+
+againButton.addEventListener("click", () => {
+  if (isPaused) return;
+  wordInput.value = "";
+  wordInput.style.visibility = "visible";
+  wordInput.focus();
+  showLetterByLetter(currentWord);
+});
 
 // -------------------------
 // Init
