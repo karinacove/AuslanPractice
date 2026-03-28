@@ -172,6 +172,17 @@ function nextWord() {
 }
 
 // -------------------------
+// VIDEO END LISTENER
+// -------------------------
+if (countdownVideo) {
+  countdownVideo.addEventListener("ended", () => {
+    if (gameMode === "timed") {
+      endGame();
+    }
+  });
+}
+
+// -------------------------
 // Game Flow
 // -------------------------
 function startGame() {
@@ -222,20 +233,35 @@ function startGame() {
 }
 
 function endGame() {
+  if (isPaused) return; // prevent double firing
+
+  isPaused = true;
+
   clearInterval(timer);
   clearLetters();
+
   wordInput.style.visibility = "hidden";
-  isPaused = true;
 
   if (countdownVideo) countdownVideo.pause();
 
-  // ALWAYS submit first
-  submitToGoogle(score, Math.floor((Date.now() - startTimestamp) / 1000));
+  const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
 
-  // THEN update leaderboard + show modal
-  const result = updateLeaderboard();
+  try {
+    const result = updateLeaderboard();
 
-  showFinishModal(result, true);
+    // 🔥 ONLY submit ONCE here
+    if (result.newTop10 || result.newPersonal) {
+      submitToGoogle(score, elapsed);
+    }
+
+    showFinishModal(result, true);
+
+  } catch (err) {
+    console.error("End game error:", err);
+
+    // fallback so modal ALWAYS appears
+    showFinishModal({ newTop10:false, newPersonal:false, elapsed }, true);
+  }
 }
 
 // -------------------------
@@ -296,11 +322,6 @@ function updateLeaderboard() {
 
   saveLeaderboard();
   renderLeaderboards();
-
-  // Only submit if meaningful
-  if (newTop10 || newPersonal) {
-    submitToGoogle(score, elapsed);
-  }
 
   return { newTop10, newPersonal, elapsed };
 }
@@ -532,7 +553,7 @@ lengthOptions.forEach(option => {
 // -------------------------
 // BUTTONS
 // -------------------------
-finishButton.addEventListener("click", () => showFinishModal({elapsed:0}, false));
+finishButton.addEventListener("click", endGame);
 
 againButtonModal.addEventListener("click", () => {
   isPaused = false;
