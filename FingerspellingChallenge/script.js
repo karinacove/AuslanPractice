@@ -1,10 +1,5 @@
-// =====================================================
-// FINGERSPELLING CHALLENGE – FINAL STABLE VERSION
-// Leaderboard + Google Forms + Top 10 + Personal Best
-// =====================================================
-
 // -------------------------
-// USER INFO
+// Initial Setup & User Info
 // -------------------------
 let studentName = localStorage.getItem("studentName") || "";
 let studentClass = localStorage.getItem("studentClass") || "";
@@ -15,52 +10,63 @@ if (!studentName || !studentClass) {
 }
 
 // -------------------------
-// DOM
+// DOM References
 // -------------------------
+const gameScreen = document.getElementById("game-screen");
 const wordInput = document.getElementById("word-input");
 const speedSlider = document.getElementById("speed-slider");
 const letterDisplay = document.getElementById("letter-display");
+const againButton = document.getElementById("again-button");
 const finishButton = document.getElementById("finishButton");
+const keyboardBtn = document.getElementById("keyboard-btn");
+const keyboardContainer = document.getElementById("keyboard-container");
 const endModal = document.getElementById("end-modal");
+const endModalContent = document.getElementById("end-modal-content");
+const continueBtn = document.getElementById("continue-btn");
 const againButtonModal = document.getElementById("again-button-modal");
 const menuButton = document.getElementById("menu-button");
 const lengthContainer = document.getElementById("length-container");
 const lengthOptions = document.querySelectorAll(".length-option");
 const modeTimed = document.getElementById("mode-timed");
 const modeLevel = document.getElementById("mode-levelup");
+const slowIcon = document.getElementById("slow-icon");
+const fastIcon = document.getElementById("fast-icon");
 const scoreImage = document.getElementById("score-image");
+const countdownVideo = document.getElementById("countdown-video");
 const scoreText = document.getElementById("score-text");
 const timeText = document.getElementById("time-text");
 
 // -------------------------
-// GAME STATE
+// Game State
 // -------------------------
 let timer;
 let timeLeft = 120;
 let score = 0;
-let correctWords = 0;
 let currentWord = "";
-let wordLength = 3;
+let currentLetterIndex = 0;
+let letterTimeouts = [];
+let speed = parseInt(speedSlider.value) || 150;
+let correctWords = 0;
 let gameMode = "";
-let usedWords = new Set();
+let wordLength = 3;
 let guessedWords = new Set();
 let incorrectWords = [];
-let isPaused = false;
-let startTimestamp = 0;
-let letterTimeouts = [];
-
-// -------------------------
-// WORD BANK
-// -------------------------
 let wordBank = {};
 let wordBankLoaded = false;
+let isPaused = false;
+let usedWords = new Set();
+let startTimestamp = 0;
 
+// -------------------------
+// Load Word Bank
+// -------------------------
 fetch("data/wordlist.json")
-  .then(res => res.json())
-  .then(data => {
+  .then((response) => response.json())
+  .then((data) => {
     wordBank = data;
     wordBankLoaded = true;
-  });
+  })
+  .catch((error) => console.error("Error loading word list:", error));
 
 // -------------------------
 // LEADERBOARD
@@ -76,10 +82,9 @@ function saveLeaderboard() {
   localStorage.setItem("fspLeaderboard", JSON.stringify(leaderboard));
 }
 
-// =====================================================
-// GAME CORE
-// =====================================================
-
+// -------------------------
+// Utility Functions
+// -------------------------
 function clearLetters() {
   letterTimeouts.forEach(clearTimeout);
   letterTimeouts = [];
@@ -88,28 +93,40 @@ function clearLetters() {
 
 function showLetterByLetter(word) {
   clearLetters();
+  currentLetterIndex = 0;
 
-  const speed = parseInt(speedSlider.value) || 100;
-  const delay = Math.max(80, 1200 - speed * 5);
+  const sliderValue = parseInt(speedSlider.value) || 100;
+  const maxDelay = 1200;
+  const minDelay = 80;
+  const displayDuration = Math.max(minDelay, maxDelay - sliderValue * 5);
+  const letterGap = Math.max(40, displayDuration / 3);
+  const delay = 300;
 
-  word.split("").forEach((letter, i) => {
-    const t = setTimeout(() => {
+  word.split("").forEach((letter, index) => {
+    const timeout = setTimeout(() => {
       if (!isPaused) {
-        letterDisplay.textContent = letter;
-        setTimeout(() => {
-          if (!isPaused) letterDisplay.textContent = "";
-        }, delay);
-      }
-    }, 300 + i * delay);
+        letterDisplay.textContent = letter.toLowerCase();
 
-    letterTimeouts.push(t);
+        setTimeout(() => {
+          if (!isPaused && letterDisplay.textContent === letter.toLowerCase()) {
+            letterDisplay.textContent = "";
+          }
+        }, displayDuration);
+      }
+    }, delay + index * (displayDuration + letterGap));
+
+    letterTimeouts.push(timeout);
   });
 }
 
 function updateScore() {
   if (scoreImage) {
-    const capped = Math.min(score, 80);
-    scoreImage.src = `Assets/score/${capped}.png`;
+    const cappedScore = Math.min(score, 80);
+    scoreImage.src = `Assets/score/${cappedScore}.png`;
+  }
+
+  if (score >= 80 && gameMode === "levelup") {
+    endGame();
   }
 }
 
@@ -124,10 +141,19 @@ function startTimer() {
 }
 
 function nextWord() {
+  if (gameMode === "levelup" && correctWords > 0 && correctWords % 10 === 0 && wordLength < 10) {
+    wordLength++;
+  }
+
   const words = wordBank[wordLength] || wordBank[3];
+  if (!words) return;
+
   const pool = words.filter(w => !usedWords.has(w));
 
-  if (pool.length === 0) return endGame();
+  if (pool.length === 0) {
+    endGame();
+    return;
+  }
 
   currentWord = pool[Math.floor(Math.random() * pool.length)];
   usedWords.add(currentWord);
@@ -135,30 +161,52 @@ function nextWord() {
   setTimeout(() => showLetterByLetter(currentWord), 200);
 }
 
+// -------------------------
+// Game Flow
+// -------------------------
 function startGame() {
 
   if (!wordBankLoaded) {
-    alert("Loading words...");
+    setTimeout(startGame, 200);
     return;
   }
 
+  document.getElementById("signin-screen").style.display = "none";
+  gameScreen.style.display = "flex";
+
   score = 0;
-  correctWords = 0;
   timeLeft = 120;
-  usedWords.clear();
+  correctWords = 0;
   guessedWords.clear();
   incorrectWords = [];
-  wordInput.value = "";
-
-  if (gameMode === "levelup") wordLength = 3;
-
+  usedWords.clear();
   isPaused = false;
-  startTimestamp = Date.now();
+
+  wordInput.value = "";
+  wordInput.style.visibility = "visible";
+  wordInput.focus();
+
+  againButton.style.display = "block";
 
   updateScore();
+  clearLetters();
   clearInterval(timer);
 
-  if (gameMode === "timed") startTimer();
+  startTimestamp = Date.now();
+
+  if (gameMode === "timed") {
+    if (countdownVideo) {
+      countdownVideo.currentTime = 0;
+      countdownVideo.play();
+      countdownVideo.style.display = "block";
+    }
+    startTimer();
+  } else {
+    if (countdownVideo) {
+      countdownVideo.pause();
+      countdownVideo.style.display = "none";
+    }
+  }
 
   setTimeout(nextWord, 400);
 }
@@ -166,16 +214,17 @@ function startGame() {
 function endGame() {
   clearInterval(timer);
   clearLetters();
-  isPaused = true;
+  wordInput.style.visibility = "hidden";
+
+  if (countdownVideo) countdownVideo.pause();
 
   const result = updateLeaderboard();
-  showFinishModal(result);
+  showFinishModal(result, true);
 }
 
-// =====================================================
+// -------------------------
 // LEADERBOARD LOGIC
-// =====================================================
-
+// -------------------------
 function updateLeaderboard() {
 
   const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
@@ -191,13 +240,11 @@ function updateLeaderboard() {
 
     const board = leaderboard.timed[wordLength];
 
-    // PERSONAL BEST
     if (!board.personal[studentName] || score > board.personal[studentName]) {
       board.personal[studentName] = score;
       newPersonal = true;
     }
 
-    // TOP 10
     board.top10.push({ name: studentName, score });
     board.top10.sort((a,b)=>b.score-a.score);
     board.top10 = board.top10.slice(0,10);
@@ -235,107 +282,56 @@ function updateLeaderboard() {
   return { newTop10, newPersonal, elapsed };
 }
 
-// =====================================================
+// -------------------------
 // GOOGLE FORM
-// =====================================================
-
+// -------------------------
 function submitToGoogle(scoreValue, timeValue) {
-
-  const correctList = Array.from(guessedWords).join(", ");
-  const incorrectList = incorrectWords.join(", ");
-
-  const scoreToSend = gameMode === "timed"
-    ? scoreValue
-    : `${timeValue}s`;
-
-  const modeLabel = `${gameMode} (${wordLength} letters)`;
+  const correct = Array.from(guessedWords).join(", ");
+  const wrong = incorrectWords.join(", ");
 
   const formURL =
     `https://docs.google.com/forms/d/e/1FAIpQLSfOFWu8FcUR3bOwg0mo_3Kb2O7p4m0TLvfUpZjx0zdzqKac4Q/formResponse?` +
     `entry.423692452=${encodeURIComponent(studentName)}` +
     `&entry.1307864012=${encodeURIComponent(studentClass)}` +
-    `&entry.468778567=${encodeURIComponent(modeLabel)}` +
-    `&entry.1083699348=${encodeURIComponent(scoreToSend)}` +
-    `&entry.746947164=${encodeURIComponent(correctList)}` +       // ✅ CORRECT WORDS
-    `&entry.1534005804=${encodeURIComponent(incorrectList)}` +   // ✅ INCORRECT WORDS
-    `&entry.1974555000=${encodeURIComponent(speedSlider.value)}`; // (optional speed)
+    `&entry.468778567=${encodeURIComponent(gameMode)}` +
+    `&entry.1083699348=${encodeURIComponent(scoreValue)}` +
+    `&entry.746947164=${encodeURIComponent(correct)}` +
+    `&entry.1534005804=${encodeURIComponent(wrong)}` +
+    `&entry.1974555000=${encodeURIComponent(speedSlider.value)}`;
 
   fetch(formURL, { method: "POST", mode: "no-cors" });
 }
 
-// =====================================================
-// DISPLAY LEADERBOARD (HOME SCREEN)
-// =====================================================
-
-function renderLeaderboards() {
-
-  const timedDiv = document.getElementById("timed-leaderboard");
-  const levelDiv = document.getElementById("level-leaderboard");
-
-  if (!timedDiv || !levelDiv) return;
-
-  // 🔒 SAFETY (prevents crashes from old data)
-  if (!leaderboard.timed) leaderboard.timed = {};
-  if (!leaderboard.levelup) leaderboard.levelup = {};
-  if (!leaderboard.levelup.top10) leaderboard.levelup.top10 = [];
-  if (!leaderboard.levelup.personal) leaderboard.levelup.personal = {};
-
-  const timedBoard = leaderboard.timed[wordLength];
-  const levelBoard = leaderboard.levelup.top10;
-
-  // ===============================
-  // TIMED LEADERBOARD
-  // ===============================
-  if (timedBoard && timedBoard.top10 && timedBoard.top10.length > 0) {
-    timedDiv.innerHTML = timedBoard.top10
-      .map((entry, i) => `${i + 1}. ${entry.name} - ${entry.score}`)
-      .join("<br>");
-  } else {
-    timedDiv.innerHTML = "No scores yet";
-  }
-
-  // ===============================
-  // LEVEL UP LEADERBOARD
-  // ===============================
-  if (levelBoard && levelBoard.length > 0) {
-    levelDiv.innerHTML = levelBoard
-      .map((entry, i) => `${i + 1}. ${entry.name} - ${entry.time}s`)
-      .join("<br>");
-  } else {
-    levelDiv.innerHTML = "No scores yet";
-  }
-}
-
-// =====================================================
+// -------------------------
 // MODAL
-// =====================================================
+// -------------------------
+function showFinishModal(result, isGameEnd = false) {
 
-function showFinishModal(result) {
-
-  const { newTop10, newPersonal, elapsed } = result;
-
-  scoreText.textContent = `Score: ${score}`;
-  timeText.textContent = `Time: ${elapsed}s`;
-
-  let message = "";
-
-  if (newTop10) message += "🎉 NEW TOP 10!\n";
-  if (newPersonal) message += "⭐ NEW PERSONAL BEST!";
-
-  if (message) {
-    const msg = document.createElement("div");
-    msg.style.marginTop = "10px";
-    msg.innerText = message;
-    document.getElementById("end-modal-content").appendChild(msg);
-  }
+  isPaused = true;
+  clearInterval(timer);
 
   endModal.style.display = "flex";
+
+  const elapsed = result.elapsed;
+  const minutes = Math.floor(elapsed / 60);
+  const seconds = elapsed % 60;
+
+  const totalAttempts = correctWords + incorrectWords.length;
+  const percentage = totalAttempts > 0 ? Math.round((correctWords / totalAttempts) * 100) : 100;
+
+  endModalContent.querySelector("#score-percentage").textContent = `${percentage}% Correct`;
+  scoreText.textContent = `Score: ${score}`;
+  timeText.textContent = `Time: ${minutes} mins ${seconds} sec`;
+
+  document.getElementById("clap-display").innerHTML =
+    isGameEnd ? `<img src="Assets/auslan-clap.gif" />` : "";
+
+  continueBtn.style.display = isGameEnd ? "none" : "inline-block";
 }
 
-// =====================================================
+// -------------------------
 // INPUT
-// =====================================================
-
+// -------------------------
 wordInput.addEventListener("input", () => {
 
   if (isPaused) return;
@@ -344,57 +340,58 @@ wordInput.addEventListener("input", () => {
 
   if (typed.length === currentWord.length) {
 
-    if (typed === currentWord) {
-      score++;
-      correctWords++;
-      guessedWords.add(currentWord);
-      wordInput.value="";
-      updateScore();
-      setTimeout(nextWord,400);
-    } else {
-      incorrectWords.push(typed);
-      wordInput.value="";
-      showLetterByLetter(currentWord);
-    }
+    setTimeout(() => {
+      if (typed === currentWord) {
+        score++;
+        correctWords++;
+        guessedWords.add(currentWord);
+        updateScore();
+        wordInput.value = "";
+        setTimeout(nextWord, 400);
+      } else {
+        incorrectWords.push(typed);
+        wordInput.value = "";
+        showLetterByLetter(currentWord);
+      }
+    }, 50);
   }
 });
 
-// =====================================================
+// -------------------------
 // MODE SELECT
-// =====================================================
-
-modeTimed.addEventListener("click", ()=>{
-  gameMode="timed";
-  lengthContainer.style.display="flex";
+// -------------------------
+modeTimed.addEventListener("click", () => {
+  gameMode = "timed";
+  lengthContainer.style.display = "flex";
 });
 
-modeLevel.addEventListener("click", ()=>{
-  gameMode="levelup";
-  lengthContainer.style.display="none";
+modeLevel.addEventListener("click", () => {
+  gameMode = "levelup";
+  lengthContainer.style.display = "none";
   startGame();
 });
 
-lengthOptions.forEach(option=>{
-  option.addEventListener("click",()=>{
-    wordLength=parseInt(option.dataset.length);
+lengthOptions.forEach(option => {
+  option.addEventListener("click", () => {
+    wordLength = parseInt(option.dataset.length);
     startGame();
   });
 });
 
-// =====================================================
+// -------------------------
 // BUTTONS
-// =====================================================
+// -------------------------
+finishButton.addEventListener("click", () => showFinishModal({elapsed:0}, false));
 
-finishButton.addEventListener("click", endGame);
-
-againButtonModal.addEventListener("click", ()=>{
-  endModal.style.display="none";
+againButtonModal.addEventListener("click", () => {
+  isPaused = false;
+  endModal.style.display = "none";
   startGame();
 });
 
-menuButton.addEventListener("click", ()=>{
-  window.location.href="../index.html";
-});
+menuButton.addEventListener("click", () => window.location.href = "../index.html");
 
-// Initial render
+// -------------------------
+// INIT
+// -------------------------
 renderLeaderboards();
