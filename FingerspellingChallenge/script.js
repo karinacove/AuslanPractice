@@ -17,8 +17,8 @@ const wordInput = document.getElementById("word-input");
 const speedSlider = document.getElementById("speed-slider");
 const letterDisplay = document.getElementById("letter-display");
 const againButton = document.getElementById("again-button");
-const stopButton = document.getElementById("stop-button");
-const finishButton = document.getElementById("finishButton");
+const stopButton = document.getElementById("stopButton");
+const finishButton = document.getElementById("finish-button");
 const keyboardBtn = document.getElementById("keyboard-btn");
 const keyboardContainer = document.getElementById("keyboard-container");
 const endModal = document.getElementById("end-modal");
@@ -227,10 +227,10 @@ function showPauseModal(elapsed, percentage) {
   document.getElementById("leaderboard-message")?.remove();
 
   // BUTTONS
-  continueBtn.style.display = "inline-block";   // ✅ resume
-  againButtonModal.style.display = "inline-block"; // ✅ restart
-  menuButton.style.display = "none"; // ❌ hide menu here
-  finishButton.style.display = "inline-block";
+finishButton.style.display = "inline-block"; // modal finish button
+continueBtn.style.display = "inline-block";
+againButtonModal.style.display = "inline-block";
+menuButton.style.display = "none";
 }
 
 function endGame() {
@@ -478,10 +478,8 @@ function showFinishModal(result, isGameEnd = true) {
   // ✅ BUTTON LOGIC
   againButtonModal.style.display = "inline-block";
   menuButton.style.display = "inline-block";
-
-  // 🔥 IMPORTANT: hide continue on normal finish
-  finishButton.style.display = isGameEnd ? "none" : "inline-block";
-  continueBtn.style.display = isGameEnd ? "none" : "inline-block";
+  finishButton.style.display = "none";
+  continueBtn.style.display = "none";
 
   // 🔥 SHOW leaderboard again when game ends
   document.getElementById("leaderboards").style.display = "block";
@@ -531,9 +529,7 @@ lengthOptions.forEach(opt =>
   }
 );
 
-stopButton.addEventListener("click", () => {
-  pauseGame();
-});
+stopButton.onclick = pauseGame;
 
 againButtonModal.onclick = () => {
   isPaused = false;
