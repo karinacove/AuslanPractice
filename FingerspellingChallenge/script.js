@@ -29,8 +29,6 @@ const lengthContainer = document.getElementById("length-container");
 const lengthOptions = document.querySelectorAll(".length-option");
 const modeTimed = document.getElementById("mode-timed");
 const modeLevel = document.getElementById("mode-levelup");
-const slowIcon = document.getElementById("slow-icon");
-const fastIcon = document.getElementById("fast-icon");
 const scoreImage = document.getElementById("score-image");
 const countdownVideo = document.getElementById("countdown-video");
 const scoreText = document.getElementById("score-text");
@@ -43,9 +41,7 @@ let timer;
 let timeLeft = 120;
 let score = 0;
 let currentWord = "";
-let currentLetterIndex = 0;
 let letterTimeouts = [];
-let speed = parseInt(speedSlider.value) || 150;
 let correctWords = 0;
 let gameMode = "";
 let wordLength = 3;
@@ -61,22 +57,20 @@ let startTimestamp = 0;
 // Load Word Bank
 // -------------------------
 fetch("data/wordlist.json")
-  .then((response) => response.json())
+  .then((res) => res.json())
   .then((data) => {
     wordBank = data;
     wordBankLoaded = true;
   })
-  .catch((error) => console.error("Error loading word list:", error));
+  .catch((err) => console.error("Word list error:", err));
 
 // -------------------------
-// LEADERBOARD
+// Leaderboard (Local)
 // -------------------------
-let leaderboard = JSON.parse(localStorage.getItem("fspLeaderboard")) || {};
-
-if (!leaderboard.timed) leaderboard.timed = {};
-if (!leaderboard.levelup) leaderboard.levelup = {};
-if (!leaderboard.levelup.top10) leaderboard.levelup.top10 = [];
-if (!leaderboard.levelup.personal) leaderboard.levelup.personal = {};
+let leaderboard = JSON.parse(localStorage.getItem("fspLeaderboard")) || {
+  timed: {},
+  levelup: { top10: [], personal: {} }
+};
 
 function saveLeaderboard() {
   localStorage.setItem("fspLeaderboard", JSON.stringify(leaderboard));
@@ -93,46 +87,27 @@ function clearLetters() {
 
 function showLetterByLetter(word) {
   clearLetters();
-  currentLetterIndex = 0;
 
-  const sliderValue = parseInt(speedSlider.value) || 100;
-  const maxDelay = 1200;
-  const minDelay = 80;
-  const displayDuration = Math.max(minDelay, maxDelay - sliderValue * 5);
-  const letterGap = Math.max(40, displayDuration / 3);
-  const delay = 300;
+  const speed = parseInt(speedSlider.value) || 100;
+  const delay = Math.max(80, 1200 - speed * 5);
 
-  word.split("").forEach((letter, index) => {
-    const timeout = setTimeout(() => {
+  word.split("").forEach((letter, i) => {
+    const t = setTimeout(() => {
       if (!isPaused) {
-        letterDisplay.textContent = letter.toLowerCase();
-
+        letterDisplay.textContent = letter;
         setTimeout(() => {
-          if (!isPaused && letterDisplay.textContent === letter.toLowerCase()) {
-            letterDisplay.textContent = "";
-          }
-        }, displayDuration);
+          if (!isPaused) letterDisplay.textContent = "";
+        }, delay);
       }
-    }, delay + index * (displayDuration + letterGap));
+    }, i * (delay + 50));
 
-    letterTimeouts.push(timeout);
+    letterTimeouts.push(t);
   });
 }
 
-againButton.addEventListener("click", () => {
-  if (isPaused) return;
-
-  wordInput.value = "";
-  wordInput.style.visibility = "visible";
-  wordInput.focus();
-
-  showLetterByLetter(currentWord);
-});
-
 function updateScore() {
   if (scoreImage) {
-    const cappedScore = Math.min(score, 80);
-    scoreImage.src = `Assets/score/${cappedScore}.png`;
+    scoreImage.src = `Assets/score/${Math.min(score, 80)}.png`;
   }
 
   if (score >= 80 && gameMode === "levelup") {
@@ -151,19 +126,10 @@ function startTimer() {
 }
 
 function nextWord() {
-  if (gameMode === "levelup" && correctWords > 0 && correctWords % 10 === 0 && wordLength < 10) {
-    wordLength++;
-  }
-
-  const words = wordBank[wordLength] || wordBank[3];
-  if (!words) return;
-
+  const words = wordBank[wordLength] || [];
   const pool = words.filter(w => !usedWords.has(w));
 
-  if (pool.length === 0) {
-    endGame();
-    return;
-  }
+  if (!pool.length) return endGame();
 
   currentWord = pool[Math.floor(Math.random() * pool.length)];
   usedWords.add(currentWord);
@@ -172,31 +138,15 @@ function nextWord() {
 }
 
 // -------------------------
-// VIDEO END LISTENER
-// -------------------------
-if (countdownVideo) {
-  countdownVideo.addEventListener("ended", () => {
-    if (gameMode === "timed") {
-      endGame();
-    }
-  });
-}
-
-// -------------------------
 // Game Flow
 // -------------------------
 function startGame() {
-
-  if (!wordBankLoaded) {
-    setTimeout(startGame, 200);
-    return;
-  }
+  if (!wordBankLoaded) return setTimeout(startGame, 200);
 
   document.getElementById("signin-screen").style.display = "none";
   gameScreen.style.display = "flex";
 
   score = 0;
-  timeLeft = 120;
   correctWords = 0;
   guessedWords.clear();
   incorrectWords = [];
@@ -207,8 +157,6 @@ function startGame() {
   wordInput.style.visibility = "visible";
   wordInput.focus();
 
-  againButton.style.display = "block";
-
   updateScore();
   clearLetters();
   clearInterval(timer);
@@ -216,92 +164,68 @@ function startGame() {
   startTimestamp = Date.now();
 
   if (gameMode === "timed") {
-    if (countdownVideo) {
-      countdownVideo.currentTime = 0;
-      countdownVideo.play();
-      countdownVideo.style.display = "block";
-    }
+    countdownVideo?.play();
     startTimer();
   } else {
-    if (countdownVideo) {
-      countdownVideo.pause();
-      countdownVideo.style.display = "none";
-    }
+    countdownVideo?.pause();
   }
 
   setTimeout(nextWord, 400);
 }
 
 function endGame() {
-  if (isPaused) return; // prevent double firing
+  if (isPaused) return;
 
   isPaused = true;
-
   clearInterval(timer);
   clearLetters();
-
   wordInput.style.visibility = "hidden";
-
-  if (countdownVideo) countdownVideo.pause();
+  countdownVideo?.pause();
 
   const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
 
   try {
-    const result = updateLeaderboard();
+    const result = updateLeaderboard(elapsed);
 
-    // 🔥 ONLY submit ONCE here
     if (result.newTop10 || result.newPersonal) {
       submitToGoogle(score, elapsed);
     }
 
-    showFinishModal(result, true);
+    showFinishModal(result);
 
   } catch (err) {
     console.error("End game error:", err);
-
-    // fallback so modal ALWAYS appears
-    showFinishModal({ newTop10:false, newPersonal:false, elapsed }, true);
+    showFinishModal({ newTop10: false, newPersonal: false, elapsed });
   }
 }
 
 // -------------------------
-// LEADERBOARD LOGIC
+// Leaderboard Logic
 // -------------------------
-function updateLeaderboard() {
-
-  const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
-
+function updateLeaderboard(elapsed) {
   let newTop10 = false;
   let newPersonal = false;
 
   if (gameMode === "timed") {
-
     if (!leaderboard.timed[wordLength]) {
       leaderboard.timed[wordLength] = { top10: [], personal: {} };
     }
 
     const board = leaderboard.timed[wordLength];
 
-    // ✅ PERSONAL BEST ONLY
     if (!board.personal[studentName] || score > board.personal[studentName]) {
       board.personal[studentName] = score;
       newPersonal = true;
     }
 
-    // ✅ REBUILD TOP 10 FROM PERSONAL BESTS (NO DUPLICATES)
-    const allPlayers = Object.entries(board.personal).map(([name, score]) => ({
-      name,
-      score
-    }));
+    const all = Object.entries(board.personal)
+      .map(([name, score]) => ({ name, score }))
+      .sort((a, b) => b.score - a.score);
 
-    allPlayers.sort((a, b) => b.score - a.score);
-    board.top10 = allPlayers.slice(0, 10);
-
-    // ✅ CHECK IF THEY MADE TOP 10
+    board.top10 = all.slice(0, 10);
     newTop10 = board.top10.some(e => e.name === studentName);
 
   } else {
-
     const board = leaderboard.levelup;
 
     if (!board.personal[studentName] || elapsed < board.personal[studentName]) {
@@ -309,261 +233,137 @@ function updateLeaderboard() {
       newPersonal = true;
     }
 
-    const allPlayers = Object.entries(board.personal).map(([name, time]) => ({
-      name,
-      time
-    }));
+    const all = Object.entries(board.personal)
+      .map(([name, time]) => ({ name, time }))
+      .sort((a, b) => a.time - b.time);
 
-    allPlayers.sort((a, b) => a.time - b.time);
-    board.top10 = allPlayers.slice(0, 10);
-
+    board.top10 = all.slice(0, 10);
     newTop10 = board.top10.some(e => e.name === studentName);
   }
 
   saveLeaderboard();
-  renderLeaderboards();
-
   return { newTop10, newPersonal, elapsed };
 }
 
 // -------------------------
-// GOOGLE FORM
+// Google Submit (SAFE JSON)
 // -------------------------
 function submitToGoogle(scoreValue, timeValue) {
-
-  const correctList = Array.from(guessedWords).sort().join(", ");
-  const incorrectList = incorrectWords.sort().join(", ");
-
-  const totalAttempts = correctWords + incorrectWords.length;
-  const percentage = totalAttempts > 0
-    ? Math.round((correctWords / totalAttempts) * 100)
-    : 100;
-
   const payload = {
     name: studentName,
     class: studentClass,
     mode: gameMode,
     length: wordLength,
     score: gameMode === "timed" ? scoreValue : "",
-    time: gameMode === "levelup" ? timeValue : "",
-    percentage: percentage,
-    correct: correctList,
-    incorrect: incorrectList
+    time: gameMode === "levelup" ? timeValue : ""
   };
 
-  fetch("https://script.google.com/macros/s/AKfycbycpjm2edGCHqEeC3PztG_uU47oOmGI4-YS6cjKq5vUxRbqxNPUlAwN9vu7TwXY9b1qaA/exec", {
+  fetch("YOUR_GOOGLE_URL", {
     method: "POST",
     body: JSON.stringify(payload),
-    headers: {
-      "Content-Type": "application/json"
-    }
+    headers: { "Content-Type": "application/json" }
   })
-  .then(res => res.json())
+  .then(res => res.text()) // 👈 safer
   .then(data => console.log("Saved:", data))
   .catch(err => console.error("Error:", err));
 }
 
+// -------------------------
+// Load Leaderboard (SAFE)
+// -------------------------
 async function loadLeaderboardFromGoogle() {
-
   try {
-    const res = await fetch("https://script.google.com/macros/s/AKfycbycpjm2edGCHqEeC3PztG_uU47oOmGI4-YS6cjKq5vUxRbqxNPUlAwN9vu7TwXY9b1qaA/exec");
-    const data = await res.json();
+    const res = await fetch("YOUR_GOOGLE_URL");
+    const text = await res.text();
 
-    console.log("Leaderboard data:", data);
-
-    renderLeaderboardFromData(data);
+    try {
+      const data = JSON.parse(text);
+      console.log("Leaderboard:", data);
+    } catch {
+      console.warn("Not JSON:", text);
+    }
 
   } catch (err) {
     console.error("Leaderboard load failed:", err);
   }
 }
-function renderLeaderboardFromData(data) {
 
-  const timedDiv = document.getElementById("timed-leaderboard");
-  const levelDiv = document.getElementById("level-leaderboard");
-
-  if (!timedDiv || !levelDiv) return;
-
-  // FILTER + GROUP
-  const timed = data.filter(d => d.mode === "timed" && d.length == wordLength);
-  const level = data.filter(d => d.mode === "levelup");
-
-  // BEST PER STUDENT (NO SPAM)
-  const bestTimed = {};
-  timed.forEach(entry => {
-    if (!bestTimed[entry.name] || entry.score > bestTimed[entry.name].score) {
-      bestTimed[entry.name] = entry;
-    }
-  });
-
-  const bestLevel = {};
-  level.forEach(entry => {
-    if (!bestLevel[entry.name] || entry.time < bestLevel[entry.name].time) {
-      bestLevel[entry.name] = entry;
-    }
-  });
-
-  // SORT
-  const timedList = Object.values(bestTimed)
-    .sort((a,b)=>b.score-a.score)
-    .slice(0,10);
-
-  const levelList = Object.values(bestLevel)
-    .sort((a,b)=>a.time-b.time)
-    .slice(0,10);
-
-  // DISPLAY
-  timedDiv.innerHTML = timedList.length
-    ? timedList.map((e,i)=>`${i+1}. ${e.name} - ${e.score}`).join("<br>")
-    : "No scores yet";
-
-  levelDiv.innerHTML = levelList.length
-    ? levelList.map((e,i)=>`${i+1}. ${e.name} - ${e.time}s`).join("<br>")
-    : "No scores yet";
-}
 // -------------------------
-// MODAL
+// Modal
 // -------------------------
-function showFinishModal(result, isGameEnd = false) {
-
-  isPaused = true;
-  clearInterval(timer);
-
+function showFinishModal(result) {
   endModal.style.display = "flex";
 
   const { newTop10, newPersonal, elapsed } = result;
 
-  const minutes = Math.floor(elapsed / 60);
-  const seconds = elapsed % 60;
+  scoreText.textContent = `Score: ${score}`;
+  timeText.textContent = `Time: ${elapsed}s`;
 
-  // SCORE / TIME DISPLAY
-  if (gameMode === "timed") {
-    scoreText.textContent = `Score: ${score}`;
-    timeText.textContent = `Time: ${minutes} mins ${seconds} sec`;
-  } else {
-    scoreText.textContent = `Completed!`;
-    timeText.textContent = `Time: ${minutes} mins ${seconds} sec`;
-  }
+  let msg = "";
+  if (newTop10) msg += "🏆 Top 10!\n";
+  if (newPersonal) msg += "⭐ Personal Best!";
 
-  // PERCENTAGE
-  const totalAttempts = correctWords + incorrectWords.length;
-  const percentage = totalAttempts > 0
-    ? Math.round((correctWords / totalAttempts) * 100)
-    : 100;
+  document.getElementById("leaderboard-message")?.remove();
 
-  endModalContent.querySelector("#score-percentage").textContent =
-    `${percentage}% Correct`;
-
-  // LEADERBOARD MESSAGE
-  let message = "";
-
-  if (newTop10) message += "🏆 Top 10 Leaderboard!\n";
-  if (newPersonal) message += "⭐ New Personal Best!\n";
-
-  // FIND POSITION (TIMED)
-  if (gameMode === "timed") {
-    const board = leaderboard.timed[wordLength]?.top10 || [];
-    const position = board.findIndex(e => e.name === studentName && e.score === score);
-    if (position !== -1) {
-      message += `You placed #${position + 1}!`;
-    }
-  }
-
-  // FIND POSITION (LEVEL UP)
-  if (gameMode === "levelup") {
-    const board = leaderboard.levelup.top10 || [];
-    const position = board.findIndex(e => e.name === studentName && e.time === elapsed);
-    if (position !== -1) {
-      message += `You placed #${position + 1}!`;
-    }
-  }
-
-  // DISPLAY MESSAGE
-  let msgDiv = document.getElementById("leaderboard-message");
-  if (!msgDiv) {
-    msgDiv = document.createElement("div");
-    msgDiv.id = "leaderboard-message";
-    msgDiv.style.marginTop = "10px";
-    endModalContent.appendChild(msgDiv);
-  }
-  msgDiv.innerText = message;
-
-  // CLAP GIF
-  document.getElementById("clap-display").innerHTML =
-    isGameEnd ? `<img src="Assets/auslan-clap.gif" alt="Clap" />` : "";
-
-  // BUTTONS
-  againButtonModal.style.display = "inline-block";
-  menuButton.style.display = "inline-block";
-
-  const finishHomeBtn = document.getElementById("finish-home-button");
-  if (finishHomeBtn) finishHomeBtn.style.display = "inline-block";
-
-  continueBtn.style.display = "none";
+  const div = document.createElement("div");
+  div.id = "leaderboard-message";
+  div.innerText = msg;
+  endModalContent.appendChild(div);
 }
+
 // -------------------------
-// INPUT
+// Input
 // -------------------------
 wordInput.addEventListener("input", () => {
-
   if (isPaused) return;
 
   const typed = wordInput.value.toLowerCase();
 
   if (typed.length === currentWord.length) {
-
-    setTimeout(() => {
-      if (typed === currentWord) {
-        score++;
-        correctWords++;
-        guessedWords.add(currentWord);
-        updateScore();
-        wordInput.value = "";
-        setTimeout(nextWord, 400);
-      } else {
-        incorrectWords.push(typed);
-        wordInput.value = "";
-        showLetterByLetter(currentWord);
-      }
-    }, 50);
+    if (typed === currentWord) {
+      score++;
+      correctWords++;
+      guessedWords.add(currentWord);
+      updateScore();
+      wordInput.value = "";
+      setTimeout(nextWord, 400);
+    } else {
+      incorrectWords.push(typed);
+      wordInput.value = "";
+      showLetterByLetter(currentWord);
+    }
   }
 });
 
 // -------------------------
-// MODE SELECT
+// Buttons
 // -------------------------
-modeTimed.addEventListener("click", () => {
+modeTimed.onclick = () => {
   gameMode = "timed";
   lengthContainer.style.display = "flex";
-});
+};
 
-modeLevel.addEventListener("click", () => {
+modeLevel.onclick = () => {
   gameMode = "levelup";
-  lengthContainer.style.display = "none";
   startGame();
-});
+};
 
-lengthOptions.forEach(option => {
-  option.addEventListener("click", () => {
-    wordLength = parseInt(option.dataset.length);
+lengthOptions.forEach(opt =>
+  opt.onclick = () => {
+    wordLength = parseInt(opt.dataset.length);
     startGame();
-  });
-});
+  }
+);
 
-// -------------------------
-// BUTTONS
-// -------------------------
-finishButton.addEventListener("click", endGame);
+finishButton.onclick = endGame;
 
-againButtonModal.addEventListener("click", () => {
+againButtonModal.onclick = () => {
   isPaused = false;
   endModal.style.display = "none";
   startGame();
-});
-
-menuButton.addEventListener("click", () => window.location.href = "../index.html");
+};
 
 // -------------------------
-// INIT
+// Init
 // -------------------------
 loadLeaderboardFromGoogle();
