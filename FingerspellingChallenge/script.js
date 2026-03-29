@@ -356,7 +356,7 @@ function submitToGoogle(scoreValue, timeValue, finishedEarly = false) {
 
   const speedSetting = speedSlider.value;
 
-  // 🏆 rank (from local leaderboard)
+  // 🏆 Calculate rank from local leaderboard
   let rank = "";
 
   if (gameMode === "timed") {
@@ -369,31 +369,32 @@ function submitToGoogle(scoreValue, timeValue, finishedEarly = false) {
     if (pos !== -1) rank = pos + 1;
   }
 
-  // ✅ SEND AS FORM DATA (matches Apps Script e.parameter)
-  const params = new URLSearchParams();
-  params.append("name", studentName);
-  params.append("class", studentClass);
-  params.append("mode", gameMode === "timed"
-    ? `timed (${wordLength})${finishedEarly ? " - early finish" : ""}`
-    : `level up${finishedEarly ? " - early finish" : ""}`
-  );
-  params.append("score", scoreValue);
-  params.append("time", timeValue);
-  params.append("percentage", percentage);
-  params.append("correct", correctList);
-  params.append("incorrect", incorrectList);
-  params.append("speed", speedSetting);
-  params.append("rank", rank);
+  // ✅ IMPORTANT: use /formResponse (not viewform)
+  const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfOFWu8FcUR3bOwg0mo_3Kb2O7p4m0TLvfUpZjx0zdzqKac4Q/formResponse";
 
-  fetch("https://script.google.com/macros/s/AKfycbySClPLCY2JTATVc9R-SJdMa7W5cjlvBvO1Fm557-TO1nCC_9OT9FJgY0-O370A-POnYg/exec", {
+  const params = new URLSearchParams({
+    "entry.423692452": studentName,
+    "entry.1307864012": studentClass,
+    "entry.468778567": gameMode === "timed"
+      ? `timed (${wordLength})${finishedEarly ? " - early finish" : ""}`
+      : `level up${finishedEarly ? " - early finish" : ""}`,
+    "entry.1083699348": scoreValue,
+    "entry.1584601141": percentage,
+    "entry.1220441930": timeValue,
+    "entry.746947164": correctList,
+    "entry.1534005804": incorrectList,
+    "entry.1974555000": speedSetting,
+    "entry.669299007": rank
+  });
+
+  fetch(formURL, {
     method: "POST",
+    mode: "no-cors", // ✅ prevents CORS errors
     body: params
-  })
-  .then(res => res.text())
-  .then(data => console.log("✅ Saved:", data))
-  .catch(err => console.error("❌ Google submit failed:", err));
-}
+  });
 
+  console.log("✅ Sent to Google Form");
+}
 
 // -------------------------
 // Render Leaderboard
