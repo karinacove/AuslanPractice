@@ -334,8 +334,8 @@ function submitToGoogle(scoreValue, timeValue, finishedEarly = false) {
     if (pos !== -1) rank = pos + 1;
   }
 
-   const params = new URLSearchParams();
-
+  // ✅ SEND AS FORM DATA (matches Apps Script e.parameter)
+  const params = new URLSearchParams();
   params.append("name", studentName);
   params.append("class", studentClass);
   params.append("mode", gameMode === "timed"
@@ -355,20 +355,16 @@ function submitToGoogle(scoreValue, timeValue, finishedEarly = false) {
     body: params
   })
   .then(res => res.text())
-  .then(data => {
-    console.log("✅ Saved to Google:", data);
-  })
-  .catch(err => {
-    console.error("❌ Google submit failed:", err);
-  });
+  .then(data => console.log("✅ Saved:", data))
+  .catch(err => console.error("❌ Google submit failed:", err));
 }
 
+
 // -------------------------
-// Render Leaderboard (FIXED)
+// Render Leaderboard
 // -------------------------
 function renderLeaderboardFromData(data) {
 
-  // 🔥 NORMALISE GOOGLE DATA
   const clean = data.map(d => ({
     name: d["Student Name"],
     mode: d["Game Mode"],
@@ -386,7 +382,6 @@ function renderLeaderboardFromData(data) {
 
   if (!timedDiv || !levelDiv) return;
 
-  // ✅ FILTER
   const timed = clean.filter(d =>
     d.mode && d.mode.startsWith("timed") && d.mode.includes(`(${wordLength})`)
   );
@@ -395,7 +390,6 @@ function renderLeaderboardFromData(data) {
     d.mode && d.mode.startsWith("level up")
   );
 
-  // ✅ BEST PER PLAYER
   const bestTimed = {};
   timed.forEach(e => {
     if (!bestTimed[e.name] || e.score > bestTimed[e.name].score) {
@@ -410,7 +404,6 @@ function renderLeaderboardFromData(data) {
     }
   });
 
-  // ✅ SORT
   const timedList = Object.values(bestTimed)
     .sort((a, b) => b.score - a.score)
     .slice(0, 10);
@@ -419,7 +412,6 @@ function renderLeaderboardFromData(data) {
     .sort((a, b) => a.time - b.time)
     .slice(0, 10);
 
-  // ✅ DISPLAY
   timedDiv.innerHTML = timedList.length
     ? timedList.map((e, i) => `${i + 1}. ${e.name} - ${e.score}`).join("<br>")
     : "No scores yet";
@@ -429,79 +421,15 @@ function renderLeaderboardFromData(data) {
     : "No scores yet";
 }
 
-function renderLeaderboardFromData(data) {
 
-  // 🔥 NORMALISE GOOGLE DATA
-  const clean = data.map(d => ({
-    name: d["Student Name"],
-    mode: d["Game Mode"],
-    score: Number(d["Final Score"]) || 0,
-    time: Number(d["Time"]) || 0,
-    correct: d["Correct Words"],
-    incorrect: d["Error Words"],
-    speed: d["Speed Setting"],
-    rank: d["Rank"],
-    percentage: d["Percentage Correct"]
-  }));
-
-  const timedDiv = document.getElementById("timed-leaderboard");
-  const levelDiv = document.getElementById("level-leaderboard");
-
-  if (!timedDiv || !levelDiv) return;
-
-  // ✅ FILTER (USE CLEAN DATA)
-  const timed = clean.filter(d =>
-    d.mode && d.mode.startsWith("timed") && d.mode.includes(`(${wordLength})`)
-  );
-
-  const level = clean.filter(d =>
-    d.mode && d.mode.startsWith("level up")
-  );
-
-  // ✅ BEST PER PLAYER
-  const bestTimed = {};
-  timed.forEach(e => {
-    if (!bestTimed[e.name] || e.score > bestTimed[e.name].score) {
-      bestTimed[e.name] = e;
-    }
-  });
-
-  const bestLevel = {};
-  level.forEach(e => {
-    if (!bestLevel[e.name] || e.time < bestLevel[e.name].time) {
-      bestLevel[e.name] = e;
-    }
-  });
-
-  // ✅ SORT (NUMBERS, NOT STRINGS)
-  const timedList = Object.values(bestTimed)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 10);
-
-  const levelList = Object.values(bestLevel)
-    .sort((a, b) => a.time - b.time)
-    .slice(0, 10);
-
-  // ✅ DISPLAY
-  timedDiv.innerHTML = timedList.length
-    ? timedList.map((e, i) => `${i + 1}. ${e.name} - ${e.score}`).join("<br>")
-    : "No scores yet";
-
-  levelDiv.innerHTML = levelList.length
-    ? levelList.map((e, i) => `${i + 1}. ${e.name} - ${e.time}s`).join("<br>")
-    : "No scores yet";
-}
-  
 // -------------------------
-// Load Leaderboard (SAFE)
+// Load Leaderboard
 // -------------------------
 async function loadLeaderboardFromGoogle() {
   try {
     const res = await fetch("https://script.google.com/macros/s/AKfycbySClPLCY2JTATVc9R-SJdMa7W5cjlvBvO1Fm557-TO1nCC_9OT9FJgY0-O370A-POnYg/exec");
 
     const text = await res.text();
-
-    // 🔍 DEBUG (optional)
     console.log("RAW RESPONSE:", text);
 
     let data;
