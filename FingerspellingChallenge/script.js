@@ -21,6 +21,7 @@ const stopButton = document.getElementById("stopButton");
 const finishButton = document.getElementById("finish-button");
 const keyboardBtn = document.getElementById("keyboard-btn");
 const keyboardContainer = document.getElementById("keyboard-container");
+keyboardContainer.style.zIndex = "9999";
 const endModal = document.getElementById("end-modal");
 const endModalContent = document.getElementById("end-modal-content");
 const continueBtn = document.getElementById("continue-btn");
@@ -78,8 +79,205 @@ function saveLeaderboard() {
 }
 
 // -------------------------
-// Utility Functions
+// KEYBOARD SETUP
 // -------------------------
+function setupKeyboard() {
+  const layout = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
+  keyboardContainer.innerHTML = "";
+
+  const header = document.createElement("div");
+  header.id = "keyboard-header";
+  keyboardContainer.appendChild(header);
+
+  layout.forEach((row, rowIndex) => {
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "keyboard-row";
+
+    row.split("").forEach(letter => {
+      const key = document.createElement("div");
+      key.className = "keyboard-key";
+      key.textContent = letter;
+
+      key.onclick = () => {
+        wordInput.value += letter.toLowerCase();
+        wordInput.dispatchEvent(new Event("input"));
+
+        key.classList.add("pop");
+        setTimeout(() => key.classList.remove("pop"), 120);
+      };
+
+      rowDiv.appendChild(key);
+
+      // Backspace
+      if (rowIndex === 2 && letter === "M") {
+        const backspace = document.createElement("div");
+        backspace.textContent = "←";
+        backspace.className = "keyboard-key wide";
+
+        backspace.onclick = () => {
+          wordInput.value = wordInput.value.slice(0, -1);
+          wordInput.dispatchEvent(new Event("input"));
+        };
+
+        rowDiv.appendChild(backspace);
+      }
+    });
+
+    keyboardContainer.appendChild(rowDiv);
+  });
+
+  const footer = document.createElement("div");
+  footer.id = "keyboard-footer";
+  keyboardContainer.appendChild(footer);
+
+  dragElement(keyboardContainer, ["#keyboard-header", "#keyboard-footer"]);
+}
+
+// -------------------------
+// DRAG FUNCTION
+// -------------------------
+function dragElement(elmnt, handles = ["#keyboard-header"]) {
+  const elements = handles.map(sel => elmnt.querySelector(sel)).filter(Boolean);
+
+  let startX = 0, startY = 0, initialX = 0, initialY = 0, dragging = false;
+
+  elements.forEach(handle => {
+    handle.addEventListener("mousedown", startDrag);
+    handle.addEventListener("touchstart", startTouch, { passive: false });
+  });
+
+  function startDrag(e) {
+    e.preventDefault();
+    dragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    initialX = elmnt.offsetLeft;
+    initialY = elmnt.offsetTop;
+
+    document.addEventListener("mousemove", move);
+    document.addEventListener("mouseup", stop);
+  }
+
+  function startTouch(e) {
+    e.preventDefault();
+    const t = e.touches[0];
+    dragging = true;
+    startX = t.clientX;
+    startY = t.clientY;
+    initialX = elmnt.offsetLeft;
+    initialY = elmnt.offsetTop;
+
+    document.addEventListener("touchmove", moveTouch, { passive: false });
+    document.addEventListener("touchend", stop);
+  }
+
+  function move(e) {
+    if (!dragging) return;
+    elmnt.style.left = `${initialX + (e.clientX - startX)}px`;
+    elmnt.style.top = `${initialY + (e.clientY - startY)}px`;
+    elmnt.style.transform = "none";
+  }
+
+  function moveTouch(e) {
+    if (!dragging) return;
+    const t = e.touches[0];
+    elmnt.style.left = `${initialX + (t.clientX - startX)}px`;
+    elmnt.style.top = `${initialY + (t.clientY - startY)}px`;
+    elmnt.style.transform = "none";
+    e.preventDefault();
+  }
+
+  function stop() {
+    dragging = false;
+    document.removeEventListener("mousemove", move);
+    document.removeEventListener("mouseup", stop);
+    document.removeEventListener("touchmove", moveTouch);
+    document.removeEventListener("touchend", stop);
+  }
+}
+
+// -------------------------
+// INPUT HANDLING
+// -------------------------
+wordInput.addEventListener("input", () => {
+  if (isPaused) return;
+
+  const typed = wordInput.value.toLowerCase();
+
+  if (typed.length === currentWord.length) {
+
+    if (typed === currentWord) {
+      score++;
+      correctWords++;
+      guessedWords.add(currentWord);
+
+      updateScore();
+
+      wordInput.value = "";
+      setTimeout(nextWord, 300);
+
+    } else {
+      incorrectWords.push(typed);
+
+      wordInput.classList.add("breathe");
+
+      setTimeout(() => {
+        wordInput.value = "";
+        wordInput.classList.remove("breathe");
+        showLetterByLetter(currentWord);
+      }, 400);
+    }
+  }
+});
+
+// -------------------------
+// KEYBOARD TOGGLE
+// -------------------------
+function toggleKeyboard(e) {
+  e.preventDefault();
+
+  if (keyboardContainer.style.display === "none") {
+    keyboardContainer.style.display = "block";
+    keyboardContainer.style.top = "50%";
+    keyboardContainer.style.left = "50%";
+    keyboardContainer.style.transform = "translate(-50%, -50%)";
+  } else {
+    keyboardContainer.style.display = "none";
+  }
+}
+
+// -------------------------
+// BUTTON EVENTS (UPDATED)
+// -------------------------
+modeTimed.onclick = () => {
+  gameMode = "timed";
+  modeTimed.classList.add("selected");
+  modeLevel.classList.remove("selected");
+  lengthContainer.style.display = "flex";
+};
+
+modeLevel.onclick = () => {
+  gameMode = "levelup";
+  modeLevel.classList.add("selected");
+  modeTimed.classList.remove("selected");
+  lengthContainer.style.display = "none";
+  wordLength = 3;
+  startGame();
+};
+
+lengthOptions.forEach(option => {
+  option.onclick = () => {
+    lengthOptions.forEach(o => o.classList.remove("selected"));
+    option.classList.add("selected");
+
+    wordLength = parseInt(option.dataset.length);
+    startGame();
+  };
+});
+
+keyboardBtn.onclick = toggleKeyboard;
+keyboardBtn.ontouchstart = toggleKeyboard;
+
 function clearLetters() {
   letterTimeouts.forEach(clearTimeout);
   letterTimeouts = [];
@@ -180,6 +378,7 @@ function startGame() {
   document.getElementById("signin-screen").style.display = "none";
   document.getElementById("leaderboards").style.display = "none";
   gameScreen.style.display = "flex";
+  keyboardContainer.style.display = "none";
 
   score = 0;
   timeLeft = 120;
@@ -637,8 +836,11 @@ againButton.addEventListener("click", () => {
 // -------------------------
 // Init
 // -------------------------
-
+setupKeyboard();
 renderLocalLeaderboard();
+  if (!('ontouchstart' in window)) {
+  keyboardBtn.style.display = "none";
+}
 
 // ✅ Keep UI fresh (optional)
 setInterval(() => {
