@@ -334,25 +334,25 @@ function submitToGoogle(scoreValue, timeValue, finishedEarly = false) {
     if (pos !== -1) rank = pos + 1;
   }
 
+   const params = new URLSearchParams();
+
+  params.append("name", studentName);
+  params.append("class", studentClass);
+  params.append("mode", gameMode === "timed"
+    ? `timed (${wordLength})${finishedEarly ? " - early finish" : ""}`
+    : `level up${finishedEarly ? " - early finish" : ""}`
+  );
+  params.append("score", scoreValue);
+  params.append("time", timeValue);
+  params.append("percentage", percentage);
+  params.append("correct", correctList);
+  params.append("incorrect", incorrectList);
+  params.append("speed", speedSetting);
+  params.append("rank", rank);
+
   fetch("https://script.google.com/macros/s/AKfycbySClPLCY2JTATVc9R-SJdMa7W5cjlvBvO1Fm557-TO1nCC_9OT9FJgY0-O370A-POnYg/exec", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      name: studentName,
-      class: studentClass,
-      mode: gameMode === "timed"
-        ? `timed (${wordLength})${finishedEarly ? " - early finish" : ""}`
-        : `level up${finishedEarly ? " - early finish" : ""}`,
-      score: scoreValue,
-      time: timeValue,
-      percentage: percentage,
-      correct: correctList,
-      incorrect: incorrectList,
-      speed: speedSetting,
-      rank: rank
-    })
+    body: params
   })
   .then(res => res.text())
   .then(data => {
@@ -361,9 +361,7 @@ function submitToGoogle(scoreValue, timeValue, finishedEarly = false) {
   .catch(err => {
     console.error("❌ Google submit failed:", err);
   });
-
 }
-
 
 // -------------------------
 // Render Leaderboard (FIXED)
