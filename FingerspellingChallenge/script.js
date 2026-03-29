@@ -297,34 +297,59 @@ function updateLeaderboard(elapsed) {
   let newPersonal = false;
 
   if (gameMode === "timed") {
+
     if (!leaderboard.timed[wordLength]) {
       leaderboard.timed[wordLength] = { top10: [], personal: {} };
     }
 
     const board = leaderboard.timed[wordLength];
 
-    if (!board.personal[studentName] || score > board.personal[studentName]) {
-      board.personal[studentName] = score;
+    // ✅ STORE FULL OBJECT
+    if (
+      !board.personal[studentName] ||
+      score > board.personal[studentName].score
+    ) {
+      board.personal[studentName] = {
+        score: score,
+        class: studentClass
+      };
       newPersonal = true;
     }
 
+    // ✅ BUILD ARRAY CORRECTLY
     const all = Object.entries(board.personal)
-      .map(([name, score]) => ({ name, score }))
+      .map(([name, data]) => ({
+        name,
+        score: data.score,
+        class: data.class
+      }))
       .sort((a, b) => b.score - a.score);
 
     board.top10 = all.slice(0, 10);
     newTop10 = board.top10.some(e => e.name === studentName);
 
   } else {
+
     const board = leaderboard.levelup;
 
-    if (!board.personal[studentName] || elapsed < board.personal[studentName]) {
-      board.personal[studentName] = elapsed;
+    // ✅ STORE OBJECT (NOT NUMBER)
+    if (
+      !board.personal[studentName] ||
+      elapsed < board.personal[studentName].time
+    ) {
+      board.personal[studentName] = {
+        time: elapsed,
+        class: studentClass
+      };
       newPersonal = true;
     }
 
     const all = Object.entries(board.personal)
-      .map(([name, time]) => ({ name, time }))
+      .map(([name, data]) => ({
+        name,
+        time: data.time,
+        class: data.class
+      }))
       .sort((a, b) => a.time - b.time);
 
     board.top10 = all.slice(0, 10);
@@ -332,10 +357,11 @@ function updateLeaderboard(elapsed) {
   }
 
   saveLeaderboard();
-  renderLocalLeaderboard(); // ✅ KEY FIX
+  renderLocalLeaderboard(); // ✅ IMPORTANT
 
   return { newTop10, newPersonal, elapsed };
 }
+
 
 // -------------------------
 // Google Form Submit (BACKGROUND)
@@ -391,26 +417,69 @@ function submitToGoogle(scoreValue, timeValue, finishedEarly = false) {
   console.log("✅ Sent to Google Form");
 }
 
+
 // -------------------------
 // LOCAL Leaderboard Render
 // -------------------------
 function renderLocalLeaderboard() {
+
   const timedDiv = document.getElementById("timed-leaderboard");
   const levelDiv = document.getElementById("level-leaderboard");
 
   if (!timedDiv || !levelDiv) return;
 
+  // =========================
+  // TIMED MODE
+  // =========================
   const timedBoard = leaderboard.timed[wordLength]?.top10 || [];
 
-  timedDiv.innerHTML = timedBoard.length
-    ? timedBoard.map((e, i) => `${i + 1}. ${e.name} - ${e.score}`).join("<br>")
+  const allTime = [...timedBoard].sort((a, b) => b.score - a.score);
+
+  const classTop = timedBoard
+    .filter(e => e.class === studentClass)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
+
+  let timedHTML = "";
+
+  timedHTML += `<strong>🏆 All-Time Best</strong><br>`;
+  timedHTML += allTime.length
+    ? `1. ${allTime[0].name} - ${allTime[0].score}<br><br>`
+    : "No scores yet<br><br>";
+
+  timedHTML += `<strong>🎓 ${studentClass} Top 10</strong><br>`;
+  timedHTML += classTop.length
+    ? classTop.map((e, i) => `${i + 1}. ${e.name} - ${e.score}`).join("<br>")
     : "No scores yet";
 
+  timedDiv.innerHTML = timedHTML;
+
+
+  // =========================
+  // LEVEL UP MODE
+  // =========================
   const levelBoard = leaderboard.levelup.top10 || [];
 
-  levelDiv.innerHTML = levelBoard.length
-    ? levelBoard.map((e, i) => `${i + 1}. ${e.name} - ${e.time}s`).join("<br>")
+  const allTimeLevel = [...levelBoard].sort((a, b) => a.time - b.time);
+
+  const classTopLevel = levelBoard
+    .filter(e => e.class === studentClass)
+    .sort((a, b) => a.time - b.time)
+    .slice(0, 10);
+
+  let levelHTML = "";
+
+  levelHTML += `<strong>🏆 All-Time Best</strong><br>`;
+  levelHTML += allTimeLevel.length
+    ? `1. ${allTimeLevel[0].name} - ${allTimeLevel[0].time}s<br><br>`
+    : "No scores yet<br><br>";
+
+  levelHTML += `<strong>🎓 ${studentClass} Top 10</strong><br>`;
+  levelHTML += classTopLevel.length
+    ? classTopLevel.map((e, i) => `${i + 1}. ${e.name} - ${e.time}s`).join("<br>")
     : "No scores yet";
+
+  levelDiv.innerHTML = levelHTML;
 }
 
 // -------------------------
