@@ -503,7 +503,6 @@ function updateLeaderboard(elapsed) {
 
     const board = leaderboard.timed[wordLength];
 
-    // ✅ STORE FULL OBJECT
     if (
       !board.personal[studentName] ||
       score > board.personal[studentName].score
@@ -515,7 +514,6 @@ function updateLeaderboard(elapsed) {
       newPersonal = true;
     }
 
-    // ✅ BUILD ARRAY CORRECTLY
     const all = Object.entries(board.personal)
       .map(([name, data]) => ({
         name,
@@ -529,46 +527,46 @@ function updateLeaderboard(elapsed) {
 
   } else {
 
-  // LEVEL UP MODE
-const board = leaderboard.levelup;
+    // LEVEL UP MODE
+    const board = leaderboard.levelup;
 
-if (
-  !board.personal[studentName] ||
-  correctWords > board.personal[studentName].words ||
-  (
-    correctWords === board.personal[studentName].words &&
-    elapsed < board.personal[studentName].time
-  )
-) {
-  board.personal[studentName] = {
-    words: correctWords,   // 🔥 NEW
-    time: elapsed,
-    class: studentClass
-  };
-  newPersonal = true;
-}
+    if (
+      !board.personal[studentName] ||
+      correctWords > board.personal[studentName].words ||
+      (
+        correctWords === board.personal[studentName].words &&
+        elapsed < board.personal[studentName].time
+      )
+    ) {
+      board.personal[studentName] = {
+        words: correctWords,
+        time: elapsed,
+        class: studentClass
+      };
+      newPersonal = true;
+    }
 
-const all = Object.entries(board.personal)
-  .map(([name, data]) => ({
-    name,
-    words: data.words,
-    time: data.time,
-    class: data.class
-  }))
-  .sort((a, b) => {
-    if (b.words !== a.words) return b.words - a.words;
-    return a.time - b.time;
-  });
+    const all = Object.entries(board.personal)
+      .map(([name, data]) => ({
+        name,
+        words: data.words,
+        time: data.time,
+        class: data.class
+      }))
+      .sort((a, b) => {
+        if (b.words !== a.words) return b.words - a.words;
+        return a.time - b.time;
+      });
 
-board.top10 = all.slice(0, 10);
-newTop10 = board.top10.some(e => e.name === studentName);
+    board.top10 = all.slice(0, 10);
+    newTop10 = board.top10.some(e => e.name === studentName);
+  }
 
   saveLeaderboard();
-  renderLocalLeaderboard(); // ✅ IMPORTANT
+  renderLocalLeaderboard();
 
   return { newTop10, newPersonal, elapsed };
 }
-
 
 // -------------------------
 // Google Form Submit (BACKGROUND)
