@@ -364,6 +364,8 @@ fetch("https://script.google.com/macros/s/AKfycbySClPLCY2JTATVc9R-SJdMa7W5cjlvBv
 });
 
 function renderLeaderboardFromData(data) {
+
+  // 🔥 NORMALISE GOOGLE DATA
   const clean = data.map(d => ({
     name: d["Student Name"],
     mode: d["Game Mode"],
@@ -375,21 +377,22 @@ function renderLeaderboardFromData(data) {
     rank: d["Rank"],
     percentage: d["Percentage Correct"]
   }));
+
   const timedDiv = document.getElementById("timed-leaderboard");
   const levelDiv = document.getElementById("level-leaderboard");
 
   if (!timedDiv || !levelDiv) return;
 
-  // FILTER
-  const timed = data.filter(d =>
+  // ✅ FILTER (USE CLEAN DATA)
+  const timed = clean.filter(d =>
     d.mode && d.mode.startsWith("timed") && d.mode.includes(`(${wordLength})`)
   );
 
-  const level = data.filter(d =>
+  const level = clean.filter(d =>
     d.mode && d.mode.startsWith("level up")
   );
 
-  // BEST PER PLAYER
+  // ✅ BEST PER PLAYER
   const bestTimed = {};
   timed.forEach(e => {
     if (!bestTimed[e.name] || e.score > bestTimed[e.name].score) {
@@ -404,25 +407,25 @@ function renderLeaderboardFromData(data) {
     }
   });
 
-  // SORT
+  // ✅ SORT (NUMBERS, NOT STRINGS)
   const timedList = Object.values(bestTimed)
-    .sort((a,b)=>Number(b.score) - Number(a.score))
-    .slice(0,10);
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
 
   const levelList = Object.values(bestLevel)
-    .sort((a,b)=>Number(a.time) - Number(b.time))
-    .slice(0,10);
+    .sort((a, b) => a.time - b.time)
+    .slice(0, 10);
 
-  // DISPLAY
+  // ✅ DISPLAY
   timedDiv.innerHTML = timedList.length
-    ? timedList.map((e,i)=>`${i+1}. ${e.name} - ${e.score}`).join("<br>")
+    ? timedList.map((e, i) => `${i + 1}. ${e.name} - ${e.score}`).join("<br>")
     : "No scores yet";
 
   levelDiv.innerHTML = levelList.length
-    ? levelList.map((e,i)=>`${i+1}. ${e.name} - ${e.time}s`).join("<br>")
+    ? levelList.map((e, i) => `${i + 1}. ${e.name} - ${e.time}s`).join("<br>")
     : "No scores yet";
 }
-
+  
 // -------------------------
 // Load Leaderboard (SAFE)
 // -------------------------
