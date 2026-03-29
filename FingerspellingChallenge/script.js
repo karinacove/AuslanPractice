@@ -93,11 +93,23 @@ function showLetterByLetter(word) {
   const delay = Math.max(80, 1200 - speed * 5);
 
   word.split("").forEach((letter, i) => {
+    const isLast = i === word.length - 1;
+
     const t = setTimeout(() => {
       if (!isPaused) {
         letterDisplay.textContent = letter;
+
         setTimeout(() => {
-          if (!isPaused) letterDisplay.textContent = "";
+          if (!isPaused) {
+            // ✅ keep last letter visible slightly longer
+            if (!isLast) {
+              letterDisplay.textContent = "";
+            } else {
+              setTimeout(() => {
+                letterDisplay.textContent = "";
+              }, 150); // 👈 final letter delay
+            }
+          }
         }, delay);
       }
     }, i * (delay + 50));
@@ -118,26 +130,44 @@ function updateScore() {
 
 function startTimer() {
   clearInterval(timer);
+
   timer = setInterval(() => {
     if (!isPaused) {
       timeLeft--;
-      if (timeLeft <= 0) endGame();
+
+      if (timeLeft <= 0) {
+        timeLeft = 0;
+        endGame();
+      }
     }
   }, 1000);
 }
 
 function nextWord() {
-  if (gameMode === "levelup" && correctWords > 0 && correctWords % 10 === 0 && wordLength < 10) {
-    wordLength++;
+
+  // ✅ LEVEL UP LOGIC (every 10 correct words)
+  if (gameMode === "levelup") {
+    const level = Math.floor(correctWords / 10) + 3; // starts at 3 letters
+
+    if (level > 10) {
+      endGame(); // finished all levels
+      return;
+    }
+
+    wordLength = level;
   }
-  const words = wordBank[wordLength] || wordBank[3];
+
+  const words = wordBank[wordLength] || [];
   const pool = words.filter(w => !usedWords.has(w));
+
   if (pool.length === 0) {
     endGame();
     return;
   }
+
   currentWord = pool[Math.floor(Math.random() * pool.length)];
   usedWords.add(currentWord);
+
   setTimeout(() => showLetterByLetter(currentWord), 200);
 }
 
@@ -152,7 +182,9 @@ function startGame() {
   gameScreen.style.display = "flex";
 
   score = 0;
+  timeLeft = 120; // ✅ FIXED
   correctWords = 0;
+  wordLength = 3; // ✅ reset level
   guessedWords.clear();
   incorrectWords = [];
   usedWords.clear();
@@ -171,7 +203,7 @@ function startGame() {
   if (gameMode === "timed") {
     if (countdownVideo) {
       countdownVideo.currentTime = 0;
-      countdownVideo.style.display = "block"; // 🔥 REQUIRED
+      countdownVideo.style.display = "block";
       countdownVideo.play();
     }
     startTimer();
