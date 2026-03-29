@@ -330,31 +330,39 @@ function updateLeaderboard(elapsed) {
 
   } else {
 
-    const board = leaderboard.levelup;
+  // LEVEL UP MODE
+const board = leaderboard.levelup;
 
-    // ✅ STORE OBJECT (NOT NUMBER)
-    if (
-      !board.personal[studentName] ||
-      elapsed < board.personal[studentName].time
-    ) {
-      board.personal[studentName] = {
-        time: elapsed,
-        class: studentClass
-      };
-      newPersonal = true;
-    }
+if (
+  !board.personal[studentName] ||
+  correctWords > board.personal[studentName].words ||
+  (
+    correctWords === board.personal[studentName].words &&
+    elapsed < board.personal[studentName].time
+  )
+) {
+  board.personal[studentName] = {
+    words: correctWords,   // 🔥 NEW
+    time: elapsed,
+    class: studentClass
+  };
+  newPersonal = true;
+}
 
-    const all = Object.entries(board.personal)
-      .map(([name, data]) => ({
-        name,
-        time: data.time,
-        class: data.class
-      }))
-      .sort((a, b) => a.time - b.time);
+const all = Object.entries(board.personal)
+  .map(([name, data]) => ({
+    name,
+    words: data.words,
+    time: data.time,
+    class: data.class
+  }))
+  .sort((a, b) => {
+    if (b.words !== a.words) return b.words - a.words;
+    return a.time - b.time;
+  });
 
-    board.top10 = all.slice(0, 10);
-    newTop10 = board.top10.some(e => e.name === studentName);
-  }
+board.top10 = all.slice(0, 10);
+newTop10 = board.top10.some(e => e.name === studentName);
 
   saveLeaderboard();
   renderLocalLeaderboard(); // ✅ IMPORTANT
@@ -436,20 +444,24 @@ function renderLocalLeaderboard() {
   const allTime = [...timedBoard].sort((a, b) => b.score - a.score);
 
   const classTop = timedBoard
-    .filter(e => e.class === studentClass)
+    .filter(e => e.class && e.class === studentClass)
     .sort((a, b) => b.score - a.score)
     .slice(0, 10);
 
   let timedHTML = "";
 
+  // 🏆 ALL TIME (NO NUMBER)
   timedHTML += `<strong>🏆 All-Time Best</strong><br>`;
   timedHTML += allTime.length
-    ? `1. ${allTime[0].name} - ${allTime[0].score}<br><br>`
+    ? `${allTime[0].name} (${allTime[0].class}) - ${allTime[0].score}<br><br>`
     : "No scores yet<br><br>";
 
+  // 🎓 CLASS TOP 10
   timedHTML += `<strong>🎓 ${studentClass} Top 10</strong><br>`;
   timedHTML += classTop.length
-    ? classTop.map((e, i) => `${i + 1}. ${e.name} - ${e.score}`).join("<br>")
+    ? classTop.map((e, i) =>
+        `${i + 1}. ${e.name} (${e.class}) - ${e.score}`
+      ).join("<br>")
     : "No scores yet";
 
   timedDiv.innerHTML = timedHTML;
@@ -460,23 +472,30 @@ function renderLocalLeaderboard() {
   // =========================
   const levelBoard = leaderboard.levelup.top10 || [];
 
-  const allTimeLevel = [...levelBoard].sort((a, b) => a.time - b.time);
+  // 🔥 SORT: MOST WORDS FIRST, THEN FASTEST TIME
+  const sortedLevel = [...levelBoard].sort((a, b) => {
+    if (b.words !== a.words) return b.words - a.words;
+    return a.time - b.time;
+  });
 
-  const classTopLevel = levelBoard
+  const classTopLevel = sortedLevel
     .filter(e => e.class && e.class === studentClass)
-    .sort((a, b) => a.time - b.time)
     .slice(0, 10);
 
   let levelHTML = "";
 
+  // 🏆 ALL TIME (NO NUMBER)
   levelHTML += `<strong>🏆 All-Time Best</strong><br>`;
-  levelHTML += allTimeLevel.length
-    ? `1. ${allTimeLevel[0].name} - ${allTimeLevel[0].time}s<br><br>`
+  levelHTML += sortedLevel.length
+    ? `${sortedLevel[0].name} (${sortedLevel[0].class}) - ${sortedLevel[0].words} words in ${sortedLevel[0].time}s<br><br>`
     : "No scores yet<br><br>";
 
+  // 🎓 CLASS TOP 10
   levelHTML += `<strong>🎓 ${studentClass} Top 10</strong><br>`;
   levelHTML += classTopLevel.length
-    ? classTopLevel.map((e, i) => `${i + 1}. ${e.name} - ${e.time}s`).join("<br>")
+    ? classTopLevel.map((e, i) =>
+        `${i + 1}. ${e.name} (${e.class}) - ${e.words} words in ${e.time}s`
+      ).join("<br>")
     : "No scores yet";
 
   levelDiv.innerHTML = levelHTML;
