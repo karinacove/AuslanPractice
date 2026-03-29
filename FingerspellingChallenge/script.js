@@ -350,27 +350,44 @@ function submitToGoogle(scoreValue, timeValue, finishedEarly = false) {
   params.append("speed", speedSetting);
   params.append("rank", rank);
 
-  fetch("https://script.google.com/macros/s/AKfycbySClPLCY2JTATVc9R-SJdMa7W5cjlvBvO1Fm557-TO1nCC_9OT9FJgY0-O370A-POnYg/exec", {
-    method: "POST",
-    body: params
-  })
-  .then(res => res.text())
-  .then(data => {
-    console.log("Saved:", data);
-    setTimeout(loadLeaderboardFromGoogle, 1000);
-  })
-  .catch(err => console.error("Error:", err));
-}
+fetch("https://script.google.com/macros/s/AKfycbySClPLCY2JTATVc9R-SJdMa7W5cjlvBvO1Fm557-TO1nCC_9OT9FJgY0-O370A-POnYg/exec", {
+  method: "POST",
+  body: params
+})
+.then(res => res.text())
+.then(data => {
+  console.log("✅ Saved to Google:", data);
+})
+.catch(err => {
+  console.error("❌ Google submit failed:", err);
+  alert("Score failed to save. Check connection.");
+});
 
 function renderLeaderboardFromData(data) {
+  const clean = data.map(d => ({
+    name: d["Student Name"],
+    mode: d["Game Mode"],
+    score: Number(d["Final Score"]) || 0,
+    time: Number(d["Time"]) || 0,
+    correct: d["Correct Words"],
+    incorrect: d["Error Words"],
+    speed: d["Speed Setting"],
+    rank: d["Rank"],
+    percentage: d["Percentage Correct"]
+  }));
   const timedDiv = document.getElementById("timed-leaderboard");
   const levelDiv = document.getElementById("level-leaderboard");
 
   if (!timedDiv || !levelDiv) return;
 
   // FILTER
-  const timed = data.filter(d => d.mode === "timed" && d.length == wordLength);
-  const level = data.filter(d => d.mode === "levelup");
+  const timed = data.filter(d =>
+    d.mode && d.mode.startsWith("timed") && d.mode.includes(`(${wordLength})`)
+  );
+
+  const level = data.filter(d =>
+    d.mode && d.mode.startsWith("level up")
+  );
 
   // BEST PER PLAYER
   const bestTimed = {};
@@ -389,11 +406,11 @@ function renderLeaderboardFromData(data) {
 
   // SORT
   const timedList = Object.values(bestTimed)
-    .sort((a,b)=>b.score-a.score)
+    .sort((a,b)=>Number(b.score) - Number(a.score))
     .slice(0,10);
 
   const levelList = Object.values(bestLevel)
-    .sort((a,b)=>a.time-b.time)
+    .sort((a,b)=>Number(a.time) - Number(b.time))
     .slice(0,10);
 
   // DISPLAY
