@@ -459,7 +459,7 @@ function showPauseModal(elapsed, percentage) {
   finishButton.style.display = "inline-block";
   continueBtn.style.display = "inline-block";
   againButtonModal.style.display = "inline-block";
-  menuButton.style.display = "none";
+  menuButton.style.display = "inline-block";
 }
 
 function endGame() {
@@ -821,7 +821,12 @@ continueBtn.onclick = () => {
   showLetterByLetter(currentWord);
 };
 
-menuButton.addEventListener("click", () => window.location.href = "./index.html");
+menuButton.addEventListener("click", () => {
+  finishEarly();
+  setTimeout(() => {
+    window.location.href = "../index.html");
+   }, 1500);
+};
 
 againButton.addEventListener("click", () => {
   if (isPaused) return;
