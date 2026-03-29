@@ -306,7 +306,7 @@ function updateLeaderboard(elapsed) {
 }
 
 // -------------------------
-// Google Submit (SAFE JSON)
+// Google Submit
 // -------------------------
 function submitToGoogle(scoreValue, timeValue, finishedEarly = false) {
 
@@ -334,42 +334,102 @@ function submitToGoogle(scoreValue, timeValue, finishedEarly = false) {
     if (pos !== -1) rank = pos + 1;
   }
 
-  const params = new URLSearchParams();
-
-  params.append("name", studentName);
-  params.append("class", studentClass);
-  params.append("mode", gameMode === "timed"
-    ? `timed (${wordLength})${finishedEarly ? " - early finish" : ""}`
-    : `level up${finishedEarly ? " - early finish" : ""}`
-  );
-  params.append("score", scoreValue);
-  params.append("time", timeValue);
-  params.append("percentage", percentage);
-  params.append("correct", correctList);
-  params.append("incorrect", incorrectList);
-  params.append("speed", speedSetting);
-  params.append("rank", rank);
-
-fetch("https://script.google.com/macros/s/AKfycbySClPLCY2JTATVc9R-SJdMa7W5cjlvBvO1Fm557-TO1nCC_9OT9FJgY0-O370A-POnYg/exec", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    name: studentName,
-    class: studentClass,
-    mode: gameMode === "timed"
-      ? `timed (${wordLength})${finishedEarly ? " - early finish" : ""}`
-      : `level up${finishedEarly ? " - early finish" : ""}`,
-    score: scoreValue,
-    time: timeValue,
-    percentage: percentage,
-    correct: correctList,
-    incorrect: incorrectList,
-    speed: speedSetting,
-    rank: rank
+  fetch("https://script.google.com/macros/s/AKfycbySClPLCY2JTATVc9R-SJdMa7W5cjlvBvO1Fm557-TO1nCC_9OT9FJgY0-O370A-POnYg/exec", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      name: studentName,
+      class: studentClass,
+      mode: gameMode === "timed"
+        ? `timed (${wordLength})${finishedEarly ? " - early finish" : ""}`
+        : `level up${finishedEarly ? " - early finish" : ""}`,
+      score: scoreValue,
+      time: timeValue,
+      percentage: percentage,
+      correct: correctList,
+      incorrect: incorrectList,
+      speed: speedSetting,
+      rank: rank
+    })
   })
-})
+  .then(res => res.text())
+  .then(data => {
+    console.log("✅ Saved to Google:", data);
+  })
+  .catch(err => {
+    console.error("❌ Google submit failed:", err);
+  });
+
+}
+
+
+// -------------------------
+// Render Leaderboard (FIXED)
+// -------------------------
+function renderLeaderboardFromData(data) {
+
+  // 🔥 NORMALISE GOOGLE DATA
+  const clean = data.map(d => ({
+    name: d["Student Name"],
+    mode: d["Game Mode"],
+    score: Number(d["Final Score"]) || 0,
+    time: Number(d["Time"]) || 0,
+    correct: d["Correct Words"],
+    incorrect: d["Error Words"],
+    speed: d["Speed Setting"],
+    rank: d["Rank"],
+    percentage: d["Percentage Correct"]
+  }));
+
+  const timedDiv = document.getElementById("timed-leaderboard");
+  const levelDiv = document.getElementById("level-leaderboard");
+
+  if (!timedDiv || !levelDiv) return;
+
+  // ✅ FILTER
+  const timed = clean.filter(d =>
+    d.mode && d.mode.startsWith("timed") && d.mode.includes(`(${wordLength})`)
+  );
+
+  const level = clean.filter(d =>
+    d.mode && d.mode.startsWith("level up")
+  );
+
+  // ✅ BEST PER PLAYER
+  const bestTimed = {};
+  timed.forEach(e => {
+    if (!bestTimed[e.name] || e.score > bestTimed[e.name].score) {
+      bestTimed[e.name] = e;
+    }
+  });
+
+  const bestLevel = {};
+  level.forEach(e => {
+    if (!bestLevel[e.name] || e.time < bestLevel[e.name].time) {
+      bestLevel[e.name] = e;
+    }
+  });
+
+  // ✅ SORT
+  const timedList = Object.values(bestTimed)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
+
+  const levelList = Object.values(bestLevel)
+    .sort((a, b) => a.time - b.time)
+    .slice(0, 10);
+
+  // ✅ DISPLAY
+  timedDiv.innerHTML = timedList.length
+    ? timedList.map((e, i) => `${i + 1}. ${e.name} - ${e.score}`).join("<br>")
+    : "No scores yet";
+
+  levelDiv.innerHTML = levelList.length
+    ? levelList.map((e, i) => `${i + 1}. ${e.name} - ${e.time}s`).join("<br>")
+    : "No scores yet";
+}
 
 function renderLeaderboardFromData(data) {
 
