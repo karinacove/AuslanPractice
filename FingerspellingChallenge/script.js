@@ -182,9 +182,9 @@ function startGame() {
   gameScreen.style.display = "flex";
 
   score = 0;
-  timeLeft = 120; // ✅ FIXED
+  timeLeft = 120;
   correctWords = 0;
-  wordLength = 3; // ✅ reset level
+  wordLength = 3;
   guessedWords.clear();
   incorrectWords = [];
   usedWords.clear();
@@ -226,13 +226,11 @@ function pauseGame() {
 
   const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
 
-  // calculate percentage
   const totalAttempts = correctWords + incorrectWords.length;
   const percentage = totalAttempts > 0
     ? Math.round((correctWords / totalAttempts) * 100)
     : 100;
 
-  // show modal (PAUSE MODE)
   showPauseModal(elapsed, percentage);
 }
 
@@ -241,7 +239,6 @@ function finishEarly() {
 
   const result = updateLeaderboard(elapsed);
 
-  // 🔥 mark early finish
   submitToGoogle(score, elapsed, true);
 
   showFinishModal(result, true);
@@ -258,14 +255,12 @@ function showPauseModal(elapsed, percentage) {
   document.getElementById("score-percentage").textContent =
     `${percentage}% Correct`;
 
-  // clear old message
   document.getElementById("leaderboard-message")?.remove();
 
-  // BUTTONS
-finishButton.style.display = "inline-block"; // modal finish button
-continueBtn.style.display = "inline-block";
-againButtonModal.style.display = "inline-block";
-menuButton.style.display = "none";
+  finishButton.style.display = "inline-block";
+  continueBtn.style.display = "inline-block";
+  againButtonModal.style.display = "inline-block";
+  menuButton.style.display = "none";
 }
 
 function endGame() {
@@ -295,7 +290,7 @@ function endGame() {
 }
 
 // -------------------------
-// Leaderboard Logic
+// Leaderboard Logic (LOCAL)
 // -------------------------
 function updateLeaderboard(elapsed) {
   let newTop10 = false;
@@ -337,11 +332,13 @@ function updateLeaderboard(elapsed) {
   }
 
   saveLeaderboard();
+  renderLocalLeaderboard(); // ✅ KEY FIX
+
   return { newTop10, newPersonal, elapsed };
 }
 
 // -------------------------
-// Google Submit
+// Google Form Submit (BACKGROUND)
 // -------------------------
 function submitToGoogle(scoreValue, timeValue, finishedEarly = false) {
 
@@ -356,7 +353,6 @@ function submitToGoogle(scoreValue, timeValue, finishedEarly = false) {
 
   const speedSetting = speedSlider.value;
 
-  // 🏆 Calculate rank from local leaderboard
   let rank = "";
 
   if (gameMode === "timed") {
@@ -369,7 +365,6 @@ function submitToGoogle(scoreValue, timeValue, finishedEarly = false) {
     if (pos !== -1) rank = pos + 1;
   }
 
-  // ✅ IMPORTANT: use /formResponse (not viewform)
   const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfOFWu8FcUR3bOwg0mo_3Kb2O7p4m0TLvfUpZjx0zdzqKac4Q/formResponse";
 
   const params = new URLSearchParams({
@@ -389,7 +384,7 @@ function submitToGoogle(scoreValue, timeValue, finishedEarly = false) {
 
   fetch(formURL, {
     method: "POST",
-    mode: "no-cors", // ✅ prevents CORS errors
+    mode: "no-cors",
     body: params
   });
 
@@ -397,91 +392,25 @@ function submitToGoogle(scoreValue, timeValue, finishedEarly = false) {
 }
 
 // -------------------------
-// Render Leaderboard
+// LOCAL Leaderboard Render
 // -------------------------
-function renderLeaderboardFromData(data) {
-
-  const clean = data.map(d => ({
-    name: d["Student Name"],
-    mode: d["Game Mode"],
-    score: Number(d["Final Score"]) || 0,
-    time: Number(d["Time"]) || 0,
-    correct: d["Correct Words"],
-    incorrect: d["Error Words"],
-    speed: d["Speed Setting"],
-    rank: d["Rank"],
-    percentage: d["Percentage Correct"]
-  }));
-
+function renderLocalLeaderboard() {
   const timedDiv = document.getElementById("timed-leaderboard");
   const levelDiv = document.getElementById("level-leaderboard");
 
   if (!timedDiv || !levelDiv) return;
 
-  const timed = clean.filter(d =>
-    d.mode && d.mode.startsWith("timed") && d.mode.includes(`(${wordLength})`)
-  );
+  const timedBoard = leaderboard.timed[wordLength]?.top10 || [];
 
-  const level = clean.filter(d =>
-    d.mode && d.mode.startsWith("level up")
-  );
-
-  const bestTimed = {};
-  timed.forEach(e => {
-    if (!bestTimed[e.name] || e.score > bestTimed[e.name].score) {
-      bestTimed[e.name] = e;
-    }
-  });
-
-  const bestLevel = {};
-  level.forEach(e => {
-    if (!bestLevel[e.name] || e.time < bestLevel[e.name].time) {
-      bestLevel[e.name] = e;
-    }
-  });
-
-  const timedList = Object.values(bestTimed)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 10);
-
-  const levelList = Object.values(bestLevel)
-    .sort((a, b) => a.time - b.time)
-    .slice(0, 10);
-
-  timedDiv.innerHTML = timedList.length
-    ? timedList.map((e, i) => `${i + 1}. ${e.name} - ${e.score}`).join("<br>")
+  timedDiv.innerHTML = timedBoard.length
+    ? timedBoard.map((e, i) => `${i + 1}. ${e.name} - ${e.score}`).join("<br>")
     : "No scores yet";
 
-  levelDiv.innerHTML = levelList.length
-    ? levelList.map((e, i) => `${i + 1}. ${e.name} - ${e.time}s`).join("<br>")
+  const levelBoard = leaderboard.levelup.top10 || [];
+
+  levelDiv.innerHTML = levelBoard.length
+    ? levelBoard.map((e, i) => `${i + 1}. ${e.name} - ${e.time}s`).join("<br>")
     : "No scores yet";
-}
-
-
-// -------------------------
-// Load Leaderboard
-// -------------------------
-async function loadLeaderboardFromGoogle() {
-  try {
-    const res = await fetch("https://script.google.com/macros/s/AKfycbySClPLCY2JTATVc9R-SJdMa7W5cjlvBvO1Fm557-TO1nCC_9OT9FJgY0-O370A-POnYg/exec");
-
-    const text = await res.text();
-    console.log("RAW RESPONSE:", text);
-
-    let data;
-
-    try {
-      data = JSON.parse(text);
-    } catch (err) {
-      console.warn("❌ Not valid JSON — skipping update");
-      return;
-    }
-
-    renderLeaderboardFromData(data);
-
-  } catch (err) {
-    console.error("Leaderboard load failed:", err);
-  }
 }
 
 // -------------------------
@@ -490,7 +419,6 @@ async function loadLeaderboardFromGoogle() {
 function showFinishModal(result, isGameEnd = true) {
   endModal.style.display = "flex";
 
-  // ✅ ALWAYS show clap at game end
   document.getElementById("clap-display").innerHTML =
     isGameEnd ? `<img src="Assets/auslan-clap.gif" alt="Clap" />` : "";
 
@@ -503,7 +431,6 @@ function showFinishModal(result, isGameEnd = true) {
   if (newTop10) msg += "🏆 Top 10!\n";
   if (newPersonal) msg += "⭐ Personal Best!";
 
-  // 🏆 ADD RANK DISPLAY
   let rankText = "";
 
   if (gameMode === "timed") {
@@ -525,13 +452,11 @@ function showFinishModal(result, isGameEnd = true) {
   div.innerText = msg;
   endModalContent.appendChild(div);
 
-  // ✅ BUTTON LOGIC
   againButtonModal.style.display = "inline-block";
   menuButton.style.display = "inline-block";
   finishButton.style.display = "none";
   continueBtn.style.display = "none";
 
-  // 🔥 SHOW leaderboard again when game ends
   document.getElementById("leaderboards").style.display = "block";
 }
 
