@@ -352,17 +352,24 @@ function submitToGoogle(scoreValue, timeValue, finishedEarly = false) {
 
 fetch("https://script.google.com/macros/s/AKfycbySClPLCY2JTATVc9R-SJdMa7W5cjlvBvO1Fm557-TO1nCC_9OT9FJgY0-O370A-POnYg/exec", {
   method: "POST",
-  body: params
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    name: studentName,
+    class: studentClass,
+    mode: gameMode === "timed"
+      ? `timed (${wordLength})${finishedEarly ? " - early finish" : ""}`
+      : `level up${finishedEarly ? " - early finish" : ""}`,
+    score: scoreValue,
+    time: timeValue,
+    percentage: percentage,
+    correct: correctList,
+    incorrect: incorrectList,
+    speed: speedSetting,
+    rank: rank
+  })
 })
-.then(res => res.text())
-.then(data => {
-  console.log("✅ Saved to Google:", data);
-})
-.catch(err => {
-  console.error("❌ Google submit failed:", err);
-  alert("Score failed to save. Check connection.");
-});
-}
 
 function renderLeaderboardFromData(data) {
 
