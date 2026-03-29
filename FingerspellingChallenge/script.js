@@ -362,6 +362,7 @@ fetch("https://script.google.com/macros/s/AKfycbySClPLCY2JTATVc9R-SJdMa7W5cjlvBv
   console.error("❌ Google submit failed:", err);
   alert("Score failed to save. Check connection.");
 });
+}
 
 function renderLeaderboardFromData(data) {
 
