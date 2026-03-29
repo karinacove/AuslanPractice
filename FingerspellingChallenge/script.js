@@ -463,7 +463,7 @@ function renderLocalLeaderboard() {
   const allTimeLevel = [...levelBoard].sort((a, b) => a.time - b.time);
 
   const classTopLevel = levelBoard
-    .filter(e => e.class === studentClass)
+    .filter(e => e.class && e.class === studentClass)
     .sort((a, b) => a.time - b.time)
     .slice(0, 10);
 
@@ -527,6 +527,8 @@ function showFinishModal(result, isGameEnd = true) {
   continueBtn.style.display = "none";
 
   document.getElementById("leaderboards").style.display = "block";
+  
+  renderLocalLeaderboard();
 }
 
 // -------------------------
@@ -616,9 +618,12 @@ againButton.addEventListener("click", () => {
 // -------------------------
 // Init
 // -------------------------
-loadLeaderboardFromGoogle(); // initial load
+
+renderLocalLeaderboard();
+
+// ✅ Keep UI fresh (optional)
 setInterval(() => {
   if (!document.hidden) {
-    loadLeaderboardFromGoogle();
+    renderLocalLeaderboard();
   }
 }, 5000);
