@@ -127,14 +127,17 @@ function startTimer() {
 }
 
 function nextWord() {
-  const words = wordBank[wordLength] || [];
+  if (gameMode === "levelup" && correctWords > 0 && correctWords % 10 === 0 && wordLength < 10) {
+    wordLength++;
+  }
+  const words = wordBank[wordLength] || wordBank[3];
   const pool = words.filter(w => !usedWords.has(w));
-
-  if (!pool.length) return endGame();
-
+  if (pool.length === 0) {
+    endGame();
+    return;
+  }
   currentWord = pool[Math.floor(Math.random() * pool.length)];
   usedWords.add(currentWord);
-
   setTimeout(() => showLetterByLetter(currentWord), 200);
 }
 
