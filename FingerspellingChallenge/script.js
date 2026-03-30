@@ -383,8 +383,9 @@ function startGame() {
   score = 0;
   timeLeft = 120;
   correctWords = 0;
+  if (gameMode === "levelup") {
   wordLength = 3;
-  guessedWords.clear();
+} guessedWords.clear();
   incorrectWords = [];
   usedWords.clear();
   isPaused = false;
