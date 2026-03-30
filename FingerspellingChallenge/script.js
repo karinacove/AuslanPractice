@@ -748,30 +748,6 @@ function showFinishModal(result, isGameEnd = true) {
 }
 
 // -------------------------
-// Input
-// -------------------------
-wordInput.addEventListener("input", () => {
-  if (isPaused) return;
-
-  const typed = wordInput.value.toLowerCase();
-
-  if (typed.length === currentWord.length) {
-    if (typed === currentWord) {
-      score++;
-      correctWords++;
-      guessedWords.add(currentWord);
-      updateScore();
-      wordInput.value = "";
-      setTimeout(nextWord, 400);
-    } else {
-      incorrectWords.push(typed);
-      wordInput.value = "";
-      showLetterByLetter(currentWord);
-    }
-  }
-});
-
-// -------------------------
 // Buttons
 // -------------------------
 modeTimed.onclick = () => {
@@ -824,9 +800,9 @@ continueBtn.onclick = () => {
 menuButton.addEventListener("click", () => {
   finishEarly();
   setTimeout(() => {
-    window.location.href = "../index.html");
+    window.location.href = "../index.html";
    }, 1500);
-};
+});
 
 againButton.addEventListener("click", () => {
   if (isPaused) return;
