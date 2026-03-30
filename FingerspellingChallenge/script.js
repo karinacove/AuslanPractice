@@ -779,7 +779,7 @@ finishButton.onclick = () => {
   finishEarly();
   setTimeout(() => {
     window.location.href = "./index.html";
-  }, 1500);
+  }, 1000);
 };
 
 continueBtn.onclick = () => {
@@ -801,7 +801,7 @@ menuButton.addEventListener("click", () => {
   finishEarly();
   setTimeout(() => {
     window.location.href = "../index.html";
-   }, 1500);
+   }, 1000);
 });
 
 againButton.addEventListener("click", () => {
