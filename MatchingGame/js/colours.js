@@ -301,23 +301,31 @@ function loadPage(){
     }
 
     const entries = {
-      "entry.1387461004": studentName,
-      "entry.1309291707": studentClass,
-      "entry.477642881": "Colours",
-      "entry.1996137354": `${percent}%`,
-      "entry.1374858042": formattedTime,
-      "entry.750436458": highestLevel
-    };
+    "entry.1387461004": studentName,
+    "entry.1309291707": studentClass,
+    "entry.477642881": "Colour",
+    "entry.1996137354": `${percent}%`,
+    "entry.1374858042": formattedTime,
+    "entry.750436458": currentPosition
+  };
 
     const formEntryIDs = {
-      correct: [
-        "entry.1897227570","entry.1116300030","entry.187975538",
-        "entry.1880514176","entry.497882042","entry.1591755601"
-      ],
-      incorrect: [
-        "entry.1249394203","entry.1551220511","entry.903633326",
-        "entry.856597282","entry.552536101","entry.922308538"
-      ]
+    correct: [
+      "entry.1897227570", // Level 1
+      "entry.1116300030", // Level 2
+      "entry.187975538",  // Level 3
+      "entry.1880514176", // Level 4
+      "entry.497882042",  // Level 5
+      "entry.1591755601",  // Level 6
+    ],
+    incorrect: [
+      "entry.1249394203", // Level 1
+      "entry.1551220511", // Level 2
+      "entry.903633326",  // Level 3
+      "entry.856597282",  // Level 4
+      "entry.552536101",  // Level 5
+      "entry.922308538",  // Level 6
+    ]
     };
 
     for (let i=0; i<levels.length && i<6; i++) {
