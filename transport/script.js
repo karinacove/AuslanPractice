@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
     wrapper.addEventListener("mouseenter", () => (flipBtn.style.display = "block"));
     wrapper.addEventListener("mouseleave", () => (flipBtn.style.display = "none"));
 
-    document.body.appendChild(wrapper);
+    document.getElementById("map-container").appendChild(wrapper);
     dragged = wrapper;
 
     const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
