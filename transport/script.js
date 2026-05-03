@@ -12,16 +12,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const studentInfo = document.getElementById("student-info");
   const palette = document.getElementById("vehicle-palette");
-  const finishBtn = document.getElementById("finish-btn");
+
+  const finishBtn = document.getElementById("finish-btn"); 
+  const stopBtn = document.getElementById("stop-btn"); 
+
   const startOverlay = document.getElementById("startOverlay");
   const startBtn = document.getElementById("start-btn");
+
+  const stopModal = document.getElementById("stop-modal"); 
+  const stopMessage = document.getElementById("stop-message");
+  const continueGame = document.getElementById("continue-game");
+  const submitGame = document.getElementById("submit-game");
+
   const endModal = document.getElementById("end-modal");
   const againBtn = document.getElementById("again-btn");
   const menuBtn = document.getElementById("menu-btn");
   const continueBtn = document.getElementById("continue-btn");
+
   const previewImg = document.getElementById("map-preview");
   const vehicleCountText = document.getElementById("vehicle-count");
-  const downloadBtn = document.getElementById("download-btn");
+
   const row1 = document.getElementById("row-1");
   const row2 = document.getElementById("row-2");
   const row3 = document.getElementById("row-3");
@@ -31,62 +41,130 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (endModal) endModal.classList.remove("show");
 
+  // -------------------------
+  // START OVERLAY
+  // -------------------------
   if (startBtn) {
-  startOverlay.style.display = "flex";
+    startOverlay.style.display = "flex";
 
-  startBtn.addEventListener("click", () => {
-    jobDescription = document.getElementById("job-description").value;
-    partnerName = document.getElementById("partner-name").value;
+    startBtn.addEventListener("click", () => {
+      jobDescription = document.getElementById("job-description").value;
+      partnerName = document.getElementById("partner-name").value;
 
-    if (!jobDescription || !partnerName) return;
+      if (!jobDescription || !partnerName) return;
 
-    startOverlay.style.display = "none";
+      startOverlay.style.display = "none";
 
-    if (palette) palette.style.display = "grid";
-    if (finishBtn) finishBtn.style.display = "inline-block";
+      if (palette) palette.style.display = "grid";
+      if (stopBtn) stopBtn.style.display = "inline-block";
 
-    if (studentInfo) {
-      studentInfo.style.display = "block";
-      studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
-    }
-  });
-}
+      if (studentInfo) {
+        studentInfo.style.display = "block";
+        studentInfo.textContent =
+          `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
+      }
+    });
+  }
 
   // -------------------------
-  // Drag & Drop Vehicle Logic with Touch Support
+  // DRAG SYSTEM
   // -------------------------
   const MAX_VEHICLES = 12;
   let dragged = null;
 
   function startDrag(e, isTouch = false) {
     const target = isTouch ? e.targetTouches[0].target : e.target;
+
     if (!target.classList.contains("draggable") || target.parentElement !== palette) return;
-    if (document.querySelectorAll("body > .draggable-wrapper").length >= MAX_VEHICLES) return;
+    if (document.querySelectorAll(".draggable-wrapper").length >= MAX_VEHICLES) return;
 
     const wrapper = document.createElement("div");
     wrapper.classList.add("draggable-wrapper");
-    wrapper.style.position = "absolute";
-    wrapper.style.zIndex = 1000;
 
     const clone = target.cloneNode(true);
     clone.classList.add("dropped-vehicle");
     clone.style.pointerEvents = "none";
-    wrapper.appendChild(clone);
+
+    let rotation = 0;
+
+    function updateTransform() {
+      const flip = clone.classList.contains("flipped-horizontal") ? -1 : 1;
+      clone.style.transform = `rotate(${rotation}deg) scaleX(${flip})`;
+    }
+
+    // -------------------------
+    // ROTATE + FLIP BUTTONS
+    // -------------------------
+    const rotateLeftBtn = document.createElement("button");
+    rotateLeftBtn.innerHTML = "⟲";
+    rotateLeftBtn.className = "rotate-left-btn";
+
+    rotateLeftBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      rotation -= 90;
+      updateTransform();
+    };
+
+    const rotateRightBtn = document.createElement("button");
+    rotateRightBtn.innerHTML = "⟳";
+    rotateRightBtn.className = "rotate-right-btn";
+
+    rotateRightBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      rotation += 90;
+      updateTransform();
+    };
 
     const flipBtn = document.createElement("button");
     flipBtn.className = "flip-btn";
     flipBtn.innerHTML = "↔";
-    flipBtn.style.display = "none";
+
     flipBtn.onclick = (ev) => {
       ev.stopPropagation();
       clone.classList.toggle("flipped-horizontal");
+      updateTransform();
     };
+
+    wrapper.appendChild(clone);
+    wrapper.appendChild(rotateLeftBtn);
+    wrapper.appendChild(rotateRightBtn);
     wrapper.appendChild(flipBtn);
 
-    wrapper.addEventListener("mouseenter", () => (flipBtn.style.display = "block"));
-    wrapper.addEventListener("mouseleave", () => (flipBtn.style.display = "none"));
+    wrapper.addEventListener("mouseenter", () => {
+      rotateLeftBtn.style.display = "block";
+      rotateRightBtn.style.display = "block";
+      flipBtn.style.display = "block";
+    });
 
-    document.getElementById("map-container").appendChild(wrapper);
+    wrapper.addEventListener("mouseleave", () => {
+      rotateLeftBtn.style.display = "none";
+      rotateRightBtn.style.display = "none";
+      flipBtn.style.display = "none";
+    });
+
+    // -------------------------
+    // DELETE (DOUBLE TAP / CLICK)
+    // -------------------------
+    let lastTap = 0;
+
+    wrapper.addEventListener("touchend", () => {
+      const now = Date.now();
+      if (now - lastTap < 300) {
+        wrapper.remove();
+      }
+      lastTap = now;
+    });
+
+    wrapper.addEventListener("dblclick", () => {
+      wrapper.remove();
+    });
+
+    // -------------------------
+    // ADD TO MAP
+    // -------------------------
+    const map = document.getElementById("map-container");
+    map.appendChild(wrapper);
+
     dragged = wrapper;
 
     const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
@@ -94,51 +172,66 @@ document.addEventListener("DOMContentLoaded", () => {
 
     dragged.offsetX = 40;
     dragged.offsetY = 40;
+
     dragged.style.left = clientX - dragged.offsetX + "px";
     dragged.style.top = clientY - dragged.offsetY + "px";
 
     e.preventDefault();
-
-    let lastTap = 0;
-
-wrapper.addEventListener("touchend", () => {
-  const now = new Date().getTime();
-  const timeSince = now - lastTap;
-
-  if (timeSince < 300 && timeSince > 0) {
-    wrapper.remove();
-  }
-
-  lastTap = now;
-});
-
-wrapper.addEventListener("dblclick", () => {
-  wrapper.remove();
-});
   }
 
   function moveDrag(e, isTouch = false) {
     if (!dragged) return;
+
     const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
     const clientY = isTouch ? e.targetTouches[0].clientY : e.clientY;
+
     dragged.style.left = clientX - dragged.offsetX + "px";
     dragged.style.top = clientY - dragged.offsetY + "px";
   }
 
   function endDrag() {
-    if (dragged) dragged.style.zIndex = "";
     dragged = null;
   }
 
-  document.body.addEventListener("mousedown", (e) => startDrag(e, false));
-  document.body.addEventListener("mousemove", (e) => moveDrag(e, false));
+  document.body.addEventListener("mousedown", (e) => startDrag(e));
+  document.body.addEventListener("mousemove", moveDrag);
   document.body.addEventListener("mouseup", endDrag);
+
   document.body.addEventListener("touchstart", (e) => startDrag(e, true), { passive: false });
   document.body.addEventListener("touchmove", (e) => moveDrag(e, true), { passive: false });
   document.body.addEventListener("touchend", endDrag);
 
   // -------------------------
-  // Finish Button Logic
+  // STOP MODAL (NEW)
+  // -------------------------
+  if (stopBtn) {
+    stopBtn.addEventListener("click", () => {
+      const count = document.querySelectorAll(".draggable-wrapper").length;
+
+      stopMessage.textContent =
+        `${studentName} is ${jobDescription} instructions with ${partnerName}`;
+
+      vehicleCountText.textContent = `${count} items placed`;
+
+      stopModal.style.display = "flex";
+    });
+  }
+
+  if (continueGame) {
+    continueGame.onclick = () => {
+      stopModal.style.display = "none";
+    };
+  }
+
+  if (submitGame) {
+    submitGame.onclick = () => {
+      stopModal.style.display = "none";
+      finishBtn.click(); // 🔥 triggers your ORIGINAL submission logic
+    };
+  }
+
+  // -------------------------
+  // ORIGINAL FINISH LOGIC (UNCHANGED)
   // -------------------------
   if (finishBtn) {
     finishBtn.addEventListener("click", () => {
@@ -148,6 +241,7 @@ wrapper.addEventListener("dblclick", () => {
       placedVehicles.forEach((wrapper) => {
         const img = wrapper.querySelector("img");
         const isFlipped = img.classList.contains("flipped-horizontal");
+
         vehicleData.push({
           name: img.src.split("/").pop().split(".")[0],
           x: wrapper.style.left,
@@ -173,7 +267,6 @@ wrapper.addEventListener("dblclick", () => {
           .replace(/\s+/g, '_')
           .replace(/[^\w\-\.]/g, '');
 
-        // Upload to Google Apps Script for image storage
         fetch("https://script.google.com/macros/s/AKfycbzQFM9jcNCDPVg70SzmQ3hZIYahhDbTQXJ4UyqaTby81hTMWMmgxCtPX9nZxqHVfs_Mew/exec", {
           method: "POST",
           body: JSON.stringify({ image: dataUrl, filename: fileName }),
@@ -181,7 +274,6 @@ wrapper.addEventListener("dblclick", () => {
         });
       });
 
-      // Submit summary to Google Forms
       const formData = new FormData();
       formData.append("entry.1202364028", "Mrs Cove");
       formData.append("entry.1957249768", studentClass);
@@ -207,20 +299,15 @@ wrapper.addEventListener("dblclick", () => {
     });
   }
 
-  // Utility: capture screenshot of entire body
+  // -------------------------
+  // SCREENSHOT
+  // -------------------------
   function captureScreenshot() {
     return html2canvas(document.body).then((canvas) => canvas.toDataURL("image/png"));
   }
 
-  // Utility: restore preview image from screenshot
-  function restorePreview() {
-    captureScreenshot().then((dataUrl) => {
-      if (previewImg) previewImg.src = dataUrl;
-    });
-  }
-
   // -------------------------
-  // Modal Buttons
+  // EXISTING BUTTONS
   // -------------------------
   if (againBtn) {
     againBtn.addEventListener("click", () => {
