@@ -409,13 +409,18 @@ function endDrag() {
     formData.append("entry.1017965571", "1");
     formData.append("entry.1568301781", vehicleSummary);
 
-    fetch("https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse", {
-      method: "POST",
-      mode: "no-cors",
-      body: formData
-    });
-  });
-
+fetch("https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse", {
+  method: "POST",
+  mode: "no-cors",
+  body: formData
+}).then(() => {
+  // small delay so submission isn't cut off
+  setTimeout(() => {
+    localStorage.removeItem("savedVehicles");
+    localStorage.removeItem("savedGameMeta");
+    window.location.href = "../index.html";
+  }, 1000);
+});
   function captureScreenshot() {
     return html2canvas(document.body).then((canvas) => canvas.toDataURL("image/png"));
   }
