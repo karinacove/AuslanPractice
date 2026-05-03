@@ -25,14 +25,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const stopModal = document.getElementById("stop-modal");
   const stopMessage = document.getElementById("stop-message");
-  const continueGame = document.getElementById("continue-game");
-  const submitGame = document.getElementById("submit-game");
+  const continueGame = document.getElementById("continue-game"); 
+  const submitGame = document.getElementById("submit-game");    
 
   const resumeScreen = document.getElementById("resume-screen");
   const resumeInfo = document.getElementById("resume-info");
   const resumeContinue = document.getElementById("resume-continue");
-  const resumeAgain = document.getElementById("resume-again");
-  const resumeMenu = document.getElementById("resume-menu");
+  const resumeSubmit = document.getElementById("resume-submit");
 
   const endModal = document.getElementById("end-modal");
   const againBtn = document.getElementById("again-btn");
@@ -199,39 +198,36 @@ document.addEventListener("DOMContentLoaded", () => {
   // RESUME BUTTONS
   // -------------------------
 
-  if (continueGame) {
-    continueGame.onclick = () => {
-      resumeScreen.style.display = "none";
+if (resumeContinue) {
+  resumeContinue.onclick = () => {
+    resumeScreen.style.display = "none";
 
-      jobDescription = savedMeta.jobDescription;
-      partnerName = savedMeta.partnerName;
+    jobDescription = savedMeta.jobDescription;
+    partnerName = savedMeta.partnerName;
 
-      palette.style.display = "grid";
-      stopBtn.style.display = "inline-block";
+    palette.style.display = "grid";
+    stopBtn.style.display = "inline-block";
 
-      studentInfo.style.display = "block";
-      studentInfo.textContent =
-        `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
+    studentInfo.style.display = "block";
+    studentInfo.textContent =
+      `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
 
-      restoreGame();
-    };
-  }
+    restoreGame();
+  };
+}
 
-  if (submitGame) {
-    submitGame.onclick = () => {
-      resumeScreen.style.display = "none";
+if (resumeSubmit) {
+  resumeSubmit.onclick = () => {
+    resumeScreen.style.display = "none";
 
-      // optional: trigger submission flow
-      if (stopBtn) stopBtn.click();
-    };
-  }
-
+    // send them straight to submission
+    if (stopBtn) stopBtn.click();
+  };
+}
   // -------------------------
   // START BUTTON
   // -------------------------
-// -------------------------
-// START BUTTON (FIXED)
-// -------------------------
+
 if (startBtn && startOverlay) {
   startOverlay.style.display = "flex";
 
