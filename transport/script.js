@@ -195,9 +195,16 @@ document.addEventListener("DOMContentLoaded", () => {
     startOverlay.style.display = "flex";
   }
 
-  resumeContinue.onclick = () => {
-    resumeScreen.style.display = "none";
-
+  if (continueGame) {
+    continueGame.onclick = () => {
+      resumeScreen.style.display = "none";
+    }
+  if (submitGame) {
+    submitGame.onclick = () => {
+      resumeScreen.style.display = "none";
+      stop.Btn.click();
+    };
+    
     jobDescription = savedMeta.jobDescription;
     partnerName = savedMeta.partnerName;
 
