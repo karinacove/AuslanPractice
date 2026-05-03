@@ -180,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return wrapper;
   }
 
-  // -------------------------
+    // -------------------------
   // RESUME LOGIC
   // -------------------------
   const savedVehicles = localStorage.getItem("savedVehicles");
@@ -195,28 +195,36 @@ document.addEventListener("DOMContentLoaded", () => {
     startOverlay.style.display = "flex";
   }
 
+  // -------------------------
+  // RESUME BUTTONS
+  // -------------------------
+
   if (continueGame) {
     continueGame.onclick = () => {
       resumeScreen.style.display = "none";
-    }
+
+      jobDescription = savedMeta.jobDescription;
+      partnerName = savedMeta.partnerName;
+
+      palette.style.display = "grid";
+      stopBtn.style.display = "inline-block";
+
+      studentInfo.style.display = "block";
+      studentInfo.textContent =
+        `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
+
+      restoreGame();
+    };
+  }
+
   if (submitGame) {
     submitGame.onclick = () => {
       resumeScreen.style.display = "none";
-      stop.Btn.click();
+
+      // optional: trigger submission flow
+      if (stopBtn) stopBtn.click();
     };
-    
-    jobDescription = savedMeta.jobDescription;
-    partnerName = savedMeta.partnerName;
-
-    palette.style.display = "grid";
-    stopBtn.style.display = "inline-block";
-
-    studentInfo.style.display = "block";
-    studentInfo.textContent =
-      `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
-
-    restoreGame();
-  };
+  }
 
   // -------------------------
   // START BUTTON
