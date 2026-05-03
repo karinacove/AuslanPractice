@@ -197,7 +197,7 @@ html, body {
 }
 
 /* Finish Button (bottom left) */
-#finish-btn {
+#stop-btn {
   position: fixed;
   bottom: 10px;
   left: 10px;
@@ -248,7 +248,7 @@ html, body {
   z-index: 10;
 }
 
-.resume-buttons img {
+.continue-buttons img {
   width: 120px;
   margin: 10px;
   cursor: pointer;
@@ -277,6 +277,8 @@ html, body {
 
 /* Again and Menu buttons styling */
 #again-btn,
+#continue-btn,
+#finish-btn,
 #menu-btn {
   width: 120px;
   height: 120px;
@@ -285,6 +287,8 @@ html, body {
 }
 
 #again-btn:hover,
+#continue-btn:hover,
+#finish-btn:hover,
 #menu-btn:hover {
   transform: scale(1.1);
 }
