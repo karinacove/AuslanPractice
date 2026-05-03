@@ -211,16 +211,6 @@ document.addEventListener("DOMContentLoaded", () => {
     restoreGame();
   };
 
-  resumeAgain.onclick = () => {
-    localStorage.clear();
-    location.reload();
-  };
-
-  resumeMenu.onclick = () => {
-    localStorage.clear();
-    window.location.href = "hub.html";
-  };
-
   // -------------------------
   // START BUTTON
   // -------------------------
