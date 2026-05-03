@@ -13,7 +13,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const studentInfo = document.getElementById("student-info");
   const palette = document.getElementById("vehicle-palette");
   const finishBtn = document.getElementById("finish-btn");
-  const form = document.getElementById("student-form");
+  const startOverlay = document.getElementById("startOverlay");
+  const startBtn = document.getElementById("start-btn");
   const endModal = document.getElementById("end-modal");
   const againBtn = document.getElementById("again-btn");
   const menuBtn = document.getElementById("menu-btn");
@@ -30,29 +31,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (endModal) endModal.classList.remove("show");
 
-  if (form) {
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
-      jobDescription = document.getElementById("jobDescription").value;
-      partnerName = document.getElementById("partnerName").value;
+  if (startBtn) {
+  startOverlay.style.display = "flex";
 
-      form.style.display = "none";
-      if (palette) palette.style.display = "grid";
-      if (finishBtn) finishBtn.style.display = "inline-block";
-      if (studentInfo) {
-        studentInfo.style.display = "block";
-        studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
-      }
+  startBtn.addEventListener("click", () => {
+    jobDescription = document.getElementById("job-description").value;
+    partnerName = document.getElementById("partner-name").value;
 
-      if (localStorage.getItem("savedVehicles")) {
-        if (endModal) endModal.classList.add("show");
-        restorePreview();
-        if (vehicleCountText) {
-          vehicleCountText.textContent = `${JSON.parse(localStorage.getItem("savedVehicles")).length} vehicles previously placed.`;
-        }
-      }
-    });
-  }
+    if (!jobDescription || !partnerName) return;
+
+    startOverlay.style.display = "none";
+
+    if (palette) palette.style.display = "grid";
+    if (finishBtn) finishBtn.style.display = "inline-block";
+
+    if (studentInfo) {
+      studentInfo.style.display = "block";
+      studentInfo.textContent = `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
+    }
+  });
+}
 
   // -------------------------
   // Drag & Drop Vehicle Logic with Touch Support
