@@ -267,15 +267,19 @@ if (startBtn && startOverlay) {
 }
 
   // -------------------------
-  // DRAG FROM PALETTE
+  // DRAG
   // -------------------------
-  let dragged = null;
+let dragged = null;
+let offsetX = 0;
+let offsetY = 0;
 
-  function startDrag(e, isTouch = false) {
-    const target = isTouch ? e.targetTouches[0].target : e.target;
+function startDrag(e, isTouch = false) {
+  const target = isTouch ? e.targetTouches[0].target : e.target;
 
-    if (!target.classList.contains("draggable") || target.parentElement !== palette) return;
-
+  // -------------------------
+  // CASE 1: dragging from palette (create new)
+  // -------------------------
+  if (target.classList.contains("draggable") && target.parentElement === palette) {
     const wrapper = createVehicleFromData({
       src: target.src,
       left: "0px",
@@ -286,35 +290,47 @@ if (startBtn && startOverlay) {
 
     map.appendChild(wrapper);
     dragged = wrapper;
+  }
 
-    const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
-    const clientY = isTouch ? e.targetTouches[0].clientY : e.clientY;
+  // -------------------------
+  // CASE 2: dragging existing item
+  // -------------------------
+  else if (target.closest(".draggable-wrapper")) {
+    dragged = target.closest(".draggable-wrapper");
+  }
 
-    dragged.offsetX = 40;
-    dragged.offsetY = 40;
+  if (!dragged) return;
 
-    dragged.style.left = clientX - dragged.offsetX + "px";
-    dragged.style.top = clientY - dragged.offsetY + "px";
+  const rect = dragged.getBoundingClientRect();
 
+  const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
+  const clientY = isTouch ? e.targetTouches[0].clientY : e.clientY;
+
+  offsetX = clientX - rect.left;
+  offsetY = clientY - rect.top;
+
+  dragged.style.zIndex = 2000;
+
+  e.preventDefault();
+}
+
+function moveDrag(e, isTouch = false) {
+  if (!dragged) return;
+
+  const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
+  const clientY = isTouch ? e.targetTouches[0].clientY : e.clientY;
+
+  dragged.style.left = clientX - offsetX + "px";
+  dragged.style.top = clientY - offsetY + "px";
+}
+
+function endDrag() {
+  if (dragged) {
+    dragged.style.zIndex = "";
     saveGame();
-    e.preventDefault();
   }
-
-  function moveDrag(e, isTouch = false) {
-    if (!dragged) return;
-
-    const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
-    const clientY = isTouch ? e.targetTouches[0].clientY : e.clientY;
-
-    dragged.style.left = clientX - dragged.offsetX + "px";
-    dragged.style.top = clientY - dragged.offsetY + "px";
-  }
-
-  function endDrag() {
-    if (dragged) saveGame();
-    dragged = null;
-  }
-
+  dragged = null;
+}
   document.body.addEventListener("mousedown", startDrag);
   document.body.addEventListener("mousemove", moveDrag);
   document.body.addEventListener("mouseup", endDrag);
