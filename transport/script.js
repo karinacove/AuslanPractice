@@ -224,23 +224,42 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------
   // START BUTTON
   // -------------------------
-  startBtn.onclick = () => {
-    jobDescription = document.getElementById("job-description").value;
-    partnerName = document.getElementById("partner-name").value;
+// -------------------------
+// START BUTTON (FIXED)
+// -------------------------
+if (startBtn && startOverlay) {
+  startOverlay.style.display = "flex";
 
-    if (!jobDescription || !partnerName) return;
+  startBtn.addEventListener("click", () => {
+    const jobSelect = document.getElementById("job-description");
+    const partnerInput = document.getElementById("partner-name");
+
+    if (!jobSelect || !partnerInput) return;
+
+    jobDescription = jobSelect.value;
+    partnerName = partnerInput.value.trim();
+
+    if (jobDescription === "" || partnerName === "") {
+      alert("Please select role and enter partner name");
+      return;
+    }
 
     startOverlay.style.display = "none";
 
-    palette.style.display = "grid";
-    stopBtn.style.display = "inline-block";
+    if (palette) palette.style.display = "grid";
+    if (document.getElementById("stop-btn")) {
+      document.getElementById("stop-btn").style.display = "inline-block";
+    }
 
-    studentInfo.style.display = "block";
-    studentInfo.textContent =
-      `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
+    if (studentInfo) {
+      studentInfo.style.display = "block";
+      studentInfo.textContent =
+        `👤 ${studentName} (${studentClass})\n${jobDescription} instructions with ${partnerName}`;
+    }
 
     saveGame();
-  };
+  });
+}
 
   // -------------------------
   // DRAG FROM PALETTE
