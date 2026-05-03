@@ -104,7 +104,17 @@ html, body {
   z-index: 1001;
   display: none;
 }
+.rotate-left-btn {
+  position: absolute;
+  top: -20px;
+  left: 10%;
+}
 
+.rotate-right-btn {
+  position: absolute;
+  top: -20px;
+  right: 10%;
+}
 .draggable-wrapper:hover .flip-btn {
   display: block;
 }
