@@ -98,6 +98,23 @@ document.addEventListener("DOMContentLoaded", () => {
     dragged.style.top = clientY - dragged.offsetY + "px";
 
     e.preventDefault();
+
+    let lastTap = 0;
+
+wrapper.addEventListener("touchend", () => {
+  const now = new Date().getTime();
+  const timeSince = now - lastTap;
+
+  if (timeSince < 300 && timeSince > 0) {
+    wrapper.remove();
+  }
+
+  lastTap = now;
+});
+
+wrapper.addEventListener("dblclick", () => {
+  wrapper.remove();
+});
   }
 
   function moveDrag(e, isTouch = false) {
