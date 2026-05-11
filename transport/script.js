@@ -195,12 +195,13 @@ document.addEventListener("DOMContentLoaded", () => {
     startOverlay.style.display = "flex";
   }
 
-  // -------------------------
-  // RESUME BUTTONS
-  // -------------------------
+// -------------------------
+// RESUME BUTTONS
+// -------------------------
 
 if (resumeContinue) {
   resumeContinue.onclick = () => {
+
     resumeScreen.style.display = "none";
 
     jobDescription = savedMeta.jobDescription;
@@ -210,8 +211,10 @@ if (resumeContinue) {
     stopBtn.style.display = "inline-block";
 
     studentInfo.style.display = "block";
+
     studentInfo.textContent =
-      `👤 ${studentName} (${studentClass})\n${jobDescription} with ${partnerName}`;
+      `👤 ${studentName} (${studentClass})
+${jobDescription} instructions with ${partnerName}`;
 
     restoreGame();
   };
@@ -219,10 +222,11 @@ if (resumeContinue) {
 
 if (resumeSubmit) {
   resumeSubmit.onclick = () => {
-    resumeScreen.style.display = "none";
 
-    // send them straight to submission
-    if (stopBtn) stopBtn.click();
+    localStorage.removeItem("savedVehicles");
+    localStorage.removeItem("savedGameMeta");
+
+    window.location.href = "../index.html";
   };
 }
   // -------------------------
@@ -359,14 +363,26 @@ function endDrag() {
     stopModal.style.display = "flex";
   };
 
-  continueGame.onclick = () => {
-    stopModal.style.display = "none";
-  };
+// -------------------------
+// STOP MODAL BUTTONS
+// -------------------------
 
-  submitGame.onclick = () => {
+if (stopContinue) {
+  stopContinue.onclick = () => {
     stopModal.style.display = "none";
-    finishBtn.click();
   };
+}
+
+if (stopSubmit) {
+  stopSubmit.onclick = () => {
+
+    stopModal.style.display = "none";
+
+    if (finishBtn) {
+      finishBtn.click();
+    }
+  };
+}
 
   // -------------------------
   // ORIGINAL FINISH LOGIC (UNCHANGED)
