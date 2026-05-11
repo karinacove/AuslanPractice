@@ -381,22 +381,6 @@ fetch(SCRIPT_URL, {
     vehicleData
   })
 });
-    .then(() => {
-      console.log("Submitted to Apps Script");
 
-      localStorage.removeItem("savedVehicles");
-      localStorage.removeItem("savedGameMeta");
-
-      setTimeout(() => {
-        window.location.href = "../index.html";
-      }, 800);
-    })
-    .catch(err => {
-      console.error("Finish failed:", err);
-      alert("Submission failed — check console");
-    });
-
-  });
-}
 
 });
