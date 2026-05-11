@@ -335,52 +335,70 @@ ${jobDescription} instructions with ${partnerName}`;
   // -------------------------
   // FINISH → SEND TO GOOGLE SCRIPT
   // -------------------------
-  if (finishBtn) {
-    finishBtn.addEventListener("click", () => {
+// -------------------------
+// FINISH → SEND TO GOOGLE SCRIPT
+// -------------------------
+if (finishBtn) {
+  finishBtn.addEventListener("click", () => {
 
-      const vehicleData = [];
+    console.log("FINISH CLICKED");
 
-      document.querySelectorAll(".draggable-wrapper").forEach((wrapper) => {
-        const img = wrapper.querySelector("img");
+    const vehicleData = [];
 
-        vehicleData.push({
-          vehicle: decodeURIComponent(img.src.split("/").pop().split(".")[0]),
-          x: parseFloat(wrapper.style.left),
-          y: parseFloat(wrapper.style.top),
-          flipped: img.classList.contains("flipped-horizontal"),
-          rotation: wrapper.dataset.rotation || 0
-        });
+    document.querySelectorAll(".draggable-wrapper").forEach((wrapper) => {
+      const img = wrapper.querySelector("img");
+
+      const x = parseFloat(wrapper.style.left) || 0;
+      const y = parseFloat(wrapper.style.top) || 0;
+
+      vehicleData.push({
+        vehicle: decodeURIComponent(img.src.split("/").pop().split(".")[0]),
+        x,
+        y,
+        flipped: img.classList.contains("flipped-horizontal"),
+        rotation: wrapper.dataset.rotation || 0
       });
-
-      const vehicleSummary = vehicleData
-        .map(v => `${v.vehicle} at (${v.x}, ${v.y})${v.flipped ? " [flipped]" : ""}`)
-        .join("; ");
-
-      const sessionId = localStorage.getItem("sessionId");
-
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId,
-          studentName,
-          studentClass,
-          role: jobDescription,
-          partnerName,
-          vehicleSummary,
-          vehicleData
-        })
-      })
-      .then(() => {
-        localStorage.removeItem("savedVehicles");
-        localStorage.removeItem("savedGameMeta");
-
-        setTimeout(() => {
-          window.location.href = "../index.html";
-        }, 800);
-      })
-      .catch(err => console.error("Finish error:", err));
     });
-  }
+
+    const vehicleSummary = vehicleData
+      .map(v =>
+        `${v.vehicle} at (${v.x}, ${v.y})${v.flipped ? " [flipped]" : ""}`
+      )
+      .join("; ");
+
+    const sessionId = localStorage.getItem("sessionId") || crypto.randomUUID();
+
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        sessionId,
+        studentName,
+        studentClass,
+        role: jobDescription,
+        partnerName,
+        vehicleSummary,
+        vehicleData
+      })
+    })
+    .then(() => {
+      console.log("Submitted to Apps Script");
+
+      localStorage.removeItem("savedVehicles");
+      localStorage.removeItem("savedGameMeta");
+
+      setTimeout(() => {
+        window.location.href = "../index.html";
+      }, 800);
+    })
+    .catch(err => {
+      console.error("Finish failed:", err);
+      alert("Submission failed — check console");
+    });
+
+  });
+}
 
 });
