@@ -330,55 +330,64 @@ ${jobDescription} instructions with ${partnerName}`;
     };
   }
 
-  // -------------------------
-  // FINISH → SEND TO GOOGLE (WITH SESSION + ROLE)
-  // -------------------------
-  if (finishBtn) {
-    finishBtn.addEventListener("click", () => {
+// -------------------------
+// FINISH → SEND TO APPS SCRIPT (SESSION MATCHING SYSTEM)
+// -------------------------
+if (finishBtn) {
+  finishBtn.addEventListener("click", () => {
 
-      const vehicleData = [];
+    const vehicleData = [];
 
-      document.querySelectorAll(".draggable-wrapper").forEach((wrapper) => {
-        const img = wrapper.querySelector("img");
+    document.querySelectorAll(".draggable-wrapper").forEach((wrapper) => {
+      const img = wrapper.querySelector("img");
 
-        vehicleData.push({
-          name: decodeURIComponent(img.src.split("/").pop().split(".")[0]),
-          x: wrapper.style.left,
-          y: wrapper.style.top,
-          flipped: img.classList.contains("flipped-horizontal")
-        });
-      });
-
-      const vehicleSummary = vehicleData
-        .map(v => `${v.name} at (${v.x}, ${v.y})${v.flipped ? " [flipped]" : ""}`)
-        .join("; ");
-
-      const formData = new FormData();
-
-      formData.append("entry.SESSION_ID", sessionId);
-      formData.append("entry.STUDENT_NAME", studentName);
-      formData.append("entry.CLASS", studentClass);
-      formData.append("entry.ROLE", jobDescription);
-      formData.append("entry.PARTNER", partnerName);
-      formData.append("entry.VEHICLE_DATA", JSON.stringify(vehicleData));
-      formData.append("entry.VEHICLE_SUMMARY", vehicleSummary);
-
-      fetch("YOUR_GOOGLE_FORM_URL_HERE", {
-        method: "POST",
-        mode: "no-cors",
-        body: formData
-      }).then(() => {
-
-        localStorage.removeItem("savedVehicles");
-        localStorage.removeItem("savedGameMeta");
-
-        setTimeout(() => {
-          window.location.href = "../index.html";
-        }, 800);
-
+      vehicleData.push({
+        vehicle: decodeURIComponent(img.src.split("/").pop().split(".")[0]),
+        x: parseFloat(wrapper.style.left),
+        y: parseFloat(wrapper.style.top),
+        flipped: img.classList.contains("flipped-horizontal"),
+        rotation: wrapper.dataset.rotation || 0
       });
     });
-  }
+
+    const vehicleSummary = vehicleData
+      .map(v =>
+        `${v.vehicle} at (${v.x}, ${v.y})${v.flipped ? " [flipped]" : ""}`
+      )
+      .join("; ");
+
+    const sessionId =
+      localStorage.getItem("sessionId") ||
+      `${studentClass}_${partnerName}`;
+
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        sessionId: sessionId,
+        studentName: studentName,
+        className: studentClass,
+        role: jobDescription, // Giving / Receiving
+        partnerName: partnerName,
+        vehicleSummary: vehicleSummary,
+        vehicleData: vehicleData
+      })
+    })
+    .then(() => {
+
+      localStorage.removeItem("savedVehicles");
+      localStorage.removeItem("savedGameMeta");
+
+      setTimeout(() => {
+        window.location.href = "../index.html";
+      }, 800);
+
+    });
+
+  });
+}
 
   function captureScreenshot() {
     return html2canvas(document.body)
