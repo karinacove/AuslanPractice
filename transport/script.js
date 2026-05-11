@@ -368,21 +368,19 @@ if (finishBtn) {
 
     const sessionId = localStorage.getItem("sessionId") || crypto.randomUUID();
 
-    fetch(SCRIPT_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        sessionId,
-        studentName,
-        studentClass,
-        role: jobDescription,
-        partnerName,
-        vehicleSummary,
-        vehicleData
-      })
-    })
+fetch(SCRIPT_URL, {
+  method: "POST",
+  mode: "no-cors",
+  body: JSON.stringify({
+    sessionId,
+    studentName,
+    studentClass,
+    role: jobDescription,
+    partnerName,
+    vehicleSummary,
+    vehicleData
+  })
+});
     .then(() => {
       console.log("Submitted to Apps Script");
 
