@@ -292,50 +292,52 @@ document.addEventListener("touchend", endDrag);
     finishBtn.click();
   };
 
-  // -------------------------
-  // FINISH (FIXED)
-  // -------------------------
-  finishBtn?.addEventListener("click", async () => {
+// -------------------------
+// FINISH → SEND TO GOOGLE
+// -------------------------
+finishBtn?.addEventListener("click", () => {
 
-    console.log("FINISH CLICKED");
+  console.log("FINISH CLICKED");
 
-    const vehicleData = [];
+  const vehicleData = [];
 
-    document.querySelectorAll(".draggable-wrapper").forEach(wrapper => {
-      const img = wrapper.querySelector("img");
+  document.querySelectorAll(".draggable-wrapper").forEach(wrapper => {
 
-      vehicleData.push({
-        vehicle: img.src.split("/").pop().split(".")[0],
-        x: parseFloat(wrapper.style.left) || 0,
-        y: parseFloat(wrapper.style.top) || 0,
-        flipped: img.classList.contains("flipped-horizontal"),
-        rotation: wrapper.dataset.rotation || 0
-      });
+    const img = wrapper.querySelector("img");
+
+    vehicleData.push({
+      vehicle: img.src.split("/").pop().split(".")[0],
+      x: parseFloat(wrapper.style.left) || 0,
+      y: parseFloat(wrapper.style.top) || 0,
+      flipped: img.classList.contains("flipped-horizontal"),
+      rotation: wrapper.dataset.rotation || 0
     });
 
-    const payload = {
-      sessionId,
-      studentName,
-      studentClass,
-      role: jobDescription,
-      partnerName,
-      vehicleData
-    };
-
-    try {
-      await fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      localStorage.clear();
-      window.location.href = "../index.html";
-
-    } catch (err) {
-      console.error("Finish error:", err);
-      alert("Submit failed (check Apps Script deployment)");
-    }
   });
+
+  // FORM DATA (NOT JSON)
+  const formData = new FormData();
+
+  formData.append("sessionId", sessionId);
+  formData.append("studentName", studentName);
+  formData.append("studentClass", studentClass);
+  formData.append("role", jobDescription);
+  formData.append("partnerName", partnerName);
+  formData.append("vehicleData", JSON.stringify(vehicleData));
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    body: formData
+  });
+
+  // CLEAR + RETURN
+  localStorage.clear();
+
+  setTimeout(() => {
+    window.location.href = "../index.html";
+  }, 1000);
+
+});
 
 });
