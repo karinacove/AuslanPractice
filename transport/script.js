@@ -229,14 +229,14 @@ if (resumeSubmit) {
     window.location.href = "../index.html";
   };
 }
-  // -------------------------
-  // START BUTTON
-  // -------------------------
+// -------------------------
+// START BUTTON
+// -------------------------
 
 if (startBtn && startOverlay) {
-  startOverlay.style.display = "flex";
 
   startBtn.addEventListener("click", () => {
+
     const jobSelect = document.getElementById("job-description");
     const partnerInput = document.getElementById("partner-name");
 
@@ -252,21 +252,17 @@ if (startBtn && startOverlay) {
 
     startOverlay.style.display = "none";
 
-    if (palette) palette.style.display = "grid";
-    if (document.getElementById("stop-btn")) {
-      document.getElementById("stop-btn").style.display = "inline-block";
-    }
+    palette.style.display = "grid";
+    stopBtn.style.display = "inline-block";
 
-    if (studentInfo) {
-      studentInfo.style.display = "block";
-      studentInfo.textContent =
-        `👤 ${studentName} (${studentClass})\n${jobDescription} instructions with ${partnerName}`;
-    }
+    studentInfo.style.display = "block";
+    studentInfo.textContent =
+      `👤 ${studentName} (${studentClass})
+${jobDescription} instructions with ${partnerName}`;
 
     saveGame();
   });
 }
-
   // -------------------------
   // DRAG
   // -------------------------
