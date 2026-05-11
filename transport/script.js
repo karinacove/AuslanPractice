@@ -25,9 +25,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const stopModal = document.getElementById("stop-modal");
   const stopMessage = document.getElementById("stop-message");
-  const continueGame = document.getElementById("continue-game"); 
-  const submitGame = document.getElementById("submit-game");    
-
+  
+  const stopContinue = document.getElementById("stop-continue");
+  const stopSubmit = document.getElementById("stop-submit");
+  
   const resumeScreen = document.getElementById("resume-screen");
   const resumeInfo = document.getElementById("resume-info");
   const resumeContinue = document.getElementById("resume-continue");
