@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // -------------------------
-  // SESSION (CRITICAL FOR MATCHING GIVER/FOLLOWER)
+  // SESSION ID (MATCHING SYSTEM)
   // -------------------------
   let sessionId = localStorage.getItem("sessionId");
 
@@ -26,7 +26,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------
   const studentInfo = document.getElementById("student-info");
   const palette = document.getElementById("vehicle-palette");
-  const role = jobDescription;
 
   const finishBtn = document.getElementById("finish-btn");
   const stopBtn = document.getElementById("stop-btn");
@@ -44,23 +43,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const resumeContinue = document.getElementById("resume-continue");
   const resumeSubmit = document.getElementById("resume-submit");
 
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_fNusLoNCFW5DhCQf-gtDloq-nMOYKy2mnQgLNFZalylzHC_9eOGgE8vQSV3Q2SDiDw/exec";
-
   const map = document.getElementById("map-container");
   const vehicleCountText = document.getElementById("vehicle-count");
-  const previewImg = document.getElementById("map-preview");
+
+  const SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycbx_fNusLoNCFW5DhCQf-gtDloq-nMOYKy2mnQgLNFZalylzHC_9eOGgE8vQSV3Q2SDiDw/exec";
 
   let jobDescription = "";
   let partnerName = "";
 
-  let sessionId = localStorage.getItem("sessionId");
-
-  if (!sessionId) {
-  sessionId = Math.random().toString(36).substring(2, 8).toUpperCase();
-  localStorage.setItem("sessionId", sessionId);
-  }
   // -------------------------
-  // SAVE / RESTORE (LOCAL ONLY)
+  // SAVE / RESTORE
   // -------------------------
   function saveGame() {
     const vehicleData = [];
@@ -79,13 +72,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     localStorage.setItem("savedVehicles", JSON.stringify(vehicleData));
 
-  localStorage.setItem("savedGameMeta", JSON.stringify({
-  sessionId,
-  studentName,
-  studentClass,
-  jobDescription,
-  partnerName
-}));
+    localStorage.setItem("savedGameMeta", JSON.stringify({
+      sessionId,
+      studentName,
+      studentClass,
+      jobDescription,
+      partnerName
+    }));
   }
 
   function restoreGame() {
@@ -98,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // -------------------------
-  // VEHICLE CREATION
+  // CREATE VEHICLE
   // -------------------------
   function createVehicleFromData(v) {
     const wrapper = document.createElement("div");
@@ -176,7 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // -------------------------
-  // RESUME LOGIC
+  // RESUME
   // -------------------------
   const savedMeta = JSON.parse(localStorage.getItem("savedGameMeta") || "{}");
 
@@ -188,9 +181,6 @@ document.addEventListener("DOMContentLoaded", () => {
     startOverlay.style.display = "flex";
   }
 
-  // -------------------------
-  // RESUME CONTINUE
-  // -------------------------
   if (resumeContinue) {
     resumeContinue.onclick = () => {
       resumeScreen.style.display = "none";
@@ -207,6 +197,14 @@ document.addEventListener("DOMContentLoaded", () => {
 ${jobDescription} instructions with ${partnerName}`;
 
       restoreGame();
+    };
+  }
+
+  if (resumeSubmit) {
+    resumeSubmit.onclick = () => {
+      localStorage.removeItem("savedVehicles");
+      localStorage.removeItem("savedGameMeta");
+      window.location.href = "../index.html";
     };
   }
 
@@ -253,6 +251,7 @@ ${jobDescription} instructions with ${partnerName}`;
     const clientY = touch ? e.targetTouches[0].clientY : e.clientY;
 
     if (target.classList.contains("draggable") && target.parentElement === palette) {
+
       const wrapper = createVehicleFromData({
         src: target.src,
         left: `${clientX - 40}px`,
@@ -322,85 +321,66 @@ ${jobDescription} instructions with ${partnerName}`;
     stopModal.style.display = "flex";
   };
 
-  // -------------------------
-  // STOP ACTIONS (SUBMIT)
-  // -------------------------
+  if (stopContinue) {
+    stopContinue.onclick = () => stopModal.style.display = "none";
+  }
+
   if (stopSubmit) {
     stopSubmit.onclick = () => {
       stopModal.style.display = "none";
-
       if (finishBtn) finishBtn.click();
     };
   }
 
-  if (stopContinue) {
-    stopContinue.onclick = () => {
-      stopModal.style.display = "none";
-    };
-  }
+  // -------------------------
+  // FINISH → SEND TO GOOGLE SCRIPT
+  // -------------------------
+  if (finishBtn) {
+    finishBtn.addEventListener("click", () => {
 
-// -------------------------
-// FINISH → SEND TO APPS SCRIPT (SESSION MATCHING SYSTEM)
-// -------------------------
-if (finishBtn) {
-  finishBtn.addEventListener("click", () => {
+      const vehicleData = [];
 
-    const vehicleData = [];
+      document.querySelectorAll(".draggable-wrapper").forEach((wrapper) => {
+        const img = wrapper.querySelector("img");
 
-    document.querySelectorAll(".draggable-wrapper").forEach((wrapper) => {
-      const img = wrapper.querySelector("img");
-
-      vehicleData.push({
-        vehicle: decodeURIComponent(img.src.split("/").pop().split(".")[0]),
-        x: parseFloat(wrapper.style.left),
-        y: parseFloat(wrapper.style.top),
-        flipped: img.classList.contains("flipped-horizontal"),
-        rotation: wrapper.dataset.rotation || 0
+        vehicleData.push({
+          vehicle: decodeURIComponent(img.src.split("/").pop().split(".")[0]),
+          x: parseFloat(wrapper.style.left),
+          y: parseFloat(wrapper.style.top),
+          flipped: img.classList.contains("flipped-horizontal"),
+          rotation: wrapper.dataset.rotation || 0
+        });
       });
+
+      const vehicleSummary = vehicleData
+        .map(v => `${v.vehicle} at (${v.x}, ${v.y})${v.flipped ? " [flipped]" : ""}`)
+        .join("; ");
+
+      const sessionId = localStorage.getItem("sessionId");
+
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          studentName,
+          studentClass,
+          role: jobDescription,
+          partnerName,
+          vehicleSummary,
+          vehicleData
+        })
+      })
+      .then(() => {
+        localStorage.removeItem("savedVehicles");
+        localStorage.removeItem("savedGameMeta");
+
+        setTimeout(() => {
+          window.location.href = "../index.html";
+        }, 800);
+      })
+      .catch(err => console.error("Finish error:", err));
     });
-
-    const vehicleSummary = vehicleData
-      .map(v =>
-        `${v.vehicle} at (${v.x}, ${v.y})${v.flipped ? " [flipped]" : ""}`
-      )
-      .join("; ");
-
-    const sessionId =
-      localStorage.getItem("sessionId") ||
-      `${studentClass}_${partnerName}`;
-
-fetch(SCRIPT_URL, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    sessionId,
-    studentName,
-    studentClass,
-    role: jobDescription,
-    partnerName,
-    vehicleSummary,
-    vehicleData
-  })
-})
-.then(() => {
-
-  localStorage.removeItem("savedVehicles");
-  localStorage.removeItem("savedGameMeta");
-
-  setTimeout(() => {
-    window.location.href = "../index.html";
-  }, 800);
-
-});
-
-  });
-}
-
-  function captureScreenshot() {
-    return html2canvas(document.body)
-      .then(canvas => canvas.toDataURL("image/png"));
   }
 
 });
