@@ -214,28 +214,26 @@ document.addEventListener("DOMContentLoaded", () => {
   function startDrag(e, touch = false) {
     const t = touch ? e.touches[0] : e.target;
 
-    if (t.classList.contains("draggable") && t.parentElement === palette) {
-      dragged = createVehicle({
-        src: t.src,
-        left: "0px",
-        top: "0px",
-        flipped: false,
-        rotation: 0
-      });
-      map.appendChild(dragged);
-    } else {
-      dragged = t.closest(".draggable-wrapper");
-    }
+if (t.classList.contains("draggable") && t.parentElement === palette) {
 
-    if (!dragged) return;
+  const rect = map.getBoundingClientRect();
 
-    const rect = dragged.getBoundingClientRect();
-    const cx = touch ? e.touches[0].clientX : e.clientX;
-    const cy = touch ? e.touches[0].clientY : e.clientY;
+  const wrapper = createVehicle({
+    src: t.src,
+    left: `${clientX - rect.left - 40}px`,
+    top: `${clientY - rect.top - 40}px`,
+    flipped: false,
+    rotation: 0
+  });
 
-    offsetX = cx - rect.left;
-    offsetY = cy - rect.top;
-  }
+  map.appendChild(wrapper);
+  dragged = wrapper;
+
+  offsetX = 40;
+  offsetY = 40;
+
+  return;
+}
 
   function moveDrag(e, touch = false) {
     if (!dragged) return;
