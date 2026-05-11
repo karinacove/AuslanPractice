@@ -20,8 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("sessionId", sessionId);
   }
 
-  const SCRIPT_URL =
-    "https://script.google.com/macros/s/AKfycbx_fNusLoNCFW5DhCQf-gtDloq-nMOYKy2mnQgLNFZalylzHC_9eOGgE8vQSV3Q2SDiDw/exec";
+//  const SCRIPT_URL =
+//    "https://script.google.com/macros/s/AKfycbx_fNusLoNCFW5DhCQf-gtDloq-nMOYKy2mnQgLNFZalylzHC_9eOGgE8vQSV3Q2SDiDw/exec";
 
   // -------------------------
   // ELEMENTS
