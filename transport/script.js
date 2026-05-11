@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------
   const studentInfo = document.getElementById("student-info");
   const palette = document.getElementById("vehicle-palette");
+  const role = jobDescription;
 
   const finishBtn = document.getElementById("finish-btn");
   const stopBtn = document.getElementById("stop-btn");
@@ -52,6 +53,12 @@ document.addEventListener("DOMContentLoaded", () => {
   let jobDescription = "";
   let partnerName = "";
 
+  let sessionId = localStorage.getItem("sessionId");
+
+  if (!sessionId) {
+  sessionId = Math.random().toString(36).substring(2, 8).toUpperCase();
+  localStorage.setItem("sessionId", sessionId);
+  }
   // -------------------------
   // SAVE / RESTORE (LOCAL ONLY)
   // -------------------------
@@ -72,13 +79,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     localStorage.setItem("savedVehicles", JSON.stringify(vehicleData));
 
-    localStorage.setItem("savedGameMeta", JSON.stringify({
-      studentName,
-      studentClass,
-      jobDescription,
-      partnerName,
-      sessionId
-    }));
+  localStorage.setItem("savedGameMeta", JSON.stringify({
+  sessionId,
+  studentName,
+  studentClass,
+  jobDescription,
+  partnerName
+}));
   }
 
   function restoreGame() {
@@ -362,31 +369,31 @@ if (finishBtn) {
       localStorage.getItem("sessionId") ||
       `${studentClass}_${partnerName}`;
 
-    fetch(SCRIPT_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        sessionId: sessionId,
-        studentName: studentName,
-        className: studentClass,
-        role: jobDescription, // Giving / Receiving
-        partnerName: partnerName,
-        vehicleSummary: vehicleSummary,
-        vehicleData: vehicleData
-      })
-    })
-    .then(() => {
+fetch(SCRIPT_URL, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    sessionId,
+    studentName,
+    studentClass,
+    role: jobDescription,
+    partnerName,
+    vehicleSummary,
+    vehicleData
+  })
+})
+.then(() => {
 
-      localStorage.removeItem("savedVehicles");
-      localStorage.removeItem("savedGameMeta");
+  localStorage.removeItem("savedVehicles");
+  localStorage.removeItem("savedGameMeta");
 
-      setTimeout(() => {
-        window.location.href = "../index.html";
-      }, 800);
+  setTimeout(() => {
+    window.location.href = "../index.html";
+  }, 800);
 
-    });
+});
 
   });
 }
