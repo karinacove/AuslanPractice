@@ -325,17 +325,18 @@ finishBtn?.addEventListener("click", () => {
   formData.append("partnerName", partnerName);
   formData.append("vehicleData", JSON.stringify(vehicleData));
 
-  fetch(SCRIPT_URL, {
-    method: "POST",
-    mode: "no-cors",
-    body: formData
-  });
+await fetch(SCRIPT_URL, {
+  method: "POST",
+  mode: "no-cors",
+  body: JSON.stringify(payload)
+});
 
-  // CLEAR + RETURN
- // localStorage.clear();
+alert("Submission sent!");
 
-  setTimeout(() => {
-  window.location.href = "../index.html";
+localStorage.removeItem("savedVehicles");
+localStorage.removeItem("savedGameMeta");
+
+window.location.href = "../index.html";
   }, 1000);
 
 });
