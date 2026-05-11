@@ -272,38 +272,47 @@ let offsetY = 0;
 function startDrag(e, isTouch = false) {
   const target = isTouch ? e.targetTouches[0].target : e.target;
 
+  const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
+  const clientY = isTouch ? e.targetTouches[0].clientY : e.clientY;
+
   // -------------------------
-  // CASE 1: dragging from palette (create new)
+  // CASE 1: NEW item from palette
   // -------------------------
-  if (target.classList.contains("draggable") && target.parentElement === palette) {
+  if (
+    target.classList.contains("draggable") &&
+    target.parentElement === palette
+  ) {
+
     const wrapper = createVehicleFromData({
       src: target.src,
-      left: "0px",
-      top: "0px",
+      left: `${clientX - 40}px`,
+      top: `${clientY - 40}px`,
       flipped: false,
       rotation: 0
     });
 
     map.appendChild(wrapper);
     dragged = wrapper;
+
+    // center cursor on image
+    offsetX = 40;
+    offsetY = 40;
   }
 
   // -------------------------
-  // CASE 2: dragging existing item
+  // CASE 2: EXISTING placed item
   // -------------------------
   else if (target.closest(".draggable-wrapper")) {
+
     dragged = target.closest(".draggable-wrapper");
+
+    const rect = dragged.getBoundingClientRect();
+
+    offsetX = clientX - rect.left;
+    offsetY = clientY - rect.top;
   }
 
   if (!dragged) return;
-
-  const rect = dragged.getBoundingClientRect();
-
-  const clientX = isTouch ? e.targetTouches[0].clientX : e.clientX;
-  const clientY = isTouch ? e.targetTouches[0].clientY : e.clientY;
-
-  offsetX = clientX - rect.left;
-  offsetY = clientY - rect.top;
 
   dragged.style.zIndex = 2000;
 
