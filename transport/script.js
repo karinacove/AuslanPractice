@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const resumeContinue = document.getElementById("resume-continue");
   const resumeSubmit = document.getElementById("resume-submit");
 
-  const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_fNusLoNCFW5DhCQf-gtDloq-nMOYKy2mnQgLNFZalylzHC_9eOGgE8vQSV3Q2SDiDw/exec";
 
   const map = document.getElementById("map-container");
   const vehicleCountText = document.getElementById("vehicle-count");
