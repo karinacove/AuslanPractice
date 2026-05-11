@@ -1,4 +1,7 @@
-/* Reset and Base Styles */
+/* =========================
+   RESET + BASE
+========================= */
+
 * {
   box-sizing: border-box;
 }
@@ -10,9 +13,13 @@ html, body {
   font-family: Arial, sans-serif;
   background-color: #c8f5c8;
   overflow: hidden;
+  touch-action: none;
 }
 
-/* Main Layout (map + palette side-by-side) */
+/* =========================
+   MAIN LAYOUT
+========================= */
+
 #main-layout {
   display: flex;
   flex-direction: row;
@@ -21,25 +28,33 @@ html, body {
   overflow: hidden;
 }
 
-/* Map Area */
+/* =========================
+   MAP
+========================= */
+
 #map-container {
   flex: 1;
-  background: url('assets/Map.png') no-repeat center center;
+  position: relative;
+  background: url('assets/Map.png') no-repeat left center;
   background-size: contain;
   background-color: #c8f5c8;
-  background-position: left center;
 }
 
-/* Vehicle Palette */
+/* =========================
+   VEHICLE PALETTE
+========================= */
+
 #vehicle-palette {
   display: none;
-  height: 100vh;
   width: 280px;
+  height: 100vh;
   overflow-y: auto;
+
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
   padding: 6px;
+
   background: rgba(255, 255, 255, 0.9);
   justify-items: center;
   align-content: start;
@@ -57,40 +72,62 @@ html, body {
   transform: scale(1.1);
 }
 
-.vehicle.selected {
-  filter: drop-shadow(0 0 8px white);
-  z-index: 10;
+/* =========================
+   DRAGGABLE VEHICLES
+========================= */
+
+.draggable-wrapper {
+  position: absolute;
+  z-index: 1000;
+  cursor: grab;
+
+  box-shadow: 0 0 8px 3px rgba(40, 167, 69, 0.7);
+  border-radius: 8px;
+  transition: box-shadow 0.3s ease;
 }
 
-/* Dragged Vehicles */
+.draggable-wrapper:hover {
+  box-shadow: 0 0 12px 5px rgba(40, 167, 69, 0.9);
+}
+
 .dropped-vehicle {
   width: 80px;
   height: auto;
   pointer-events: none;
 }
 
-.draggable-wrapper {
-  position: absolute;
-  z-index: 1000;
-  cursor: grab;
-}
-
-.draggable-wrapper img.draggable {
-  width: 80px;
-  height: auto;
-  pointer-events: auto;
-}
-
-.draggable-wrapper img.flipped-horizontal {
-  transform: scaleX(-1);
-}
-
+/* Flip state */
 .flipped-horizontal {
   transform: scaleX(-1);
   transition: transform 0.3s ease;
 }
 
-/* Flip Button */
+/* =========================
+   TOOL BUTTONS (ROTATE / FLIP)
+========================= */
+
+.rotate-left-btn,
+.rotate-right-btn {
+  position: absolute;
+  top: -20px;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.8);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 2px 6px;
+  z-index: 1001;
+  display: none;
+}
+
+.rotate-left-btn {
+  left: 10%;
+}
+
+.rotate-right-btn {
+  right: 10%;
+}
+
 .flip-btn {
   position: absolute;
   bottom: 50%;
@@ -104,39 +141,15 @@ html, body {
   z-index: 1001;
   display: none;
 }
-.rotate-left-btn {
-  position: absolute;
-  top: -20px;
-  left: 10%;
-}
 
-.rotate-right-btn {
-  position: absolute;
-  top: -20px;
-  right: 10%;
-}
 .draggable-wrapper:hover .flip-btn {
   display: block;
 }
 
-/* Glow effect for placed vehicles on the map */
-.draggable-wrapper {
-  position: absolute;
-  z-index: 1000;
-  cursor: grab;
-  /* Add subtle glowing outline */
-  box-shadow: 0 0 8px 3px rgba(40, 167, 69, 0.7); /* green glow */
-  border-radius: 8px; /* soft rounded corners to smooth the glow */
-  transition: box-shadow 0.3s ease;
-}
+/* =========================
+   STUDENT INFO
+========================= */
 
-/* Optional: intensify glow on hover */
-.draggable-wrapper:hover {
-  box-shadow: 0 0 12px 5px rgba(40, 167, 69, 0.9);
-}
-
-
-/* Student Info Top-Left */
 #student-info {
   position: fixed;
   top: 20px;
@@ -151,67 +164,13 @@ html, body {
   display: none;
 }
 
-/* Student Sign-In Form */
-#student-form {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(255, 255, 255, 0.95);
-  padding: 30px;
-  border-radius: 12px;
-  z-index: 10;
-  width: 300px;
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-  gap: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-#student-form label {
-  font-weight: bold;
-  color: #333;
-}
-
-#student-form input {
-  padding: 10px;
-  font-size: 1rem;
-  border: 1px solid #999;
-  border-radius: 6px;
-  text-align: center;
-  width: 100%;
-}
-
-#start-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  align-self: center;
-}
-
-#start-btn img {
-  width: 120px;
-  height: auto;
-  display: block;
-}
-
-/* Finish Button (bottom left) */
-#stop-btn {
-  position: fixed;
-  bottom: 10px;
-  left: 10px;
-  width: 120px;
-  cursor: pointer;
-  z-index: 1000;
-}
+/* =========================
+   START OVERLAY
+========================= */
 
 .overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: rgba(240, 240, 240, 0.95);
   display: flex;
   justify-content: center;
@@ -227,7 +186,8 @@ html, body {
   text-align: center;
 }
 
-.start-box input {
+.start-box input,
+.start-box select {
   display: block;
   margin: 0.5rem auto;
   padding: 0.5rem;
@@ -236,65 +196,62 @@ html, body {
   max-width: 300px;
 }
 
-
-.resume-screen {
-  background: #fff;
-  border: 2px solid #000;
-  padding: 20px;
-  margin: 20px auto;
-  max-width: 600px;
-  text-align: center;
-  box-shadow: 0 0 10px rgba(0,0,0,0.3);
-  z-index: 10;
-}
-.resume-box {
-  background: #fff;
-  border: 2px solid #000;
-  padding: 20px;
-  margin: 20px auto;
-  max-width: 600px;
-  text-align: center;
-  box-shadow: 0 0 10px rgba(0,0,0,0.3);
-  z-index: 10;
-}
-.continue-buttons img {
-  width: 120px;
-  margin: 10px;
-  cursor: pointer;
-}
-.continue-game img {
-  width: 120px;
-  margin: 10px;
-  cursor: pointer;
-}
-
-.submit-game img {
-  width: 120px;
-  margin: 10px;
-  cursor: pointer;
-}
-/* Upload button styling */
-#upload-btn {
-  background-color: #28a745;
-  color: white;
+/* Start button */
+#start-btn {
+  background: none;
   border: none;
-  padding: 10px 18px;
-  border-radius: 6px;
-  font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.3s ease;
 }
 
-#upload-btn:hover {
-  background-color: #218838;
+#start-btn img {
+  width: 120px;
+  height: auto;
 }
 
-/* Hidden file input */
-#upload-input {
-  display: none;
+/* =========================
+   STOP BUTTON
+========================= */
+
+#stop-btn {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  width: 120px;
+  cursor: pointer;
+  z-index: 1000;
 }
 
-/* Again and Menu buttons styling */
+/* =========================
+   MODALS (STOP / RESUME)
+========================= */
+
+.resume-box,
+.start-box {
+  background: #fff;
+  border: 2px solid #000;
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 600px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  z-index: 10;
+}
+
+/* Buttons inside modals */
+#resume-continue,
+#resume-submit,
+#stop-continue,
+#stop-submit {
+  width: 120px;
+  height: auto;
+  cursor: pointer;
+  margin: 10px;
+}
+
+/* =========================
+   GENERAL BUTTONS
+========================= */
+
 #again-btn,
 #continue-btn,
 #finish-btn,
@@ -312,35 +269,46 @@ html, body {
   transform: scale(1.1);
 }
 
-/* Responsive styles */
+/* =========================
+   UPLOAD (if used later)
+========================= */
+
+#upload-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+#upload-btn:hover {
+  background-color: #218838;
+}
+
+#upload-input {
+  display: none;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
 @media (max-width: 900px) {
   #main-layout {
     flex-direction: column;
   }
 
   #map-container {
-    flex: 1;
     height: calc(100vh - 200px);
     background-position: center center;
   }
 }
 
 @media (max-width: 600px) {
-  #row-1 img#map-preview {
-    max-width: 100%;
-    max-height: 150px;
-  }
-
-  #row-1, #row-2, #row-3 {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  #row-1 img#download-btn,
-  #row-2 img#continue-btn,
-  #again-btn,
-  #menu-btn {
-    width: 50px;
-    height: 50px;
+  #vehicle-palette {
+    width: 100%;
+    height: 200px;
   }
 }
