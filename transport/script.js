@@ -332,12 +332,12 @@ finishBtn?.addEventListener("click", () => {
   });
 
   // CLEAR + RETURN
-  localStorage.clear();
+ // localStorage.clear();
 
-  setTimeout(() => {
-    window.location.href = "../index.html";
-  }, 1000);
+ // setTimeout(() => {
+ //   window.location.href = "../index.html";
+//  }, 1000);
 
-});
+//});
 
 });
