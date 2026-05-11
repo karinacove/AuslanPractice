@@ -12,20 +12,23 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // -------------------------
-  // SESSION ID (MATCHING SYSTEM)
+  // SESSION ID (CRITICAL MATCH KEY)
   // -------------------------
   let sessionId = localStorage.getItem("sessionId");
-
   if (!sessionId) {
     sessionId = crypto.randomUUID();
     localStorage.setItem("sessionId", sessionId);
   }
+
+  const SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycbx_fNusLoNCFW5DhCQf-gtDloq-nMOYKy2mnQgLNFZalylzHC_9eOGgE8vQSV3Q2SDiDw/exec";
 
   // -------------------------
   // ELEMENTS
   // -------------------------
   const studentInfo = document.getElementById("student-info");
   const palette = document.getElementById("vehicle-palette");
+  const map = document.getElementById("map-container");
 
   const finishBtn = document.getElementById("finish-btn");
   const stopBtn = document.getElementById("stop-btn");
@@ -43,22 +46,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const resumeContinue = document.getElementById("resume-continue");
   const resumeSubmit = document.getElementById("resume-submit");
 
-  const map = document.getElementById("map-container");
   const vehicleCountText = document.getElementById("vehicle-count");
 
-  const SCRIPT_URL =
-    "https://script.google.com/macros/s/AKfycbx_fNusLoNCFW5DhCQf-gtDloq-nMOYKy2mnQgLNFZalylzHC_9eOGgE8vQSV3Q2SDiDw/exec";
-
+  // -------------------------
+  // GAME STATE
+  // -------------------------
   let jobDescription = "";
   let partnerName = "";
 
   // -------------------------
-  // SAVE / RESTORE
+  // SAVE GAME
   // -------------------------
   function saveGame() {
     const vehicleData = [];
 
-    document.querySelectorAll(".draggable-wrapper").forEach((wrapper) => {
+    document.querySelectorAll(".draggable-wrapper").forEach(wrapper => {
       const img = wrapper.querySelector("img");
 
       vehicleData.push({
@@ -81,19 +83,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }));
   }
 
+  // -------------------------
+  // RESTORE GAME
+  // -------------------------
   function restoreGame() {
     const saved = JSON.parse(localStorage.getItem("savedVehicles") || "[]");
-
-    saved.forEach(v => {
-      const wrapper = createVehicleFromData(v);
-      map.appendChild(wrapper);
-    });
+    saved.forEach(v => map.appendChild(createVehicle(v)));
   }
 
   // -------------------------
   // CREATE VEHICLE
   // -------------------------
-  function createVehicleFromData(v) {
+  function createVehicle(v) {
     const wrapper = document.createElement("div");
     wrapper.className = "draggable-wrapper";
     wrapper.style.left = v.left;
@@ -108,57 +109,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (v.flipped) img.classList.add("flipped-horizontal");
 
-    function updateTransform() {
+    function update() {
       const flip = img.classList.contains("flipped-horizontal") ? -1 : 1;
       img.style.transform = `rotate(${rotation}deg) scaleX(${flip})`;
       wrapper.dataset.rotation = rotation;
       saveGame();
     }
 
-    updateTransform();
+    update();
 
-    const rotateLeftBtn = document.createElement("button");
-    rotateLeftBtn.innerHTML = "⟲";
-    rotateLeftBtn.className = "rotate-left-btn";
-    rotateLeftBtn.onclick = (e) => {
+    const rotateL = document.createElement("button");
+    rotateL.innerHTML = "⟲";
+    rotateL.onclick = e => {
       e.stopPropagation();
       rotation -= 90;
-      updateTransform();
+      update();
     };
 
-    const rotateRightBtn = document.createElement("button");
-    rotateRightBtn.innerHTML = "⟳";
-    rotateRightBtn.className = "rotate-right-btn";
-    rotateRightBtn.onclick = (e) => {
+    const rotateR = document.createElement("button");
+    rotateR.innerHTML = "⟳";
+    rotateR.onclick = e => {
       e.stopPropagation();
       rotation += 90;
-      updateTransform();
+      update();
     };
 
     const flipBtn = document.createElement("button");
     flipBtn.innerHTML = "↔";
-    flipBtn.className = "flip-btn";
-    flipBtn.onclick = (e) => {
+    flipBtn.onclick = e => {
       e.stopPropagation();
       img.classList.toggle("flipped-horizontal");
-      updateTransform();
+      update();
     };
 
-    wrapper.appendChild(img);
-    wrapper.appendChild(rotateLeftBtn);
-    wrapper.appendChild(rotateRightBtn);
-    wrapper.appendChild(flipBtn);
-
-    let lastTap = 0;
-
-    wrapper.addEventListener("touchend", () => {
-      const now = Date.now();
-      if (now - lastTap < 300) {
-        wrapper.remove();
-        saveGame();
-      }
-      lastTap = now;
-    });
+    wrapper.append(img, rotateL, rotateR, flipBtn);
 
     wrapper.addEventListener("dblclick", () => {
       wrapper.remove();
@@ -169,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // -------------------------
-  // RESUME
+  // START / RESUME
   // -------------------------
   const savedMeta = JSON.parse(localStorage.getItem("savedGameMeta") || "{}");
 
@@ -181,61 +165,44 @@ document.addEventListener("DOMContentLoaded", () => {
     startOverlay.style.display = "flex";
   }
 
-  if (resumeContinue) {
-    resumeContinue.onclick = () => {
-      resumeScreen.style.display = "none";
-      startOverlay.style.display = "none";
+  resumeContinue?.addEventListener("click", () => {
+    resumeScreen.style.display = "none";
+    startOverlay.style.display = "none";
 
-      jobDescription = savedMeta.jobDescription;
-      partnerName = savedMeta.partnerName;
+    jobDescription = savedMeta.jobDescription;
+    partnerName = savedMeta.partnerName;
 
-      palette.style.display = "grid";
-      stopBtn.style.display = "inline-block";
+    palette.style.display = "grid";
+    stopBtn.style.display = "inline-block";
 
-      studentInfo.textContent =
-        `👤 ${studentName} (${studentClass})
-${jobDescription} instructions with ${partnerName}`;
+    studentInfo.textContent =
+      `👤 ${studentName} (${studentClass})`;
 
-      restoreGame();
-    };
-  }
+    restoreGame();
+  });
 
-  if (resumeSubmit) {
-    resumeSubmit.onclick = () => {
-      localStorage.removeItem("savedVehicles");
-      localStorage.removeItem("savedGameMeta");
-      window.location.href = "../index.html";
-    };
-  }
+  resumeSubmit?.addEventListener("click", () => {
+    localStorage.clear();
+    window.location.href = "../index.html";
+  });
 
-  // -------------------------
-  // START GAME
-  // -------------------------
-  if (startBtn) {
-    startBtn.addEventListener("click", () => {
+  startBtn?.addEventListener("click", () => {
+    jobDescription = document.getElementById("job-description").value;
+    partnerName = document.getElementById("partner-name").value.trim();
 
-      const jobSelect = document.getElementById("job-description");
-      const partnerInput = document.getElementById("partner-name");
+    if (!jobDescription || !partnerName) {
+      alert("Fill all fields");
+      return;
+    }
 
-      jobDescription = jobSelect.value;
-      partnerName = partnerInput.value.trim();
+    startOverlay.style.display = "none";
+    palette.style.display = "grid";
+    stopBtn.style.display = "inline-block";
 
-      if (!jobDescription || !partnerName) {
-        alert("Please complete all fields");
-        return;
-      }
+    studentInfo.textContent = `👤 ${studentName} (${studentClass})`;
 
-      startOverlay.style.display = "none";
-      palette.style.display = "grid";
-      stopBtn.style.display = "inline-block";
-
-      studentInfo.textContent =
-        `👤 ${studentName} (${studentClass})
-${jobDescription} instructions with ${partnerName}`;
-
-      saveGame();
-    });
-  }
+    saveGame();
+  });
 
   // -------------------------
   // DRAG SYSTEM
@@ -245,142 +212,116 @@ ${jobDescription} instructions with ${partnerName}`;
   let offsetY = 0;
 
   function startDrag(e, touch = false) {
-    const target = touch ? e.targetTouches[0].target : e.target;
+    const t = touch ? e.touches[0] : e.target;
 
-    const clientX = touch ? e.targetTouches[0].clientX : e.clientX;
-    const clientY = touch ? e.targetTouches[0].clientY : e.clientY;
-
-    if (target.classList.contains("draggable") && target.parentElement === palette) {
-
-      const wrapper = createVehicleFromData({
-        src: target.src,
-        left: `${clientX - 40}px`,
-        top: `${clientY - 40}px`,
+    if (t.classList.contains("draggable") && t.parentElement === palette) {
+      dragged = createVehicle({
+        src: t.src,
+        left: "0px",
+        top: "0px",
         flipped: false,
         rotation: 0
       });
-
-      map.appendChild(wrapper);
-      dragged = wrapper;
-
-      offsetX = 40;
-      offsetY = 40;
-    }
-
-    else if (target.closest(".draggable-wrapper")) {
-      dragged = target.closest(".draggable-wrapper");
-      const rect = dragged.getBoundingClientRect();
-
-      offsetX = clientX - rect.left;
-      offsetY = clientY - rect.top;
+      map.appendChild(dragged);
+    } else {
+      dragged = t.closest(".draggable-wrapper");
     }
 
     if (!dragged) return;
 
-    dragged.style.zIndex = 2000;
-    e.preventDefault();
+    const rect = dragged.getBoundingClientRect();
+    const cx = touch ? e.touches[0].clientX : e.clientX;
+    const cy = touch ? e.touches[0].clientY : e.clientY;
+
+    offsetX = cx - rect.left;
+    offsetY = cy - rect.top;
   }
 
   function moveDrag(e, touch = false) {
     if (!dragged) return;
 
-    const clientX = touch ? e.targetTouches[0].clientX : e.clientX;
-    const clientY = touch ? e.targetTouches[0].clientY : e.clientY;
+    const cx = touch ? e.touches[0].clientX : e.clientX;
+    const cy = touch ? e.touches[0].clientY : e.clientY;
 
-    dragged.style.left = clientX - offsetX + "px";
-    dragged.style.top = clientY - offsetY + "px";
+    dragged.style.left = cx - offsetX + "px";
+    dragged.style.top = cy - offsetY + "px";
   }
 
   function endDrag() {
-    if (dragged) {
-      dragged.style.zIndex = "";
-      saveGame();
-    }
+    if (dragged) saveGame();
     dragged = null;
   }
 
-  document.body.addEventListener("mousedown", startDrag);
-  document.body.addEventListener("mousemove", moveDrag);
-  document.body.addEventListener("mouseup", endDrag);
+  document.addEventListener("mousedown", startDrag);
+  document.addEventListener("mousemove", moveDrag);
+  document.addEventListener("mouseup", endDrag);
 
-  document.body.addEventListener("touchstart", (e) => startDrag(e, true), { passive: false });
-  document.body.addEventListener("touchmove", (e) => moveDrag(e, true), { passive: false });
-  document.body.addEventListener("touchend", endDrag);
+  document.addEventListener("touchstart", e => startDrag(e, true));
+  document.addEventListener("touchmove", e => moveDrag(e, true));
+  document.addEventListener("touchend", endDrag);
 
   // -------------------------
-  // STOP BUTTON
+  // STOP
   // -------------------------
   stopBtn.onclick = () => {
     const count = document.querySelectorAll(".draggable-wrapper").length;
 
-    stopMessage.textContent =
-      `${studentName} is ${jobDescription} instructions with ${partnerName}`;
-
-    vehicleCountText.textContent = `${count} items placed`;
+    stopMessage.textContent = `${studentName}`;
+    vehicleCountText.textContent = `${count} items`;
 
     stopModal.style.display = "flex";
   };
 
-  if (stopContinue) {
-    stopContinue.onclick = () => stopModal.style.display = "none";
-  }
-
-  if (stopSubmit) {
-    stopSubmit.onclick = () => {
-      stopModal.style.display = "none";
-      if (finishBtn) finishBtn.click();
-    };
-  }
+  stopContinue.onclick = () => stopModal.style.display = "none";
+  stopSubmit.onclick = () => {
+    stopModal.style.display = "none";
+    finishBtn.click();
+  };
 
   // -------------------------
-  // FINISH → SEND TO GOOGLE SCRIPT
+  // FINISH (FIXED)
   // -------------------------
-// -------------------------
-// FINISH → SEND TO GOOGLE SCRIPT
-// -------------------------
-if (finishBtn) {
-  finishBtn.addEventListener("click", () => {
+  finishBtn?.addEventListener("click", async () => {
 
     console.log("FINISH CLICKED");
 
     const vehicleData = [];
 
-    document.querySelectorAll(".draggable-wrapper").forEach((wrapper) => {
+    document.querySelectorAll(".draggable-wrapper").forEach(wrapper => {
       const img = wrapper.querySelector("img");
 
-      const x = parseFloat(wrapper.style.left) || 0;
-      const y = parseFloat(wrapper.style.top) || 0;
-
       vehicleData.push({
-        vehicle: decodeURIComponent(img.src.split("/").pop().split(".")[0]),
-        x,
-        y,
+        vehicle: img.src.split("/").pop().split(".")[0],
+        x: parseFloat(wrapper.style.left) || 0,
+        y: parseFloat(wrapper.style.top) || 0,
         flipped: img.classList.contains("flipped-horizontal"),
         rotation: wrapper.dataset.rotation || 0
       });
     });
 
-    const vehicleSummary = vehicleData
-      .map(v =>
-        `${v.vehicle} at (${v.x}, ${v.y})${v.flipped ? " [flipped]" : ""}`
-      )
-      .join("; ");
+    const payload = {
+      sessionId,
+      studentName,
+      studentClass,
+      role: jobDescription,
+      partnerName,
+      vehicleData
+    };
 
-    const sessionId = localStorage.getItem("sessionId") || crypto.randomUUID();
+    try {
+      await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-fetch(SCRIPT_URL, {
-  method: "POST",
-  mode: "no-cors",
-  body: JSON.stringify({
-    sessionId,
-    studentName,
-    studentClass,
-    role: jobDescription,
-    partnerName,
-    vehicleSummary,
-    vehicleData
-  })
-});
+      localStorage.clear();
+      window.location.href = "../index.html";
 
+    } catch (err) {
+      console.error("Finish error:", err);
+      alert("Submit failed (check Apps Script deployment)");
+    }
+  });
 
 });
