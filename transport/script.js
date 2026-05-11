@@ -316,20 +316,23 @@ finishBtn?.addEventListener("click", () => {
   });
 
   // FORM DATA (NOT JSON)
-  const formData = new FormData();
+const formData = new FormData();
 
-  formData.append("sessionId", sessionId);
-  formData.append("studentName", studentName);
-  formData.append("studentClass", studentClass);
-  formData.append("role", jobDescription);
-  formData.append("partnerName", partnerName);
-  formData.append("vehicleData", JSON.stringify(vehicleData));
+formData.append("entry.1017965571", sessionId);
+formData.append("entry.1957249768", studentClass);
+formData.append("entry.1202364028", studentName);
+formData.append("entry.169376211", jobDescription);
+formData.append("entry.436910009", partnerName);
+formData.append("entry.1568301781", JSON.stringify(vehicleData));
 
-await fetch(SCRIPT_URL, {
-  method: "POST",
-  mode: "no-cors",
-  body: JSON.stringify(payload)
-});
+fetch(
+  "https://docs.google.com/forms/d/e/1FAIpQLSdGYfUokvgotPUu7vzNVEOiEny2Qd52Xlj_dD-_v_ZCI2YGNw/formResponse",
+  {
+    method: "POST",
+    mode: "no-cors",
+    body: formData
+  }
+);
 
 alert("Submission sent!");
 
@@ -341,4 +344,3 @@ window.location.href = "../index.html";
 
 });
 
-});
