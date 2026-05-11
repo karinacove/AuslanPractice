@@ -203,6 +203,7 @@ if (resumeContinue) {
   resumeContinue.onclick = () => {
 
     resumeScreen.style.display = "none";
+    startOverlay.style.display = "none";
 
     jobDescription = savedMeta.jobDescription;
     partnerName = savedMeta.partnerName;
