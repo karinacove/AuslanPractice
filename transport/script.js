@@ -207,56 +207,72 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------
   // DRAG SYSTEM
   // -------------------------
-  let dragged = null;
-  let offsetX = 0;
-  let offsetY = 0;
+let dragged = null;
+let offsetX = 0;
+let offsetY = 0;
 
-  function startDrag(e, touch = false) {
-    const t = touch ? e.touches[0] : e.target;
+function startDrag(e, touch = false) {
 
-if (t.classList.contains("draggable") && t.parentElement === palette) {
+  const clientX = touch ? e.touches[0].clientX : e.clientX;
+  const clientY = touch ? e.touches[0].clientY : e.clientY;
+  const t = touch ? e.touches[0].target : e.target;
 
-  const rect = map.getBoundingClientRect();
+  // NEW ITEM FROM PALETTE
+  if (t.classList.contains("draggable") && t.parentElement === palette) {
 
-  const wrapper = createVehicle({
-    src: t.src,
-    left: `${clientX - rect.left - 40}px`,
-    top: `${clientY - rect.top - 40}px`,
-    flipped: false,
-    rotation: 0
-  });
+    const rect = map.getBoundingClientRect();
 
-  map.appendChild(wrapper);
-  dragged = wrapper;
+    const wrapper = createVehicle({
+      src: t.src,
+      left: `${clientX - rect.left - 40}px`,
+      top: `${clientY - rect.top - 40}px`,
+      flipped: false,
+      rotation: 0
+    });
 
-  offsetX = 40;
-  offsetY = 40;
+    map.appendChild(wrapper);
+    dragged = wrapper;
 
-  return;
+    offsetX = 40;
+    offsetY = 40;
+
+    return;
+  }
+
+  // MOVE EXISTING ITEM
+  const wrapper = t.closest(".draggable-wrapper");
+  if (wrapper) {
+    dragged = wrapper;
+
+    const rect = wrapper.getBoundingClientRect();
+    offsetX = clientX - rect.left;
+    offsetY = clientY - rect.top;
+  }
 }
 
-  function moveDrag(e, touch = false) {
-    if (!dragged) return;
+function moveDrag(e, touch = false) {
+  if (!dragged) return;
 
-    const cx = touch ? e.touches[0].clientX : e.clientX;
-    const cy = touch ? e.touches[0].clientY : e.clientY;
+  const clientX = touch ? e.touches[0].clientX : e.clientX;
+  const clientY = touch ? e.touches[0].clientY : e.clientY;
 
-    dragged.style.left = cx - offsetX + "px";
-    dragged.style.top = cy - offsetY + "px";
-  }
+  dragged.style.left = clientX - offsetX + "px";
+  dragged.style.top = clientY - offsetY + "px";
+}
 
-  function endDrag() {
-    if (dragged) saveGame();
-    dragged = null;
-  }
+function endDrag() {
+  if (dragged) saveGame();
+  dragged = null;
+}
 
-  document.addEventListener("mousedown", startDrag);
-  document.addEventListener("mousemove", moveDrag);
-  document.addEventListener("mouseup", endDrag);
+// EVENTS
+document.addEventListener("mousedown", e => startDrag(e));
+document.addEventListener("mousemove", e => moveDrag(e));
+document.addEventListener("mouseup", endDrag);
 
-  document.addEventListener("touchstart", e => startDrag(e, true));
-  document.addEventListener("touchmove", e => moveDrag(e, true));
-  document.addEventListener("touchend", endDrag);
+document.addEventListener("touchstart", e => startDrag(e, true), { passive: false });
+document.addEventListener("touchmove", e => moveDrag(e, true), { passive: false });
+document.addEventListener("touchend", endDrag);
 
   // -------------------------
   // STOP
