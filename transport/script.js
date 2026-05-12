@@ -152,6 +152,30 @@ document.addEventListener("DOMContentLoaded", () => {
     return wrapper;
   }
 
+// -------------------------
+// CREATE PATH SEGMENT
+// -------------------------
+function createPathSegment(x1, y1, x2, y2) {
+
+  const line = document.createElement("div");
+  line.className = "path-segment";
+
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+
+  const length = Math.sqrt(dx * dx + dy * dy);
+  const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+  line.style.width = `${length}px`;
+  line.style.left = `${x1}px`;
+  line.style.top = `${y1}px`;
+  line.style.transform = `rotate(${angle}deg)`;
+
+  map.appendChild(line);
+
+  return line;
+}
+  
   // -------------------------
   // START / RESUME
   // -------------------------
@@ -211,6 +235,34 @@ let dragged = null;
 let offsetX = 0;
 let offsetY = 0;
 
+// -------------------------
+// PATH DRAWING SYSTEM
+// -------------------------
+let shiftMode = false;
+let pathDrawing = false;
+let activePath = null;
+let activeVehicle = null;
+let pathPoints = [];
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Shift") {
+    shiftMode = true;
+  }
+});
+
+document.addEventListener("keyup", (e) => {
+  if (e.key === "Shift") {
+    shiftMode = false;
+
+    pathDrawing = false;
+    activePath = null;
+    activeVehicle = null;
+  }
+});
+
+// -------------------------
+// START DRAG FUNTION
+// -------------------------
 function startDrag(e, touch = false) {
 
   const clientX = touch ? e.touches[0].clientX : e.clientX;
@@ -251,13 +303,83 @@ function startDrag(e, touch = false) {
 }
 
 function moveDrag(e, touch = false) {
+
   if (!dragged) return;
 
   const clientX = touch ? e.touches[0].clientX : e.clientX;
   const clientY = touch ? e.touches[0].clientY : e.clientY;
 
-  dragged.style.left = clientX - offsetX + "px";
-  dragged.style.top = clientY - offsetY + "px";
+  const mapRect = map.getBoundingClientRect();
+
+  let newX = clientX - mapRect.left - offsetX;
+  let newY = clientY - mapRect.top - offsetY;
+
+  // -------------------------
+  // SHIFT = PATH MODE
+  // -------------------------
+  if (shiftMode) {
+
+    if (!pathDrawing) {
+
+      pathDrawing = true;
+      activeVehicle = dragged;
+
+      pathPoints = [{
+        x: parseFloat(dragged.style.left),
+        y: parseFloat(dragged.style.top)
+      }];
+    }
+
+    const currentX = parseFloat(dragged.style.left);
+    const currentY = parseFloat(dragged.style.top);
+
+    const dx = newX - currentX;
+    const dy = newY - currentY;
+
+    // LOCK TO HORIZONTAL OR VERTICAL
+    if (Math.abs(dx) > Math.abs(dy)) {
+
+      // HORIZONTAL
+      newY = currentY;
+
+      if (dx > 0) {
+        dragged.dataset.rotation = 0;
+      } else {
+        dragged.dataset.rotation = 180;
+      }
+
+    } else {
+
+      // VERTICAL
+      newX = currentX;
+
+      if (dy > 0) {
+        dragged.dataset.rotation = 90;
+      } else {
+        dragged.dataset.rotation = -90;
+      }
+    }
+
+    const img = dragged.querySelector("img");
+
+    const flip =
+      img.classList.contains("flipped-horizontal") ? -1 : 1;
+
+    img.style.transform =
+      `rotate(${dragged.dataset.rotation}deg) scaleX(${flip})`;
+
+    // CREATE PATH LINE
+    createPathSegment(
+      currentX + 40,
+      currentY + 40,
+      newX + 40,
+      newY + 40
+    );
+  }
+
+  // MOVE VEHICLE
+  dragged.style.left = `${newX}px`;
+  dragged.style.top = `${newY}px`;
 }
 
 function endDrag() {
