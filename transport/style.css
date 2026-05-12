@@ -269,6 +269,19 @@ html, body {
   transform: scale(1.1);
 }
 
+.path-segment {
+  position: absolute;
+  height: 4px;
+
+  border-top: 4px dashed #000;
+
+  transform-origin: left center;
+
+  pointer-events: none;
+  z-index: 50;
+}
+
+
 /* =========================
    UPLOAD (if used later)
 ========================= */
