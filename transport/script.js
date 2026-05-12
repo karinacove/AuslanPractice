@@ -182,7 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   resumeSubmit?.addEventListener("click", () => {
-    localStorage.clear();
+//    localStorage.clear();
     window.location.href = "../index.html";
   });
 
