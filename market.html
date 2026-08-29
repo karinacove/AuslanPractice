@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Auslan Market</title>
+<style>
+  :root{
+    --maroon:#7a1730;
+    --gold:#e4b93f;
+    --cream:#fff8e7;
+    --ink:#2c2530;
+    --card:#ffffff;
+    --soft:#f4ead1;
+    --good:#2f7d4a;
+    --warn:#9d6a00;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Arial, Helvetica, sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+  }
+  header{
+    background:var(--maroon);
+    color:white;
+    padding:14px 18px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  header h1{margin:0;font-size:1.45rem}
+  .student-chip{
+    background:var(--gold);
+    color:var(--maroon);
+    font-weight:700;
+    border-radius:999px;
+    padding:8px 12px;
+  }
+  main{
+    max-width:980px;
+    margin:0 auto;
+    padding:20px;
+  }
+  .panel{
+    background:var(--card);
+    border:3px solid var(--gold);
+    border-radius:18px;
+    padding:20px;
+    box-shadow:0 4px 14px rgba(0,0,0,.08);
+  }
+  h2,h3{color:var(--maroon)}
+  .center{text-align:center}
+  .grid{
+    display:grid;
+    gap:14px;
+  }
+  .grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+  @media(max-width:700px){
+    .grid.two,.grid.three,.grid.four{grid-template-columns:1fr 1fr}
+  }
+  @media(max-width:460px){
+    .grid.two,.grid.three,.grid.four{grid-template-columns:1fr}
+  }
+  button{
+    border:0;
+    border-radius:14px;
+    padding:14px 16px;
+    font-size:1rem;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .big-btn{
+    min-height:100px;
+    background:white;
+    border:3px solid var(--maroon);
+    color:var(--maroon);
+    font-size:1.1rem;
+  }
+  .big-btn:hover,.big-btn.selected{
+    background:var(--gold);
+  }
+  .primary{
+    background:var(--maroon);
+    color:white;
+  }
+  .secondary{
+    background:var(--gold);
+    color:var(--maroon);
+  }
+  .ghost{
+    background:#eee;
+    color:#333;
+  }
+  .hidden{display:none !important}
+  .challenge{
+    font-size:1.3rem;
+    line-height:1.5;
+    background:var(--soft);
+    border-left:8px solid var(--maroon);
+    border-radius:12px;
+    padding:18px;
+    margin:14px 0;
+  }
+  .challenge-items{
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    margin-top:16px;
+  }
+  .challenge-token{
+    min-width:120px;
+    background:white;
+    border:2px solid var(--gold);
+    border-radius:12px;
+    padding:10px;
+    text-align:center;
+  }
+  .challenge-token img,.item-card img{
+    width:82px;
+    height:82px;
+    object-fit:contain;
+    display:block;
+    margin:0 auto 7px;
+  }
+  .item-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+    gap:10px;
+    margin-top:14px;
+  }
+  .item-card{
+    position:relative;
+    min-height:142px;
+    background:white;
+    border:2px solid #ddd;
+    border-radius:12px;
+    padding:8px;
+    text-align:center;
+    cursor:pointer;
+  }
+  .item-card.selected{
+    border:4px solid var(--maroon);
+    background:#fff3bf;
+  }
+  .qty{
+    margin-top:6px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:8px;
+  }
+  .qty button{
+    padding:4px 10px;
+    border-radius:8px;
+    background:var(--maroon);
+    color:white;
+  }
+  .qty strong{min-width:24px;display:inline-block}
+  .money-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    justify-content:center;
+    margin:16px 0;
+  }
+  .money-btn{
+    background:white;
+    border:3px solid var(--gold);
+    color:var(--maroon);
+    min-width:80px;
+  }
+  .money-btn:hover{background:var(--gold)}
+  .summary{
+    background:#f7f7f7;
+    border-radius:12px;
+    padding:12px;
+    margin-top:12px;
+  }
+  .status{
+    border-radius:12px;
+    padding:12px;
+    margin:12px 0;
+    font-weight:700;
+  }
+  .status.good{background:#dff1e5;color:var(--good)}
+  .status.warn{background:#fff1c7;color:var(--warn)}
+  .top-actions{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-top:18px;
+  }
+  .small-note{
+    font-size:.92rem;
+    color:#625866;
+  }
+  .role-tag{
+    display:inline-block;
+    background:var(--maroon);
+    color:white;
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:.85rem;
+    font-weight:700;
+  }
+  select,input{
+    width:100%;
+    max-width:420px;
+    padding:12px;
+    border:2px solid #ccc;
+    border-radius:10px;
+    font-size:1rem;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>🤟 Auslan Market</h1>
+  <div class="student-chip" id="studentChip">Student</div>
+</header>
+
+<main>
+  <section class="panel" id="screenStart">
+    <div class="center">
+      <h2>Choose your role</h2>
+      <p class="small-note">Sign first. Record the transaction afterwards.</p>
+    </div>
+
+    <div class="grid two">
+      <button class="big-btn" onclick="chooseRole('customer')">🛍️<br>CUSTOMER</button>
+      <button class="big-btn" onclick="chooseRole('server')">🏪<br>SERVER</button>
+    </div>
+
+    <div style="margin-top:20px" class="center">
+      <label for="levelSelect"><strong>Challenge level</strong></label><br><br>
+      <select id="levelSelect">
+        <option value="easy">Easy</option>
+        <option value="intermediate">Intermediate</option>
+        <option value="hard">Hard</option>
+      </select>
+      <p class="small-note">Later this can be loaded automatically for each student from your backend.</p>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="screenStations">
+    <div class="center">
+      <span class="role-tag" id="roleTag"></span>
+      <h2 id="stationHeading">Choose a station</h2>
+    </div>
+    <div class="grid four">
+      <button class="big-btn" onclick="chooseStation('fruitveg')">🍎🥕<br>Fruit & Veg</button>
+      <button class="big-btn" onclick="chooseStation('burger')">🍔<br>Burger Bar</button>
+      <button class="big-btn" onclick="chooseStation('pizza')">🍕<br>Pizza Shop</button>
+      <button class="big-btn" onclick="chooseStation('market')">🛒<br>Market</button>
+    </div>
+    <div class="top-actions">
+      <button class="ghost" onclick="goHome()">Change role</button>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="screenChallenge">
+    <div class="center">
+      <span class="role-tag">CUSTOMER</span>
+      <h2 id="challengeStation"></h2>
+      <p>Remember your challenge. When you are ready, hide it and go sign your order.</p>
+    </div>
+    <div class="challenge" id="challengeBox"></div>
+    <div class="top-actions">
+      <button class="primary" onclick="hideChallenge()">I'M READY TO ORDER</button>
+      <button class="ghost" onclick="backToStations()">Choose another station</button>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="screenGoSign">
+    <div class="center">
+      <h2>🤟 Put the device down</h2>
+      <p style="font-size:1.25rem"><strong>Go and order in Auslan.</strong></p>
+      <p>Do not reopen your challenge.</p>
+      <div class="top-actions">
+        <button class="primary" onclick="startCustomerRecord()">I'VE ORDERED</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="screenCustomerRecord">
+    <div class="center">
+      <span class="role-tag">CUSTOMER RECORD</span>
+      <h2>What did you order?</h2>
+      <p id="recordHint" class="small-note"></p>
+    </div>
+    <div id="customerItemGrid" class="item-grid"></div>
+    <div class="top-actions">
+      <button class="primary" onclick="customerItemsDone()">NEXT: MONEY</button>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="screenMoney">
+    <div class="center">
+      <h2>How much did the shopkeeper charge?</h2>
+      <div class="summary">Charge heard: <strong id="chargeTotal">$0</strong></div>
+      <div class="money-grid">
+        <button class="money-btn" onclick="addMoney(1)">$1</button>
+        <button class="money-btn" onclick="addMoney(2)">$2</button>
+        <button class="money-btn" onclick="addMoney(5)">$5</button>
+        <button class="money-btn" onclick="addMoney(10)">$10</button>
+        <button class="money-btn" onclick="resetMoney()">CLEAR</button>
+      </div>
+      <button class="primary" onclick="saveCustomerTransaction()">SAVE TRANSACTION</button>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="screenServerCustomer">
+    <div class="center">
+      <span class="role-tag">SERVER</span>
+      <h2>Who did you serve?</h2>
+      <p class="small-note">For now this uses the class list stored in the page. We can replace it with your live class list.</p>
+      <select id="customerSelect"></select>
+      <div class="top-actions">
+        <button class="primary" onclick="serverChooseStation()">NEXT</button>
+        <button class="ghost" onclick="backToStations()">BACK</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="screenServerStation">
+    <div class="center">
+      <span class="role-tag">SERVER</span>
+      <h2>Which station are you serving at?</h2>
+    </div>
+    <div class="grid four">
+      <button class="big-btn" onclick="serverRecordAt('fruitveg')">🍎🥕<br>Fruit & Veg</button>
+      <button class="big-btn" onclick="serverRecordAt('burger')">🍔<br>Burger Bar</button>
+      <button class="big-btn" onclick="serverRecordAt('pizza')">🍕<br>Pizza Shop</button>
+      <button class="big-btn" onclick="serverRecordAt('market')">🛒<br>Market</button>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="screenServerRecord">
+    <div class="center">
+      <span class="role-tag">SERVER RECORD</span>
+      <h2>What did the customer order?</h2>
+      <p class="small-note">Record what you understood them to order.</p>
+    </div>
+    <div id="serverItemGrid" class="item-grid"></div>
+    <div class="top-actions">
+      <button class="primary" onclick="serverItemsDone()">NEXT: CHARGE</button>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="screenServerMoney">
+    <div class="center">
+      <h2>How much did you charge?</h2>
+      <div class="summary">Charge: <strong id="serverChargeTotal">$0</strong></div>
+      <div class="money-grid">
+        <button class="money-btn" onclick="addServerMoney(1)">$1</button>
+        <button class="money-btn" onclick="addServerMoney(2)">$2</button>
+        <button class="money-btn" onclick="addServerMoney(5)">$5</button>
+        <button class="money-btn" onclick="addServerMoney(10)">$10</button>
+        <button class="money-btn" onclick="resetServerMoney()">CLEAR</button>
+      </div>
+      <button class="primary" onclick="saveServerTransaction()">SAVE SALE</button>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="screenSaved">
+    <div class="center">
+      <h2>✓ Transaction saved</h2>
+      <p id="savedMessage"></p>
+      <div id="teacherDebug" class="summary hidden"></div>
+      <div class="top-actions">
+        <button class="primary" onclick="backToStations()">NEXT TRANSACTION</button>
+        <button class="ghost" onclick="goHome()">CHANGE ROLE</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+/* =========================================================
+   AUSLAN MARKET - VERSION 1
+   ---------------------------------------------------------
+   Uses existing localStorage login values where available.
+   Replace image paths later if your asset names differ.
+
+   Expected image convention:
+   MatchingGame/assets/food/clipart/<slug>.png
+   MatchingGame/assets/food/signs/sign-<slug>.png
+   ========================================================= */
+
+const studentName =
+  localStorage.getItem('studentName') ||
+  localStorage.getItem('name') ||
+  'Student';
+
+const studentClass =
+  localStorage.getItem('studentClass') ||
+  localStorage.getItem('class') ||
+  '';
+
+document.getElementById('studentChip').textContent =
+  studentClass ? `${studentName} • ${studentClass}` : studentName;
+
+const CLASS_LIST = [
+  "Student 1","Student 2","Student 3","Student 4","Student 5","Student 6","Student 7",
+  "Student 8","Student 9","Student 10","Student 11","Student 12","Student 13","Student 14"
+];
+
+const FOOD = {
+  // Fruit $1
+  avocado:{label:"Avocado", type:"fruit", price:1, colours:["green"]},
+  pear:{label:"Pear", type:"fruit", price:1, colours:["green","yellow"]},
+  apple:{label:"Apple", type:"fruit", price:1, colours:["red","green"]},
+  banana:{label:"Banana", type:"fruit", price:1, colours:["yellow"]},
+  apricot:{label:"Apricot", type:"fruit", price:1, colours:["orange"]},
+  cherry:{label:"Cherry", type:"fruit", price:1, colours:["red"]},
+  lemon:{label:"Lemon", type:"fruit", price:1, colours:["yellow"]},
+  mango:{label:"Mango", type:"fruit", price:1, colours:["yellow","orange"]},
+  pineapple:{label:"Pineapple", type:"fruit", price:1, colours:["yellow","green"]},
+  grapes:{label:"Grapes", type:"fruit", price:1, colours:["green","purple"]},
+  orange:{label:"Orange", type:"fruit", price:1, colours:["orange"]},
+  peach:{label:"Peach", type:"fruit", price:1, colours:["orange","pink"]},
+  strawberry:{label:"Strawberry", type:"fruit", price:1, colours:["red"]},
+  blueberry:{label:"Blueberry", type:"fruit", price:1, colours:["blue"]},
+  watermelon:{label:"Watermelon", type:"fruit", price:1, colours:["green","red"]},
+
+  // Vegetables $2
+  lettuce:{label:"Lettuce", type:"vegetable", price:2, colours:["green"]},
+  onion:{label:"Onion", type:"vegetable", price:2, colours:["white","brown"]},
+  sweet_potato:{label:"Sweet Potato", type:"vegetable", price:2, colours:["orange"]},
+  potato:{label:"Potato", type:"vegetable", price:2, colours:["brown"]},
+  pumpkin:{label:"Pumpkin", type:"vegetable", price:2, colours:["orange"]},
+  peas:{label:"Peas", type:"vegetable", price:2, colours:["green"]},
+  corn:{label:"Corn", type:"vegetable", price:2, colours:["yellow"]},
+  beans:{label:"Beans", type:"vegetable", price:2, colours:["green"]},
+  carrot:{label:"Carrot", type:"vegetable", price:2, colours:["orange"]},
+  cauliflower:{label:"Cauliflower", type:"vegetable", price:2, colours:["white"]},
+  celery:{label:"Celery", type:"vegetable", price:2, colours:["green"]},
+  cucumber:{label:"Cucumber", type:"vegetable", price:2, colours:["green"]},
+  mushroom:{label:"Mushroom", type:"vegetable", price:2, colours:["brown","white"]},
+  tomato:{label:"Tomato", type:"vegetable", price:2, colours:["red"]},
+
+  // Burger/pizza vocabulary
+  sauce:{label:"Sauce", type:"topping", price:1, colours:["red"]},
+  cheese:{label:"Cheese", type:"topping", price:1, colours:["yellow"]},
+  meat:{label:"Meat", type:"topping", price:1, colours:["brown"]},
+  bacon:{label:"Bacon", type:"topping", price:1, colours:["pink","brown"]},
+  egg:{label:"Egg", type:"topping", price:1, colours:["yellow","white"]},
+  ham:{label:"Ham", type:"topping", price:1, colours:["pink"]},
+  chicken:{label:"Chicken", type:"topping", price:1, colours:["brown"]},
+
+  // Market
+  biscuit:{label:"Biscuit", type:"pantry", price:1},
+  bread:{label:"Bread", type:"pantry", price:1},
+  cake:{label:"Cake", type:"pantry", price:1},
+  cereal:{label:"Cereal", type:"pantry", price:1},
+  chocolate:{label:"Chocolate", type:"pantry", price:1},
+  honey:{label:"Honey", type:"pantry", price:1},
+  jam:{label:"Jam", type:"pantry", price:1},
+  lolly:{label:"Lolly", type:"pantry", price:1},
+  butter:{label:"Butter", type:"fridge", price:2},
+  milk:{label:"Milk", type:"fridge", price:2},
+  yoghurt:{label:"Yoghurt", type:"fridge", price:2},
+  fruit:{label:"Fruit", type:"fridge", price:2},
+  sandwich:{label:"Sandwich", type:"fridge", price:2},
+  icecream:{label:"Ice Cream", type:"fridge", price:2},
+  toast:{label:"Toast", type:"hot", price:3},
+  sausage:{label:"Sausage", type:"hot", price:3},
+  fish_chips:{label:"Fish and Chips", type:"hot", price:3},
+  hot_chips:{label:"Hot Chips", type:"hot", price:3},
+  spaghetti:{label:"Spaghetti", type:"hot", price:3}
+};
+
+const STATIONS = {
+  fruitveg:{
+    label:"Fruit & Veg",
+    items:[
+      "avocado","pear","apple","banana","apricot","cherry","lemon","mango","pineapple",
+      "grapes","orange","peach","strawberry","blueberry","watermelon",
+      "lettuce","onion","sweet_potato","potato","pumpkin","peas","corn","beans","carrot",
+      "cauliflower","celery","cucumber","mushroom","tomato"
+    ]
+  },
+  burger:{
+    label:"Burger Bar",
+    items:["sauce","cheese","meat","bacon","egg","lettuce","onion","tomato","carrot","cucumber","mushroom"]
+  },
+  pizza:{
+    label:"Pizza Shop",
+    items:["sauce","cheese","meat","bacon","ham","mushroom","onion","corn","chicken","pineapple"]
+  },
+  market:{
+    label:"Market",
+    items:[
+      "biscuit","bread","cake","cereal","chocolate","honey","jam","lolly",
+      "butter","milk","yoghurt","fruit","sandwich","icecream",
+      "toast","sausage","fish_chips","hot_chips","spaghetti","chicken"
+    ]
+  }
+};
+
+let role = null;
+let station = null;
+let currentChallenge = null;
+let challengeDisplayMode = "clipart";
+let customerSelections = {};
+let serverSelections = {};
+let chargeHeard = 0;
+let serverCharge = 0;
+let serverCustomer = "";
+
+function slugPath(key, mode){
+  const safe = key.replaceAll("_","-");
+  if(mode === "sign"){
+    return `MatchingGame/assets/food/signs/sign-${safe}.png`;
+  }
+  return `MatchingGame/assets/food/clipart/${safe}.png`;
+}
+
+function showScreen(id){
+  document.querySelectorAll("main > section").forEach(s=>s.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+}
+
+function chooseRole(which){
+  role = which;
+  document.getElementById("roleTag").textContent = which.toUpperCase();
+  showScreen("screenStations");
+}
+
+function goHome(){
+  role = null;
+  station = null;
+  showScreen("screenStart");
+}
+
+function backToStations(){
+  showScreen("screenStations");
+}
+
+function chooseStation(key){
+  station = key;
+  if(role === "customer"){
+    generateChallenge();
+  } else {
+    populateCustomerList();
+    showScreen("screenServerCustomer");
+  }
+}
+
+function populateCustomerList(){
+  const sel = document.getElementById("customerSelect");
+  sel.innerHTML = "";
+  CLASS_LIST.forEach(name=>{
+    const o = document.createElement("option");
+    o.value = name;
+    o.textContent = name;
+    sel.appendChild(o);
+  });
+}
+
+function serverChooseStation(){
+  serverCustomer = document.getElementById("customerSelect").value;
+  showScreen("screenServerStation");
+}
+
+function serverRecordAt(key){
+  station = key;
+  serverSelections = {};
+  renderSelectionGrid("serverItemGrid", "clipart", "server");
+  showScreen("screenServerRecord");
+}
+
+/* ---------------- Challenge generation ---------------- */
+
+function randomOne(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+function randomInt(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+function sample(arr,n){
+  return [...arr].sort(()=>Math.random()-.5).slice(0,n);
+}
+
+function generateChallenge(){
+  const level = document.getElementById("levelSelect").value;
+  challengeDisplayMode = Math.random() < .5 ? "clipart" : "sign";
+  currentChallenge = buildChallenge(station, level);
+  renderChallenge();
+  showScreen("screenChallenge");
+}
+
+function buildChallenge(stationKey, level){
+  if(stationKey === "fruitveg") return fruitVegChallenge(level);
+  if(stationKey === "burger") return burgerChallenge(level);
+  if(stationKey === "pizza") return pizzaChallenge(level);
+  return marketChallenge(level);
+}
+
+function fruitVegChallenge(level){
+  const fruits = STATIONS.fruitveg.items.filter(k=>FOOD[k].type==="fruit");
+  const veg = STATIONS.fruitveg.items.filter(k=>FOOD[k].type==="vegetable");
+
+  if(level==="easy"){
+    const keys = sample([...fruits,...veg], 2);
+    return {
+      type:"exact",
+      station:"fruitveg",
+      instructions:"Buy these items.",
+      items:keys.map(k=>({key:k, qty:randomInt(2,6)}))
+    };
+  }
+
+  if(level==="intermediate"){
+    const choices = [
+      ()=>({type:"rule",station:"fruitveg",instructions:"Buy 3 different fruits.",rules:{different:3, typeCounts:{fruit:3}}}),
+      ()=>({type:"rule",station:"fruitveg",instructions:"Buy 2 different vegetables and 2 different fruits.",rules:{different:4,typeCounts:{vegetable:2,fruit:2}}}),
+      ()=>({type:"rule",station:"fruitveg",instructions:"Buy 8 items altogether. At least 3 must be vegetables.",rules:{totalQty:8,minTypeQty:{vegetable:3}}}),
+      ()=>({type:"rule",station:"fruitveg",instructions:"Buy 3 RED foods.",rules:{colour:"red",totalQty:3}}),
+      ()=>({type:"rule",station:"fruitveg",instructions:"Buy 3 GREEN foods.",rules:{colour:"green",totalQty:3}}),
+      ()=>({type:"rule",station:"fruitveg",instructions:"Buy one RED, one GREEN and one YELLOW food.",rules:{colours:["red","green","yellow"]}})
+    ];
+    return randomOne(choices)();
+  }
+
+  const choices = [
+    ()=>({type:"rule",station:"fruitveg",instructions:"Spend exactly $10. Buy at least 2 fruits and 2 vegetables.",rules:{spend:10,minDifferentType:{fruit:2,vegetable:2}}}),
+    ()=>({type:"rule",station:"fruitveg",instructions:"Buy exactly 8 items. Include at least 3 fruits and 3 vegetables.",rules:{totalQty:8,minTypeQty:{fruit:3,vegetable:3}}}),
+    ()=>({type:"rule",station:"fruitveg",instructions:"Spend exactly $12. Buy at least 3 different vegetables.",rules:{spend:12,minDifferentType:{vegetable:3}}}),
+    ()=>({type:"rule",station:"fruitveg",instructions:"Buy 10 items. Include something RED, GREEN and YELLOW.",rules:{totalQty:10,colours:["red","green","yellow"]}})
+  ];
+  return randomOne(choices)();
+}
+
+function burgerChallenge(level){
+  const items = STATIONS.burger.items;
+  if(level==="easy"){
+    const n = randomInt(3,5);
+    return {type:"exact",station:"burger",instructions:`Order a burger with ${n} toppings.`,items:sample(items,n).map(k=>({key:k,qty:1}))};
+  }
+  if(level==="intermediate"){
+    const required = randomOne(["cheese","bacon","egg","meat","lettuce"]);
+    const n = randomInt(4,5);
+    return {type:"rule",station:"burger",instructions:`Order a burger with ${n} toppings. You MUST include ${FOOD[required].label}.`,rules:{different:n,required:[required],spend:n}};
+  }
+  const required = sample(["egg","bacon","meat","cheese"],1)[0];
+  const excluded = randomOne(["cheese","tomato","onion","mushroom"]);
+  const n = randomInt(5,6);
+  return {type:"rule",station:"burger",instructions:`Order a $${n} burger. Include ${FOOD[required].label}. NO ${FOOD[excluded].label}.`,rules:{different:n,required:[required],excluded:[excluded],spend:n}};
+}
+
+function pizzaChallenge(level){
+  const items = STATIONS.pizza.items;
+  if(level==="easy"){
+    const n = randomInt(3,5);
+    return {type:"exact",station:"pizza",instructions:`Order a pizza with ${n} toppings.`,items:sample(items,n).map(k=>({key:k,qty:1}))};
+  }
+  if(level==="intermediate"){
+    const required = randomOne(["cheese","ham","chicken","pineapple","mushroom"]);
+    const n = randomInt(4,5);
+    return {type:"rule",station:"pizza",instructions:`Order a pizza with ${n} toppings. You MUST include ${FOOD[required].label}.`,rules:{different:n,required:[required],spend:n}};
+  }
+  const required = randomOne(["cheese","chicken","meat","ham"]);
+  const excluded = randomOne(["pineapple","bacon","mushroom","onion"]);
+  const n = randomInt(5,6);
+  return {type:"rule",station:"pizza",instructions:`Order a $${n} pizza. Include ${FOOD[required].label}. NO ${FOOD[excluded].label}.`,rules:{different:n,required:[required],excluded:[excluded],spend:n}};
+}
+
+function marketChallenge(level){
+  const items = STATIONS.market.items;
+  if(level==="easy"){
+    const keys = sample(items,2);
+    return {type:"exact",station:"market",instructions:"Buy these items.",items:keys.map(k=>({key:k,qty:randomInt(1,3)}))};
+  }
+  if(level==="intermediate"){
+    const choices = [
+      ()=>({type:"rule",station:"market",instructions:"Buy 2 Pantry foods and 1 Fridge food.",rules:{differentType:{pantry:2,fridge:1}}}),
+      ()=>({type:"rule",station:"market",instructions:"Buy 3 different Hot foods.",rules:{differentType:{hot:3}}}),
+      ()=>({type:"rule",station:"market",instructions:"Buy 5 different things. At least one must come from the Fridge.",rules:{different:5,minDifferentType:{fridge:1}}}),
+      ()=>({type:"rule",station:"market",instructions:"Spend exactly $6. Buy at least 3 different things.",rules:{spend:6,minDifferent:3}})
+    ];
+    return randomOne(choices)();
+  }
+  const choices = [
+    ()=>({type:"rule",station:"market",instructions:"Spend exactly $10. Buy something from Pantry, Fridge AND Hot.",rules:{spend:10,minDifferentType:{pantry:1,fridge:1,hot:1}}}),
+    ()=>({type:"rule",station:"market",instructions:"Buy 5 different foods, including at least 2 Hot foods. Spend no more than $12.",rules:{different:5,minDifferentType:{hot:2},maxSpend:12}}),
+    ()=>({type:"rule",station:"market",instructions:"Spend exactly $8. Buy at least one Pantry food and one Fridge food.",rules:{spend:8,minDifferentType:{pantry:1,fridge:1}}})
+  ];
+  return randomOne(choices)();
+}
+
+function renderChallenge(){
+  document.getElementById("challengeStation").textContent = STATIONS[station].label;
+  const box = document.getElementById("challengeBox");
+  box.innerHTML = `<strong>${currentChallenge.instructions}</strong>`;
+
+  if(currentChallenge.type==="exact"){
+    const wrap = document.createElement("div");
+    wrap.className="challenge-items";
+    currentChallenge.items.forEach(it=>{
+      const token = document.createElement("div");
+      token.className="challenge-token";
+      const img = document.createElement("img");
+      img.src = slugPath(it.key, challengeDisplayMode);
+      img.alt = FOOD[it.key].label;
+      img.onerror = () => { img.style.display="none"; };
+      token.appendChild(img);
+      token.insertAdjacentHTML("beforeend", `<strong>${FOOD[it.key].label}</strong><br>× ${it.qty}`);
+      wrap.appendChild(token);
+    });
+    box.appendChild(wrap);
+  }else{
+    box.insertAdjacentHTML("beforeend", `<p class="small-note">Choose your own foods/toppings so your order meets the challenge.</p>`);
+  }
+}
+
+function hideChallenge(){
+  showScreen("screenGoSign");
+}
+
+function startCustomerRecord(){
+  customerSelections = {};
+  chargeHeard = 0;
+  document.getElementById("chargeTotal").textContent="$0";
+  const recordMode = challengeDisplayMode === "clipart" ? "sign" : "clipart";
+  document.getElementById("recordHint").textContent =
+    recordMode === "sign"
+      ? "Select the Auslan sign images that match what you ordered."
+      : "Select the clipart images that match what you ordered.";
+  renderSelectionGrid("customerItemGrid", recordMode, "customer");
+  showScreen("screenCustomerRecord");
+}
+
+/* ---------------- Recording UI ---------------- */
+
+function renderSelectionGrid(containerId, mode, who){
+  const container = document.getElementById(containerId);
+  container.innerHTML="";
+  STATIONS[station].items.forEach(key=>{
+    const card = document.createElement("div");
+    card.className="item-card";
+    card.id=`${who}-${key}`;
+
+    const img=document.createElement("img");
+    img.src=slugPath(key,mode);
+    img.alt=FOOD[key].label;
+    img.onerror=()=>{img.style.display="none"};
+    card.appendChild(img);
+
+    const label=document.createElement("div");
+    label.innerHTML=`<strong>${FOOD[key].label}</strong>`;
+    card.appendChild(label);
+
+    const qty=document.createElement("div");
+    qty.className="qty";
+    qty.innerHTML=`
+      <button type="button" aria-label="decrease">−</button>
+      <strong>0</strong>
+      <button type="button" aria-label="increase">+</button>
+    `;
+    card.appendChild(qty);
+
+    const minus=qty.children[0];
+    const count=qty.children[1];
+    const plus=qty.children[2];
+
+    const store = who==="customer" ? customerSelections : serverSelections;
+
+    function update(delta){
+      store[key]=Math.max(0,(store[key]||0)+delta);
+      count.textContent=store[key];
+      card.classList.toggle("selected", store[key]>0);
+    }
+    minus.onclick=(e)=>{e.stopPropagation();update(-1)};
+    plus.onclick=(e)=>{e.stopPropagation();update(1)};
+    card.onclick=()=>update(1);
+
+    container.appendChild(card);
+  });
+}
+
+function customerItemsDone(){
+  showScreen("screenMoney");
+}
+
+function addMoney(n){
+  chargeHeard += n;
+  document.getElementById("chargeTotal").textContent=`$${chargeHeard}`;
+}
+function resetMoney(){
+  chargeHeard=0;
+  document.getElementById("chargeTotal").textContent="$0";
+}
+
+function serverItemsDone(){
+  showScreen("screenServerMoney");
+}
+function addServerMoney(n){
+  serverCharge += n;
+  document.getElementById("serverChargeTotal").textContent=`$${serverCharge}`;
+}
+function resetServerMoney(){
+  serverCharge=0;
+  document.getElementById("serverChargeTotal").textContent="$0";
+}
+
+/* ---------------- Scoring / assessment data ---------------- */
+
+function compactSelections(obj){
+  return Object.fromEntries(Object.entries(obj).filter(([k,v])=>v>0));
+}
+
+function calculatedPrice(stationKey, selections){
+  if(stationKey==="burger" || stationKey==="pizza"){
+    // $1 per topping. Each selected topping counts once.
+    return Object.values(selections).filter(q=>q>0).length;
+  }
+  return Object.entries(selections).reduce((sum,[k,q])=>sum+(FOOD[k].price*q),0);
+}
+
+function evaluateCustomerChallenge(challenge,selections){
+  const picked=compactSelections(selections);
+
+  if(challenge.type==="exact"){
+    const expected=Object.fromEntries(challenge.items.map(x=>[x.key,x.qty]));
+    return JSON.stringify(expected)===JSON.stringify(picked);
+  }
+
+  const rules=challenge.rules||{};
+  const entries=Object.entries(picked);
+  const totalQty=entries.reduce((s,[k,q])=>s+q,0);
+  const spend=calculatedPrice(challenge.station,picked);
+  const different=entries.length;
+
+  if(rules.totalQty!=null && totalQty!==rules.totalQty) return false;
+  if(rules.spend!=null && spend!==rules.spend) return false;
+  if(rules.maxSpend!=null && spend>rules.maxSpend) return false;
+  if(rules.different!=null && different!==rules.different) return false;
+  if(rules.minDifferent!=null && different<rules.minDifferent) return false;
+
+  if(rules.required && !rules.required.every(k=>picked[k]>0)) return false;
+  if(rules.excluded && rules.excluded.some(k=>picked[k]>0)) return false;
+
+  if(rules.typeCounts){
+    for(const [type,n] of Object.entries(rules.typeCounts)){
+      const c=entries.filter(([k])=>FOOD[k].type===type).length;
+      if(c<n) return false;
+    }
+  }
+  if(rules.differentType){
+    for(const [type,n] of Object.entries(rules.differentType)){
+      const c=entries.filter(([k])=>FOOD[k].type===type).length;
+      if(c!==n) return false;
+    }
+  }
+  if(rules.minDifferentType){
+    for(const [type,n] of Object.entries(rules.minDifferentType)){
+      const c=entries.filter(([k])=>FOOD[k].type===type).length;
+      if(c<n) return false;
+    }
+  }
+  if(rules.minTypeQty){
+    for(const [type,n] of Object.entries(rules.minTypeQty)){
+      const c=entries.filter(([k])=>FOOD[k].type===type).reduce((s,[k,q])=>s+q,0);
+      if(c<n) return false;
+    }
+  }
+  if(rules.minDifferentType){
+    for(const [type,n] of Object.entries(rules.minDifferentType)){
+      const c=entries.filter(([k])=>FOOD[k].type===type).length;
+      if(c<n) return false;
+    }
+  }
+  if(rules.colour){
+    const goodQty=entries
+      .filter(([k])=>(FOOD[k].colours||[]).includes(rules.colour))
+      .reduce((s,[k,q])=>s+q,0);
+    if(goodQty<rules.totalQty) return false;
+  }
+  if(rules.colours){
+    for(const colour of rules.colours){
+      if(!entries.some(([k])=>(FOOD[k].colours||[]).includes(colour))) return false;
+    }
+  }
+  return true;
+}
+
+function saveCustomerTransaction(){
+  const selections=compactSelections(customerSelections);
+  const record={
+    recordType:"customer",
+    transactionId:`${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
+    timestamp:new Date().toISOString(),
+    studentName,
+    studentClass,
+    station,
+    level:document.getElementById("levelSelect").value,
+    challenge:currentChallenge,
+    challengeDisplayMode,
+    selections,
+    expectedPrice:calculatedPrice(station,selections),
+    customerChargeHeard:chargeHeard,
+    challengeMet:evaluateCustomerChallenge(currentChallenge,selections)
+  };
+
+  saveLocalRecord(record);
+  showSaved(record);
+}
+
+function saveServerTransaction(){
+  const selections=compactSelections(serverSelections);
+  const record={
+    recordType:"server",
+    transactionId:`${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
+    timestamp:new Date().toISOString(),
+    serverName:studentName,
+    serverClass:studentClass,
+    customerName:serverCustomer,
+    station,
+    selections,
+    calculatedPrice:calculatedPrice(station,selections),
+    serverCharge
+  };
+
+  saveLocalRecord(record);
+  showSaved(record);
+}
+
+function saveLocalRecord(record){
+  const key="auslanMarketTransactions";
+  const list=JSON.parse(localStorage.getItem(key)||"[]");
+  list.push(record);
+  localStorage.setItem(key,JSON.stringify(list));
+}
+
+function showSaved(record){
+  const msg=document.getElementById("savedMessage");
+  const debug=document.getElementById("teacherDebug");
+  if(record.recordType==="customer"){
+    msg.textContent="Your customer record has been stored on this device.";
+    debug.innerHTML=`
+      <strong>Teacher test view:</strong><br>
+      Challenge met: ${record.challengeMet ? "YES" : "NO"}<br>
+      Recorded order value: $${record.expectedPrice}<br>
+      Charge student heard: $${record.customerChargeHeard}
+    `;
+  }else{
+    msg.textContent="Your server record has been stored on this device.";
+    debug.innerHTML=`
+      <strong>Teacher test view:</strong><br>
+      Customer: ${record.customerName}<br>
+      Recorded order value: $${record.calculatedPrice}<br>
+      Server charged: $${record.serverCharge}
+    `;
+  }
+  // Keep this hidden from students in normal use.
+  debug.classList.add("hidden");
+  showScreen("screenSaved");
+}
+
+/* Helpful for testing in browser console:
+   JSON.parse(localStorage.getItem('auslanMarketTransactions')||'[]')
+*/
+</script>
+</body>
+</html>
