@@ -390,8 +390,8 @@
    Replace image paths later if your asset names differ.
 
    Expected image convention:
-   MatchingGame/assets/food/clipart/<slug>.png
-   MatchingGame/assets/food/signs/sign-<slug>.png
+   ..MatchingGame/assets/food/clipart/<slug>.png
+   ..MatchingGame/assets/food/signs/sign-<slug>.png
    ========================================================= */
 
 const studentName =
@@ -518,9 +518,9 @@ let serverCustomer = "";
 function slugPath(key, mode){
   const safe = key.replaceAll("_","-");
   if(mode === "sign"){
-    return `MatchingGame/assets/food/signs/sign-${safe}.png`;
+    return `..MatchingGame/assets/food/signs/sign-${safe}.png`;
   }
-  return `MatchingGame/assets/food/clipart/${safe}.png`;
+  return `..MatchingGame/assets/food/clipart/${safe}.png`;
 }
 
 function showScreen(id){
